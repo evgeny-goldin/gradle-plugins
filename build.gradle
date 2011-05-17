@@ -1,18 +1,14 @@
-import java.text.SimpleDateFormat
-
 apply plugin: 'groovy'
-apply plugin: 'maven'
 apply plugin: 'idea'
+apply plugin: 'maven'
 
 
 defaultTasks 'clean', 'build', 'install'
 
+
 sourceCompatibility = 1.6
 group               = 'com.goldin'
 version             = '0.0.1-SNAPSHOT'
-
-groovyVersion       = '1.8.0'
-junitVersion        = '4.8.2'
 
 
 repositories {
@@ -22,7 +18,8 @@ repositories {
 
 dependencies {
     groovy      localGroovy()
-    testCompile "junit:junit:$junitVersion"
+    compile     gradleApi()
+    testCompile 'junit:junit:4.8.2'
 }
 
 
@@ -44,58 +41,11 @@ ideaModule {
  * http://gradle.org/1.0-milestone-3/docs/javadoc/org/gradle/api/tasks/testing/Test.html
  */
 test {
-    test.testReportDir    = new File(( File ) project.buildDir, 'test/reports' )
-    test.testResultsDir   = new File(( File ) project.buildDir, 'test/results' )
-    test.systemProperties = System.properties.containsKey( 'slowTests' ) ? [ slowTests : 'true' ] : [:]
+    test.testReportDir  = new File(( File ) project.buildDir, 'test/reports' )
+    test.testResultsDir = new File(( File ) project.buildDir, 'test/results' )
     test.setDebug( System.properties.containsKey( 'debug' ))
 }
 
-
-/**
- * http://gradle.org/1.0-milestone-3/docs/dsl/org.gradle.api.tasks.javadoc.Groovydoc.html
- */
-def d    = new Date()
-def time = new SimpleDateFormat( "HH:mm '(GMT'Z')'" ).format( d )
-def date = new SimpleDateFormat( 'MMMM dd, yyyy' ).format( d )
-groovydoc.setUse( true )
-groovydoc {
-    destinationDir = new File(( System.getProperty( 'groovydocDir' ) ?: project.buildDir.path + '/groovydoc' ),
-                              ( version.contains( '-SNAPSHOT' ) ? '' : version ))
-    header = '<a href="http://evgeny-goldin.com/wiki/GCommons">evgeny-goldin.com/wiki/GCommons</a>'
-    footer = '<a href="http://evgeny-goldin.com/">Evgeny Goldin</a>. GrovyDoc was generated at ' + "$time on $date." + """
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-7925869-2']);
-  _gaq.push(['_setDomainName', 'none']);
-  _gaq.push(['_setAllowLinker', true]);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
-"""
-    /**
-     * http://jira.codehaus.org/browse/GRADLE-1391
-     */
-    link 'http://static.springsource.org/spring/docs/3.0.x/javadoc-api/', 'org.springframework.'
-    link 'http://download.oracle.com/javase/6/docs/api/',                 'java.'
-    link 'http://groovy.codehaus.org/api/',                               'groovy.', 'org.codehaus.groovy.'
-    link 'http://commons.apache.org/net/apidocs/',                        'org.apache.commons.net.'
-    link 'http://truezip.java.net/apidocs/',                              'de.schlichtherle.'
-
-    /**
-     * "Groovydoc not creating external links in generated HTML"
-     * http://gradle.1045684.n5.nabble.com/Groovydoc-not-creating-external-links-in-generated-HTML-td3315578.html
-     * http://stackoverflow.com/questions/986297/how-do-i-reference-a-classpath-from-gradle-0-6
-     * http://jira.codehaus.org/browse/GRADLE-1391
-     */
-    groovyClasspath = configurations.compile
-}
 
 /**
  * Adding sources artifact
