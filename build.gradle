@@ -19,6 +19,7 @@ repositories {
 dependencies {
     groovy      localGroovy()
     compile     gradleApi()
+    compile     'com.goldin:gcommons:0.5.3'
     testCompile 'junit:junit:4.8.2'
 }
 

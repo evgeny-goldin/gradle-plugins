@@ -12,8 +12,6 @@ class AboutPlugin implements Plugin<Project>
     @Override
     void apply ( Project p )
     {
-        p.task( 'about' ) << {
-            println "Generating about"
-        }
+        p.tasks.add( 'about', AboutTask )
     }
 }
