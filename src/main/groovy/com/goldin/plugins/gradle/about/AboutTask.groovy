@@ -1,7 +1,7 @@
-package com.goldin.gradle.about
+package com.goldin.plugins.gradle.about
 
 import com.goldin.gcommons.GCommons
-import com.goldin.gradle.util.BaseTask
+import com.goldin.plugins.gradle.util.BaseTask
 import java.text.SimpleDateFormat
 import org.gradle.api.logging.Logger
 

@@ -1,4 +1,4 @@
-package com.goldin.gradle.util
+package com.goldin.plugins.gradle.util
 
 import com.goldin.gcommons.GCommons
 import com.goldin.gcommons.beans.VerifyBean
