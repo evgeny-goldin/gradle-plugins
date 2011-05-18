@@ -11,6 +11,6 @@ class AboutPlugin implements Plugin<Project>
     @Override
     void apply ( Project p )
     {
-        p.tasks.add( 'about', com.goldin.gradle.about.AboutTask )
+        p.tasks.add( 'about', AboutTask )
     }
 }
