@@ -1,14 +1,16 @@
 package com.goldin.gradle.about
 
 import com.goldin.gcommons.GCommons
-import org.gradle.api.DefaultTask
+import com.goldin.gradle.util.BaseTask
 import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.bundling.Zip
+
 
 /**
  * {@link AboutPlugin} task
  */
-class AboutTask extends DefaultTask
+class AboutTask extends BaseTask
 {
     private final Map<String, String> env = System.getenv()
     private final Logger              log = project.logger
@@ -22,7 +24,7 @@ class AboutTask extends DefaultTask
     boolean dumpDependencies = false
     boolean gitStatusProject = true
     String  endOfLine        = 'windows'
-    File    directory        = new File( project.buildDir, 'libs' )
+    File    directory
     String  include          = '*.jar'
     String  exclude
 
@@ -30,10 +32,12 @@ class AboutTask extends DefaultTask
     @TaskAction
     def createAbout()
     {
-        fileName      = fileName ?: "about-${project.group}-${project.name}-${project.version}.txt"
+        Zip zipTask   = task( 'jar', Zip )
+        directory     = directory ?: zipTask.destinationDir
+        fileName      = fileName  ?: "about-${project.group}-${project.name}-${project.version}.txt"
         def split     = { String s -> ( List<String> )( s ? s.split( /,/ ).toList()*.trim().findAll{ it } : null ) }
         def files     = GCommons.file().files( directory, split( include ), split( exclude ))
-        def tempFile  = new File( project.buildDir, "tmp/$fileName" )
+        def tempFile  = new File( zipTask.temporaryDir, fileName )
         def prefix    = (( prefix == '/' ) ? '' : prefix )
 
         log.info( "Generating \"about\" in [$tempFile.canonicalPath] .." )
