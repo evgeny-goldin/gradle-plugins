@@ -4,8 +4,6 @@ import com.goldin.gcommons.GCommons
 import com.goldin.gradle.util.BaseTask
 import java.text.SimpleDateFormat
 import org.gradle.api.logging.Logger
-import org.gradle.api.tasks.diagnostics.DependencyReportTask
-import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer
 
 /**
  * {@link AboutPlugin} task
