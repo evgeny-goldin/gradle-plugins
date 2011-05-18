@@ -4,7 +4,8 @@ import com.goldin.gcommons.GCommons
 import com.goldin.gradle.util.BaseTask
 import java.text.SimpleDateFormat
 import org.gradle.api.logging.Logger
-import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.diagnostics.DependencyReportTask
+import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer
 
 /**
  * {@link AboutPlugin} task
@@ -59,7 +60,6 @@ class AboutTask extends BaseTask
 
     void taskAction()
     {
-        Zip zipTask   = task( 'jar', Zip )
         directory     = directory ?: zipTask.destinationDir
         fileName      = fileName  ?: "about-${group}-${name}-${version}.txt"
         def split     = { String s -> ( List<String> )( s ? s.split( /,/ ).toList()*.trim().findAll{ it } : null ) }
@@ -171,7 +171,7 @@ class AboutTask extends BaseTask
         | Tasks         : ${ project.gradle.startParameter.taskNames }
         | ${ dumpPaths ? 'Basedir       : [' + rootDir.canonicalPath + ']': '' }
         | Coordinates   : [$group:$name:$version]
-        | ${ dumpDependencies ? 'Dependencies  : [Not Yet]' : '' }""" +
+        | ${ dumpDependencies ? 'Dependencies  : [' + dependenciesContent() + ']' : '' }""" +
 
         ( dumpSystem ?
 
@@ -188,6 +188,20 @@ class AboutTask extends BaseTask
         | Environment Variables
         |===============================================================================
         |${ sort( env ) }""" : '' )
+    }
+
+
+    String dependenciesContent ()
+    {
+/*
+        def task     = (( DependencyReportTask ) project.task( 'dependencies' ))
+        def renderer = new AsciiReportRenderer()
+        def tempFile = new File( zipTask.temporaryDir, 'dependencies.txt' )
+        renderer.setOutputFile( tempFile )
+        task.setRenderer( renderer )
+        task.generate( project )
+*/
+        ''
     }
 
 
