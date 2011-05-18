@@ -1,8 +1,6 @@
 apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'maven'
-apply plugin: 'about'
-
 
 
 defaultTasks 'clean', 'build', 'install'
@@ -12,11 +10,6 @@ sourceCompatibility = 1.6
 group               = 'com.goldin.plugins'
 version             = '0.0.1-SNAPSHOT'
 
-
-buildscript {
-    repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
-    dependencies { classpath 'com.goldin.plugins:gradle:0.0.1-SNAPSHOT' }
-}
 
 repositories {
     mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/'
