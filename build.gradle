@@ -7,7 +7,7 @@ defaultTasks 'clean', 'build', 'install'
 
 
 sourceCompatibility = 1.6
-group               = 'com.goldin'
+group               = 'com.goldin.plugins'
 version             = '0.0.1-SNAPSHOT'
 
 
