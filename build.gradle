@@ -3,48 +3,29 @@ apply plugin: 'idea'
 apply plugin: 'maven'
 
 
-defaultTasks 'clean', 'build', 'install'
+defaultTasks 'clean', 'build'
 
 
 sourceCompatibility = 1.6
 group               = 'com.goldin.plugins'
-version             = '0.0.1-SNAPSHOT'
+version             = '0.1-RC'
 
 
-repositories {
-    mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/'
-}
-
-
+repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
 dependencies {
     groovy      localGroovy()
     compile     gradleApi()
-    compile     'com.goldin:gcommons:0.5.3'
+    compile     'org.gcontracts:gcontracts-core:1.2.3'
     testCompile 'junit:junit:4.8.2'
 }
 
 
-/**
- * http://gradle.org/1.0-milestone-3/docs/dsl/org.gradle.plugins.idea.IdeaModule.html
- */
-ideaProject.javaVersion = '1.6.0_25'
-ideaModule {
-    javaVersion     = ideaProject.javaVersion
-    downloadSources = true
-    downloadJavadoc = false
-    outputDir       = new File( project.buildDir, 'idea' )
-    testOutputDir   = new File( project.buildDir, 'idea/test' )
+ideaProject {
+    javaVersion     = '1.6.0_25'
 }
-
-
-/**
- * http://gradle.org/1.0-milestone-3/docs/dsl/org.gradle.api.tasks.testing.Test.html
- * http://gradle.org/1.0-milestone-3/docs/javadoc/org/gradle/api/tasks/testing/Test.html
- */
-test {
-    test.testReportDir  = new File(( File ) project.buildDir, 'test/reports' )
-    test.testResultsDir = new File(( File ) project.buildDir, 'test/results' )
-    test.setDebug( System.properties.containsKey( 'debug' ))
+ideaModule {
+    downloadSources = true
+    downloadJavadoc = true
 }
 
 
