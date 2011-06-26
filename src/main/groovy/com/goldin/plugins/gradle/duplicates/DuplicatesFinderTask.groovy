@@ -7,23 +7,18 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 
 /**
- * Serches for duplicates in scopes provided
+ * Searches for duplicates in configurations provided
  */
 class DuplicatesFinderTask extends BaseTask
 {
-    List<String> scopes  = null  // Default - all scopes are checked
-    boolean      fail    = true  // Whether execution should fail when duplicates are found
-    boolean      verbose = false // Whether logging is verbose
+    List<String> configurations = null  // Default - all configurations are checked
+    boolean      fail           = true  // Whether execution should fail when duplicates are found
+    boolean      verbose        = false // Whether logging is verbose
 
     /**
      * Cache of file on the disk to classes it contains
      */
     private final Map<File, List<String>> CLASSES_CACHE = [:]
-
-    /**
-     * Mapping of file to its dependency
-     */
-    private final Map<File, Dependency> F2D = [:]
 
 
     @Override
@@ -32,57 +27,64 @@ class DuplicatesFinderTask extends BaseTask
         project.configurations.each {
             Configuration c ->
 
-            if (( ! scopes ) || ( scopes.contains( c.name )))
+            if (( ! configurations ) || ( configurations.contains( c.name )))
             {
-                for ( Dependency d in c.dependencies )
-                {
-                    def files = c.files( d )
-                    assert files.size() == 1
-                    F2D[ files.iterator().next() ] = d
+                Map<File, Dependency> f2d = ( Map ) c.dependencies.inject([:]) {
+                    Map m, Dependency d ->
+                    m[ c.files( d ).iterator().next() ] = d
+                    m
                 }
 
-                checkScope( c.name, c.iterator().collect{ it } )
+                checkConfiguration( c, f2d )
             }
         }
     }
 
 
     /**
-     * Validates scope specified contains no duplicate entries.
+     * Validates configuration specified contains no duplicate entries.
      *
-     * @param scopeName name of the scope
-     * @param files scope files resolved
+     * @param c    configuration to check
+     * @param f2d  mapping of files to their corresponding dependencies
      */
-    private void checkScope( String scopeName, List<File> files )
+    private void checkConfiguration ( Configuration c, Map<File, Dependency> f2d )
     {
        /**
         * Mapping of class names to files they're found in
         */
-        def classes = files.inject( [:].withDefault{ [] } ){
+        Map<String, List<File>> classes = ( Map ) c.files.inject( [:].withDefault{ [] } ){
             Map m, File f ->
             classNames( f ).each{ String className -> m[ className ] << f }
             m
         }
 
         /**
-         * Mapping of violating artifacts (Stringified list) to duplicate class names
+         * Mapping of violating dependencies (Stringified list) to duplicate class names
          */
         Map<String, List<String>> violations =
-            // First, finding classes with more than one file they're found in
-            ( Map ) classes.findAll { String className, List<File> f -> f.size() > 1 }.
-            // Second, violating classes are converted to mapping of violating dependencies: list of deps => list of class names
-            inject( [:].withDefault{ [] } ){
-                Map m, Map.Entry<String, List<File>> entry ->
 
-                String className    = entry.key
-                //                    List<File> => List<Dependency> => String
-                String dependencies = entry.value.collect{ F2D[ it ] }.toString()
-                m[ dependencies ]  << className
+           /**
+            * First, finding classes with more than one file they're found in
+            */
+            ( Map ) classes.findAll { String className, List<File> f -> f.size() > 1 }.
+
+            /**
+             * Second, violating classes are converted to mapping of violating dependencies:
+             * List of dependencies => List of class names
+             */
+            inject( [:].withDefault{ [] } ){
+                Map m, String className, List<File> classFiles ->
+
+                // List<File> => List<Dependency> => List<String> => String
+                String dependencies = classFiles.collect{ File       f -> f2d[ f ] }.
+                                                 collect{ Dependency d -> "$d.group.$d.name.$d.version" }.
+                                                 toString()
+                m[ dependencies ] << className
                 m
             }
 
-        if ( violations ) { reportViolations( scopeName, violations ) }
-        else              { project.logger.info( "No duplicate libraries found" ) }
+        if ( violations ) { reportViolations( c.name, violations ) }
+        else              { project.logger.info( "No duplicate libraries found in configuration [$c.name]" ) }
     }
 
 
@@ -119,15 +121,17 @@ class DuplicatesFinderTask extends BaseTask
      *
      * @param violations violations found
      */
-    private void reportViolations( String scopeName, Map<String, List<String>> violations )
+    private void reportViolations( String configurationName, Map<String, List<String>> violations )
     {
         def message =
-            '\nScope [$scopeName] - duplicates found in:\n' +
-            violations.collect{ String dependencies, List<String> classes ->
-                                [ "-=-= $dependencies =-=-" ] + ( verbose ? classes.sort().collect { " --- [$it]" } : [] ) }.
-                       flatten().
-                       findAll{ it }.
-                       join( '\n' )
+            "\nConfiguration [$configurationName] - duplicates found in:\n" +
+            violations.collect{
+                String dependencies, List<String> classes ->
+                [ "-=-= $dependencies =-=-" ] + ( verbose ? classes.sort().collect { " --- [$it]" } : [] )
+            }.
+            flatten(). // List of Lists => one flat List
+            findAll{ it }.
+            join( '\n' )
 
         if ( fail ) { throw new RuntimeException( message )}
         else        { project.logger.error( message )}
