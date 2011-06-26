@@ -29,13 +29,16 @@ class DuplicatesFinderTask extends BaseTask
 
             if (( ! configurations ) || ( configurations.contains( c.name )))
             {
+               /**
+                * Mapping of a File to its corresponding Dependency
+                */
                 Map<File, Dependency> f2d = ( Map ) c.dependencies.inject([:]) {
                     Map m, Dependency d ->
                     m[ c.files( d ).iterator().next() ] = d
                     m
                 }
 
-                checkConfiguration( c, f2d )
+                validateConfig( c.name, c.files, f2d )
             }
         }
     }
@@ -44,15 +47,16 @@ class DuplicatesFinderTask extends BaseTask
     /**
      * Validates configuration specified contains no duplicate entries.
      *
-     * @param c    configuration to check
-     * @param f2d  mapping of files to their corresponding dependencies
+     * @param configName  configuration name
+     * @param configFiles all configuration dependency files resolved
+     * @param f2d         mapping of files to their corresponding dependencies
      */
-    private void checkConfiguration ( Configuration c, Map<File, Dependency> f2d )
+    void validateConfig ( String configName, Set<File> configFiles, Map<File, Dependency> f2d )
     {
        /**
         * Mapping of class names to files they're found in
         */
-        Map<String, List<File>> classes = ( Map ) c.files.inject( [:].withDefault{ [] } ){
+        Map<String, List<File>> classes = ( Map ) configFiles.inject( [:].withDefault{ [] } ){
             Map m, File f ->
             classNames( f ).each{ String className -> m[ className ] << f }
             m
@@ -76,15 +80,15 @@ class DuplicatesFinderTask extends BaseTask
                 Map m, String className, List<File> classFiles ->
 
                 // List<File> => List<Dependency> => List<String> => String
-                String dependencies = classFiles.collect{ File       f -> f2d[ f ] }.
+                String dependencies = classFiles.collect{ File       f -> assert f2d[ f ]; f2d[ f ] }.
                                                  collect{ Dependency d -> "$d.group.$d.name.$d.version" }.
                                                  toString()
                 m[ dependencies ] << className
                 m
             }
 
-        if ( violations ) { reportViolations( c.name, violations ) }
-        else              { project.logger.info( "No duplicate libraries found in configuration [$c.name]" ) }
+        if ( violations ) { reportViolations( configName, violations ) }
+        else              { project.logger.info( "No duplicate libraries found in configuration [$configName]" ) }
     }
 
 
@@ -94,7 +98,7 @@ class DuplicatesFinderTask extends BaseTask
      * @param file Zip archive to read
      * @return list of class names stored in it
      */
-    private List<String> classNames ( File file )
+    List<String> classNames ( File file )
     {
         if ( CLASSES_CACHE.containsKey( file ))
         {
@@ -121,7 +125,7 @@ class DuplicatesFinderTask extends BaseTask
      *
      * @param violations violations found
      */
-    private void reportViolations( String configurationName, Map<String, List<String>> violations )
+    void reportViolations( String configurationName, Map<String, List<String>> violations )
     {
         def message =
             "\nConfiguration [$configurationName] - duplicates found in:\n" +
