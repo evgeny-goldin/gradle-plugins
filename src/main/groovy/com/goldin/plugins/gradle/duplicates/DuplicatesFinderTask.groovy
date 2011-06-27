@@ -57,7 +57,7 @@ class DuplicatesFinderTask extends BaseTask
     @Ensures({ result != null })
     Map<String, List<String>> getViolations( Configuration config )
     {
-        Set<File> configFiles = config.resolve()
+        Set<File> configFiles = config.resolve().findAll { it.isFile() } // To filter out directories
 
         if ( ! configFiles ) { return [:] }
 
@@ -119,7 +119,9 @@ class DuplicatesFinderTask extends BaseTask
         }.
         inject( [:] ) {
             Map m, ResolvedDependency rd ->
-            File dependencyFile = rd.allModuleArtifacts.iterator().next().file
+            File   dependencyFile = rd.allModuleArtifacts.iterator().next().file
+            assert dependencyFile.isFile()
+
             m[ dependencyFile ] = "$rd.moduleGroup:$rd.moduleName:$rd.moduleVersion"
             m
         }
