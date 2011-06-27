@@ -29,10 +29,12 @@ class DuplicatesFinderTask extends BaseTask
 
             if (( ! configurations ) || ( configurations.contains( c.name )))
             {
+                c.resolve()
+
                /**
                 * Mapping of a File to its corresponding Dependency
                 */
-                Map<File, Dependency> f2d = ( Map ) c.dependencies.inject([:]) {
+                Map<File, Dependency> f2d = ( Map ) c.allDependencies.inject([:]) {
                     Map m, Dependency d ->
                     m[ c.files( d ).iterator().next() ] = d
                     m
@@ -53,6 +55,8 @@ class DuplicatesFinderTask extends BaseTask
      */
     void validateConfig ( String configName, Set<File> configFiles, Map<File, Dependency> f2d )
     {
+        assert ( configFiles.size() == f2d.size()) && ( configFiles.each { f2d[ it ] } )
+
        /**
         * Mapping of class names to files they're found in
         */
