@@ -171,12 +171,12 @@ class DuplicatesFinderTask extends BaseTask
 
             assert configViolations
 
-            ( "\nConfiguration [$configName] - duplicates found in:\n" +
-              configViolations.collect{ String dependencies, List<String> classes ->
-                                        [ "-=-= $dependencies =-=-" ] +
-                                        ( verbose ? classes.sort().collect { " --- [$it]" } : [] )} )
+            [ "\nConfiguration [$configName] - duplicates found in:" ] +
+            configViolations.collect{ String dependencies, List<String> classes ->
+                                      [ "-=-= $dependencies =-=-" ] +
+                                      ( verbose ? classes.sort().collect { " --- [$it]" } : [] )}
         }.
-        flatten(). // List of Lists => one flat List
+        flatten().
         findAll{ it }.
         join( '\n' )
 
