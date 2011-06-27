@@ -15,7 +15,7 @@ repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
 dependencies {
     groovy      localGroovy()
     compile     gradleApi()
-    compile     'org.gcontracts:gcontracts-core:1.2.3'
+    compile     'org.gcontracts:gcontracts-core:1.2.4'
     testCompile 'junit:junit:4.8.2'
 }
 

@@ -3,8 +3,11 @@ package com.goldin.plugins.gradle.duplicates
 import com.goldin.plugins.gradle.util.BaseTask
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
+import org.gcontracts.annotations.Ensures
+import org.gcontracts.annotations.Requires
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.ResolvedDependency
 
 /**
  * Searches for duplicates in configurations provided
@@ -25,26 +28,36 @@ class DuplicatesFinderTask extends BaseTask
     void taskAction ()
     {
         project.configurations.each {
-            Configuration c ->
+            Configuration config ->
 
-            if (( ! configurations ) || ( configurations.contains( c.name )))
+            if (( ! configurations ) || ( configurations.contains( config.name )))
             {
-                c.resolve()
-
-               /**
-                * Mapping of a File to its corresponding Dependency
-                */
-                Map<File, Dependency> f2d = ( Map ) c.allDependencies.inject([:]) {
-                    Map m, Dependency d ->
-                    m[ c.files( d ).iterator().next() ] = d
-                    m
-                }
-
-                validateConfig( c.name, c.files, f2d )
+                validateConfig( config.name, config.resolve(), f2d( config ))
             }
         }
     }
 
+
+    @Requires({ c })
+    @Ensures({ result != null })
+    Map<File, String> f2d ( Configuration c )
+    {
+        ResolvedConfiguration rc = c.resolvedConfiguration
+
+        ( Map ) rc.resolvedArtifacts*.resolvedDependency.
+        unique {
+            ResolvedDependency d1, ResolvedDependency d2 ->
+            (( d1.moduleGroup   != d2.moduleGroup   ) ||
+             ( d1.moduleName    != d2.moduleName    ) ||
+             ( d1.moduleVersion != d2.moduleVersion )) ? 1 : 0
+        }.
+        inject( [:] ) {
+            Map m, ResolvedDependency rd ->
+            File dependencyFile = rd.allModuleArtifacts.iterator().next().file
+            m[ dependencyFile ] = "$rd.moduleGroup:$rd.moduleName:$rd.moduleVersion"
+            m
+        }
+    }
 
     /**
      * Validates configuration specified contains no duplicate entries.
@@ -53,7 +66,7 @@ class DuplicatesFinderTask extends BaseTask
      * @param configFiles all configuration dependency files resolved
      * @param f2d         mapping of files to their corresponding dependencies
      */
-    void validateConfig ( String configName, Set<File> configFiles, Map<File, Dependency> f2d )
+    void validateConfig ( String configName, Set<File> configFiles, Map<File, String> f2d )
     {
         assert ( configFiles.size() == f2d.size()) && ( configFiles.each { f2d[ it ] } )
 
@@ -72,22 +85,21 @@ class DuplicatesFinderTask extends BaseTask
         Map<String, List<String>> violations =
 
            /**
-            * First, finding classes with more than one file they're found in
+            * First, classes with more than one file they're found in are located
             */
             ( Map ) classes.findAll { String className, List<File> f -> f.size() > 1 }.
 
             /**
              * Second, violating classes are converted to mapping of violating dependencies:
-             * List of dependencies => List of class names
+             * List of dependencies (Stringified list) => List of class names
              */
             inject( [:].withDefault{ [] } ){
-                Map m, String className, List<File> classFiles ->
+                Map m, Map.Entry<String, List<File>> entry ->
 
-                // List<File> => List<Dependency> => List<String> => String
-                String dependencies = classFiles.collect{ File       f -> assert f2d[ f ]; f2d[ f ] }.
-                                                 collect{ Dependency d -> "$d.group.$d.name.$d.version" }.
-                                                 toString()
-                m[ dependencies ] << className
+                // List<File> => List<String> => String
+                String dependencies = entry.value.collect{ f2d[ it ] }.toString()
+                // Adding new class name to the list of classes
+                m[ dependencies ]  << entry.key
                 m
             }
 
