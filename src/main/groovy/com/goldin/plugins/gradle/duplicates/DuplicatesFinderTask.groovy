@@ -27,29 +27,95 @@ class DuplicatesFinderTask extends BaseTask
     @Override
     void taskAction ()
     {
-        project.configurations.each {
-            Configuration config ->
+        Map<String, Map<String, List<String>>> violations =
+        ( Map ) project.configurations.inject( [:] ) {
+            Map m, Configuration c ->
 
-            if (( ! configurations ) || ( configurations.contains( config.name )))
-            {
-                validateConfig( config.name, config.resolve(), f2d( config ))
-            }
+            m[ c.name ] = (( ! configurations ) || ( configurations.contains( c.name ))) ?
+                            getViolations( c ) :
+                            [:]
+            m
+        }.
+        findAll {
+            String configName, Map configViolations ->
+            configViolations
+        }
+
+        if ( violations ) { reportViolations( violations ) }
+    }
+
+
+    /**
+     * Gets all duplicate violations in Configuration specified.
+     *
+     * @param config configuration to check for duplicates
+     * @return configuration violations as mapping:
+     *         key   - violating dependencies, Stringified list
+     *         value - duplicate classes found in those dependencies
+     */
+    @Requires({ config })
+    @Ensures({ result != null })
+    Map<String, List<String>> getViolations( Configuration config )
+    {
+        Set<File> configFiles = config.resolve()
+
+        if ( ! configFiles ) { return [:] }
+
+        Map<File, String> f2d = filesToDependencies( config )
+        assert ( configFiles.size() == f2d.size()) && ( configFiles.each { f2d[ it ] } )
+
+       /**
+        * 1) Mapping of class names to files they're found in:
+        *    Map<String, List<File>>
+        */
+        ( Map ) configFiles.inject( [:].withDefault{ [] } ){
+            Map m, File f ->
+            classNames( f ).each{ String className -> m[ className ] << f }
+            m
+        }.
+
+       /**
+        * 2) Classes with more than one file they're found in
+        *    Map<String, List<File>>
+        */
+        findAll { String className, List<File> f -> f.size() > 1 }.
+
+        /**
+         * 3) Mapping of violating dependencies to duplicate classes
+         *    Map<String, List<String>>
+         */
+        inject( [:].withDefault{ [] } ){
+            Map m, Map.Entry<String, List<File>> entry ->
+
+            // List<File> => List<String> (via f2d) => String
+            String dependencies = entry.value.collect{ f2d[ it ] }.toString()
+            // Adding duplicate class name to violation dependencies list of classes
+            m[ dependencies ]  << entry.key
+            m
         }
     }
 
 
-    @Requires({ c })
+   /**
+    * Creates File => Dependency (as String) mapping for Configuration specified.
+    *
+    * @param config Configuration to create the mapping for
+    * @return Mapping:
+    *         key   - File
+    *         value - Dependency the file is originated from (as "group:name:version")
+    */
+    @Requires({ config })
     @Ensures({ result != null })
-    Map<File, String> f2d ( Configuration c )
+    Map<File, String> filesToDependencies ( Configuration config )
     {
-        ResolvedConfiguration rc = c.resolvedConfiguration
+        ResolvedConfiguration rc = config.resolvedConfiguration
 
         ( Map ) rc.resolvedArtifacts*.resolvedDependency.
         unique {
-            ResolvedDependency d1, ResolvedDependency d2 ->
-            (( d1.moduleGroup   != d2.moduleGroup   ) ||
-             ( d1.moduleName    != d2.moduleName    ) ||
-             ( d1.moduleVersion != d2.moduleVersion )) ? 1 : 0
+            ResolvedDependency rd1, ResolvedDependency rd2 ->
+            (( rd1.moduleGroup   != rd2.moduleGroup   ) ||
+             ( rd1.moduleName    != rd2.moduleName    ) ||
+             ( rd1.moduleVersion != rd2.moduleVersion )) ? 1 : 0
         }.
         inject( [:] ) {
             Map m, ResolvedDependency rd ->
@@ -59,61 +125,15 @@ class DuplicatesFinderTask extends BaseTask
         }
     }
 
-    /**
-     * Validates configuration specified contains no duplicate entries.
-     *
-     * @param configName  configuration name
-     * @param configFiles all configuration dependency files resolved
-     * @param f2d         mapping of files to their corresponding dependencies
-     */
-    void validateConfig ( String configName, Set<File> configFiles, Map<File, String> f2d )
-    {
-        assert ( configFiles.size() == f2d.size()) && ( configFiles.each { f2d[ it ] } )
-
-       /**
-        * Mapping of class names to files they're found in
-        */
-        Map<String, List<File>> classes = ( Map ) configFiles.inject( [:].withDefault{ [] } ){
-            Map m, File f ->
-            classNames( f ).each{ String className -> m[ className ] << f }
-            m
-        }
-
-        /**
-         * Mapping of violating dependencies (Stringified list) to duplicate class names
-         */
-        Map<String, List<String>> violations =
-
-           /**
-            * First, classes with more than one file they're found in are located
-            */
-            ( Map ) classes.findAll { String className, List<File> f -> f.size() > 1 }.
-
-            /**
-             * Second, violating classes are converted to mapping of violating dependencies:
-             * List of dependencies (Stringified list) => List of class names
-             */
-            inject( [:].withDefault{ [] } ){
-                Map m, Map.Entry<String, List<File>> entry ->
-
-                // List<File> => List<String> => String
-                String dependencies = entry.value.collect{ f2d[ it ] }.toString()
-                // Adding new class name to the list of classes
-                m[ dependencies ]  << entry.key
-                m
-            }
-
-        if ( violations ) { reportViolations( configName, violations ) }
-        else              { project.logger.info( "No duplicate libraries found in configuration [$configName]" ) }
-    }
-
 
     /**
-     * Reads Zip archive and returns a list of class names stored in it.
+     * Reads Zip archive and returns list of class names stored in it.
      *
      * @param file Zip archive to read
      * @return list of class names stored in it
      */
+    @Requires({ file.isFile() })
+    @Ensures({ result != null })
     List<String> classNames ( File file )
     {
         if ( CLASSES_CACHE.containsKey( file ))
@@ -121,7 +141,6 @@ class DuplicatesFinderTask extends BaseTask
             return CLASSES_CACHE[ file ]
         }
 
-        assert file.isFile()
         ZipFile zip = new ZipFile( file )
 
         try
@@ -129,9 +148,8 @@ class DuplicatesFinderTask extends BaseTask
             CLASSES_CACHE[ file ] =
                 zip.entries().findAll{ ZipEntry entry -> entry.name.endsWith( '.class' ) }.
                               collect{ ZipEntry entry -> entry.name.replace( '/', '.' ).
-                                                               replaceAll( /\.class$/, '' )}
+                                                                    replaceAll( /\.class$/, '' ) }
         }
-
         finally { zip.close() }
     }
 
@@ -139,19 +157,28 @@ class DuplicatesFinderTask extends BaseTask
     /**
      * Reports violations found by throwing an exception or logging an error message.
      *
-     * @param violations violations found
+     * @param violations violations found, as mapping:
+     *        key   - configuration name
+     *        value - configuration violations, as mapping:
+     *                key   - violating dependencies, Stringified list
+     *                value - duplicate classes found in violating dependencies
      */
-    void reportViolations( String configurationName, Map<String, List<String>> violations )
+    @Requires({ violations })
+    void reportViolations( Map<String, Map<String, List<String>>> violations )
     {
-        def message =
-            "\nConfiguration [$configurationName] - duplicates found in:\n" +
-            violations.collect{
-                String dependencies, List<String> classes ->
-                [ "-=-= $dependencies =-=-" ] + ( verbose ? classes.sort().collect { " --- [$it]" } : [] )
-            }.
-            flatten(). // List of Lists => one flat List
-            findAll{ it }.
-            join( '\n' )
+        def message = violations.collect {
+            String configName, Map<String, List<String>> configViolations ->
+
+            assert configViolations
+
+            ( "\nConfiguration [$configName] - duplicates found in:\n" +
+              configViolations.collect{ String dependencies, List<String> classes ->
+                                        [ "-=-= $dependencies =-=-" ] +
+                                        ( verbose ? classes.sort().collect { " --- [$it]" } : [] )} )
+        }.
+        flatten(). // List of Lists => one flat List
+        findAll{ it }.
+        join( '\n' )
 
         if ( fail ) { throw new RuntimeException( message )}
         else        { project.logger.error( message )}
