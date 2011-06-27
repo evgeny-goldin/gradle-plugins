@@ -1,5 +1,5 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Gradle plugins, see [examples](https://github.com/evgeny-goldin/gradle-plugins/tree/master/examples).
+Gradle plugins, see [examples](http://github.com/evgeny-goldin/gradle-plugins/tree/master/examples).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To use "gradle-about-plugin" ( http://evgeny-goldin.com/wiki/Gradle-about-plugin ):
