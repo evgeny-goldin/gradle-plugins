@@ -1,5 +1,5 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Gradle plugins
+Gradle plugins, see [examples](https://github.com/evgeny-goldin/gradle-plugins/tree/master/examples).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To use "gradle-about-plugin" ( http://evgeny-goldin.com/wiki/Gradle-about-plugin ):
@@ -27,3 +27,23 @@ about {
 assemble.doLast { about.execute() } // Or simply run
 install.doFirst { about.execute() } // "> gradle build about"
 ---------------------------------
+
+To use "gradle-duplicates-plugin" ( http://evgeny-goldin.com/wiki/Gradle-duplicates-plugin ):
+
+---------------------------------
+apply plugin: 'groovy'
+apply plugin: 'duplicates'
+
+buildscript {
+    repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
+    dependencies { classpath 'com.goldin.plugins:gradle:0.1-RC2' }
+}
+
+repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
+duplicates   { configurations = [ 'compile', 'testCompile' ],
+               verbose        = true }
+
+..
+---------------------------------
+
+Run "gradle duplicates".
