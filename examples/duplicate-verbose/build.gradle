@@ -8,8 +8,7 @@ buildscript {
 
 repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
 duplicates   { configurations = [ 'compile', 'testCompile' ]
-               verbose        = true
-	       fail           = false }
+               verbose        = true }
 
 dependencies {
     compile     'org.springframework:spring-core:3.0.5.RELEASE',
