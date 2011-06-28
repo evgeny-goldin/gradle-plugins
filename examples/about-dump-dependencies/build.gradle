@@ -1,0 +1,21 @@
+apply plugin: 'groovy'
+apply plugin: 'about'
+
+defaultTasks 'clean', 'build'
+
+
+buildscript {
+    repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
+    dependencies { classpath 'com.goldin.plugins:gradle:0.1-RC2' }
+}
+
+repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
+about        { dumpDependencies = true }
+
+dependencies {
+    groovy      'org.codehaus.groovy:groovy-all:1.8.0'
+    compile     'org.codehaus.groovy:groovy-all:1.8.0',
+                'org.gcontracts:gcontracts-core:1.2.4'
+}
+
+assemble.doLast { about.execute() }
