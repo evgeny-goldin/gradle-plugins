@@ -33,6 +33,9 @@ task codenarc() {
 
     doFirst {
 
+        List<File> sourceDirs = codenarcSources.split( ',' )*.trim().findAll{ it }.collect{ project.file( it ) }
+        if ( ! sourceDirs.any{ it.isDirectory() }) { return }
+
         if ( ! codenarcConfig.startsWith( 'http://' ))
         {
             File   f = rootProject.file( codenarcConfig  )
@@ -43,21 +46,19 @@ task codenarc() {
         File   reportDir = new File(( File ) project.buildDir, codenarcReportDir )
         assert reportDir.isDirectory() || reportDir.mkdirs()
 
-        ant.taskdef( name     : 'codenarc',
-                     classname: 'org.codenarc.ant.CodeNarcTask',
-                     classpath: configurations.codenarc.asPath )
+        ant.taskdef( name      : 'codenarc',
+                     classname : 'org.codenarc.ant.CodeNarcTask',
+                     classpath : configurations.codenarc.asPath )
 
-        ant.codenarc ( ruleSetFiles          : codenarcConfig,
-                       maxPriority1Violations: codenarcPriority1Violations,
-                       maxPriority2Violations: codenarcPriority2Violations,
-                       maxPriority3Violations: codenarcPriority3Violations ) {
-             report  ( type   : codenarcReportType ) {
-                 option name  : 'outputFile',
-                        value : new File(( File ) reportDir, codenarcReportFile )
+        ant.codenarc ( ruleSetFiles           : codenarcConfig,
+                       maxPriority1Violations : codenarcPriority1Violations,
+                       maxPriority2Violations : codenarcPriority2Violations,
+                       maxPriority3Violations : codenarcPriority3Violations ) {
+             report  ( type  : codenarcReportType ) {
+                option name  : 'outputFile',
+                       value : new File(( File ) reportDir, codenarcReportFile )
              }
-             codenarcSources.split( ',' )*.trim().findAll{ it }.each {
-                 fileset ( dir  : project.file( it ))
-             }
+             sourceDirs.each { if ( it.isDirectory()){ fileset ( dir : it ) }}
         }
     }
 }
