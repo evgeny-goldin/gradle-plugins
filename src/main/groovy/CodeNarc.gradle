@@ -56,7 +56,7 @@ task codenarc() {
                         value : new File(( File ) reportDir, codenarcReportFile )
              }
              codenarcSources.split( ',' )*.trim().findAll{ it }.each {
-                 fileset ( dir  : it )
+                 fileset ( dir  : project.file( it ))
              }
         }
     }
