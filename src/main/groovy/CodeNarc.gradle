@@ -19,7 +19,7 @@ configurations { codenarc }
 dependencies   {
     codenarc ( "org.codenarc:CodeNarc:$codenarcVersion" ){ exclude group: 'ant' }
     codenarc 'org.apache.ant:ant:1.8.2',
-             'com.goldin.plugins:gradle:0.1-RC2' // For "log4j.xml"
+             'com.goldin.plugins:gradle:0.1-RC3' // For "log4j.xml"
 }
 
 

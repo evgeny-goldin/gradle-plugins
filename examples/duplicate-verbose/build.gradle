@@ -3,7 +3,7 @@ apply plugin: 'duplicates'
 
 buildscript {
     repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
-    dependencies { classpath 'com.goldin.plugins:gradle:0.1-RC2' }
+    dependencies { classpath 'com.goldin.plugins:gradle:0.1-RC3' }
 }
 
 repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
@@ -13,7 +13,7 @@ duplicates   { configurations = [ 'compile', 'testCompile' ]
 dependencies {
     compile     'org.springframework:spring-core:3.0.5.RELEASE',
                 'org.springframework:spring:2.5.6',
-                'commons-beanutils:commons-beanutils:1.8.3', 
+                'commons-beanutils:commons-beanutils:1.8.3',
                 'commons-collections:commons-collections:3.2.1'
     testCompile 'org.hamcrest:hamcrest-core:1.2',
                 'junit:junit:4.8.2'

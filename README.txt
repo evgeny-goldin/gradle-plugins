@@ -11,7 +11,7 @@ apply plugin: 'about'
 
 buildscript {
     repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
-    dependencies { classpath 'com.goldin.plugins:gradle:0.1-RC2'                }
+    dependencies { classpath 'com.goldin.plugins:gradle:0.1-RC3'                }
 }
 
 ..
@@ -36,7 +36,7 @@ apply plugin: 'duplicates'
 
 buildscript {
     repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
-    dependencies { classpath 'com.goldin.plugins:gradle:0.1-RC2' }
+    dependencies { classpath 'com.goldin.plugins:gradle:0.1-RC3' }
 }
 
 repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
