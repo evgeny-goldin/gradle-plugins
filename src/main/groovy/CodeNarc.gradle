@@ -58,7 +58,13 @@ task codenarc() {
                 option name  : 'outputFile',
                        value : new File(( File ) reportDir, codenarcReportFile )
              }
-             sourceDirs.each { if ( it.isDirectory()){ fileset ( dir : it ) }}
+             sourceDirs.each { 
+                if ( it.isDirectory()) { 
+                   fileset ( dir : it ) {
+                      include ( name : '**/*.groovy')                       
+                   }
+                }
+             }
         }
     }
 }
