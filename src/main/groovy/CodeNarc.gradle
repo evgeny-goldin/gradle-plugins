@@ -27,8 +27,7 @@ dependencies   { codenarc ( "org.codenarc:CodeNarc:$codenarcVersion" ){ exclude 
 
 
 /**
- * Runs CodeNarc inspections on Groovy sources
- * http://codenarc.sourceforge.net/codenarc-ant-task.html
+ * Runs CodeNarc inspections on Groovy/Gradle sources.
  */
 task codenarc() {
 
