@@ -2,7 +2,7 @@ assert project && rootProject
 
 def    codenarcProp                = { String name, Object defaultValue -> project.hasProperty( name ) ? project.property( name ) : defaultValue }
 String codenarcVersion             = codenarcProp( 'codenarcVersion',      '0.14' )
-List   codenarcSources             = ( List ) codenarcProp( 'codenarcSources',      [ '.', 'src/main/groovy', 'src/test/groovy' ] )
+List   codenarcSources             = ( List ) codenarcProp( 'codenarcSources',      [ 'src/main/groovy', 'src/test/groovy' ] )
 List   codenarcRuleSetFiles        = ( List ) codenarcProp( 'codenarcRuleSetFiles', [ 'http://codenarc.sourceforge.net/StarterRuleSet-AllRulesByCategory.groovy.txt' ] )
 List   codenarcExtensions          = ( List ) codenarcProp( 'codenarcExtensions',   [ '**/*.groovy', '**/*.gradle' ] )
 String codenarcReportDir           = codenarcProp( 'codenarcReportDir',    'reports' )
