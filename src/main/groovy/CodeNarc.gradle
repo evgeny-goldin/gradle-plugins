@@ -44,7 +44,8 @@ task codenarc() {
             return
         }
 
-        assert codenarcReportDirObject.with{ directory || mkdirs() }, "Failed to create [$codenarcReportDirObject.canonicalPath]"
+        assert codenarcReportDirObject.with{ directory   || mkdirs() }, "Failed to create [$codenarcReportDirObject.canonicalPath]"
+        assert codenarcReportFileObject.with{ ( ! file ) || delete() }, "Failed to delete [$codenarcReportFileObject.canonicalPath]"
         logger.log( LogLevel.INFO, "Writing CodeNarc report of ${ codenarcSourceDirs*.canonicalPath }/${ codenarcExtensions } to [$codenarcReportFileObject.canonicalPath]" )
 
         /**
