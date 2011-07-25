@@ -1,17 +1,24 @@
-
 assert project && rootProject
 
 def codenarcProp                   = { String name, Object defaultValue -> project.hasProperty( name ) ? project.property( name ) : defaultValue }
 String codenarcVersion             = codenarcProp( 'codenarcVersion',      '0.14' )
+List   codenarcSources             = ( List ) codenarcProp( 'codenarcSources',      [ '.', 'src/main/groovy', 'src/test/groovy' ] )
 List   codenarcRuleSetFiles        = ( List ) codenarcProp( 'codenarcRuleSetFiles', [ 'http://codenarc.sourceforge.net/StarterRuleSet-AllRulesByCategory.groovy.txt' ] )
+List   codenarcExtensions          = ( List ) codenarcProp( 'codenarcExtensions',   [ '**/*.groovy', '**/*.gradle' ] )
 String codenarcReportDir           = codenarcProp( 'codenarcReportDir',    'reports' )
 String codenarcReportType          = codenarcProp( 'codenarcReportType',   'html' )
 String codenarcReportTitle         = codenarcProp( 'codenarcReportTitle',  'CodeNarc Report' )
 String codenarcReportFile          = codenarcProp( 'codenarcReportFile',   'codenarc.html' )
-List   codenarcSources             = ( List ) codenarcProp( 'codenarcSources',      [ 'src/main/groovy, src/test/groovy' ] )
 String codenarcPriority1Violations = codenarcProp( 'codenarcPriority1Violations', 0 )
 String codenarcPriority2Violations = codenarcProp( 'codenarcPriority2Violations', 0 )
 String codenarcPriority3Violations = codenarcProp( 'codenarcPriority3Violations', 0 )
+
+File codenarcReportDirObject       = new File(( File ) project.buildDir, codenarcReportDir  )
+File codenarcReportFileObject      = new File( codenarcReportDirObject,  codenarcReportFile )
+List codenarcSourceDirs            = codenarcSources.findAll{ it }.collect{ project.file( it ) }.findAll { it.directory }
+List codenarcRuleSetFilesConverted = codenarcRuleSetFiles.findAll{ it }.collect {
+    ( it.startsWith( 'http://' ) ? it : 'file:' + rootProject.file( it ).canonicalPath )
+}
 
 
 repositories   { mavenCentral() }
@@ -25,26 +32,25 @@ dependencies   { codenarc ( "org.codenarc:CodeNarc:$codenarcVersion" ){ exclude 
  */
 task codenarc() {
 
-    description = 'Runs CodeNarc inspections on Groovy sources.'
+    description = 'Runs CodeNarc inspections on Groovy/Gradle sources.'
+    inputs.files codenarcRuleSetFilesConverted.findAll { it.startsWith( 'file:' ) }
+    codenarcSourceDirs.each{ inputs.dir it }
+    outputs.file codenarcReportFileObject
 
     doFirst {
 
-        List<File> sourceDirs = codenarcSources.findAll{ it }.collect{ project.file( it ) }.findAll { it.directory }
-
-        if ( ! sourceDirs ) { return }
-
-        def codenarcRuleSetFilesConverted = codenarcRuleSetFiles.findAll{ it }.collect {
-            String filePath -> filePath.startsWith( 'http://' ) ? filePath :
-                                                                 'file:' + rootProject.file( filePath ).canonicalPath
+        if ( ! codenarcSourceDirs )
+        {
+            logger.log( LogLevel.INFO, "No source directories found: $codenarcSources" )
+            return
         }
 
-        File   reportDir = new File(( File ) project.buildDir, codenarcReportDir )
-        assert reportDir.isDirectory() || reportDir.mkdirs()
+        assert codenarcReportDirObject.with{ directory || mkdirs() }, "Failed to create [$codenarcReportDirObject.canonicalPath]"
+        logger.log( LogLevel.INFO, "Writing CodeNarc report of ${ codenarcSourceDirs*.canonicalPath }/${ codenarcExtensions } to [$codenarcReportFileObject.canonicalPath]" )
 
         /**
          * http://codenarc.sourceforge.net/codenarc-ant-task.html
          */
-
         ant.taskdef( name      : 'codenarc',
                      classname : 'org.codenarc.ant.CodeNarcTask',
                      classpath : configurations.codenarc.asPath )
@@ -55,12 +61,12 @@ task codenarc() {
                        maxPriority3Violations : codenarcPriority3Violations ) {
              report    ( type  : codenarcReportType ) {
                 option ( name  : 'outputFile',
-                         value : new File(( File ) reportDir, codenarcReportFile ).canonicalPath )
+                         value : codenarcReportFileObject.canonicalPath )
                 option ( name  : 'title',
                          value : codenarcReportTitle )
              }
-             sourceDirs.each {
-                 fileset( dir : it, includes : '**/*.groovy, **/*.gradle' )
+             codenarcSourceDirs.each {
+                 fileset( dir : it, includes : codenarcExtensions.join( ',' ))
              }
         }
     }
