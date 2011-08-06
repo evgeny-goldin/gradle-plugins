@@ -21,7 +21,7 @@ dependencies {
 
 
 ideaProject {
-    javaVersion     = '1.6.0_25'
+    javaVersion     = '1.6.0_26'
 }
 ideaModule {
     downloadSources = true
