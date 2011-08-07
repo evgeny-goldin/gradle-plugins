@@ -1,6 +1,7 @@
 apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'maven'
+apply from:   'file:src/main/groovy/CodeNarc.gradle'
 
 
 defaultTasks 'clean', 'build'
@@ -20,12 +21,10 @@ dependencies {
 }
 
 
-ideaProject {
-    javaVersion     = '1.6.0_26'
-}
-ideaModule {
-    downloadSources = true
-    downloadJavadoc = true
+idea {
+    project.jdkName        = '1.6.0_26'
+    module.downloadSources = true
+    module.downloadJavadoc = true
 }
 
 
