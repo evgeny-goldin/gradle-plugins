@@ -3,7 +3,8 @@ apply plugin: 'idea'
 apply plugin: 'maven'
 
 
-codenarcRuleSetFiles = [ 'codenarc/codenarc.txt' ]
+codenarcRuleSetFiles        = [ 'codenarc/codenarc.txt' ]
+codenarcPriority3Violations = 1
 apply from: 'file:src/main/groovy/CodeNarc.gradle'
 
 
