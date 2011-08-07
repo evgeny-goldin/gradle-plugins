@@ -21,7 +21,7 @@ class DuplicatesFinderTask extends BaseTask
     /**
      * Cache of file on the disk to classes it contains
      */
-    private final Map<File, List<String>> CLASSES_CACHE = [:]
+    private final Map<File, List<String>> classesCache = [:]
 
 
     @Override
@@ -138,16 +138,16 @@ class DuplicatesFinderTask extends BaseTask
     @Ensures({ result != null })
     List<String> classNames ( File file )
     {
-        if ( CLASSES_CACHE.containsKey( file ))
+        if ( classesCache.containsKey( file ))
         {
-            return CLASSES_CACHE[ file ]
+            return classesCache[ file ]
         }
 
         ZipFile zip = new ZipFile( file )
 
         try
         {
-            CLASSES_CACHE[ file ] =
+            classesCache[ file ] =
                 zip.entries().findAll{ ZipEntry entry -> entry.name.endsWith( '.class' ) }.
                               collect{ ZipEntry entry -> entry.name.replace( '/', '.' ).
                                                                     replaceAll( /\.class$/, '' ) }

@@ -149,8 +149,8 @@ class AboutTask extends BaseTask
           env[ 'HUDSON_URL'       ] ? hudsonContent()   :
           env[ 'TEAMCITY_VERSION' ] ? teamcityContent() :
                                       '' )  +
-        """
-        |==============================================================================="""
+        '''
+        |==============================================================================='''
     }
 
     String buildContent ()
@@ -202,12 +202,12 @@ class AboutTask extends BaseTask
     String dependenciesContent ()
     {
         project.plugins.apply( ProjectReportsPlugin )
-        
+
         DependencyReportTask task = ( DependencyReportTask ) project.tasks[ ProjectReportsPlugin.DEPENDENCY_REPORT ]
         def renderer              = new AsciiReportRenderer()
         def file                  = new File( project.buildDir, 'dependencies.txt' )
         assert ( ! file.isFile()) || file.delete()
-        
+
         renderer.outputFile       = file
         task.renderer             = renderer
         task.generate( project )
@@ -254,7 +254,7 @@ class AboutTask extends BaseTask
 
         if ( gitVersion.contains( 'git version' ))
         {
-            gitStatusCommand = "git status" + ( gitStatusProject ? '' : ' ' + rootDir.canonicalPath )
+            gitStatusCommand = 'git status' + ( gitStatusProject ? '' : ' ' + rootDir.canonicalPath )
             gitStatus        = exec( gitStatusCommand )
 
             if ( ! gitStatus.contains( 'fatal: Not a git repository' ))

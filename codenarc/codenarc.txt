@@ -153,7 +153,7 @@ ruleset {
     ThrowError
     ThrowException
     ThrowNullPointerException
-    ThrowRuntimeException
+    // ThrowRuntimeException
     ThrowThrowable
 
     // rulesets/formatting.xml
@@ -164,7 +164,7 @@ ruleset {
     // BracesForTryCatchFinally
     ClassJavadoc
     LineLength {
-        length = 160
+        length = 180
     }
 
     // rulesets/generic.xml
@@ -263,7 +263,9 @@ ruleset {
     SerializableClassMustDefineSerialVersionUID
 
     // rulesets/size.xml
-    AbcComplexity
+    AbcComplexity {
+        maxMethodComplexity = 70
+    }
     ClassSize
     CyclomaticComplexity
     MethodCount
