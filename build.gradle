@@ -1,7 +1,10 @@
 apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'maven'
-apply from:   'file:src/main/groovy/CodeNarc.gradle'
+
+
+codenarcRuleSetFiles = [ 'codenarc/codenarc.txt' ]
+apply from: 'file:src/main/groovy/CodeNarc.gradle'
 
 
 defaultTasks 'clean', 'build'
