@@ -8,7 +8,7 @@ codenarcPriority3Violations = 1
 apply from: 'file:src/main/groovy/CodeNarc.gradle'
 
 
-defaultTasks 'clean', 'build'
+defaultTasks 'clean', 'codenarc', 'build'
 
 
 sourceCompatibility = 1.6
@@ -32,6 +32,7 @@ idea {
     module.downloadSources = true
     module.downloadJavadoc = true
 }
+
 
 task wrapper( type: Wrapper ) { gradleVersion = '1.0-milestone-4' }
 
