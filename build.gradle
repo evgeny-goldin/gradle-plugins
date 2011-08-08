@@ -19,8 +19,10 @@ version             = '0.1-RC3'
 repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
 dependencies {
     groovy      localGroovy()
-    compile     gradleApi()
-    compile     'org.gcontracts:gcontracts-core:1.2.4'
+    compile     gradleApi(),
+                'org.gcontracts:gcontracts-core:1.2.4',
+                // http://gradle.1045684.n5.nabble.com/gradleApi-with-1-0-0-m4-td4656647.html
+                fileTree( dir: "${gradle.gradleHomeDir}/lib/plugins", include: 'gradle-*.jar' )
     testCompile 'junit:junit:4.8.2'
 }
 
