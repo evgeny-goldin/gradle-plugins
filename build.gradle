@@ -27,13 +27,15 @@ dependencies {
 }
 
 
-idea {
-    project.jdkName        = '1.6.0_26'
-    module.downloadSources = true
-    module.downloadJavadoc = true
+ideaProject  {
+    javaVersion     = '1.6.0_26'
+}
+ideaModule {
+    downloadSources = true
+    downloadJavadoc = true
 }
 
-task wrapper( type: Wrapper ) { gradleVersion = '1.0-milestone-4' }
+task wrapper( type: Wrapper ) { gradleVersion = '1.0-milestone-3' }
 
 /**
  * Adding sources artifact
