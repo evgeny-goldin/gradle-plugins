@@ -8,7 +8,7 @@ codenarcPriority3Violations = 1
 apply from: 'file:src/main/groovy/CodeNarc.gradle'
 
 
-defaultTasks 'clean', 'build'
+defaultTasks 'clean', 'codenarc', 'build'
 
 
 sourceCompatibility = 1.6
