@@ -3,8 +3,8 @@ apply plugin: 'idea'
 apply plugin: 'maven'
 
 
-codenarcRuleSetFiles        = [ 'codenarc.groovy' ]
-codenarcPriority3Violations = 1
+codenarcRuleSetFiles = [ 'codenarc.groovy' ]
+codenarcExtensions   = [ '**/*.groovy'     ]
 apply from: 'file:src/main/groovy/CodeNarc.gradle'
 
 
@@ -13,10 +13,10 @@ defaultTasks 'clean', 'codenarc', 'build'
 
 sourceCompatibility = 1.6
 group               = 'com.goldin.plugins'
-version             = '0.1-RC3'
+version             = '0.1-SNAPSHOT'
 
 
-repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
+repositories { mavenRepo url: 'http://evgeny-goldin.org/artifactory/repo/' }
 dependencies {
     groovy      localGroovy()
     compile     gradleApi(),
@@ -27,15 +27,17 @@ dependencies {
 }
 
 
-ideaProject  {
-    javaVersion     = '1.6.0_26'
+idea.project {
+    jdkName = '1.6.0_26'
+    ipr.withXml { provider -> provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git' }
 }
-ideaModule {
+
+idea.module {
     downloadSources = true
     downloadJavadoc = true
 }
 
-task wrapper( type: Wrapper ) { gradleVersion = '1.0-milestone-3' }
+task wrapper( type: Wrapper ) { gradleVersion = '1.0-milestone-5' }
 
 /**
  * Adding sources artifact

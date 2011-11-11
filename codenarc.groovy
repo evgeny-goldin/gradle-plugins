@@ -14,6 +14,7 @@ ruleset {
         BracesForTryCatchFinally ( enabled : false )
         JavaIoPackageAccess      ( enabled : false )
         ThrowRuntimeException    ( enabled : false )
+        FactoryMethodName        ( enabled : false )
 
         AbcComplexity         ( maxMethodComplexity : 70  )
         LineLength            ( length              : 180 )
