@@ -17,7 +17,6 @@ abstract class BaseTask extends DefaultTask
 
 
     @TaskAction
-//    @Requires({ project.rootDir && project.group && project.name && project.version })
     def doTask()
     {
         this.rootDir = project.rootDir
@@ -28,7 +27,7 @@ abstract class BaseTask extends DefaultTask
         taskAction()
     }
 
-    
+
     /**
      * Retrieves files (and directories, if required) given base directory and inclusion/exclusion patterns.
      * Symbolic links are not followed.

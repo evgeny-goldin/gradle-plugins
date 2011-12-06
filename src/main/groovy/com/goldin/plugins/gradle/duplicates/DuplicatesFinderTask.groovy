@@ -3,11 +3,10 @@ package com.goldin.plugins.gradle.duplicates
 import com.goldin.plugins.gradle.util.BaseTask
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
-import org.gcontracts.annotations.Ensures
-import org.gcontracts.annotations.Requires
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
+
 
 /**
  * Searches for duplicates in configurations provided
@@ -53,10 +52,10 @@ class DuplicatesFinderTask extends BaseTask
      *         key   - violating dependencies, Stringified list
      *         value - duplicate classes found in those dependencies
      */
-    @Requires({ config })
-    @Ensures({ result != null })
     Map<String, List<String>> getViolations( Configuration config )
     {
+        assert config
+
         Set<File> configFiles = config.resolve().findAll { it.isFile() } // To filter out directories
 
         if ( ! configFiles ) { return [:] }
@@ -104,8 +103,6 @@ class DuplicatesFinderTask extends BaseTask
     *         key   - File
     *         value - Dependency the file is originated from (as "group:name:version")
     */
-    @Requires({ config })
-    @Ensures({ result != null })
     Map<File, String> filesToDependencies ( Configuration config )
     {
         ResolvedConfiguration rc = config.resolvedConfiguration
@@ -134,10 +131,10 @@ class DuplicatesFinderTask extends BaseTask
      * @param file Zip archive to read
      * @return list of class names stored in it
      */
-    @Requires({ file.isFile() })
-    @Ensures({ result != null })
     List<String> classNames ( File file )
     {
+        assert file.file
+
         if ( classesCache.containsKey( file ))
         {
             return classesCache[ file ]
@@ -165,9 +162,11 @@ class DuplicatesFinderTask extends BaseTask
      *                key   - violating dependencies, Stringified list
      *                value - duplicate classes found in violating dependencies
      */
-    @Requires({ violations })
+    @SuppressWarnings( 'UseCollectMany' )
     void reportViolations( Map<String, Map<String, List<String>>> violations )
     {
+        assert violations
+
         def message = violations.collect {
             String configName, Map<String, List<String>> configViolations ->
 

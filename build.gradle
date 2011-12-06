@@ -13,14 +13,13 @@ defaultTasks 'clean', 'codenarc', 'build'
 
 sourceCompatibility = 1.6
 group               = 'com.goldin.plugins'
-version             = '0.1-SNAPSHOT'
 
 
 repositories { mavenRepo url: 'http://evgeny-goldin.org/artifactory/repo/' }
 dependencies {
     groovy      localGroovy()
     compile     gradleApi(),
-                'org.gcontracts:gcontracts-core:1.2.4',
+                // 'org.gcontracts:gcontracts-core:1.2.4', // Doesn't work with Groovy 1.8.4
                 // http://gradle.1045684.n5.nabble.com/gradleApi-with-1-0-0-m4-td4656647.html
                 fileTree( dir: "${gradle.gradleHomeDir}/lib/plugins", include: 'gradle-*.jar' )
     testCompile 'junit:junit:4.8.2'
@@ -37,7 +36,7 @@ idea.module {
     downloadJavadoc = true
 }
 
-task wrapper( type: Wrapper ) { gradleVersion = '1.0-milestone-5' }
+task wrapper( type: Wrapper ) { gradleVersion = '1.0-milestone-6' }
 
 /**
  * Adding sources artifact
