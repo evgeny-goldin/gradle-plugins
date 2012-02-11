@@ -200,13 +200,13 @@ class AboutTask extends BaseTask
         DependencyReportTask task = ( DependencyReportTask ) project.tasks[ ProjectReportsPlugin.DEPENDENCY_REPORT ]
         def renderer              = new AsciiReportRenderer()
         def file                  = new File( project.buildDir, 'dependencies.txt' )
-        assert ( ! file.isFile()) || file.delete()
+        assert ( ! file.file ) || file.delete()
 
         renderer.outputFile       = file
         task.renderer             = renderer
         task.generate( project )
 
-        assert file.isFile(), "File [$file.canonicalPath] was not created by dependency report"
+        assert file.file, "File [$file.canonicalPath] was not created by dependency report"
         "$LINE\n" + file.text.replaceAll( /(?m)^\s*$/, LINE ) // Empty lines are replaced by LINE
     }
 
