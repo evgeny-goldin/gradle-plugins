@@ -2,6 +2,12 @@ apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'maven'
 
+// http://tellurianring.com/wiki/gradle/release
+buildscript {
+    repositories { ivy { artifactPattern 'http://evgeny-goldin.org/artifactory/repo/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]' }}
+   	dependencies { classpath 'gradle-release:gradle-release:0.9.0' }
+}
+
 
 codenarcRuleSetFiles = [ 'codenarc.groovy' ]
 codenarcExtensions   = [ '**/*.groovy'     ]
@@ -19,15 +25,15 @@ repositories { mavenRepo url: 'http://evgeny-goldin.org/artifactory/repo/' }
 dependencies {
     groovy      localGroovy()
     compile     gradleApi(),
-                // 'org.gcontracts:gcontracts-core:1.2.4', // Doesn't work with Groovy 1.8.4
+                'org.gcontracts:gcontracts-core:1.2.5',
                 // http://gradle.1045684.n5.nabble.com/gradleApi-with-1-0-0-m4-td4656647.html
                 fileTree( dir: "${gradle.gradleHomeDir}/lib/plugins", include: 'gradle-*.jar' )
-    testCompile 'junit:junit:4.8.2'
+    testCompile 'junit:junit:4.10'
 }
 
 
 idea.project {
-    jdkName = '1.6.0_26'
+    jdkName = '1.6.0_29'
     ipr.withXml { provider -> provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git' }
 }
 

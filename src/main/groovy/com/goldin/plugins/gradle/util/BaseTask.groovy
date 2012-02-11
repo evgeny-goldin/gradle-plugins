@@ -1,10 +1,10 @@
 package com.goldin.plugins.gradle.util
 
 import org.apache.tools.ant.DirectoryScanner
+import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
-
 
 /**
  * Base helper task class to be extended by other tasks
@@ -17,6 +17,7 @@ abstract class BaseTask extends DefaultTask
 
 
     @TaskAction
+    @Requires({ project.rootDir && project.group && project.name && project.version })
     def doTask()
     {
         this.rootDir = project.rootDir

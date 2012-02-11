@@ -235,7 +235,7 @@ class AboutTask extends BaseTask
         if ( svnDir.isDirectory())
         {
             svnVersion = exec( 'svn --version' )
-            if ( svnVersion.contains( 'svn, version' ))
+            if ( svnVersion.toLowerCase().contains( 'svn, version' ))
             {
                 svnStatus = exec( "svn status ${}.canonicalPath" )
                 if (( ! svnStatus.contains( 'is not a working copy' )) &&
