@@ -12,5 +12,6 @@ class AboutPlugin implements Plugin<Project>
     void apply ( Project p )
     {
         p.tasks.add( 'about', AboutTask )
+        p.convention.plugins[ 'about' ] = new AboutPluginConvention()
     }
 }
