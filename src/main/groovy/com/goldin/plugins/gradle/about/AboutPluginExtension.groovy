@@ -2,9 +2,10 @@ package com.goldin.plugins.gradle.about
 
 
 /**
- * {@link AboutPlugin} convention object.
+ * {@link AboutPlugin} extension object.
+ * http://gradle.org/docs/1.0-milestone-7/userguide/custom_plugins.html#N14C69
  */
-class AboutPluginConvention
+class AboutPluginExtension
 {
     String  fileName
     String  prefix           = 'META-INF'

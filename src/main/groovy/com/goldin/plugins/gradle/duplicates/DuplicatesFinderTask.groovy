@@ -10,14 +10,20 @@ import org.gradle.api.artifacts.ResolvedDependency
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
+
 /**
  * Searches for duplicates in configurations provided
  */
 class DuplicatesFinderTask extends BaseTask
 {
-    List<String> configurations = null  // Default - all configurations are checked
-    boolean      fail           = true  // Whether execution should fail when duplicates are found
-    boolean      verbose        = false // Whether logging is verbose
+    /**
+     * Retrieves current plugin extension object.
+     * @return current plugin extension object
+     */
+    DuplicatesFinderExtension ext() {
+        ( DuplicatesFinderExtension ) project[ 'duplicates' ]
+    }
+
 
     /**
      * Cache of file on the disk to classes it contains
@@ -32,7 +38,7 @@ class DuplicatesFinderTask extends BaseTask
         ( Map ) project.configurations.inject( [:] ) {
             Map m, Configuration c ->
 
-            m[ c.name ] = (( ! configurations ) || ( configurations.contains( c.name ))) ?
+            m[ c.name ] = (( ! ext().configurations ) || ( ext().configurations.contains( c.name ))) ?
                             getViolations( c ) :
                             [:]
             m
@@ -180,13 +186,13 @@ class DuplicatesFinderTask extends BaseTask
             [ "\nConfiguration [$configName] - duplicates found in:" ] +
             configViolations.collect{ String dependencies, List<String> classes ->
                                       [ "-=-= $dependencies =-=-" ] +
-                                      ( verbose ? classes.sort().collect { " --- [$it]" } : [] )}
+                                      ( ext().verbose ? classes.sort().collect { " --- [$it]" } : [] )}
         }.
         flatten().
         findAll{ it }.
         join( '\n' )
 
-        if ( fail ) { throw new RuntimeException( message )}
-        else        { project.logger.error( message )}
+        if ( ext().fail ) { throw new RuntimeException( message )}
+        else            { project.logger.error( message )}
     }
 }

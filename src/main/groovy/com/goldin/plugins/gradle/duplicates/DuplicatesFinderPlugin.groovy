@@ -9,8 +9,9 @@ import org.gradle.api.Project
 class DuplicatesFinderPlugin implements Plugin<Project>
 {
     @Override
-    void apply ( Project p )
+    void apply ( Project project )
     {
-        p.tasks.add( 'duplicates', DuplicatesFinderTask )
+        project.tasks.add     ( 'duplicates', DuplicatesFinderTask )
+        project.extensions.add( 'duplicates', new DuplicatesFinderExtension())
     }
 }

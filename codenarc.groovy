@@ -16,8 +16,9 @@ ruleset {
         ThrowRuntimeException    ( enabled : false )
         FactoryMethodName        ( enabled : false )
 
-        AbcComplexity         ( maxMethodComplexity : 70  )
-        LineLength            ( length              : 180 )
+        VariableName             ( finalRegex          : /\w+/ )
+        AbcComplexity            ( maxMethodComplexity : 70  )
+        LineLength               ( length              : 180 )
     }
 }
 

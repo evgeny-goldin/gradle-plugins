@@ -14,7 +14,7 @@ codenarcExtensions   = [ '**/*.groovy'     ]
 apply from: 'file:src/main/groovy/CodeNarc.gradle'
 
 
-defaultTasks 'clean', 'codenarc', 'build'
+defaultTasks 'clean', 'codenarc', 'build', 'install'
 
 
 sourceCompatibility = 1.6
