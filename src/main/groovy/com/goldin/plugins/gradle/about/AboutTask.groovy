@@ -231,7 +231,7 @@ class AboutTask extends BaseTask
             svnVersion = exec( 'svn --version' )
             if ( svnVersion.toLowerCase().contains( 'svn, version' ))
             {
-                svnStatus = exec( "svn status ${}.canonicalPath" )
+                svnStatus = exec( "svn status ${ project.projectDir.canonicalPath }" )
                 if (( ! svnStatus.contains( 'is not a working copy' )) &&
                     ( ! svnStatus.contains( 'containing working copy admin area is missing' )))
                 {
