@@ -11,8 +11,8 @@ Gradle plugins, see "examples" folder.
     ..
 
     buildscript {
-        repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
-        dependencies { classpath 'com.goldin.plugins:gradle:0.1-RC3'                }
+        repositories { mavenRepo url: 'http://evgeny-goldin.org/artifactory/repo/' }
+        dependencies { classpath      'com.goldin.plugins:gradle:0.1.1' }
     }
 
     ..
@@ -40,8 +40,8 @@ See [examples/about-dump-dependencies](https://github.com/evgeny-goldin/gradle-p
     apply plugin: 'duplicates'
 
     buildscript {
-        repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
-        dependencies { classpath 'com.goldin.plugins:gradle:0.1-RC3' }
+        repositories { mavenRepo url: 'http://evgeny-goldin.org/artifactory/repo/' }
+        dependencies { classpath      'com.goldin.plugins:gradle:0.1.1' }
     }
 
     repositories { mavenRepo urls: 'http://evgeny-goldin.org/artifactory/repo/' }
@@ -58,7 +58,7 @@ See [examples/duplicate-no-verbose](https://github.com/evgeny-goldin/gradle-plug
 ["gradle-codenarc-plugin"](http://evgeny-goldin.com/wiki/Gradle-CodeNarc-plugin)
 ========================================================================================
 
-    codenarcVersion             = '0.15'
+    codenarcVersion             = '0.16.1'
     codenarcPriority3Violations = 1
     apply from: 'https://raw.github.com/evgeny-goldin/gradle-plugins/master/src/main/groovy/CodeNarc.gradle'
 
