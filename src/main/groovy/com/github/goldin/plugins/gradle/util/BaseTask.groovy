@@ -1,7 +1,6 @@
 package com.github.goldin.plugins.gradle.util
 
 import org.apache.tools.ant.DirectoryScanner
-import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
@@ -17,9 +16,10 @@ abstract class BaseTask extends DefaultTask
 
 
     @TaskAction
-    @Requires({ project.rootDir && project.group && project.name && project.version })
     def doTask()
     {
+        assert project.rootDir && project.group && project.name && project.version
+
         this.rootDir = project.rootDir
         this.group   = project.group
         this.name    = project.name
