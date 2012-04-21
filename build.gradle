@@ -15,7 +15,7 @@ sourceCompatibility = 1.6
 group               = 'com.github.goldin.plugins'
 
 
-repositories { mavenRepo url: 'http://evgeny-goldin.org/artifactory/repo/' }
+repositories { mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
 dependencies {
     groovy      localGroovy()
     compile     gradleApi(),
