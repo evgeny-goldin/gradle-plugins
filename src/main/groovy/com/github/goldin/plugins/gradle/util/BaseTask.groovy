@@ -1,4 +1,4 @@
-package com.goldin.plugins.gradle.util
+package com.github.goldin.plugins.gradle.util
 
 import org.apache.tools.ant.DirectoryScanner
 import org.gcontracts.annotations.Requires

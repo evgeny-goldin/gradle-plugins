@@ -1,4 +1,4 @@
-package com.goldin.plugins.gradle.duplicates
+package com.github.goldin.plugins.gradle.duplicates
 
 
 /**

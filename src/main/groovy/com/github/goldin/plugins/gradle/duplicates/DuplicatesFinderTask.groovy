@@ -1,6 +1,6 @@
-package com.goldin.plugins.gradle.duplicates
+package com.github.goldin.plugins.gradle.duplicates
 
-import com.goldin.plugins.gradle.util.BaseTask
+import com.github.goldin.plugins.gradle.util.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.artifacts.Configuration

@@ -1,6 +1,6 @@
-package com.goldin.plugins.gradle.about
+package com.github.goldin.plugins.gradle.about
 
-import com.goldin.plugins.gradle.util.BaseTask
+import com.github.goldin.plugins.gradle.util.BaseTask
 import java.text.SimpleDateFormat
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.ProjectReportsPlugin

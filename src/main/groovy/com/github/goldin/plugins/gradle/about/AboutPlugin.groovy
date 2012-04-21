@@ -1,4 +1,4 @@
-package com.goldin.plugins.gradle.about
+package com.github.goldin.plugins.gradle.about
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
