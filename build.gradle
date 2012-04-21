@@ -18,8 +18,7 @@ group               = 'com.github.goldin.plugins'
 repositories { mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
 dependencies {
     groovy      localGroovy()
-    compile     gradleApi(),
-                'org.gcontracts:gcontracts-core:1.2.5'
+    compile     gradleApi()
     testCompile 'junit:junit:4.10'
 }
 
