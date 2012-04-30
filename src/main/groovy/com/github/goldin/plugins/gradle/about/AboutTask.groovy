@@ -1,11 +1,12 @@
 package com.github.goldin.plugins.gradle.about
 
 import com.github.goldin.plugins.gradle.util.BaseTask
-import java.text.SimpleDateFormat
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.ProjectReportsPlugin
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
 import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer
+
+import java.text.SimpleDateFormat
 
 /**
  * {@link AboutPlugin} task

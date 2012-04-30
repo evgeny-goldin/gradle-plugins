@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.duplicates
 
+import org.gcontracts.annotations.Requires
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -8,6 +9,7 @@ import org.gradle.api.Project
  */
 class DuplicatesFinderPlugin implements Plugin<Project>
 {
+    @Requires({ project })
     @Override
     void apply ( Project project )
     {

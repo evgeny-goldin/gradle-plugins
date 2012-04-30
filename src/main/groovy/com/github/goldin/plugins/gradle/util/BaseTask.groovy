@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.util
 
 import org.apache.tools.ant.DirectoryScanner
+import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
@@ -16,10 +17,9 @@ abstract class BaseTask extends DefaultTask
 
 
     @TaskAction
+    @Requires({ project.rootDir && project.group && project.name && project.version })
     def doTask()
     {
-        assert project.rootDir && project.group && project.name && project.version
-
         this.rootDir = project.rootDir
         this.group   = project.group
         this.name    = project.name
@@ -42,6 +42,7 @@ abstract class BaseTask extends DefaultTask
      *
      * @return files under base directory specified passing an inclusion/exclusion patterns
      */
+    @Requires({ baseDirectory.directory })
     List<File> files ( File         baseDirectory,
                        List<String> includePatterns    = null,
                        List<String> excludePatterns    = null,
@@ -49,7 +50,6 @@ abstract class BaseTask extends DefaultTask
                        boolean      includeDirectories = false,
                        boolean      failIfNotFound     = true )
     {
-        assert baseDirectory.isDirectory(), "Directory [$baseDirectory] doesn't exist"
         def scanner = new DirectoryScanner()
 
         scanner.with {
