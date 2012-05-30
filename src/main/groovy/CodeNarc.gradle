@@ -51,10 +51,13 @@ task codenarc() {
         |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         | Generating CodeNarc report
         |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        | RuleSet files : $codenarcRuleSetFilesConverted
-        | Source dirs   : ${ codenarcSourceDirs*.canonicalPath }
-        | Extensions    : ${ codenarcExtensions }
-        | Report file   : [$codenarcReportFileObject.canonicalPath]
+        | RuleSet files         : $codenarcRuleSetFilesConverted
+        | Source dirs           : ${ codenarcSourceDirs*.canonicalPath }
+        | Extensions            : ${ codenarcExtensions }
+        | Report file           : [$codenarcReportFileObject.canonicalPath]
+        | Priority 1 violations : [$codenarcPriority1Violations]
+        | Priority 2 violations : [$codenarcPriority2Violations]
+        | Priority 3 violations : [$codenarcPriority3Violations]
         |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~""".stripMargin() )
 
         /**
