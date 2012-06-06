@@ -13,6 +13,9 @@ String codenarcPriority1Violations = codenarcProp( 'codenarcPriority1Violations'
 String codenarcPriority2Violations = codenarcProp( 'codenarcPriority2Violations', 0 )
 String codenarcPriority3Violations = codenarcProp( 'codenarcPriority3Violations', 0 )
 
+assert codenarcSources.any { new File( project.projectDir, it ).directory }, \
+       "Neither of $codenarcSources exists in ${ project.projectDir }"
+
 File codenarcReportDirObject       = new File(( File ) project.buildDir, codenarcReportDir  )
 File codenarcReportFileObject      = new File( codenarcReportDirObject,  codenarcReportFile )
 List codenarcSourceDirs            = codenarcSources.findAll{ it }.collect{ project.file( it ) }.findAll { it.directory }
