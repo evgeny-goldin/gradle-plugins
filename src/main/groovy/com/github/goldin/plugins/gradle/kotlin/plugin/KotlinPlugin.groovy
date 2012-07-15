@@ -46,7 +46,7 @@ class KotlinPlugin implements Plugin<Project>
             sourceSet.resources.filter.exclude { FileTreeElement elem -> sourceSet.kotlin.contains(elem.file) }
 
             String kotlinTaskName = sourceSet.getCompileTaskName('kotlin')
-            KotlinCompile kotlinTask = project.tasks.add(kotlinTaskName , org.jetbrains.kotlin.gradle.tasks.KotlinCompile.class)
+            KotlinCompile kotlinTask = project.tasks.add(kotlinTaskName , KotlinCompile)
             javaBasePlugin.configureForSourceSet(sourceSet, kotlinTask)
             kotlinTask.description = "Compiles the $sourceSet.kotlin."
             kotlinTask.source = sourceSet.kotlin
