@@ -18,7 +18,7 @@ class KotlinCompile extends AbstractCompile
     protected void compile()
     {
         final args            = new K2JVMCompilerArguments()
-        args.noStdlib         = false
+        args.noStdlib         = true
         args.noJdkAnnotations = true
         args.classpath        = classpath.filter{ File f -> f.exists() }.asPath ?: null
         args.sourceDirs       = (( Iterable<File> ) source )*.absolutePath
