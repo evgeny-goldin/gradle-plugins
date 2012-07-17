@@ -5,9 +5,13 @@ final gcontractsVersion = '1.2.5'        // http://search.maven.org/#search%7Cga
 final junitVersion      = '4.10'         // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22junit%22%20AND%20a%3A%22junit%22
 
 
+defaultTasks 'clean', 'codenarc', 'groovydoc', 'build', 'install'
+
+
 ext.codenarcRuleSetFiles = [ 'codenarc.groovy' ]
 ext.codenarcExtensions   = [ '**/*.groovy'     ]
-apply from: "file:$rootDir/src/main/groovy/CodeNarc.gradle"
+ext.codenarcSources      = [ 'general/src/main/groovy', 'kotlin/src/main/groovy' ]
+apply from: "file:src/main/groovy/CodeNarc.gradle"
 
 
 idea.project {
@@ -27,13 +31,11 @@ idea.module {
 }
 
 
-allprojects {
+subprojects {
 
     apply plugin: 'idea'
     apply plugin: 'groovy'
     apply plugin: 'maven'
-
-    defaultTasks 'clean', 'codenarc', 'groovydoc', 'build', 'install'
 
 
     sourceCompatibility = 1.6
