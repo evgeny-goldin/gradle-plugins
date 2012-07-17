@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.gradle.kotlin.internal
+package com.github.goldin.plugins.kotlin.internal
 import org.gcontracts.annotations.Requires
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet

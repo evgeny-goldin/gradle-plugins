@@ -1,8 +1,8 @@
-package com.github.goldin.plugins.gradle.kotlin.plugin
+package com.github.goldin.plugins.kotlin.plugin
 
-import com.github.goldin.plugins.gradle.kotlin.internal.KotlinSourceSetImpl
-import com.github.goldin.plugins.gradle.kotlin.tasks.KDoc
-import com.github.goldin.plugins.gradle.kotlin.tasks.KotlinCompile
+import com.github.goldin.plugins.kotlin.internal.KotlinSourceSetImpl
+import com.github.goldin.plugins.kotlin.tasks.KDoc
+import com.github.goldin.plugins.kotlin.tasks.KotlinCompile
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Action
 import org.gradle.api.Plugin

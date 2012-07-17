@@ -1,32 +1,13 @@
-apply plugin: 'groovy'
 apply plugin: 'idea'
-apply plugin: 'maven'
+
+final kotlinVersion     = '0.1-SNAPSHOT' // http://repository.jetbrains.com/kotlin/org/jetbrains/kotlin/kotlin-runtime/
+final gcontractsVersion = '1.2.5'        // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.gcontracts%22%20AND%20a%3A%22gcontracts-core%22
+final junitVersion      = '4.10'         // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22junit%22%20AND%20a%3A%22junit%22
 
 
 ext.codenarcRuleSetFiles = [ 'codenarc.groovy' ]
 ext.codenarcExtensions   = [ '**/*.groovy'     ]
-apply from: 'file:src/main/groovy/CodeNarc.gradle'
-
-
-defaultTasks 'clean', 'codenarc', 'groovydoc', 'build', 'install'
-
-
-sourceCompatibility = 1.6
-group               = 'com.github.goldin.plugins'
-
-
-repositories {
-    mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
-}
-
-dependencies {
-    groovy      localGroovy()
-    compile     gradleApi(),
-                'org.gcontracts:gcontracts-core:1.2.5',
-                'org.jetbrains.kotlin:kotlin-compiler:0.1-SNAPSHOT',
-                'org.jetbrains.kotlin:kdoc:0.1-SNAPSHOT'
-    testCompile 'junit:junit:4.10'
-}
+apply from: "file:$rootDir/src/main/groovy/CodeNarc.gradle"
 
 
 idea.project {
@@ -34,33 +15,74 @@ idea.project {
     ipr.withXml { provider -> provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git' }
 }
 
+
 idea.module {
-    downloadSources = true
-    downloadJavadoc = true
+    iml.withXml {
+        provider ->
+        provider.node.component.content.first().with {
+            appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/gradle' ])
+            appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/out'    ])
+        }
+    }
 }
 
-/**
- * Gradle Wrapper
- */
+
+allprojects {
+
+    apply plugin: 'idea'
+    apply plugin: 'groovy'
+    apply plugin: 'maven'
+
+    defaultTasks 'clean', 'codenarc', 'groovydoc', 'build', 'install'
+
+
+    sourceCompatibility = 1.6
+    group               = 'com.github.goldin.plugins'
+
+
+    repositories {
+        mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
+    }
+
+    dependencies {
+        groovy      localGroovy()
+        compile     gradleApi(),
+                    "org.gcontracts:gcontracts-core:$gcontractsVersion"
+        testCompile "junit:junit:$junitVersion"
+    }
+
+    idea.module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+
+    /**
+     * Adding sources and groovydocs
+     */
+
+    task sourcesJar( type: Jar, dependsOn: classes ) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task groovydocJar( type: Jar, dependsOn: groovydoc ) {
+         classifier = 'javadoc'
+         from groovydoc.destinationDir
+    }
+
+    artifacts {
+         archives sourcesJar
+         archives groovydocJar
+    }
+}
+
+
+project( ':kotlin' ) {
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion",
+                "org.jetbrains.kotlin:kdoc:$kotlinVersion"
+    }
+}
+
 
 task wrapper( type: Wrapper ) { gradleVersion = '1.0' }
-
-
-/**
- * Adding sources and groovydocs
- */
-
-task sourcesJar( type: Jar, dependsOn: classes ) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task groovydocJar( type: Jar, dependsOn: groovydoc ) {
-     classifier = 'javadoc'
-     from groovydoc.destinationDir
-}
-
-artifacts {
-     archives sourcesJar
-     archives groovydocJar
-}

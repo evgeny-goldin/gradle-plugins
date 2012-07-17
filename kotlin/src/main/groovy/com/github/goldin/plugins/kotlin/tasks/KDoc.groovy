@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.gradle.kotlin.tasks
+package com.github.goldin.plugins.kotlin.tasks
 
 import static org.jetbrains.jet.cli.common.ExitCode.*
 

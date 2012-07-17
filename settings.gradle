@@ -1,2 +1,4 @@
-rootProject.name = 'gradle'
+include 'general', 'kotlin'
 
+project( ':general' ).name = 'gradle'
+project( ':kotlin'  ).name = 'kotlin'
