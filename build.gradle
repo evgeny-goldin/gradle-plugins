@@ -8,14 +8,17 @@ ext.codenarcExtensions   = [ '**/*.groovy'     ]
 apply from: 'file:src/main/groovy/CodeNarc.gradle'
 
 
-defaultTasks 'clean', 'codenarc', 'build', 'install'
+defaultTasks 'clean', 'codenarc', 'groovydoc', 'build', 'install'
 
 
 sourceCompatibility = 1.6
 group               = 'com.github.goldin.plugins'
 
 
-repositories { mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
+repositories {
+    mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
+}
+
 dependencies {
     groovy      localGroovy()
     compile     gradleApi(),
@@ -34,15 +37,28 @@ idea.module {
     downloadJavadoc = true
 }
 
+/**
+ * Gradle Wrapper
+ */
 
-task wrapper( type: Wrapper ) { gradleVersion = '1.0-rc-3' }
+task wrapper( type: Wrapper ) { gradleVersion = '1.0' }
 
 
 /**
- * Adding sources
+ * Adding sources and groovydocs
  */
+
 task sourcesJar( type: Jar, dependsOn: classes ) {
-     classifier = 'sources'
-     from sourceSets.main.allSource
+    classifier = 'sources'
+    from sourceSets.main.allSource
 }
-artifacts { archives sourcesJar }
+
+task groovydocJar( type: Jar, dependsOn: groovydoc ) {
+     classifier = 'javadoc'
+     from groovydoc.destinationDir
+}
+
+artifacts {
+     archives sourcesJar
+     archives groovydocJar
+}
