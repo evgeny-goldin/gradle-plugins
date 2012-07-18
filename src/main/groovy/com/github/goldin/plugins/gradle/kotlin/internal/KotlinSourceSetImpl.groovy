@@ -1,29 +1,31 @@
 package com.github.goldin.plugins.gradle.kotlin.internal
+import org.gcontracts.annotations.Requires
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.file.DefaultSourceDirectorySet
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.util.ConfigureUtil
 
-import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.ConfigureUtil;
-import org.jetbrains.annotations.NotNull;
 
-
-public class KotlinSourceSetImpl implements KotlinSourceSet
+class KotlinSourceSetImpl implements KotlinSourceSet
 {
     private final SourceDirectorySet kotlin
 
-    public KotlinSourceSetImpl(@NotNull final String displayName, @NotNull final FileResolver resolver) {
-        kotlin = new DefaultSourceDirectorySet(displayName + " Kotlin source", resolver)
-        kotlin.getFilter().include("**/*.java", "**/*.kt")
+    @Requires({ displayName && resolver })
+    KotlinSourceSetImpl( String displayName, FileResolver resolver )
+    {
+        kotlin = new DefaultSourceDirectorySet( displayName + ' Kotlin source', resolver )
+        kotlin.filter.include( '**/*.java', '**/*.kt' )
     }
 
-    @Override
-    public SourceDirectorySet getKotlin() {
-        kotlin
-    }
 
     @Override
-    public KotlinSourceSet kotlin(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getKotlin())
+    SourceDirectorySet getKotlin() { kotlin }
+
+
+    @Override
+    @SuppressWarnings([ 'ConfusingMethodName' ])
+    KotlinSourceSet kotlin( Closure configureClosure ) {
+        ConfigureUtil.configure( configureClosure, getKotlin())
         this
     }
 }
