@@ -3,6 +3,7 @@ package com.github.goldin.plugins.gradle.kotlin.plugin
 import com.github.goldin.plugins.gradle.kotlin.internal.KotlinSourceSetImpl
 import com.github.goldin.plugins.gradle.kotlin.tasks.KDoc
 import com.github.goldin.plugins.gradle.kotlin.tasks.KotlinCompile
+import org.gcontracts.annotations.Requires
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -15,10 +16,12 @@ import org.gradle.api.tasks.SourceSet
 import java.util.concurrent.Callable
 
 
-class KotlinPlugin implements Plugin<Project> {
+class KotlinPlugin implements Plugin<Project>
+{
 
     public static final String KDOC_TASK_NAME = 'kdoc'
 
+    @Requires({ project })
     @Override
     void apply(Project project)
     {
@@ -28,6 +31,7 @@ class KotlinPlugin implements Plugin<Project> {
         configureSourceSetDefaults(project, javaBasePlugin, javaPluginConvention);
         configureKDoc(project, javaPluginConvention);
     }
+
 
     private void configureSourceSetDefaults( Project              project,
                                              JavaBasePlugin       javaBasePlugin,
