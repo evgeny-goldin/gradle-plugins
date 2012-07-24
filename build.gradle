@@ -43,6 +43,7 @@ subprojects {
     clean { delete( "$rootDir/out", "$rootDir/build" ) }
 
     repositories {
+        mavenRepo url: 'http://repository.jetbrains.com/kotlin/'
         mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
     }
 
