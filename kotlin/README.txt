@@ -1,3 +1,9 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- Gradle Kotlin Plugin, based on the one developed by Nikita Skvortsov (https://github.com/nskvortsov/kotlin).
+ Gradle Kotlin Plugin.
+
+ See example usage at:
+ https://github.com/evgeny-goldin/rest-clients/blob/master/build.gradle
+
+ Based on the work of Nikita Skvortsov:
+ https://github.com/nskvortsov/kotlin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
