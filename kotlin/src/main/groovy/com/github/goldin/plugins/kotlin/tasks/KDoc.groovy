@@ -71,30 +71,31 @@ class KDoc extends SourceTask {
         final args = new KDocArguments()
         final cfg  = args.docConfig
 
-        destinationDir ? cfg.docOutputDir  = destinationDir  : ''
-        title          ? cfg.title          = title          : ''
-        version        ? cfg.version        = version        : ''
-        sourceRootHref ? cfg.sourceRootHref = sourceRootHref : ''
-        projectRootDir ? cfg.projectRootDir = projectRootDir : ''
-
-        if (warnNoComments != null)
-        {
-            cfg.warnNoComments = warnNoComments
-        }
-
-        packagePrefixToUrls     ? cfg.packagePrefixToUrls.putAll(packagePrefixToUrls)         : ''
-        ignorePackages          ? cfg.ignorePackages.addAll(ignorePackages)                   : ''
-        packageDescriptionFiles ? cfg.packageDescriptionFiles.putAll(packageDescriptionFiles) : ''
-        packageSummaryText      ? cfg.packageSummaryText.putAll(packageSummaryText)           : ''
+        if ( destinationDir          ){ cfg.docOutputDir   = destinationDir }
+        if ( title                   ){ cfg.title          = title          }
+        if ( version                 ){ cfg.version        = version        }
+        if ( sourceRootHref          ){ cfg.sourceRootHref = sourceRootHref }
+        if ( projectRootDir          ){ cfg.projectRootDir = projectRootDir }
+        if ( warnNoComments != null  ){ cfg.warnNoComments = warnNoComments }
+        if ( packagePrefixToUrls     ){ cfg.packagePrefixToUrls.putAll( packagePrefixToUrls )}
+        if ( ignorePackages          ){ cfg.ignorePackages.addAll( ignorePackages )}
+        if ( packageDescriptionFiles ){ cfg.packageDescriptionFiles.putAll( packageDescriptionFiles )}
+        if ( packageSummaryText      ){ cfg.packageSummaryText.putAll( packageSummaryText )}
 
         final compiler = new KDocCompiler()
-        final exitCode = compiler.exec(System.err, args)
+        final exitCode = compiler.exec( System.err, args )
 
-        switch (exitCode) {
+        switch ( exitCode )
+        {
             case COMPILATION_ERROR:
-                throw new GradleException('Failed to generate kdoc. See log for more details')
+                throw new GradleException( 'Failed to generate KDoc. See log for more details' )
+
             case INTERNAL_ERROR:
-                throw new GradleException('Internal generation error. See log for more details')
+                throw new GradleException( 'Internal KDoc generation error. See log for more details' )
+
+            case OK:
+            default:
+                logger.info( 'KDoc generation successful' )
         }
     }
 }

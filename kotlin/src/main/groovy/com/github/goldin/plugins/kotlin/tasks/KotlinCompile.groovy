@@ -10,7 +10,6 @@ import org.jetbrains.jet.cli.jvm.K2JVMCompilerArguments
 
 class KotlinCompile extends AbstractCompile
 {
-
     private final K2JVMCompiler compiler = new K2JVMCompiler()
 
 
@@ -21,8 +20,8 @@ class KotlinCompile extends AbstractCompile
         args.noStdlib         = true
         args.noJdkAnnotations = true
         args.classpath        = classpath.filter{ File f -> f.exists() }.asPath ?: null
-        args.sourceDirs       = (( Iterable<File> ) source )*.absolutePath
-        args.outputDir        = destinationDir.path
+        args.sourceDirs       = source.files*.canonicalPath
+        args.outputDir        = destinationDir.canonicalPath
         final exitCode        = compiler.exec( System.err, args )
 
         switch ( exitCode )
