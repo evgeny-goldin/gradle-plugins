@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.kotlin.tasks
+package com.github.goldin.plugins.gradle.kotlin
 
 import static org.jetbrains.jet.cli.common.ExitCode.*
 
@@ -8,7 +8,7 @@ import org.jetbrains.jet.cli.jvm.K2JVMCompiler
 import org.jetbrains.jet.cli.jvm.K2JVMCompilerArguments
 
 
-class KotlinCompile extends AbstractCompile
+class KotlinCompileTask extends AbstractCompile
 {
     private final K2JVMCompiler compiler = new K2JVMCompiler()
 

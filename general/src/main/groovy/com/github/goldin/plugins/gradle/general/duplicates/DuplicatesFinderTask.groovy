@@ -1,12 +1,13 @@
-package com.github.goldin.plugins.gradle.duplicates
+package com.github.goldin.plugins.gradle.general.duplicates
 
-import com.github.goldin.plugins.gradle.util.BaseTask
+import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
+
 
 /**
  * Searches for duplicates in configurations provided

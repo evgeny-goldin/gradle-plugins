@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.kotlin.tasks
+package com.github.goldin.plugins.gradle.kotlin
 
 import static org.jetbrains.jet.cli.common.ExitCode.*
 
@@ -9,8 +9,8 @@ import org.jetbrains.kotlin.doc.KDocArguments
 import org.jetbrains.kotlin.doc.KDocCompiler
 
 
-class KDoc extends SourceTask {
-
+class KDocTask extends SourceTask
+{
     /**
      * Returns the directory to use to output the API docs
      */

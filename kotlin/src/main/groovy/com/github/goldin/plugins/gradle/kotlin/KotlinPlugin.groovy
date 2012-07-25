@@ -1,7 +1,5 @@
-package com.github.goldin.plugins.kotlin.plugin
-import com.github.goldin.plugins.kotlin.internal.KotlinSourceSetImpl
-import com.github.goldin.plugins.kotlin.tasks.KDoc
-import com.github.goldin.plugins.kotlin.tasks.KotlinCompile
+package com.github.goldin.plugins.gradle.kotlin
+
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -11,6 +9,10 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
 
+
+/**
+ * Gradle Kotlin plugin.
+ */
 class KotlinPlugin implements Plugin<Project>
 {
 
@@ -42,7 +44,7 @@ class KotlinPlugin implements Plugin<Project>
             sourceSet.resources.filter.exclude { FileTreeElement elem -> sourceSet.kotlin.contains( elem.file ) }
 
             String        kotlinTaskName = sourceSet.getCompileTaskName( 'kotlin' )
-            KotlinCompile kotlinTask     = project.tasks.add( kotlinTaskName, KotlinCompile )
+            KotlinCompileTask kotlinTask     = project.tasks.add( kotlinTaskName, KotlinCompileTask )
             javaBasePlugin.configureForSourceSet( sourceSet, kotlinTask )
             kotlinTask.description       = "Compiles the $sourceSet.kotlin."
             kotlinTask.source            = sourceSet.kotlin
@@ -56,13 +58,13 @@ class KotlinPlugin implements Plugin<Project>
                                 JavaPluginConvention javaPluginConvention )
     {
         SourceSet mainSourceSet = javaPluginConvention.sourceSets.getByName( SourceSet.MAIN_SOURCE_SET_NAME )
-        KDoc kdoc               = project.tasks.add( 'kdoc', KDoc )
+        KDocTask kdoc               = project.tasks.add( 'kdoc', KDocTask )
         kdoc.description        = 'Generates KDoc API documentation for the main source code.'
         kdoc.group              = JavaBasePlugin.DOCUMENTATION_GROUP;
         kdoc.source             = mainSourceSet.kotlin
 
-        project.tasks.withType( KDoc, {
-            KDoc param ->
+        project.tasks.withType( KDocTask, {
+            KDocTask param ->
             param.conventionMapping.map( 'destinationDir', { new File( javaPluginConvention.docsDir, 'kdoc' ) })
         })
     }

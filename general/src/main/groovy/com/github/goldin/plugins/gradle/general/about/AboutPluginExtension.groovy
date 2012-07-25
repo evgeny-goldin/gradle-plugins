@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.gradle.about
+package com.github.goldin.plugins.gradle.general.about
 
 
 /**

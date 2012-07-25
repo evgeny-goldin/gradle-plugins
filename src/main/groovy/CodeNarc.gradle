@@ -12,10 +12,6 @@ String codenarcReportFile          = codenarcProp( 'codenarcReportFile',   'code
 String codenarcPriority1Violations = codenarcProp( 'codenarcPriority1Violations', 0 )
 String codenarcPriority2Violations = codenarcProp( 'codenarcPriority2Violations', 0 )
 String codenarcPriority3Violations = codenarcProp( 'codenarcPriority3Violations', 0 )
-
-assert codenarcSources.any { new File( project.projectDir, it ).directory }, \
-       "Neither of $codenarcSources exists in ${ project.projectDir }"
-
 File codenarcReportDirObject       = new File(( File ) project.buildDir, codenarcReportDir  )
 File codenarcReportFileObject      = new File( codenarcReportDirObject,  codenarcReportFile )
 List codenarcSourceDirs            = codenarcSources.findAll{ it }.collect{ project.file( it ) }.findAll { it.directory }
@@ -24,8 +20,7 @@ List codenarcRuleSetFilesConverted = codenarcRuleSetFiles.findAll{ it }.collect 
 }
 
 
-repositories   { mavenCentral()
-                 mavenRepo url: 'http://evgeny-goldin.org/artifactory/repo/' /* When CodeNarc isn't available in Central repo yet*/ }
+repositories   { mavenCentral()}
 configurations { codenarc }
 dependencies   { codenarc ( "org.codenarc:CodeNarc:$codenarcVersion" ){ exclude group: 'ant' }}
 
@@ -42,14 +37,10 @@ task codenarc() {
 
     doFirst {
 
-        if ( ! codenarcSourceDirs )
-        {
-            logger.log( LogLevel.INFO, "No source directories found: $codenarcSources" )
-            return
-        }
-
+        assert codenarcSourceDirs,                                      "No source directories found: $codenarcSources"
         assert codenarcReportDirObject.with{ directory   || mkdirs() }, "Failed to create [$codenarcReportDirObject.canonicalPath]"
         assert codenarcReportFileObject.with{ ( ! file ) || delete() }, "Failed to delete [$codenarcReportFileObject.canonicalPath]"
+
         logger.log( LogLevel.INFO, """
         |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         | Generating CodeNarc report

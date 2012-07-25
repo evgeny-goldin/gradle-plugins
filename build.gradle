@@ -8,10 +8,11 @@ final junitVersion      = '4.10'         // http://search.maven.org/#search%7Cga
 defaultTasks 'clean', 'codenarc', 'groovydoc', 'build', 'install'
 
 
-ext.codenarcRuleSetFiles = [ 'codenarc.groovy' ]
-ext.codenarcExtensions   = [ '**/*.groovy'     ]
-ext.codenarcSources      = [ 'general/src/main/groovy', 'kotlin/src/main/groovy' ]
-apply from: "file:src/main/groovy/CodeNarc.gradle"
+ext.codenarcRuleSetFiles = [ "$rootDir/codenarc.groovy" ]
+ext.codenarcExtensions   = [ '**/*.groovy' ]
+ext.codenarcSources      = project.subprojects.collect{[ "${ it.projectDir.name }/src/main/groovy",
+                                                         "${ it.projectDir.name }/src/test/groovy" ]}.flatten()
+apply from: 'file:src/main/groovy/CodeNarc.gradle'
 
 
 idea.project {
@@ -76,6 +77,13 @@ subprojects {
     artifacts {
          archives sourcesJar
          archives groovydocJar
+    }
+}
+
+
+subprojects.findAll{ it.name != 'common' }.each {
+    it.dependencies {
+        compile project( ':common' )
     }
 }
 

@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.gradle.duplicates
+package com.github.goldin.plugins.gradle.general.duplicates
 
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Plugin

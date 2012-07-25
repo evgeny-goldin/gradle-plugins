@@ -1,4 +1,3 @@
-include 'general', 'kotlin'
+include 'common', 'general', 'kotlin', 'teamcity'
 
 project( ':general' ).name = 'gradle'
-project( ':kotlin'  ).name = 'kotlin'

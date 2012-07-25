@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.kotlin.internal
+package com.github.goldin.plugins.gradle.kotlin
 
 import org.gradle.api.file.SourceDirectorySet
 
