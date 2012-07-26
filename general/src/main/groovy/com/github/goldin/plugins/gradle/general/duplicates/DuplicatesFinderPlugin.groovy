@@ -13,7 +13,7 @@ class DuplicatesFinderPlugin implements Plugin<Project>
     @Override
     void apply ( Project project )
     {
-        project.tasks.add     ( 'duplicates', DuplicatesFinderTask )
-        project.extensions.add( 'duplicates', new DuplicatesFinderExtension())
+        project.tasks.add        ( 'duplicates', DuplicatesFinderTask )
+        project.extensions.create( 'duplicates', DuplicatesFinderExtension )
     }
 }

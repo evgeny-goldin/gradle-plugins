@@ -11,6 +11,6 @@ class AssembleTeamCityPluginTask extends BaseTask
     @Override
     void taskAction ( )
     {
-
+        logger.info( 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAA' )
     }
 }

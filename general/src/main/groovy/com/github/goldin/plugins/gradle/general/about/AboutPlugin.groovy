@@ -13,7 +13,7 @@ class AboutPlugin implements Plugin<Project>
     @Override
     void apply ( Project project )
     {
-        project.tasks.add     ( 'about', AboutTask )
-        project.extensions.add( 'about', new AboutPluginExtension())
+        project.tasks.add        ( 'about', AboutTask )
+        project.extensions.create( 'about', AboutPluginExtension )
     }
 }

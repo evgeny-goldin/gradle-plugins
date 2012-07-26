@@ -1,0 +1,33 @@
+
+apply plugin: 'idea'
+apply plugin: 'groovy'
+apply plugin: 'kotlin'
+apply plugin: 'about'
+apply plugin: 'duplicates'
+apply plugin: 'teamcity'
+
+
+buildscript {
+
+    repositories {
+        mavenLocal()
+        mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
+    }
+
+    dependencies {
+        classpath "com.github.goldin.plugins:gradle:$version",
+                  "com.github.goldin.plugins:kotlin:$version",
+                  "com.github.goldin.plugins:teamcity:$version"
+    }
+}
+
+
+repositories {
+    mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
+}
+
+
+
+dependencies {
+    compile 'com.github.goldin.rest:youtrack:0.1-SNAPSHOT'
+}
