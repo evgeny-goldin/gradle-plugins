@@ -15,8 +15,7 @@ import org.gradle.api.tasks.SourceSet
  */
 class KotlinCompilePlugin implements Plugin<Project>
 {
-    public static final String KDOC_TASK_NAME         = 'kdoc'
-    public static final String COMPILE_EXTENSION_NAME = 'compileKotlinConfig'
+    public static final String KDOC_TASK_NAME = 'kdoc'
 
 
     @Requires({ project })
@@ -27,7 +26,6 @@ class KotlinCompilePlugin implements Plugin<Project>
         final javaPluginConvention = project.convention.getPlugin( JavaPluginConvention )
 
         project.plugins.apply      ( JavaPlugin )
-        project.extensions.create  ( COMPILE_EXTENSION_NAME, KotlinCompileTaskExtension )
         configureSourceSetDefaults ( project, javaPluginConvention, javaBasePlugin );
         configureKDoc              ( project, javaPluginConvention );
     }

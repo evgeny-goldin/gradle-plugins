@@ -3,7 +3,6 @@ package com.github.goldin.plugins.gradle.kotlin
 import static org.jetbrains.jet.cli.common.ExitCode.*
 
 import org.gradle.api.GradleException
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.Compile
 import org.jetbrains.jet.cli.jvm.K2JVMCompiler
@@ -13,12 +12,12 @@ import org.jetbrains.jet.cli.jvm.K2JVMCompilerArguments
 class KotlinCompileTask extends AbstractCompile
 {
     private final K2JVMCompiler compiler = new K2JVMCompiler()
+    private final static String DELIM    = System.getProperty( 'path.separator' )
 
 
     @Override
     protected void compile()
     {
-        final extension       = ( KotlinCompileTaskExtension ) project[ KotlinCompilePlugin.COMPILE_EXTENSION_NAME ]
         final args            = new K2JVMCompilerArguments()
         args.noStdlib         = true
         args.noJdkAnnotations = true
@@ -26,13 +25,14 @@ class KotlinCompileTask extends AbstractCompile
         args.sourceDirs       = source.files*.canonicalPath
         args.outputDir        = destinationDir.canonicalPath
 
-        if ( extension.dependsOnJava )
+        for ( compileTask in dependsOn.findAll{ it instanceof Compile } )
         {
-            final javaDestinationDir = (( Compile ) project.tasks.findByName( JavaPlugin.COMPILE_JAVA_TASK_NAME )).destinationDir
-            if ( javaDestinationDir?.directory )
+            final destinationDir = (( Compile ) compileTask ).destinationDir
+            if ( destinationDir.directory )
             {
-                args.classpath = args.classpath ? "${ args.classpath };${ javaDestinationDir.canonicalPath }" :
-                                 javaDestinationDir.canonicalPath
+                destinationDir.canonicalPath.with {
+                    args.classpath = args.classpath ? "${ args.classpath }${ DELIM }${ delegate }" : delegate
+                }
             }
         }
 
