@@ -13,8 +13,11 @@ import org.gradle.api.tasks.SourceSet
 /**
  * Gradle Kotlin plugin.
  */
-class KotlinPlugin implements Plugin<Project>
+class KotlinCompilePlugin implements Plugin<Project>
 {
+    public static final String KDOC_TASK_NAME         = 'kdoc'
+    public static final String COMPILE_EXTENSION_NAME = 'compileKotlinConfig'
+
 
     @Requires({ project })
     @Override
@@ -22,9 +25,11 @@ class KotlinPlugin implements Plugin<Project>
     {
         final javaBasePlugin       = project.plugins.apply( JavaBasePlugin )
         final javaPluginConvention = project.convention.getPlugin( JavaPluginConvention )
-        project.plugins.apply( JavaPlugin )
-        configureSourceSetDefaults( project, javaPluginConvention, javaBasePlugin );
-        configureKDoc             ( project, javaPluginConvention );
+
+        project.plugins.apply      ( JavaPlugin )
+        project.extensions.create  ( COMPILE_EXTENSION_NAME, KotlinCompileTaskExtension )
+        configureSourceSetDefaults ( project, javaPluginConvention, javaBasePlugin );
+        configureKDoc              ( project, javaPluginConvention );
     }
 
 
@@ -37,18 +42,22 @@ class KotlinPlugin implements Plugin<Project>
             SourceSet sourceSet ->
 
             sourceSet.convention.plugins.kotlin = new KotlinSourceSetImpl( sourceSet.displayName, project.fileResolver )
+
+            // "src/main/kotlin", "src/test/kotlin"
             sourceSet.kotlin.srcDir   { project.file( "src/${ sourceSet.name }/kotlin" ) }
             sourceSet.allJava.source  ( sourceSet.kotlin )
             sourceSet.allSource.source( sourceSet.kotlin )
 
             sourceSet.resources.filter.exclude { FileTreeElement elem -> sourceSet.kotlin.contains( elem.file ) }
 
-            String        kotlinTaskName = sourceSet.getCompileTaskName( 'kotlin' )
+            // "compileKotlin", "compileTestKotlin"
+            String            kotlinTaskName = sourceSet.getCompileTaskName( 'kotlin' )
             KotlinCompileTask kotlinTask     = project.tasks.add( kotlinTaskName, KotlinCompileTask )
+
             javaBasePlugin.configureForSourceSet( sourceSet, kotlinTask )
-            kotlinTask.description       = "Compiles the $sourceSet.kotlin."
-            kotlinTask.source            = sourceSet.kotlin
-            project.tasks.findByName( sourceSet.compileJavaTaskName ).dependsOn( kotlinTaskName )
+
+            kotlinTask.description = "Compiles the $sourceSet.kotlin."
+            kotlinTask.source      = sourceSet.kotlin
         }
     }
 
@@ -58,13 +67,13 @@ class KotlinPlugin implements Plugin<Project>
                                 JavaPluginConvention javaPluginConvention )
     {
         SourceSet mainSourceSet = javaPluginConvention.sourceSets.getByName( SourceSet.MAIN_SOURCE_SET_NAME )
-        KDocTask kdoc               = project.tasks.add( 'kdoc', KDocTask )
+        KotlinKDocTask kdoc     = project.tasks.add( KDOC_TASK_NAME, KotlinKDocTask )
         kdoc.description        = 'Generates KDoc API documentation for the main source code.'
         kdoc.group              = JavaBasePlugin.DOCUMENTATION_GROUP;
         kdoc.source             = mainSourceSet.kotlin
 
-        project.tasks.withType( KDocTask, {
-            KDocTask param ->
+        project.tasks.withType( KotlinKDocTask, {
+            KotlinKDocTask param ->
             param.conventionMapping.map( 'destinationDir', { new File( javaPluginConvention.docsDir, 'kdoc' ) })
         })
     }

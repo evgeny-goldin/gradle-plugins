@@ -82,9 +82,7 @@ subprojects {
 
 
 subprojects.findAll{ it.name != 'common' }.each {
-    it.dependencies {
-        compile project( ':common' )
-    }
+    it.dependencies { compile project( ':common' ) }
 }
 
 

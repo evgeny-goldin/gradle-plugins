@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.doc.KDocArguments
 import org.jetbrains.kotlin.doc.KDocCompiler
 
 
-class KDocTask extends SourceTask
+class KotlinKDocTask extends SourceTask
 {
     /**
      * Returns the directory to use to output the API docs
@@ -93,7 +93,6 @@ class KDocTask extends SourceTask
             case INTERNAL_ERROR:
                 throw new GradleException( 'Internal KDoc generation error. See log for more details' )
 
-            case OK:
             default:
                 logger.info( 'KDoc generation successful' )
         }
