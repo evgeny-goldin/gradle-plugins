@@ -5,7 +5,6 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.tasks.bundling.Jar
 
-
 /**
  * Assembles plugin archive.
  */
@@ -68,8 +67,9 @@ class AssembleTeamCityPluginTask extends BaseTask
         File             destinationZip    = ext.destinationZip ?:
                                              new File( project.buildDir, "teamcity/${ project.name }-${ project.version }.zip" )
         Collection<File> pluginJars        = (( Collection<Jar>  )( ext.serverJars ?: [ project.tasks[ 'jar' ] ] ))*.archivePath
-        Collection<File> configurationJars = (( Collection<File> ) ext.serverConfigurations*.files.flatten().toSet()) -
-                                             project.configurations.getByName( 'teamcity' ).files
+        Collection<File> configurationJars = ext.serverConfigurations*.files.flatten() as Collection<File>
+        Collection<File> teamcityJars      = project.configurations.getByName( 'compile' ).extendsFrom.
+                                             findAll { name.startsWith( 'teamcity ')}*.files.flatten() as Collection<File>
 
         assert destinationZip.with { ( ! file ) || delete() }
 
@@ -77,7 +77,7 @@ class AssembleTeamCityPluginTask extends BaseTask
 
             zipfileset( file: pluginXml, fullpath: 'teamcity-plugin.xml' )
 
-            ( pluginJars + configurationJars ).each {
+            (( Collection<File> )( pluginJars + configurationJars - teamcityJars )).toSet().each {
                 File f ->
                 assert f.file , "[${ f.canonicalPath }] - not found"
                 zipfileset( file: f, prefix: 'server' )
