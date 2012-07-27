@@ -1,5 +1,5 @@
 
-apply from: 'file:/Users/evgenyg/Projects/gradle-plugins/teamcity/scripts/teamcity-common.gradle'
+apply from: 'https://raw.github.com/evgeny-goldin/gradle-plugins/master/teamcity/scripts/teamcity-common.gradle'
 
 
 dependencies {
