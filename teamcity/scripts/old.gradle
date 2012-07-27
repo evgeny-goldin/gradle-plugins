@@ -1,0 +1,225 @@
+
+apply plugin: 'idea'
+
+idea.project {
+    jdkName = '1.6'
+    ipr.withXml { provider -> provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git' }
+}
+
+
+task wrapper( type: Wrapper ) { gradleVersion = '1.0' }
+
+
+ext.codenarcRuleSetFiles        = [ 'codenarc.groovy' ]
+ext.codenarcSources             = project.subprojects*.name.collect{ [ "$it/src/main/groovy", "$it/src/test/groovy" ] }.flatten()
+apply from: 'https://raw.github.com/evgeny-goldin/gradle-plugins/master/src/main/groovy/CodeNarc.gradle'
+
+
+final groovyVersion     = '2.0.0'
+final teamCityVersion   = '7.0.4'
+final springVersion     = '3.0.5.RELEASE'
+final antVersion        = '1.8.4'
+final gcontractsVersion = '1.2.5'
+final spockVersion      = '0.6-groovy-1.8'
+final junitVersion      = '4.10'
+
+
+subprojects {
+
+    apply plugin: 'groovy'
+    apply plugin: 'idea'
+
+    defaultTasks 'clean', 'build'
+
+    group                = 'com.github.goldin.teamcity'
+    version              = '0.1'
+    sourceCompatibility  = 1.6
+    targetCompatibility  = 1.6
+
+    repositories {
+        mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/teamcity/'
+        mavenCentral()
+    }
+
+    configurations {
+        teamcity
+        compile { extendsFrom teamcity }
+    }
+
+    dependencies   {
+        groovy      "org.codehaus.groovy:groovy-all:$groovyVersion"
+        compile     ( "org.gcontracts:gcontracts-core:$gcontractsVersion" ) { exclude group: 'junit' }
+        teamcity    "org.jetbrains.teamcity:common-api:$teamCityVersion",
+                    "org.jetbrains.teamcity:server-api:$teamCityVersion",
+                    "org.jetbrains.teamcity:agent-api:$teamCityVersion",
+                    "org.jetbrains.teamcity:util:$teamCityVersion",
+                    "org.springframework:spring-core:$springVersion",
+                    "org.springframework:spring-webmvc:$springVersion",
+                    'org.jdom:jdom:1.1',
+                    'javax.servlet:servlet-api:2.5'
+        testCompile ( "org.spockframework:spock-core:$spockVersion" )       { exclude group: 'org.codehaus.groovy'  }
+        testCompile "org.spockframework:spock-spring:$spockVersion",
+                    "org.springframework:spring-test:$springVersion",
+                    "org.apache.ant:ant:$antVersion",
+                    "junit:junit:$junitVersion",
+                    "log4j:log4j:1.2.17",
+                    'com.google.guava:guava:13.0-rc2'
+    }
+
+    /**
+     * Default compilation options
+     */
+    tasks.withType( Compile ) {
+        options.debug        =  true
+        options.compilerArgs << '-Xlint:all'
+    }
+
+
+    idea.module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+
+    File        teamCityDir    = new File( System.getProperty( 'teamCityDir' ) ?: System.getProperty( 'user.home' ) + '/app/java/teamcity' )
+    String      appName        = System.getProperty( 'teamCityAppName' ) ?: 'ROOT'
+    File        destinationZip = new File(( File ) project.buildDir, "${project.name}.zip" )
+    Set<String> apiPatterns    = [ '**/api/**' ]
+
+    /**
+     * Compiles API sources
+     */
+    task compileGroovyApi ( type: GroovyCompile ) {
+        description    = 'Compiles API sources.'
+        classpath      = compileGroovy.classpath
+        source         = compileGroovy.source
+        destinationDir = compileGroovy.destinationDir
+        includes       = apiPatterns
+    }
+
+    /**
+     * Compiles implementation sources
+     */
+    task compileGroovyImpl ( type: GroovyCompile, dependsOn: compileGroovyApi ) {
+        description    = 'Compiles implementation sources.'
+        classpath      = compileGroovy.classpath
+        source         = compileGroovy.source
+        destinationDir = compileGroovy.destinationDir
+        excludes       = apiPatterns
+    }
+
+    /**
+     * Assembles API jar
+     */
+    task assembleApi( type: Jar, dependsOn: compileGroovyApi ) {
+        description = 'Assembles API jar.'
+        appendix    = 'api'
+        includes    = apiPatterns
+        from compileGroovyApi.destinationDir
+    }
+
+    /**
+     * Assembles implementation jar
+     */
+    task assembleImpl( type: Jar, dependsOn: [ classes, compileGroovyImpl ] ) {
+        description = 'Assembles implementation jar.'
+        appendix    = 'impl'
+        excludes    = apiPatterns + [ 'teamcity-plugin.xml', 'teamcity-plugin-descriptor.xsd' ]
+        from compileJava.destinationDir
+        from processResources.destinationDir
+        from compileGroovyImpl.destinationDir
+    }
+
+    /**
+     * Creates plugin Zip archive
+     */
+    task assemblePlugin( dependsOn: [ assembleApi, assembleImpl ] ) {
+
+        description = 'Creates plugin Zip archive.'
+
+        doFirst {
+            File tempFile = File.createTempFile( project.name, null )
+            tempFile.write( file( 'src/main/resources/teamcity-plugin.xml' ).text.
+                            replaceAll( '@name@',    project.name    ).
+                            replaceAll( '@version@', project.version ))
+
+            /**
+             * Copying all required libraries except provided ones by TeamCity server
+             */
+            File compileLibs = new File(( File ) project.buildDir, 'compile-libs' )
+
+            ( configurations.compile.files - configurations.provided.files ).each {
+                File file -> ant.copy( file: file, todir: compileLibs )
+            }
+
+            /**
+             * Creating plugin Zip archive
+             */
+            ant.zip( destfile: destinationZip ) {
+                zipfileset( file: tempFile,                 fullpath: 'teamcity-plugin.xml' )
+                zipfileset( file: assembleApi.archivePath,  prefix  : 'server' )
+                zipfileset( file: assembleImpl.archivePath, prefix  : 'server' )
+                zipfileset( dir:  compileLibs,              prefix  : 'server' )
+            }
+
+            assert tempFile.delete()
+        }
+    }
+
+    task compileGroovy ( overwrite: true, dependsOn: [ compileGroovyApi, compileGroovyImpl ] )
+    task assemble      ( overwrite: true, dependsOn: [ assembleApi,      assembleImpl      ] )
+    build.dependsOn( assemblePlugin )
+
+
+    /**
+     * Deploys plugin Zip to TeamCity instance
+     */
+    task deploy() {
+        description = 'Deploys plugin Zip to TeamCity instance.'
+
+        doFirst {
+            assert destinationZip.isFile() && teamCityDir.isDirectory()
+
+            def zipPath  = "webapps/$appName/WEB-INF/plugins/${project.name}.zip"
+            def tcDelete = {
+                boolean deleteDir, Object[] args ->
+                args.each {
+                    def file = new File( teamCityDir, ( String ) it )
+                    // Delete file or whole directory
+                    if ( deleteDir ){
+                        project.delete( file )
+                    }
+                    // Delete directory files only but keep the directory intact
+                    // (helpful when user edits or views some of the files, which locks the directory)
+                    else if ( file.isDirectory()) {
+                        file.eachFile { File f -> project.delete( f ) }
+                    }
+                }
+            }
+
+            tcDelete( true, zipPath, "webapps/$appName/WEB-INF/plugins/.unpacked/${project.name}",
+                                     "work/Catalina/localhost/_/TC_${project.name}" )
+
+            tcDelete( false, "webapps/$appName/plugins/${project.name}" )
+
+            ant.copy( file: destinationZip, tofile: new File( teamCityDir, zipPath ))
+        }
+    }
+
+    /**
+     * Copies static resources to TeamCity instance
+     */
+    task copy () {
+        description        = 'Copies static resources to TeamCity instance.'
+        def destinationDir = new File( teamCityDir,        "webapps/$appName/plugins/${project.name}" )
+        def sourceDir      = new File(( File ) project.projectDir, 'src/main/resources/buildServerResources' )
+
+        doFirst {
+            assert sourceDir.isDirectory() && destinationDir.isDirectory()
+
+            ant {
+                copy ( todir : destinationDir, overwrite : true ) { fileset( dir : sourceDir      ) }
+                touch()                                           { fileset( dir : destinationDir ) }
+            }
+        }
+    }
+}
