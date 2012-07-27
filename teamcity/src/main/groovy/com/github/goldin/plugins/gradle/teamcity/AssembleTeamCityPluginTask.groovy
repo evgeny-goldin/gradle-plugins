@@ -3,6 +3,8 @@ package com.github.goldin.plugins.gradle.teamcity
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
+import org.gradle.api.tasks.bundling.Jar
+
 
 /**
  * Assembles plugin archive.
@@ -18,11 +20,11 @@ class AssembleTeamCityPluginTask extends BaseTask
 
         if ( ext.serverConfigurations )
         {
-            final serverPlugin = archiveServerPlugin( ext, pluginXmlFile )
-            logger.info( "Server plugin created at [${ serverPlugin.canonicalPath }]" )
+            final archivePath = archiveServerPlugin( ext, pluginXmlFile )
+            logger.info( "Server plugin created at [${ archivePath.canonicalPath }]" )
         }
 
-        assert pluginXmlFile.delete(), "Failed to delete temp file [${ pluginXmlFile.canonicalPath }]"
+        assert pluginXmlFile.delete(), "Failed to delete temporary file [${ pluginXmlFile.canonicalPath }]"
     }
 
 
@@ -38,7 +40,7 @@ class AssembleTeamCityPluginTask extends BaseTask
     {
         final pluginXmlContent = this.class.getResourceAsStream( '/teamcity-plugin.xml' ).getText( 'UTF-8' ).
                                  replace( '@name@',         project.name      ).
-                                 replace( '@version@',      version.toString()).
+                                 replace( '@version@',      project.version.toString()).
                                  replace( '@display-name@', ext.displayName   ).
                                  replace( '@description@',  ext.description   ).
                                  replace( '@vendor-name@',  ext.vendorName    ).
@@ -63,12 +65,9 @@ class AssembleTeamCityPluginTask extends BaseTask
     @Ensures ({ result.file })
     private File archiveServerPlugin ( AssembleTeamCityPluginExtension ext, File pluginXml )
     {
-        assert ( ext.serverJars || jarTask ), \
-               "No 'serverJars' specified and 'jar' task is not found in project [$project] - don't know what task archives your code"
-
         File             destinationZip    = ext.destinationZip ?:
-                                             new File( project.buildDir, "teamcity/${ project.name }-${ version }.zip" )
-        Collection<File> pluginJars        = ( ext.serverJars ?: [ jarTask ] )*.archivePath
+                                             new File( project.buildDir, "teamcity/${ project.name }-${ project.version }.zip" )
+        Collection<File> pluginJars        = (( Collection<Jar>  )( ext.serverJars ?: [ project.tasks[ 'jar' ] ] ))*.archivePath
         Collection<File> configurationJars = (( Collection<File> ) ext.serverConfigurations*.files.flatten().toSet()) -
                                              project.configurations.getByName( 'teamcity' ).files
 
