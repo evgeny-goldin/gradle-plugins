@@ -1,0 +1,13 @@
+
+apply plugin: 'teamcity'
+
+
+repositories {
+    mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/teamcity/'
+}
+
+
+configurations {
+    teamcity
+    compile { extendsFrom teamcity }
+}

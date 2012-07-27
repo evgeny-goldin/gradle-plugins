@@ -3,8 +3,8 @@
                  xsi:noNamespaceSchemaLocation = "urn:shemas-jetbrains-com:teamcity-plugin-v1-xml">
     <info>
         <name>@name@</name>
-        <display-name>@display-name@</display-name>
         <version>@version@</version>
+        <display-name>@display-name@</display-name>
         <description>@description@</description>
         <vendor>
             <name>@vendor-name@</name>

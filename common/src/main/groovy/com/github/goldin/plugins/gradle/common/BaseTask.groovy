@@ -18,12 +18,10 @@ abstract class BaseTask extends DefaultTask
 
 
     @TaskAction
-    @Requires({ project.rootDir && project.group && project.name && project.version })
+    @Requires({ project.rootDir && project.version })
     def doTask()
     {
         this.rootDir = project.rootDir
-        this.group   = project.group
-        this.name    = project.name
         this.version = project.version
         this.jarTask = ( Jar ) project.tasks[ 'jar' ]
         taskAction()

@@ -6,4 +6,10 @@ package com.github.goldin.plugins.gradle.teamcity
  */
 class AssembleTeamCityPluginExtension
 {
+    String displayName    = ''
+    String description    = ''
+    String vendorName     = ''
+    String vendorUrl      = ''
+    File   destinationZip = null
+    String type           = 'server'
 }
