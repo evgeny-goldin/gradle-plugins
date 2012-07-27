@@ -18,7 +18,11 @@ class TeamCityPlugin implements Plugin<Project>
     @Override
     void apply ( Project project )
     {
-        project.tasks.add         ( ASSEMBLE_PLUGIN_TASK,      AssembleTeamCityPluginTask      )
         project.extensions.create ( ASSEMBLE_PLUGIN_EXTENSION, AssembleTeamCityPluginExtension )
+        final assembleTask = project.tasks.add ( ASSEMBLE_PLUGIN_TASK, AssembleTeamCityPluginTask )
+        final jarTask      = project.tasks[ 'jar' ]
+
+        assert jarTask, "No 'jar' task is found in [$project]"
+        assembleTask.dependsOn( jarTask.name )
     }
 }
