@@ -19,6 +19,7 @@ final _springVersion_   = '3.0.5.RELEASE'
 
 
 dependencies {
+
     teamcityCommon "org.jetbrains.teamcity:common-api:$_teamCityVersion_",
                    "org.jetbrains.teamcity:annotations:$_teamCityVersion_",
                    "org.jetbrains.teamcity:util:$_teamCityVersion_",
@@ -26,8 +27,10 @@ dependencies {
                    "org.springframework:spring-webmvc:$_springVersion_",
                    'javax.servlet:servlet-api:2.5',
                    'org.jdom:jdom:1.1'
-    teamcityServer "org.jetbrains.teamcity:server-api:$_teamCityVersion_"
+
+    teamcityServer "org.jetbrains.teamcity:server:$_teamCityVersion_",
+                   "org.jetbrains.teamcity:server-api:$_teamCityVersion_"
+
     teamcityAgent  "org.jetbrains.teamcity:agent:$_teamCityVersion_",
                    "org.jetbrains.teamcity:agent-api:$_teamCityVersion_"
-
 }
