@@ -28,9 +28,7 @@ dependencies {
                    'javax.servlet:servlet-api:2.5',
                    'org.jdom:jdom:1.1'
 
-    teamcityServer "org.jetbrains.teamcity:server:$_teamCityVersion_",
-                   "org.jetbrains.teamcity:server-api:$_teamCityVersion_"
+    teamcityServer "org.jetbrains.teamcity:server-api:$_teamCityVersion_"
 
-    teamcityAgent  "org.jetbrains.teamcity:agent:$_teamCityVersion_",
-                   "org.jetbrains.teamcity:agent-api:$_teamCityVersion_"
+    teamcityAgent  "org.jetbrains.teamcity:agent-api:$_teamCityVersion_"
 }
