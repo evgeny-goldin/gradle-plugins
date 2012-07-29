@@ -3,11 +3,11 @@ package com.github.goldin.plugins.gradle.general.about
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.ProjectReportsPlugin
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
 import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer
 
 import java.text.SimpleDateFormat
-
 
 /**
  * {@link AboutPlugin} task
@@ -27,7 +27,7 @@ class AboutTask extends BaseTask
      * Retrieves current plugin extension object.
      * @return current plugin extension object
      */
-    private AboutPluginExtension ext () { ( AboutPluginExtension ) project[ 'about' ] }
+    private AboutPluginExtension ext () { extension ( 'about', AboutPluginExtension ) }
 
 
     private String padLines ( String s )
@@ -63,6 +63,7 @@ class AboutTask extends BaseTask
 
     void taskAction()
     {
+        final jarTask   = ( Jar ) project.tasks[ 'jar' ]
         final directory = ext().directory ?: jarTask.destinationDir
         final fileName  = ext().fileName  ?: "about-${group}-${name}-${version}.txt"
         final split     = { String s -> ( List<String> )( s ? s.split( /,/ ).toList()*.trim().findAll{ it } : null ) }

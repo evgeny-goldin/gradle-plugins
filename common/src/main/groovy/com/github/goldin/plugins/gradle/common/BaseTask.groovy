@@ -1,10 +1,10 @@
 package com.github.goldin.plugins.gradle.common
 
 import org.apache.tools.ant.DirectoryScanner
+import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.bundling.Jar
 
 
 /**
@@ -14,7 +14,6 @@ abstract class BaseTask extends DefaultTask
 {
     File   rootDir
     String version
-    Jar    jarTask
 
 
     @TaskAction
@@ -23,8 +22,27 @@ abstract class BaseTask extends DefaultTask
     {
         this.rootDir = project.rootDir
         this.version = project.version
-        this.jarTask = ( Jar ) project.tasks[ 'jar' ]
         taskAction()
+    }
+
+
+    /**
+     * Retrieves extension of the type specified.
+     *
+     * @param extensionName name of extension
+     * @param extensionType type of extension
+     * @return extension of the type specified
+     */
+    @Requires({ extensionName && extensionType })
+    @Ensures ({ extensionType.isInstance( result ) })
+    public <T> T extension( String extensionName, Class<T> extensionType )
+    {
+        final  extension = project[ extensionName ]
+        assert extensionType.isInstance( extension ), \
+               "Project object (extension?) [$extensionName] is of type [${ extension.getClass().name }], " +
+               "not assignment-compatible with type [${ extensionType.name }]"
+
+        (( T ) extension )
     }
 
 

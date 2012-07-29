@@ -18,10 +18,7 @@ class DuplicatesFinderTask extends BaseTask
      * Retrieves current plugin extension object.
      * @return current plugin extension object
      */
-    DuplicatesFinderExtension ext()
-    {
-        ( DuplicatesFinderExtension ) project[ 'duplicates' ]
-    }
+    DuplicatesFinderExtension ext() { extension( 'duplicates', DuplicatesFinderExtension ) }
 
 
     /**
