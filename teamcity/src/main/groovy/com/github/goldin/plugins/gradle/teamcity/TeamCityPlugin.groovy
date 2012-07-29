@@ -21,10 +21,12 @@ class TeamCityPlugin implements Plugin<Project>
 
         final assembleTask = project.tasks.add ( ASSEMBLE_PLUGIN_TASK, AssembleTeamCityPluginTask )
         final tasks        = project.tasks.asMap
+        final jarTask      = tasks[ 'jar'   ]
         final testTask     = tasks[ 'test'  ]
         final buildTask    = tasks[ 'build' ]
 
-        if ( testTask  ) { assembleTask.dependsOn( testTask.name     ) }
-        if ( buildTask ) { buildTask.dependsOn   ( assembleTask.name ) }
+        if ( jarTask   ) { assembleTask.dependsOn( jarTask.name      )}
+        if ( testTask  ) { assembleTask.dependsOn( testTask.name     )}
+        if ( buildTask ) { buildTask.dependsOn   ( assembleTask.name )}
     }
 }

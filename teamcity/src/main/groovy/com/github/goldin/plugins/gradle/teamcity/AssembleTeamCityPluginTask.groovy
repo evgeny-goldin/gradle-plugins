@@ -1,10 +1,11 @@
 package com.github.goldin.plugins.gradle.teamcity
 
 import com.github.goldin.plugins.gradle.common.BaseTask
+import groovy.text.GStringTemplateEngine
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.bundling.Jar
-import groovy.text.GStringTemplateEngine
 
 /**
  * Assembles plugin archive.
@@ -74,8 +75,8 @@ class AssembleTeamCityPluginTask extends BaseTask
                                               new File( project.buildDir, "teamcity/${ project.name }-${ project.version }.zip" )
         Collection<File> pluginJars         = (( Collection<Jar>  )( ext.serverJars ?: [ project.tasks[ 'jar' ] ] ))*.archivePath
         Collection<File> configurationJars  = ext.serverConfigurations*.files.flatten() as Collection<File>
-        Collection<File> teamcityJars       = project.configurations.getByName( 'compile' ).extendsFrom.
-                                              findAll { name.startsWith( 'teamcity ')}*.files.flatten() as Collection<File>
+        Collection<File> teamcityJars       = (( Collection<Configuration> ) ext.serverConfigurations*.extendsFrom.flatten()).
+                                              findAll { it.name.startsWith( 'teamcity' )}*.files.flatten() as Collection<File>
 
         assert destinationZip.with { ( ! file ) || delete() }
 

@@ -22,8 +22,10 @@ allprojects {
 
     configurations {
         teamcityCommon
-        teamcityServer { extendsFrom teamcityCommon }
-        teamcityAgent  { extendsFrom teamcityCommon }
+        teamcityServer   { extendsFrom teamcityCommon }
+        teamcityServerEx { extendsFrom teamcityServer }
+        teamcityAgent    { extendsFrom teamcityCommon }
+        teamcityAgentEx  { extendsFrom teamcityAgent  }
     }
 
 
@@ -33,17 +35,21 @@ allprojects {
 
     dependencies {
 
-        teamcityCommon "org.jetbrains.teamcity:common-api:$_teamCityVersion_",
-                       "org.jetbrains.teamcity:annotations:$_teamCityVersion_",
-                       "org.jetbrains.teamcity:util:$_teamCityVersion_",
-                       "org.springframework:spring-core:$_springVersion_",
-                       "org.springframework:spring-webmvc:$_springVersion_",
-                       'javax.servlet:servlet-api:2.5',
-                       'org.jdom:jdom:1.1'
+        teamcityCommon   "org.jetbrains.teamcity:common-api:$_teamCityVersion_",
+                         "org.jetbrains.teamcity:annotations:$_teamCityVersion_",
+                         "org.jetbrains.teamcity:util:$_teamCityVersion_",
+                         "org.springframework:spring-core:$_springVersion_",
+                         "org.springframework:spring-webmvc:$_springVersion_",
+                         'javax.servlet:servlet-api:2.5',
+                         'org.jdom:jdom:1.1'
 
-        teamcityServer "org.jetbrains.teamcity:server-api:$_teamCityVersion_"
+        teamcityServer   "org.jetbrains.teamcity:server-api:$_teamCityVersion_"
 
-        teamcityAgent  "org.jetbrains.teamcity:agent-api:$_teamCityVersion_"
+        teamcityServerEx "org.jetbrains.teamcity:server:$_teamCityVersion_"
+
+        teamcityAgent   "org.jetbrains.teamcity:agent-api:$_teamCityVersion_"
+
+        teamcityAgentEx "org.jetbrains.teamcity:agent:$_teamCityVersion_"
     }
 }
 
