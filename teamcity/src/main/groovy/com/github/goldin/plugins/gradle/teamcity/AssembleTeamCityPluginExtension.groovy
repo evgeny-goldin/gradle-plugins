@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.teamcity
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.bundling.Jar
 
@@ -43,16 +44,22 @@ class AssembleTeamCityPluginExtension
     void destinationZip ( File destinationZip ){ this.destinationZip = destinationZip }
 
     /**
-     * Configurations / jar tasks properties and setters.
+     * Server / agent properties and setters.
      */
 
-    final List<Configuration> serverConfigurations = []
-    final List<Jar>           serverJars           = []
-    final List<Configuration> agentConfigurations  = []
-    final List<Jar>           agentJars            = []
+    final List<Project>       serverProjects       = [] // Projects packed as 'server' plugins
+    final List<Configuration> serverConfigurations = [] // 'server' plugins dependencies, 'compile' if 'serverProjects' specified
+    final List<Jar>           serverJarTasks       = [] // 'jar' tasks creating 'server' plugin archives, 'jar' if 'serverProjects' specified
 
+    final List<Project>       agentProjects        = [] // Projects packed as 'agent' plugins
+    final List<Configuration> agentConfigurations  = [] // 'agent' plugins dependencies, 'compile' if 'agentProjects' specified
+    final List<Jar>           agentJarTasks        = [] // 'jar' tasks creating 'agent' plugin archives, 'jar' if 'agentProjects' specified
+
+    void serverProjects       ( Project       ... projects       ){ serverProjects.addAll( projects )}
     void serverConfigurations ( Configuration ... configurations ){ serverConfigurations.addAll( configurations )}
-    void serverJars           ( Jar ... jars )                    { serverJars.addAll( jars )}
-    void agentConfigurations  ( Configuration ... configurations ){ agentConfigurations. addAll( configurations )}
-    void agentJars            ( Jar ... jars )                    { agentJars.addAll( jars )}
+    void serverJarTasks       ( Jar           ... jars           ){ serverJarTasks.addAll( jars )}
+
+    void agentProjects        ( Project       ... projects       ){ agentProjects.addAll( projects )}
+    void agentConfigurations  ( Configuration ... configurations ){ agentConfigurations.addAll( configurations )}
+    void agentJarTasks        ( Jar           ... jars           ){ agentJarTasks.addAll( jars )}
 }

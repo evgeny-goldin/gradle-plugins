@@ -23,13 +23,12 @@ class AssembleTeamCityPluginTask extends BaseTask
     @SuppressWarnings([ 'FileCreateTempFile' ])
     void taskAction()
     {
-        final ext = ext()
-        ext.name   ( ext.name    ?: project.name )
-        ext.version( ext.version ?: project.version.toString())
+        final pluginXmlFile  = pluginXmlFile()
+        final ext            = ext()
+        final isServerPlugin = ( ext.serverProjects || ext.serverConfigurations || ext.serverJarTasks )
+        final isAgentPlugin  = ( ext.agentProjects  || ext.agentConfigurations  || ext.agentJarTasks  )
 
-        final pluginXmlFile = pluginXmlFile()
-
-        if ( ext.serverConfigurations )
+        if ( isServerPlugin )
         {
             final archivePath = archiveServerPlugin( pluginXmlFile )
             logger.info( "Server plugin created at [${ archivePath.canonicalPath }]" )
@@ -42,16 +41,19 @@ class AssembleTeamCityPluginTask extends BaseTask
     /**
      * Creates temporary file with 'teamcity-plugin.xml' content.
      *
-     * @param ext task extension
      * @return temporary file with 'teamcity-plugin.xml' content, needs to be deleted later!
      */
     @Ensures({ result.file })
     private File pluginXmlFile ()
     {
+        final extension = ext()
+        extension.name   ( extension.name    ?: project.name )
+        extension.version( extension.version ?: project.version.toString())
+
         final pluginXmlFile     = File.createTempFile( project.name , null )
         final pluginXmlTemplate =
             new GStringTemplateEngine().createTemplate( this.class.getResource( '/teamcity-plugin.xml' )).
-            make([ ext: ext() ])
+            make([ ext: extension ])
 
         pluginXmlFile.deleteOnExit()
         pluginXmlFile.withWriter { pluginXmlTemplate.writeTo( it )}
@@ -62,31 +64,44 @@ class AssembleTeamCityPluginTask extends BaseTask
     /**
      * Archives server-side TeamCity plugin.
      *
-     * @param ext       task extension
      * @param pluginXml file with 'teamcity-plugin.xml' content
      * @return          archive created
      */
-    @Requires({ ext().serverConfigurations && pluginXml.file })
-    @Ensures ({ result.file })
+    @Requires({ pluginXml.file })
+    @Ensures ({ result.file    })
     private File archiveServerPlugin ( File pluginXml )
     {
         AssembleTeamCityPluginExtension ext = ext()
-        File             destinationZip     = ext.destinationZip ?:
-                                              new File( project.buildDir, "teamcity/${ project.name }-${ project.version }.zip" )
-        Collection<File> pluginJars         = (( Collection<Jar>  )( ext.serverJars ?: [ project.tasks[ 'jar' ] ] ))*.archivePath
-        Collection<File> configurationJars  = ext.serverConfigurations*.files.flatten() as Collection<File>
-        Collection<File> teamcityJars       = (( Collection<Configuration> ) ext.serverConfigurations*.extendsFrom.flatten()).
-                                              findAll { it.name.startsWith( 'teamcity' )}*.files.flatten() as Collection<File>
 
+        Collection<Configuration> configurations = ext.serverProjects ? ext.serverProjects*.configurations[ 'compile' ] :
+                                                                        ext.serverConfigurations
+
+        assert configurations, "Server configurations are not specified - use either 'serverProjects' or 'serverConfigurations' " +
+                               "in ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ .. }"
+
+        Collection<Jar> jarTasks = ext.serverProjects ? ext.serverProjects*.tasks[ 'jar' ] :
+                                                        ext.serverJarTasks
+
+        assert jarTasks, "Server jar tasks are not specified - use either 'serverProjects' or 'serverJarTasks' " +
+                         "in ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ .. }"
+
+        Collection<File> pluginJars       = jarTasks*.archivePath
+        Collection<File> dependenciesJars = configurations*.files.flatten() as Collection<File>
+        Collection<File> teamcityJars     = (( Collection<Configuration> ) configurations*.extendsFrom.flatten()).
+                                            findAll { it.name.startsWith( 'teamcity' )}*.files.flatten() as Collection<File>
+
+        File destinationZip = ext.destinationZip ?:
+                              new File( project.buildDir, "teamcity/${ project.name }-${ project.version }.zip" )
         assert destinationZip.with { ( ! file ) || delete() }
 
         ant.zip( destfile: destinationZip ) {
 
             zipfileset( file: pluginXml, fullpath: 'teamcity-plugin.xml' )
 
-            (( Collection<File> )( pluginJars + configurationJars - teamcityJars )).toSet().each {
+            (( Collection<File> )( pluginJars + dependenciesJars - teamcityJars )).each {
                 File f ->
-                assert f.file , "[${ f.canonicalPath }] - not found"
+                assert f.file , "[${ f.canonicalPath }] - not found when packing [${ destinationZip.canonicalPath }]. " +
+                                "Make sure you've correctly specified task \"${ TeamCityPlugin.ASSEMBLE_PLUGIN_TASK }\" dependencies."
                 zipfileset( file: f, prefix: 'server' )
             }
         }
