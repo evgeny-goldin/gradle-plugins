@@ -58,9 +58,9 @@ class AssembleTeamCityPluginTask extends BaseTask
         assert tasks
 
         Collection<File> pluginJars       = tasks*.archivePath
-        Collection<File> dependenciesJars = dependencies*.files.flatten() as Collection<File>
+        Collection<File> dependenciesJars = dependencies*.resolve().flatten() as Collection<File>
         Collection<File> teamcityJars     = (( Collection<Configuration> ) dependencies*.extendsFrom.flatten()).
-                                            findAll { it.name.startsWith( 'teamcity' )}*.files.flatten() as Collection<File>
+                                            findAll { it.name.startsWith( 'teamcity' )}*.resolve().flatten() as Collection<File>
 
         (( Collection<File> )( pluginJars + dependenciesJars - teamcityJars )).asImmutable()
     }
