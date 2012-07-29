@@ -14,15 +14,15 @@ class AssembleTeamCityPluginExtension
      * Template properties and setters.
      */
 
-    String name                    = ''
-    String displayName             = ''
-    String version                 = ''
-    String description             = ''
-    String downloadUrl             = ''
-    String email                   = ''
-    String vendorName              = ''
-    String vendorUrl               = ''
-    String vendorLogo              = ''
+    String  name                   = ''
+    String  displayName            = ''
+    String  version                = ''
+    String  description            = ''
+    String  downloadUrl            = ''
+    String  email                  = ''
+    String  vendorName             = ''
+    String  vendorUrl              = ''
+    String  vendorLogo             = ''
     boolean useSeparateClassloader = false
 
     void name        ( String name        ){ this.name        = name        }
@@ -36,12 +36,16 @@ class AssembleTeamCityPluginExtension
     void vendorLogo  ( String vendorLogo  ){ this.vendorLogo  = vendorLogo  }
     void useSeparateClassloader ( boolean useSeparateClassloader ){ this.useSeparateClassloader = useSeparateClassloader }
 
+
     /**
-     * Destination zip location and setter.
+     * Plugin / agent archive paths (destination zip) and setters.
      */
 
-    File destinationZip
-    void destinationZip ( File destinationZip ){ this.destinationZip = destinationZip }
+    File archivePath
+    void archivePath      ( File archivePath      ){ this.archivePath      = archivePath      }
+
+    File agentArchivePath
+    void agentArchivePath ( File agentArchivePath ){ this.agentArchivePath = agentArchivePath }
 
     /**
      * Server / agent properties and setters.
