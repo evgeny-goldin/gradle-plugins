@@ -60,7 +60,7 @@ uploadArchives.dependsOn 'downloadTeamCityArtifacts'
 task downloadTeamCityArtifacts << {
 
     final Project    project      = project
-    final File       downloadsDir = project.file( 'download' )
+    final File       downloadsDir = new File( project.buildDir, 'download' )
     final AntBuilder ant          = project.ant
 
     for ( teamCityVersion in teamCityVersions.split())
@@ -100,11 +100,7 @@ task downloadTeamCityArtifacts << {
         addFile( 'webapps/ROOT/WEB-INF/lib/util.jar',          'util'          )
         addFile( 'webapps/ROOT/WEB-INF/lib/spring.jar',        'spring'        )
         addFile( 'webapps/ROOT/WEB-INF/lib/spring-webmvc.jar', 'spring-webmvc' )
-
-        assert downloadsDir.deleteDir(), "Failed to delete [$downloadsDir]"
     }
-
-    assert ( ! downloadsDir.directory ), "[${ downloadsDir.canonicalPath }] still exists"
 }
 
 
