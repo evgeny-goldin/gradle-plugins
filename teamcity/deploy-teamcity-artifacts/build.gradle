@@ -59,10 +59,9 @@ uploadArchives.dependsOn 'downloadTeamCityArtifacts'
 
 task downloadTeamCityArtifacts << {
 
-    Project project ->
-
-    File       downloadsDir = new File( project.buildDir, 'download' )
-    AntBuilder ant          = project.ant
+    final Project    project      = project
+    final File       downloadsDir = new File( project.buildDir, 'download' )
+    final AntBuilder ant          = project.ant
 
     for ( teamCityVersion in teamCityVersions.split())
     {
