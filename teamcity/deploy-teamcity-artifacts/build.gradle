@@ -1,4 +1,6 @@
 import org.apache.ivy.core.module.descriptor.Artifact
+import org.gradle.api.artifacts.maven.MavenDeployer
+import org.gradle.api.artifacts.maven.MavenPom
 
 apply plugin: 'idea'
 apply plugin: 'maven'
@@ -57,11 +59,10 @@ uploadArchives.dependsOn 'downloadTeamCityArtifacts'
 
 task downloadTeamCityArtifacts << {
 
-//    addArtifact( new File( 'c:/Users/Evgeny.Goldin/Downloads/Installs/TeamCity-7.0.4/webapps/ROOT/WEB-INF/lib/shaj-0.5.jar'    ), 'aid1', '1.1' )
-//    addArtifact( new File( 'c:/Users/Evgeny.Goldin/Downloads/Installs/TeamCity-7.0.4/webapps/ROOT/WEB-INF/lib/opencsv-1.8.jar' ), 'aid2', '1.1' )
-//    addArtifact( new File( 'c:/Users/Evgeny.Goldin/Downloads/Installs/TeamCity-7.0.4/webapps/ROOT/WEB-INF/lib/log4j-1.2.12.jar' ), 'aid3', '1.1' )
+    Project project ->
 
-    File downloadsDir = new File( project.buildDir, 'download' )
+    File       downloadsDir = new File( project.buildDir, 'download' )
+    AntBuilder ant          = project.ant
 
     for ( teamCityVersion in teamCityVersions.split())
     {
@@ -72,7 +73,8 @@ task downloadTeamCityArtifacts << {
         final unpackDir       = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
         final addFile         = {
             String filePath, String artifactId ->
-            addArtifact( new File( unpackDir, "TeamCity/$filePath" ), 'org.jetbrains.teamcity', artifactId, teamCityVersion )
+            addArtifact( project, new File( unpackDir, "TeamCity/$filePath" ),
+                         'org.jetbrains.teamcity', artifactId, teamCityVersion )
         }
 
         println "Downloading [$downloadLink] to [$destinationFile]"
@@ -110,27 +112,30 @@ task downloadTeamCityArtifacts << {
 /**
  * Adds file specified as a new artifact with coordinates specified.
  */
-def addArtifact( File file, String groupId, String artifactId, String version )
+def addArtifact( Project project, File file, String groupId, String artifactId, String version )
 {
     println "addArtifact([$file], [$artifactId], [$version])"
 
     assert file.file, "[${ file.canonicalPath }] - not found"
     assert groupId && artifactId && version
 
-    final filterName = "${ file.name }-${ version }"
-    final pom        = uploadArchives.repositories.mavenDeployer.addFilter( filterName ){
-        Artifact artifact, File f ->
+    final String          filterName = "${ file.name }-${ version }"
+    final Upload          uploadTask = ( Upload ) project.tasks[ 'uploadArchives' ]
+    final MavenDeployer   deployer   = ( MavenDeployer ) uploadTask.repositories[ 'mavenDeployer' ]
+    final PublishArtifact artifact   = project.artifacts.add( 'archives', file )
+    final MavenPom        pom        = deployer.addFilter( filterName ){
+        Artifact a, File f ->
         println "[$filterName]: filtering [$f] - [${ file == f }]"
         ( file == f )
     }
 
-    artifacts.add( 'archives', file )
+    assert artifact.file == file
+
     pom.groupId    = groupId
     pom.artifactId = artifactId
     pom.version    = version
 
     println "[${ file.canonicalPath }] added as \"$groupId:$artifactId:$version\" artifact"
-    println "Deployer POM filters: ${ uploadArchives.repositories.mavenDeployer.pomFilterContainer.pomFilters }"
 }
 
 
