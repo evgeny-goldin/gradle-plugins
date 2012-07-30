@@ -1,3 +1,5 @@
+import org.apache.ivy.core.module.descriptor.Artifact
+
 apply plugin: 'idea'
 apply plugin: 'maven'
 apply plugin: 'java'
@@ -55,6 +57,12 @@ uploadArchives.dependsOn 'downloadTeamCityArtifacts'
 
 task downloadTeamCityArtifacts << {
 
+//    addArtifact( new File( 'c:/Users/Evgeny.Goldin/Downloads/Installs/TeamCity-7.0.4/webapps/ROOT/WEB-INF/lib/shaj-0.5.jar'    ), 'aid1', '1.1' )
+//    addArtifact( new File( 'c:/Users/Evgeny.Goldin/Downloads/Installs/TeamCity-7.0.4/webapps/ROOT/WEB-INF/lib/opencsv-1.8.jar' ), 'aid2', '1.1' )
+//    addArtifact( new File( 'c:/Users/Evgeny.Goldin/Downloads/Installs/TeamCity-7.0.4/webapps/ROOT/WEB-INF/lib/log4j-1.2.12.jar' ), 'aid3', '1.1' )
+
+    println "Deployer POM filters: ${ uploadArchives.repositories.mavenDeployer.pomFilterContainer.pomFilters }"
+
     File downloadsDir = new File( project.buildDir, 'download' )
 
     for ( teamCityVersion in teamCityVersions.split())
@@ -77,7 +85,9 @@ task downloadTeamCityArtifacts << {
 
         /**
          * groupIds should correspond to those used in "scripts/teamcity-<version>.gradle" !
+         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
          */
+
         addFile( 'buildAgent/lib/agent.jar',                   'agent'         )
         addFile( 'buildAgent/lib/agent-openapi.jar',           'agent-api'     )
 
@@ -97,17 +107,21 @@ task downloadTeamCityArtifacts << {
 }
 
 
+/**
+ * Adds file specified as a new artifact with POM using coordinates specified.
+ */
 def addArtifact( File file, String artifactId, String version )
 {
+    println "addArtifact([$file], [$artifactId], [$version])"
+
     assert file.file, "[${ file.canonicalPath }] - not found"
     assert artifactId && version
 
-    final filePath   = file.canonicalPath
     final filterName = "${ file.name }-${ version }"
     final pom        = uploadArchives.repositories.mavenDeployer.addFilter( filterName ){
-        artifact, File f ->
-        println "[$filterName]: filtering [$f][$filePath][${ f.canonicalPath }] - [${ filePath == f.canonicalPath }]"
-        ( filePath == f.canonicalPath )
+        Artifact artifact, File f ->
+        println "[$filterName]: filtering [$f] - [${ file == f }]"
+        ( file == f )
     }
 
     artifacts.add( 'archives', file )
