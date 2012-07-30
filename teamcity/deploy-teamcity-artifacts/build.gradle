@@ -99,7 +99,10 @@ def addArtifact( File file, String artifactId, String version )
     assert file.file, "[${ file.canonicalPath }] - not found"
     assert artifactId && version
 
-    final pom = uploadArchives.repositories.mavenDeployer.addFilter( "${ file.name }-${ version }" ){ artifact, File f -> ( file == f ) }
+    final filePath = file.canonicalPath
+    final pom      = uploadArchives.repositories.mavenDeployer.addFilter( "${ file.name }-${ version }" ){
+        artifact, File f -> ( filePath == f.canonicalPath )
+    }
 
     artifacts.add( 'archives', file )
     pom.groupId    = 'org.jetbrains.teamcity'
