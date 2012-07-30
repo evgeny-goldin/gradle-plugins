@@ -64,7 +64,7 @@ task downloadTeamCityArtifacts << {
         final destinationFile = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
         final unpackDir       = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
         final addFile         = { String path, String artifactId ->
-                                  addArtifact( new File( unpackDir, path ), artifactId, teamCityVersion )}
+                                  addArtifact( new File( unpackDir, "TeamCity/$path" ), artifactId, teamCityVersion )}
 
         println "Downloading [$downloadLink] to [$destinationFile]"
         ant.get( src: downloadLink, dest: destinationFile, verbose: 'on' )
@@ -89,6 +89,8 @@ task downloadTeamCityArtifacts << {
         addFile( 'webapps/ROOT/WEB-INF/lib/spring.jar',        'spring'        )
         addFile( 'webapps/ROOT/WEB-INF/lib/spring-webmvc.jar', 'spring-webmvc' )
     }
+
+    assert downloadsDir.deleteDir(), "Failed to delete [$downloadsDir]"
 }
 
 

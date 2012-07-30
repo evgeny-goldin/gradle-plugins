@@ -94,4 +94,17 @@ project( ':kotlin' ) {
 }
 
 
+project( ':teamcity' ) {
+    idea.module {
+        iml.withXml {
+            provider ->
+            provider.node.component.content.first().with {
+                appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/deploy-teamcity-artifacts/.gradle' ])
+                appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/deploy-teamcity-artifacts/gradle'  ])
+                appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/deploy-teamcity-artifacts/build'   ])
+            }
+        }
+    }
+}
+
 task wrapper( type: Wrapper ) { gradleVersion = '1.0' }
