@@ -108,8 +108,6 @@ task downloadTeamCityArtifacts << {
  */
 def addArtifact( Project project, File file, String groupId, String artifactId, String version )
 {
-    println "addArtifact([$file], [$artifactId], [$version])"
-
     assert file.file, "[${ file.canonicalPath }] - not found"
     assert groupId && artifactId && version
 
