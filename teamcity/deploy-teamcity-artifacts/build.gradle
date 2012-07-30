@@ -61,8 +61,6 @@ task downloadTeamCityArtifacts << {
 //    addArtifact( new File( 'c:/Users/Evgeny.Goldin/Downloads/Installs/TeamCity-7.0.4/webapps/ROOT/WEB-INF/lib/opencsv-1.8.jar' ), 'aid2', '1.1' )
 //    addArtifact( new File( 'c:/Users/Evgeny.Goldin/Downloads/Installs/TeamCity-7.0.4/webapps/ROOT/WEB-INF/lib/log4j-1.2.12.jar' ), 'aid3', '1.1' )
 
-    println "Deployer POM filters: ${ uploadArchives.repositories.mavenDeployer.pomFilterContainer.pomFilters }"
-
     File downloadsDir = new File( project.buildDir, 'download' )
 
     for ( teamCityVersion in teamCityVersions.split())
@@ -72,8 +70,10 @@ task downloadTeamCityArtifacts << {
         final downloadLink    = "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
         final destinationFile = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
         final unpackDir       = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
-        final addFile         = { String path, String artifactId ->
-                                  addArtifact( new File( unpackDir, "TeamCity/$path" ), artifactId, teamCityVersion )}
+        final addFile         = {
+            String filePath, String artifactId ->
+            addArtifact( new File( unpackDir, "TeamCity/$filePath" ), 'org.jetbrains.teamcity', artifactId, teamCityVersion )
+        }
 
         println "Downloading [$downloadLink] to [$destinationFile]"
         ant.get( src: downloadLink, dest: destinationFile, verbose: 'on' )
@@ -108,14 +108,14 @@ task downloadTeamCityArtifacts << {
 
 
 /**
- * Adds file specified as a new artifact with POM using coordinates specified.
+ * Adds file specified as a new artifact with coordinates specified.
  */
-def addArtifact( File file, String artifactId, String version )
+def addArtifact( File file, String groupId, String artifactId, String version )
 {
     println "addArtifact([$file], [$artifactId], [$version])"
 
     assert file.file, "[${ file.canonicalPath }] - not found"
-    assert artifactId && version
+    assert groupId && artifactId && version
 
     final filterName = "${ file.name }-${ version }"
     final pom        = uploadArchives.repositories.mavenDeployer.addFilter( filterName ){
@@ -125,11 +125,12 @@ def addArtifact( File file, String artifactId, String version )
     }
 
     artifacts.add( 'archives', file )
-    pom.groupId    = 'org.jetbrains.teamcity'
+    pom.groupId    = groupId
     pom.artifactId = artifactId
     pom.version    = version
 
-    println "[${ file.canonicalPath }] artifact added"
+    println "[${ file.canonicalPath }] added as \"$groupId:$artifactId:$version\" artifact"
+    println "Deployer POM filters: ${ uploadArchives.repositories.mavenDeployer.pomFilterContainer.pomFilters }"
 }
 
 
