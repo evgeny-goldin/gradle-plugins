@@ -118,11 +118,7 @@ def addArtifact( Project project, File file, String groupId, String artifactId, 
     final Upload          uploadTask = ( Upload ) project.tasks[ 'uploadArchives' ]
     final MavenDeployer   deployer   = ( MavenDeployer ) uploadTask.repositories[ 'mavenDeployer' ]
     final PublishArtifact artifact   = project.artifacts.add( 'archives', file )
-    final MavenPom        pom        = deployer.addFilter( filterName ){
-        Artifact a, File f ->
-        println "[$filterName]: filtering [$f] - [${ file == f }]"
-        ( file == f )
-    }
+    final MavenPom        pom        = deployer.addFilter( filterName ){ Artifact a, File f -> ( file == f )}
 
     assert artifact.file == file
 
