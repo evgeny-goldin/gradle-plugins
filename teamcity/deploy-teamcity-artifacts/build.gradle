@@ -56,10 +56,11 @@ uploadArchives.dependsOn 'downloadTeamCityArtifacts'
 task downloadTeamCityArtifacts << {
 
     File downloadsDir = new File( project.buildDir, 'download' )
-    assert ( downloadsDir.directory || downloadsDir.mkdirs())
 
     for ( teamCityVersion in teamCityVersions.split())
     {
+        assert ( downloadsDir.directory || downloadsDir.mkdirs())
+
         final downloadLink    = "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
         final destinationFile = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
         final unpackDir       = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
@@ -88,9 +89,11 @@ task downloadTeamCityArtifacts << {
         addFile( 'webapps/ROOT/WEB-INF/lib/util.jar',          'util'          )
         addFile( 'webapps/ROOT/WEB-INF/lib/spring.jar',        'spring'        )
         addFile( 'webapps/ROOT/WEB-INF/lib/spring-webmvc.jar', 'spring-webmvc' )
+
+        assert downloadsDir.deleteDir(), "Failed to delete [$downloadsDir]"
     }
 
-    assert downloadsDir.deleteDir(), "Failed to delete [$downloadsDir]"
+    assert ( ! downloadsDir.directory ), "[${ downloadsDir.canonicalPath }] still exists"
 }
 
 
@@ -99,9 +102,12 @@ def addArtifact( File file, String artifactId, String version )
     assert file.file, "[${ file.canonicalPath }] - not found"
     assert artifactId && version
 
-    final filePath = file.canonicalPath
-    final pom      = uploadArchives.repositories.mavenDeployer.addFilter( "${ file.name }-${ version }" ){
-        artifact, File f -> ( filePath == f.canonicalPath )
+    final filePath   = file.canonicalPath
+    final filterName = "${ file.name }-${ version }"
+    final pom        = uploadArchives.repositories.mavenDeployer.addFilter( filterName ){
+        artifact, File f ->
+        println "[$filterName]: filtering [$f][$filePath][${ f.canonicalPath }] - [${ filePath == f.canonicalPath }]"
+        ( filePath == f.canonicalPath )
     }
 
     artifacts.add( 'archives', file )
