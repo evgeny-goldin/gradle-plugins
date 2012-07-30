@@ -1,0 +1,111 @@
+apply plugin: 'idea'
+apply plugin: 'maven'
+apply plugin: 'java'
+
+
+/**
+ * Gradle script deploying TeamCity artifacts downloading releases and unpacking them.
+ * http://confluence.jetbrains.net/display/TW/Previous+Releases+Downloads
+ */
+
+//final teamCityVersions = '7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'
+final teamCityVersions = '7.0.4'
+
+
+defaultTasks 'clean', 'downloadTeamCityArtifacts', 'uploadArchives'
+
+
+group   = 'com.github.goldin.plugins.teamcity'
+version = '0.1'
+
+
+uploadArchives.repositories.mavenDeployer {
+    repository( url: 'http://evgenyg.artifactoryonline.com/evgenyg/teamcity-temp/' )
+}
+
+
+idea.project {
+
+    jdkName = '1.6'
+
+    ipr.withXml {
+        provider ->
+        provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.with {
+            delegate.@directory = '$PROJECT_DIR$/../..'
+            delegate.@vcs       = 'Git'
+        }
+    }
+}
+
+
+idea.module {
+    iml.withXml {
+        provider ->
+        provider.node.component.content.first().with {
+            appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/scripts/build'    ])
+            appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/scripts/download' ])
+            appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/scripts/.gradle'  ])
+        }
+    }
+}
+
+
+uploadArchives.dependsOn 'downloadTeamCityArtifacts'
+
+
+task downloadTeamCityArtifacts << {
+
+    File downloadsDir = new File( project.buildDir, 'download' )
+    assert ( downloadsDir.directory || downloadsDir.mkdirs())
+
+    for ( teamCityVersion in teamCityVersions.split())
+    {
+        final downloadLink    = "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
+        final destinationFile = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
+        final unpackDir       = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
+        final addFile         = { String path, String artifactId ->
+                                  addArtifact( new File( unpackDir, path ), artifactId, teamCityVersion )}
+
+        println "Downloading [$downloadLink] to [$destinationFile]"
+        ant.get( src: downloadLink, dest: destinationFile, verbose: 'on' )
+        println "Done"
+
+        println "Unpacking [$destinationFile] to [$unpackDir]"
+        ant.untar( src: destinationFile, dest: unpackDir, compression: 'gzip' )
+        println "Done"
+
+        /**
+         * groupIds should correspond to those used in "scripts/teamcity-<version>.gradle" !
+         */
+        addFile( 'buildAgent/lib/agent.jar',                   'agent'         )
+        addFile( 'buildAgent/lib/agent-openapi.jar',           'agent-api'     )
+
+        addFile( 'webapps/ROOT/WEB-INF/lib/server.jar',        'server'        )
+        addFile( 'webapps/ROOT/WEB-INF/lib/server-api.jar',    'server-api'    )
+
+        addFile( 'webapps/ROOT/WEB-INF/lib/common-api.jar',    'common-api'    )
+        addFile( 'webapps/ROOT/WEB-INF/lib/annotations.jar',   'annotations'   )
+        addFile( 'webapps/ROOT/WEB-INF/lib/util.jar',          'util'          )
+        addFile( 'webapps/ROOT/WEB-INF/lib/spring.jar',        'spring'        )
+        addFile( 'webapps/ROOT/WEB-INF/lib/spring-webmvc.jar', 'spring-webmvc' )
+    }
+}
+
+
+def addArtifact( File file, String artifactId, String version )
+{
+    assert file.file, "[${ file.canonicalPath }] - not found"
+    assert artifactId && version
+
+    final pom = uploadArchives.repositories.mavenDeployer.addFilter( "${ file.name }-${ version }" ){ artifact, File f -> ( file == f ) }
+
+    artifacts.add( 'archives', file )
+    pom.groupId    = 'org.jetbrains.teamcity'
+    pom.artifactId = artifactId
+    pom.version    = version
+
+    println "[${ file.canonicalPath }] artifact added"
+}
+
+
+task wrapper( type: Wrapper ) { gradleVersion = '1.0' }
