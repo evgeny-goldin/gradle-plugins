@@ -112,6 +112,8 @@ def downloadArtifacts ( Project project, String teamCityVersion, File downloadsD
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
 
+    addFile( 'lib/servlet-api.jar',                        'servlet-api'   )
+
     addFile( 'buildAgent/lib/agent.jar',                   'agent'         )
     addFile( 'buildAgent/lib/agent-openapi.jar',           'agent-api'     )
 
