@@ -1,0 +1,84 @@
+/**
+ * ----------------------------------------------------------------------
+ * Gradle script to be included for using with TeamCity version "6.0.2"
+ * ----------------------------------------------------------------------
+ */
+
+apply plugin: 'teamcity'
+
+
+final String  _teamCityVersion_ = '6.0.2'
+final Project _p_               = project.rootProject
+
+
+buildscript {
+    repositories {
+        mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
+    }
+    dependencies {
+        classpath 'com.github.goldin.plugins:teamcity:0.1.4-SNAPSHOT'
+    }
+}
+
+
+allprojects {
+
+    repositories {
+        mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/teamcity/'
+    }
+
+
+    configurations {
+        teamcityCommon
+        teamcityServer   { extendsFrom teamcityCommon }
+        teamcityServerEx { extendsFrom teamcityServer }
+        teamcityAgent    { extendsFrom teamcityCommon }
+        teamcityAgentEx  { extendsFrom teamcityAgent  }
+    }
+
+    dependencies {
+
+        teamcityCommon   "org.jetbrains.teamcity:servlet-api:$_teamCityVersion_",
+                         "org.jetbrains.teamcity:common-api:$_teamCityVersion_",
+                         "org.jetbrains.teamcity:annotations:$_teamCityVersion_",
+                         "org.jetbrains.teamcity:util:$_teamCityVersion_",
+                         "org.jetbrains.teamcity:spring:$_teamCityVersion_",
+                         "org.jetbrains.teamcity:spring-webmvc:$_teamCityVersion_"
+
+        teamcityServer   "org.jetbrains.teamcity:server-api:$_teamCityVersion_"
+
+        teamcityServerEx "org.jetbrains.teamcity:server:$_teamCityVersion_"
+
+        teamcityAgent    "org.jetbrains.teamcity:agent-api:$_teamCityVersion_"
+
+        teamcityAgentEx  "org.jetbrains.teamcity:agent:$_teamCityVersion_"
+    }
+
+
+    _p_.gradle.taskGraph.whenReady {
+
+        final errors = []
+
+        for ( Configuration compileConfiguration in _p_.allprojects*.configurations*.asMap*.getAt( 'compile' ).grep())
+        {
+            final Set<Dependency> badDependencies = compileConfiguration.dependencies.findAll {
+                Dependency d ->
+                (( d.group in [ 'org.springframework'    ] ) && ( d.name  in [ 'spring', 'spring-core', 'spring-webmvc' ] )) ||
+                (  d.group in [ 'org.jetbrains.teamcity' ] ) ||
+                (  d.name  in [ 'servlet-api'            ] )
+            }
+
+            final Configuration teamcityConfiguration = compileConfiguration.extendsFrom.find { it.name.startsWith( 'teamcity' )}
+
+            if ( badDependencies && teamcityConfiguration )
+            {
+                final dependencies = "dependenc${ badDependencies.size() == 1 ? 'y' : 'ies' } " +
+                                     badDependencies.collect { "$it.group:$it.name:$it.version" }
+
+                errors << "$compileConfiguration - $dependencies should not be used, already provided by $teamcityConfiguration."
+            }
+        }
+
+        if ( errors ) { throw new GradleException( errors.join( '\n' )) }
+    }
+}
