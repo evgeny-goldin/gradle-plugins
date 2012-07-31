@@ -2,6 +2,7 @@ import org.apache.ivy.core.module.descriptor.Artifact
 import org.gradle.api.artifacts.maven.MavenDeployer
 import org.gradle.api.artifacts.maven.MavenPom
 
+
 apply plugin: 'idea'
 apply plugin: 'maven'
 apply plugin: 'java'
@@ -15,7 +16,7 @@ apply plugin: 'java'
 final teamCityVersions = '7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'
 
 
-defaultTasks 'clean', 'downloadTeamCityArtifacts', 'uploadArchives'
+defaultTasks 'downloadTeamCityArtifacts', 'uploadArchives'
 
 
 group   = 'com.github.goldin.plugins.teamcity'
@@ -58,22 +59,40 @@ uploadArchives.dependsOn 'downloadTeamCityArtifacts'
 
 task downloadTeamCityArtifacts << {
 
-    final Project    project      = project
-    final File       downloadsDir = new File( project.buildDir, 'download' )
-    final AntBuilder ant          = project.ant
+    final Project project      = project
+    final File    downloadsDir = new File( project.buildDir, 'download' )
+    assert ( downloadsDir.directory || downloadsDir.mkdirs())
 
     for ( teamCityVersion in teamCityVersions.split())
     {
-        assert ( downloadsDir.directory || downloadsDir.mkdirs())
+        try       { downloadArtifacts( project, teamCityVersion, downloadsDir ) }
+        catch (e) { project.logger.error( "Failed to download TeamCity [$teamCityVersion] artifacts", e )}
+    }
+}
 
-        final downloadLink    = "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
-        final destinationFile = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
-        final unpackDir       = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
-        final addFile         = {
-            String filePath, String artifactId ->
-            addArtifact( project, new File( unpackDir, "TeamCity/$filePath" ),
-                         'org.jetbrains.teamcity', artifactId, teamCityVersion )
-        }
+
+/**
+ * Downloads artifacts of TeamCity version specified and adds them as project's artifacts.
+ */
+def downloadArtifacts ( Project project, String teamCityVersion, File downloadsDir )
+{
+    final String  downloadLink    = "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
+    final File    destinationFile = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
+    final File    unpackDir       = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
+    final Closure addFile         = {
+        String filePath, String artifactId ->
+        addArtifact( project,
+                     new File( unpackDir, "TeamCity/$filePath" ),
+                     'org.jetbrains.teamcity', artifactId, teamCityVersion )
+    }
+
+    /**
+     * Certain version may already be downloaded by previous attempts
+     */
+    if ( ! unpackDir.directory )
+    {
+        assert (( ! destinationFile.file ) || destinationFile.delete()), \
+               "Failed to delete old [${ destinationFile.canonicalPath }]"
 
         println "Downloading [$downloadLink] to [$destinationFile]"
         ant.get( src: downloadLink, dest: destinationFile, verbose: 'on' )
@@ -83,25 +102,27 @@ task downloadTeamCityArtifacts << {
         ant.untar( src: destinationFile, dest: unpackDir, compression: 'gzip' )
         println "Done"
 
-        assert destinationFile.delete(), "Failed to delete [${ destinationFile.canonicalPath }]"
-
-        /**
-         * groupIds should correspond to those used in "scripts/teamcity-<version>.gradle" !
-         * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-         */
-
-        addFile( 'buildAgent/lib/agent.jar',                   'agent'         )
-        addFile( 'buildAgent/lib/agent-openapi.jar',           'agent-api'     )
-
-        addFile( 'webapps/ROOT/WEB-INF/lib/server.jar',        'server'        )
-        addFile( 'webapps/ROOT/WEB-INF/lib/server-api.jar',    'server-api'    )
-
-        addFile( 'webapps/ROOT/WEB-INF/lib/common-api.jar',    'common-api'    )
-        addFile( 'webapps/ROOT/WEB-INF/lib/annotations.jar',   'annotations'   )
-        addFile( 'webapps/ROOT/WEB-INF/lib/util.jar',          'util'          )
-        addFile( 'webapps/ROOT/WEB-INF/lib/spring.jar',        'spring'        )
-        addFile( 'webapps/ROOT/WEB-INF/lib/spring-webmvc.jar', 'spring-webmvc' )
+        assert destinationFile.delete(), \
+               "Failed to delete [${ destinationFile.canonicalPath }]"
     }
+
+    /**
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * artifactIds should correspond to those used in "scripts/teamcity-<version>.gradle" !
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     */
+
+    addFile( 'buildAgent/lib/agent.jar',                   'agent'         )
+    addFile( 'buildAgent/lib/agent-openapi.jar',           'agent-api'     )
+
+    addFile( 'webapps/ROOT/WEB-INF/lib/server.jar',        'server'        )
+    addFile( 'webapps/ROOT/WEB-INF/lib/server-api.jar',    'server-api'    )
+
+    addFile( 'webapps/ROOT/WEB-INF/lib/common-api.jar',    'common-api'    )
+    addFile( 'webapps/ROOT/WEB-INF/lib/annotations.jar',   'annotations'   )
+    addFile( 'webapps/ROOT/WEB-INF/lib/util.jar',          'util'          )
+    addFile( 'webapps/ROOT/WEB-INF/lib/spring.jar',        'spring'        )
+    addFile( 'webapps/ROOT/WEB-INF/lib/spring-webmvc.jar', 'spring-webmvc' )
 }
 
 
