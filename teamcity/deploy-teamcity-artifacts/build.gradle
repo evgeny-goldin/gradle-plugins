@@ -84,7 +84,8 @@ List<File> downloadArtifacts ( Project project, String teamCityVersion, File dow
     assert project && teamCityVersion && downloadsDir.directory
 
     final List<File> files        = []
-    final String     downloadLink = "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
+    final String     downloadLink = "http://download.labs.intellij.net/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
+    //                              "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
     final File       archiveFile  = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
     final File       unpackDir    = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
     final Closure    addFile      = {
