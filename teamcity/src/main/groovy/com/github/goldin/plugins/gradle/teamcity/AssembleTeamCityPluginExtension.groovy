@@ -2,6 +2,7 @@ package com.github.goldin.plugins.gradle.teamcity
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.bundling.Jar
 
 /**
@@ -25,24 +26,21 @@ class AssembleTeamCityPluginExtension
     String  vendorLogo             = ''
     boolean useSeparateClassloader = false
 
-    void name        ( String name        ){ this.name        = name        }
-    void displayName ( String displayName ){ this.displayName = displayName }
-    void version     ( String version     ){ this.version     = version     }
-    void description ( String description ){ this.description = description }
-    void downloadUrl ( String downloadUrl ){ this.downloadUrl = downloadUrl }
-    void email       ( String email       ){ this.email       = email       }
-    void vendorName  ( String vendorName  ){ this.vendorName  = vendorName  }
-    void vendorUrl   ( String vendorUrl   ){ this.vendorUrl   = vendorUrl   }
-    void vendorLogo  ( String vendorLogo  ){ this.vendorLogo  = vendorLogo  }
+    void name                   ( String name                    ){ this.name                   = name                   }
+    void displayName            ( String displayName             ){ this.displayName            = displayName            }
+    void version                ( String version                 ){ this.version                = version                }
+    void description            ( String description             ){ this.description            = description            }
+    void downloadUrl            ( String downloadUrl             ){ this.downloadUrl            = downloadUrl            }
+    void email                  ( String email                   ){ this.email                  = email                  }
+    void vendorName             ( String vendorName              ){ this.vendorName             = vendorName             }
+    void vendorUrl              ( String vendorUrl               ){ this.vendorUrl              = vendorUrl              }
+    void vendorLogo             ( String vendorLogo              ){ this.vendorLogo             = vendorLogo             }
     void useSeparateClassloader ( boolean useSeparateClassloader ){ this.useSeparateClassloader = useSeparateClassloader }
 
 
     /**
-     * Plugin / agent archive paths (destination zip) and setters.
+     * Agent archive path and setter.
      */
-
-    File archivePath
-    void archivePath      ( File archivePath      ){ this.archivePath      = archivePath      }
 
     File agentArchivePath
     void agentArchivePath ( File agentArchivePath ){ this.agentArchivePath = agentArchivePath }
@@ -60,19 +58,21 @@ class AssembleTeamCityPluginExtension
     final List<Configuration> agentConfigurations  = [] // 'agent' plugins dependencies, 'compile' if 'agentProjects' specified
     final List<Jar>           agentJarTasks        = [] // 'jar' tasks creating 'agent' plugin archives, 'jar' if 'agentProjects' specified
 
-    void serverProjects       ( Project       ... projects       ){ serverProjects.addAll( projects )}
+    void server               ( Project       ... projects       ){ serverProjects.addAll( projects )}
     void serverConfigurations ( Configuration ... configurations ){ serverConfigurations.addAll( configurations )}
     void serverJarTasks       ( Jar           ... jars           ){ serverJarTasks.addAll( jars )}
 
-    void agentProjects        ( Project       ... projects       ){ agentProjects.addAll( projects )}
+    void agent                ( Project       ... projects       ){ agentProjects.addAll( projects )}
     void agentConfigurations  ( Configuration ... configurations ){ agentConfigurations.addAll( configurations )}
     void agentJarTasks        ( Jar           ... jars           ){ agentJarTasks.addAll( jars )}
 
 
     /**
-     * Static resources to be added to archive.
+     * Static resources to be added to archive and setters.
+     * Each Map's eys: 'files' (required), 'prefix' (optional)
      */
 
     final List<Map<String, Object>> resources = []
     void  resources( Map<String, Object> resourcesMap ){ resources << resourcesMap }
+    void  resources( FileCollection      files        ){ resources << [ files: files, prefix: '' ]}
 }

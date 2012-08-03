@@ -19,14 +19,17 @@ class TeamCityPlugin implements Plugin<Project>
     {
         project.extensions.create ( ASSEMBLE_PLUGIN_EXTENSION, AssembleTeamCityPluginExtension )
 
-        final assembleTask = project.tasks.add ( ASSEMBLE_PLUGIN_TASK, AssembleTeamCityPluginTask )
-        final tasks        = project.tasks.asMap
-        final jarTask      = tasks[ 'jar'   ]
-        final testTask     = tasks[ 'test'  ]
-        final buildTask    = tasks[ 'build' ]
+        final assemblePluginTask = project.tasks.add ( ASSEMBLE_PLUGIN_TASK, AssembleTeamCityPluginTask )
+        final tasks              = project.tasks.asMap
+        final jarTask            = tasks[ 'jar'   ]
+        final testTask           = tasks[ 'test'  ]
+        final buildTask          = tasks[ 'build' ]
 
-        if ( jarTask   ) { assembleTask.dependsOn( jarTask.name      )}
-        if ( testTask  ) { assembleTask.dependsOn( testTask.name     )}
-        if ( buildTask ) { buildTask.dependsOn   ( assembleTask.name )}
+        assemblePluginTask.from( project.buildDir.absoluteFile )
+        project.subprojects.each { assemblePluginTask.from( it.buildDir.absoluteFile )}
+
+        if ( jarTask   ) { assemblePluginTask.dependsOn( jarTask.name   )}
+        if ( testTask  ) { assemblePluginTask.dependsOn( testTask.name  )}
+        if ( buildTask ) { buildTask.dependsOn( assemblePluginTask.name )}
     }
 }

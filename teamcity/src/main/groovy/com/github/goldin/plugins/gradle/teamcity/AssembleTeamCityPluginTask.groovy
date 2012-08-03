@@ -1,28 +1,38 @@
 package com.github.goldin.plugins.gradle.teamcity
 
-import com.github.goldin.plugins.gradle.common.BaseTask
 import groovy.text.GStringTemplateEngine
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Zip
+
 
 /**
- * Assembles plugin archive.
+ * Assembles TeamCity plugin archive.
  */
-class AssembleTeamCityPluginTask extends BaseTask
+class AssembleTeamCityPluginTask extends Zip
 {
     /**
      * Retrieves task's extension.
      * @return   task's extension
      */
-    private AssembleTeamCityPluginExtension ext () { extension ( TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION,
-                                                                 AssembleTeamCityPluginExtension ) }
+    private AssembleTeamCityPluginExtension ext () {
+        project[ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION ] as AssembleTeamCityPluginExtension
+    }
 
-    @Override
-    @SuppressWarnings([ 'FileCreateTempFile' ])
+
+    AssembleTeamCityPluginTask ( )
+    {
+        destinationDir = destinationDir ?: new File( project.buildDir, 'teamcity' )
+        archiveName    = ( archiveName in [ null, '.zip' ] ) ? "${ project.name }-${ project.version }.${ extension }" : archiveName
+    }
+
+
+    @TaskAction
     void taskAction()
     {
         final ext        = ext()
@@ -32,7 +42,9 @@ class AssembleTeamCityPluginTask extends BaseTask
         assert ( agentJars || serverJars ), \
                "Neither of agent or server-related properties specified in ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ .. }"
 
-        final archivePath = archivePlugin( agentJars, serverJars )
+        archivePlugin( agentJars, serverJars )
+        assert archivePath.file
+
         logger.info( "Plugin created at [${ archivePath.canonicalPath }]" )
     }
 
@@ -76,18 +88,15 @@ class AssembleTeamCityPluginTask extends BaseTask
      */
     @Requires({ serverJars || agentJars })
     @Ensures ({ result.file })
-    File archivePlugin( Collection<File> agentJars, Collection<File> serverJars )
+    void archivePlugin( Collection<File> agentJars, Collection<File> serverJars )
     {
-        final ext               = ext()
-        final pluginXmlFile     = pluginXmlFile()
+        final ext           = ext()
+        final pluginXmlFile = pluginXmlFile()
 
-        assert ext.name && project.name && project.version
+        assert ext.name && project.name && project.version && pluginXmlFile.file
 
-        final archivePath       = { String name -> new File( project.buildDir, "teamcity/${ name }.zip" )}
-        final agentArchivePath  = agentJars ? ( ext.agentArchivePath ?: archivePath( "${ project.name }-agent-${ project.version }" )) :
-                                              null
-        final pluginArchivePath = ext.archivePath ?:
-                                  archivePath( "${ project.name }-${ project.version }" )
+        final Closure file         = { String name -> new File( project.buildDir, "teamcity/${ name }.zip" )}
+        final File    agentArchive = ( agentJars ? ( ext.agentArchivePath ?: file( "${ project.name }-agent-${ project.version }" )) : null )
 
         /**
          * -----------------------------------------------------------------------------------
@@ -97,36 +106,36 @@ class AssembleTeamCityPluginTask extends BaseTask
 
         if ( agentJars )
         {
-            zip( agentArchivePath ) {
-                addFilesToArchive( agentArchivePath, agentJars, "${ ext.name }/lib", 'agent' )
+            zip( agentArchive ) {
+                addFilesToArchive( agentArchive, agentJars, "${ ext.name }/lib", 'agent' )
             }
         }
 
-        zip( pluginArchivePath ) {
+        zip( archivePath ) {
 
             ant.zipfileset( file: pluginXmlFile, fullpath: 'teamcity-plugin.xml' )
 
             if ( agentJars )
             {
-                ant.zipfileset( file: agentArchivePath, prefix: 'agent' )
+                ant.zipfileset( file: agentArchive, prefix: 'agent' )
             }
 
             if ( serverJars )
             {
-                addFilesToArchive( pluginArchivePath, serverJars, 'server', 'plugin' )
+                addFilesToArchive( archivePath, serverJars, 'server', 'plugin' )
             }
 
             ext.resources.each {
                 Map<String, Object> resources ->
                 final FileCollection files  = resources.files as FileCollection
                 final String         prefix = ( resources.prefix != null ) ? resources.prefix : ''
-                assert resources.files, "Specify 'files : files(..)' or 'files : fileTree(..)' when adding resources to archive"
-                addFilesToArchive( pluginArchivePath, files.files, prefix, 'plugin' )
+                assert resources.files, "Specify 'files(..)', 'files : files(..)' or 'files : fileTree(..)' when adding resources to archive"
+                addFilesToArchive( archivePath, files.files, prefix, 'plugin' )
             }
         }
 
-        assert pluginXmlFile.delete(), "Failed to delete temporary file [${ pluginXmlFile.canonicalPath }]"
-        pluginArchivePath
+        assert ( ! agentArchive.file ) || ( agentArchive.delete()), "Failed to delete [${ agentArchive.canonicalPath }]"
+        assert pluginXmlFile.delete(),                              "Failed to delete [${ pluginXmlFile.canonicalPath }]"
     }
 
 
@@ -199,5 +208,4 @@ class AssembleTeamCityPluginTask extends BaseTask
         pluginXmlFile.withWriter { pluginXmlTemplate.writeTo( it )}
         pluginXmlFile
     }
-
 }
