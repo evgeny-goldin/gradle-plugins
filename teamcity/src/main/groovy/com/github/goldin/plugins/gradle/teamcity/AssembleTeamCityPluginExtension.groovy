@@ -47,6 +47,7 @@ class AssembleTeamCityPluginExtension
     File agentArchivePath
     void agentArchivePath ( File agentArchivePath ){ this.agentArchivePath = agentArchivePath }
 
+
     /**
      * Server / agent properties and setters.
      */
@@ -66,4 +67,12 @@ class AssembleTeamCityPluginExtension
     void agentProjects        ( Project       ... projects       ){ agentProjects.addAll( projects )}
     void agentConfigurations  ( Configuration ... configurations ){ agentConfigurations.addAll( configurations )}
     void agentJarTasks        ( Jar           ... jars           ){ agentJarTasks.addAll( jars )}
+
+
+    /**
+     * Static resources to be added to archive.
+     */
+
+    final List<Map<String, Object>> resources = []
+    void  resources( Map<String, Object> resourcesMap ){ resources << resourcesMap }
 }

@@ -6,6 +6,7 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.bundling.Jar
 
 /**
@@ -114,6 +115,14 @@ class AssembleTeamCityPluginTask extends BaseTask
             {
                 addFilesToArchive( pluginArchivePath, serverJars, 'server', 'plugin' )
             }
+
+            ext.resources.each {
+                Map<String, Object> resources ->
+                final FileCollection files  = resources.files as FileCollection
+                final String         prefix = ( resources.prefix != null ) ? resources.prefix : ''
+                assert resources.files, "Specify 'files : files(..)' or 'files : fileTree(..)' when adding resources to archive"
+                addFilesToArchive( pluginArchivePath, files.files, prefix, 'plugin' )
+            }
         }
 
         assert pluginXmlFile.delete(), "Failed to delete temporary file [${ pluginXmlFile.canonicalPath }]"
@@ -135,7 +144,10 @@ class AssembleTeamCityPluginTask extends BaseTask
         assert (( ! archivePath.file ) || archivePath.delete()), \
                "Failed to delete old version of [${ archivePath.canonicalPath }]"
 
-        ant.zip( destfile: archivePath ){ zipClosure() }
+        /**
+         * http://evgeny-goldin.org/javadoc/ant/Tasks/zip.html
+         */
+        ant.zip( destfile: archivePath, duplicate: 'fail', whenempty: 'fail', level: 9 ){ zipClosure() }
 
         assert archivePath.file
         archivePath
@@ -155,10 +167,12 @@ class AssembleTeamCityPluginTask extends BaseTask
     {
         files.each {
             File f ->
-            assert f.file, "File [${ f.canonicalPath }] - not found when creating $title archive [${ archive.canonicalPath }]. " +
-                           "Make sure task \"${ TeamCityPlugin.ASSEMBLE_PLUGIN_TASK }\" dependencies specified correctly."
+            assert ( f.file || f.directory ), \
+                   "[${ f.canonicalPath }] - not found when creating $title archive [${ archive.canonicalPath }]. " +
+                   "Make sure task \"${ TeamCityPlugin.ASSEMBLE_PLUGIN_TASK }\" dependencies specified correctly"
 
-            ant.zipfileset( file: f, prefix: prefix )
+            if ( f.file ) { ant.zipfileset( file: f, prefix: prefix )}
+            else          { ant.zipfileset( dir:  f, prefix: prefix )}
         }
     }
 
