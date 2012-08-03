@@ -164,7 +164,9 @@ class AssembleTeamCityPluginTask extends BaseTask
      */
     @Requires({ archive && files && prefix && title })
     void addFilesToArchive ( File archive, Collection<File> files, String prefix, String title )
-    {
+    {   //noinspection GroovyAssignmentToMethodParameter
+        prefix = prefix.startsWith( '/' ) ? prefix.substring( 1 ) : prefix
+
         files.each {
             File f ->
             assert ( f.file || f.directory ), \
