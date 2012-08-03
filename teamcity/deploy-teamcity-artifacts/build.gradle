@@ -52,7 +52,11 @@ idea.module {
 
 uploadArchives {
     dependsOn 'downloadTeamCityArtifacts'
-    doFirst   { assert files; files.each{ assert it.file }}
+    doFirst   {
+        assert files
+        files.each{ assert it.file }
+        println "Uploading [${ files.size()}] files to [${ repositories.mavenDeployer.repository.url }]"
+    }
     repositories.mavenDeployer{ repository( url: 'http://evgenyg.artifactoryonline.com/evgenyg/temp/' )}
 }
 
@@ -66,7 +70,7 @@ task downloadTeamCityArtifacts << {
 
     for ( teamCityVersion in teamCityVersions.split())
     {
-        try       { downloadArtifacts( project, teamCityVersion, downloadsDir, files ) }
+        try       { files.addAll( downloadArtifacts( project, teamCityVersion, downloadsDir )) }
         catch (e) { project.logger.error( "Failed to download and unpack TeamCity [$teamCityVersion] artifacts", e )}
     }
 }
@@ -75,14 +79,15 @@ task downloadTeamCityArtifacts << {
 /**
  * Downloads artifacts of TeamCity version specified and adds them as project's artifacts.
  */
-def downloadArtifacts ( Project project, String teamCityVersion, File downloadsDir, List<File> files )
+List<File> downloadArtifacts ( Project project, String teamCityVersion, File downloadsDir )
 {
-    assert project && teamCityVersion && downloadsDir.directory && ( files != null )
+    assert project && teamCityVersion && downloadsDir.directory
 
-    final String  downloadLink = "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
-    final File    archiveFile  = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
-    final File    unpackDir    = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
-    final Closure addFile      = {
+    final List<File> files        = []
+    final String     downloadLink = "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
+    final File       archiveFile  = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
+    final File       unpackDir    = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
+    final Closure    addFile      = {
         String filePath, String artifactId ->
         files << addArtifact( project, new File( unpackDir, "TeamCity/$filePath" ),
                               'org.jetbrains.teamcity', artifactId, teamCityVersion )
@@ -127,6 +132,8 @@ def downloadArtifacts ( Project project, String teamCityVersion, File downloadsD
     addFile( 'webapps/ROOT/WEB-INF/lib/util.jar',          'util'          )
     addFile( 'webapps/ROOT/WEB-INF/lib/spring.jar',        'spring'        )
     addFile( 'webapps/ROOT/WEB-INF/lib/spring-webmvc.jar', 'spring-webmvc' )
+
+    files
 }
 
 
@@ -150,7 +157,7 @@ File addArtifact( Project project, File file, String groupId, String artifactId,
     pom.version    = version
 
     println "[${ file.canonicalPath }] added as \"$groupId:$artifactId:$version\" artifact"
-    return file
+    artifact.file
 }
 
 
