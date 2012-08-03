@@ -13,19 +13,15 @@ apply plugin: 'java'
  * http://confluence.jetbrains.net/display/TW/Previous+Releases+Downloads
  */
 
-final teamCityVersions = '7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'
+final String     teamCityVersions = '7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'
+final List<File> files            = [] // Files to be deployed
 
 
-defaultTasks 'downloadTeamCityArtifacts', 'uploadArchives'
+defaultTasks 'uploadArchives'
 
 
 group   = 'com.github.goldin.plugins.teamcity'
 version = '0.1'
-
-
-uploadArchives.repositories.mavenDeployer {
-    repository( url: 'http://evgenyg.artifactoryonline.com/evgenyg/teamcity-temp/' )
-}
 
 
 idea.project {
@@ -54,7 +50,12 @@ idea.module {
 }
 
 
-uploadArchives.dependsOn 'downloadTeamCityArtifacts'
+uploadArchives {
+    dependsOn 'downloadTeamCityArtifacts'
+    doFirst   { assert files; files.each{ assert it.file }}
+    repositories.mavenDeployer{ repository( url: 'http://evgenyg.artifactoryonline.com/evgenyg/temp/' )}
+}
+
 
 
 task downloadTeamCityArtifacts << {
@@ -65,8 +66,8 @@ task downloadTeamCityArtifacts << {
 
     for ( teamCityVersion in teamCityVersions.split())
     {
-        try       { downloadArtifacts( project, teamCityVersion, downloadsDir ) }
-        catch (e) { project.logger.error( "Failed to download TeamCity [$teamCityVersion] artifacts", e )}
+        try       { downloadArtifacts( project, teamCityVersion, downloadsDir, files ) }
+        catch (e) { project.logger.error( "Failed to download and unpack TeamCity [$teamCityVersion] artifacts", e )}
     }
 }
 
@@ -74,42 +75,43 @@ task downloadTeamCityArtifacts << {
 /**
  * Downloads artifacts of TeamCity version specified and adds them as project's artifacts.
  */
-def downloadArtifacts ( Project project, String teamCityVersion, File downloadsDir )
+def downloadArtifacts ( Project project, String teamCityVersion, File downloadsDir, List<File> files )
 {
-    final String  downloadLink    = "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
-    final File    destinationFile = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
-    final File    unpackDir       = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
-    final Closure addFile         = {
+    assert project && teamCityVersion && downloadsDir.directory && ( files != null )
+
+    final String  downloadLink = "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
+    final File    archiveFile  = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
+    final File    unpackDir    = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
+    final Closure addFile      = {
         String filePath, String artifactId ->
-        addArtifact( project,
-                     new File( unpackDir, "TeamCity/$filePath" ),
-                     'org.jetbrains.teamcity', artifactId, teamCityVersion )
+        files << addArtifact( project, new File( unpackDir, "TeamCity/$filePath" ),
+                              'org.jetbrains.teamcity', artifactId, teamCityVersion )
     }
 
     /**
-     * Certain version may already be downloaded by previous attempts
+     * Certain versions may already be downloaded by previous attempts
      */
     if ( ! unpackDir.directory )
     {
-        assert (( ! destinationFile.file ) || destinationFile.delete()), \
-               "Failed to delete old [${ destinationFile.canonicalPath }]"
+        assert (( ! archiveFile.file ) || archiveFile.delete()), \
+               "Failed to delete old [${ archiveFile.canonicalPath }]"
 
-        println "Downloading [$downloadLink] to [$destinationFile]"
-        ant.get( src: downloadLink, dest: destinationFile, verbose: 'on' )
+        println "Downloading [$downloadLink] to [$archiveFile]"
+        ant.get( src: downloadLink, dest: archiveFile, verbose: 'on' )
         println "Done"
 
-        println "Unpacking [$destinationFile] to [$unpackDir]"
-        ant.untar( src: destinationFile, dest: unpackDir, compression: 'gzip' )
+        println "Unpacking [$archiveFile] to [$unpackDir]"
+        ant.untar( src: archiveFile, dest: unpackDir, compression: 'gzip' )
         println "Done"
 
-        assert destinationFile.delete(), \
-               "Failed to delete [${ destinationFile.canonicalPath }]"
+        assert archiveFile.delete(), \
+               "Failed to delete [${ archiveFile.canonicalPath }]"
     }
 
     /**
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * artifactIds should correspond to those used in "scripts/teamcity-<version>.gradle" !
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * Note: artifactIds should correspond to those used in "scripts/teamcity-<version>.gradle" !
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
 
     addFile( 'lib/servlet-api.jar',                        'servlet-api'   )
@@ -131,16 +133,15 @@ def downloadArtifacts ( Project project, String teamCityVersion, File downloadsD
 /**
  * Adds file specified as a new artifact with coordinates specified.
  */
-def addArtifact( Project project, File file, String groupId, String artifactId, String version )
+File addArtifact( Project project, File file, String groupId, String artifactId, String version )
 {
+    assert project && file && groupId && artifactId && version
     assert file.file, "[${ file.canonicalPath }] - not found"
-    assert groupId && artifactId && version
 
-    final String          filterName = "${ file.name }-${ version }"
     final Upload          uploadTask = ( Upload ) project.tasks[ 'uploadArchives' ]
     final MavenDeployer   deployer   = ( MavenDeployer ) uploadTask.repositories[ 'mavenDeployer' ]
     final PublishArtifact artifact   = project.artifacts.add( 'archives', file )
-    final MavenPom        pom        = deployer.addFilter( filterName ){ Artifact a, File f -> ( file == f )}
+    final MavenPom        pom        = deployer.addFilter( "${ file.name }-${ version }" ){ Artifact a, File f -> ( file == f )}
 
     assert artifact.file == file
 
@@ -149,6 +150,7 @@ def addArtifact( Project project, File file, String groupId, String artifactId, 
     pom.version    = version
 
     println "[${ file.canonicalPath }] added as \"$groupId:$artifactId:$version\" artifact"
+    return file
 }
 
 
