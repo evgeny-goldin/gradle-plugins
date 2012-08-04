@@ -24,6 +24,12 @@ class AssembleTeamCityPluginTask extends BaseTask
     @TaskAction
     void taskAction()
     {
+        /**
+         * To avoid multiple tasks executions.
+         */
+        if ( project.hasProperty( this.class.name )) { return }
+        project.ext."${ this.class.name }" = "Executed already"
+
         final ext        = ext()
         final agentJars  = jars( ext.agentProjects,  ext.agentConfigurations,  ext.agentJarTasks  )
         final serverJars = jars( ext.serverProjects, ext.serverConfigurations, ext.serverJarTasks )
@@ -33,7 +39,6 @@ class AssembleTeamCityPluginTask extends BaseTask
 
         final archive = archivePlugin( agentJars, serverJars )
         logger.info( "Plugin archive created at [${ archive.canonicalPath }]" )
-
 
         ext.artifactConfigurations.each {
             Configuration configuration ->
