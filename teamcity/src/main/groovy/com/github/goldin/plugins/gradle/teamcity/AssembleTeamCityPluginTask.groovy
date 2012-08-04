@@ -1,6 +1,6 @@
 package com.github.goldin.plugins.gradle.teamcity
+
 import com.github.goldin.plugins.gradle.common.BaseTask
-import groovy.text.GStringTemplateEngine
 import groovy.xml.MarkupBuilder
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -9,6 +9,10 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
+
+import javax.xml.XMLConstants
+import javax.xml.transform.stream.StreamSource
+import javax.xml.validation.SchemaFactory
 
 
 /**
@@ -202,46 +206,52 @@ class AssembleTeamCityPluginTask extends BaseTask
         ext.name   ( ext.name    ?: project.name )
         ext.version( ext.version ?: project.version.toString())
 
-        final tempFile = File.createTempFile( project.name , null )
+        final writer  = new StringWriter()
+        final builder = new MarkupBuilder( writer )
+        final addTag  = { String tagName, Object value -> if ( ! ( value in [ null, '' ] )){ builder."$tagName"( value ) }}
 
-        tempFile.withWriter {
-            Writer w ->
-            final builder = new MarkupBuilder( w )
-            final addTag  = { String tagName, Object value -> if ( ! ( value in [ null, '' ] )){ builder."$tagName"( value ) }}
+        builder.doubleQuotes = true
+        builder.mkp.xmlDeclaration( version : '1.0', encoding: 'UTF-8' )
+        builder.'teamcity-plugin'(
+            'xmlns:xsi'                     : 'http://www.w3.org/2001/XMLSchema-instance',
+            'xsi:noNamespaceSchemaLocation' : 'urn:shemas-jetbrains-com:teamcity-plugin-v1-xml' ){
 
-            builder.doubleQuotes = true
-            builder.mkp.xmlDeclaration( version : '1.0', encoding: 'UTF-8' )
-            builder.'teamcity-plugin'( 'xmlns:xsi'                     : 'http://www.w3.org/2001/XMLSchema-instance',
-                                       'xsi:noNamespaceSchemaLocation' : 'urn:shemas-jetbrains-com:teamcity-plugin-v1-xml' ){
-
-                info {
-                    addTag( 'name',         ext.name        )
-                    addTag( 'display-name', ext.displayName )
-                    addTag( 'version',      ext.version     )
-                    addTag( 'description',  ext.description )
-                    addTag( 'download-url', ext.downloadUrl )
-                    addTag( 'email',        ext.email       )
-                    if ( ext.vendorName || ext.vendorUrl || ext.vendorLogo )
-                    {
-                        vendor {
-                            addTag( 'name', ext.vendorName  )
-                            addTag( 'url',  ext.vendorUrl   )
-                            addTag( 'logo', ext.vendorLogo  )
-                        }
+            info {
+                addTag( 'name',         ext.name        )
+                addTag( 'display-name', ext.displayName )
+                addTag( 'version',      ext.version     )
+                addTag( 'description',  ext.description )
+                addTag( 'download-url', ext.downloadUrl )
+                addTag( 'email',        ext.email       )
+                if ( ext.vendorName || ext.vendorUrl || ext.vendorLogo )
+                {
+                    vendor {
+                        addTag( 'name', ext.vendorName  )
+                        addTag( 'url',  ext.vendorUrl   )
+                        addTag( 'logo', ext.vendorLogo  )
                     }
                 }
-                if (( ext.minBuild > -1 ) || ( ext.maxBuild > -1 ))
-                {
-                    requirements([ 'min-build': ext.minBuild, 'max-build': ext.maxBuild ].findAll{ it.value > - 1 })
-                }
-                deployment( 'use-separate-classloader' : ext.useSeparateClassloader )
-                if ( ext.parameters )
-                {
-                    parameters{ ext.parameters.each{ parameter( name: it ) }}
-                }
+            }
+            if (( ext.minBuild > -1 ) || ( ext.maxBuild > -1 ))
+            {
+                requirements([ 'min-build': ext.minBuild, 'max-build': ext.maxBuild ].findAll{ it.value > - 1 })
+            }
+            deployment( 'use-separate-classloader' : ext.useSeparateClassloader )
+            if ( ext.parameters )
+            {
+                parameters{ ext.parameters.each{ parameter( name: it ) }}
             }
         }
 
+        final xml = writer.toString()
+
+        SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ).
+        newSchema( this.class.getResource( '/teamcity-plugin-descriptor.xsd' )).
+        newValidator().
+        validate( new StreamSource( new StringReader( xml )))
+
+        final tempFile = File.createTempFile( project.name , null )
+        tempFile.write( xml, 'UTF-8' )
         tempFile.deleteOnExit()
         tempFile
     }
