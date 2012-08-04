@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.teamcity
 import com.github.goldin.plugins.gradle.common.BaseTask
 import groovy.text.GStringTemplateEngine
+import groovy.xml.MarkupBuilder
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
@@ -201,12 +202,36 @@ class AssembleTeamCityPluginTask extends BaseTask
         ext.name   ( ext.name    ?: project.name )
         ext.version( ext.version ?: project.version.toString())
 
-        final pluginXmlFile     = File.createTempFile( project.name , null )
-        final pluginXmlTemplate = new GStringTemplateEngine().createTemplate( this.class.getResource( '/teamcity-plugin.xml' )).
-                                  make([ ext: ext ])
+        final tempFile = File.createTempFile( project.name , null )
 
-        pluginXmlFile.deleteOnExit()
-        pluginXmlFile.withWriter { pluginXmlTemplate.writeTo( it )}
-        pluginXmlFile
+        tempFile.withWriter {
+            Writer w ->
+            final builder = new MarkupBuilder( w )
+            final addTag  = { String tagName, Object value -> if ( ! ( value in [ null, '' ] )){ builder."$tagName"( value ) }}
+
+            builder.doubleQuotes = true
+            builder.mkp.xmlDeclaration( version : '1.0', encoding: 'UTF-8' )
+            builder.'teamcity-plugin'( 'xmlns:xsi'                     : 'http://www.w3.org/2001/XMLSchema-instance',
+                                       'xsi:noNamespaceSchemaLocation' : 'urn:shemas-jetbrains-com:teamcity-plugin-v1-xml' ){
+
+                info {
+                    addTag( 'name',         ext.name        )
+                    addTag( 'display-name', ext.displayName )
+                    addTag( 'version',      ext.version     )
+                    addTag( 'description',  ext.description )
+                    addTag( 'download-url', ext.downloadUrl )
+                    addTag( 'email',        ext.email       )
+                    vendor {
+                        addTag( 'name',     ext.vendorName  )
+                        addTag( 'url',      ext.vendorUrl   )
+                        addTag( 'logo',     ext.vendorLogo  )
+                    }
+                }
+                deployment( 'use-separate-classloader' : ext.useSeparateClassloader )
+            }
+        }
+
+        tempFile.deleteOnExit()
+        tempFile
     }
 }

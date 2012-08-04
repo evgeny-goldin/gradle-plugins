@@ -105,6 +105,7 @@ abstract class BaseTask extends DefaultTask
         {
             if      ( file.file      ){ assert file.delete(),    "Failed to delete file [$file.canonicalPath]"      }
             else if ( file.directory ){ assert file.deleteDir(), "Failed to delete directory [$file.canonicalPath]" }
+            assert  ( ! file.exists())
         }
 
         (( files.size() > 0 ) ? files[ 0 ] : null )
