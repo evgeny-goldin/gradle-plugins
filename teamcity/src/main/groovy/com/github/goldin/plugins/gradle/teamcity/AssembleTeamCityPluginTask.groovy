@@ -1,5 +1,5 @@
 package com.github.goldin.plugins.gradle.teamcity
-
+import com.github.goldin.plugins.gradle.common.BaseTask
 import groovy.text.GStringTemplateEngine
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -8,28 +8,17 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.bundling.Zip
 
 
 /**
  * Assembles TeamCity plugin archive.
  */
-class AssembleTeamCityPluginTask extends Zip
+class AssembleTeamCityPluginTask extends BaseTask
 {
-    /**
-     * Retrieves task's extension.
-     * @return   task's extension
-     */
-    private AssembleTeamCityPluginExtension ext () {
-        project[ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION ] as AssembleTeamCityPluginExtension
-    }
+    private AssembleTeamCityPluginExtension ext() { extension( TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION,
+                                                               AssembleTeamCityPluginExtension )}
 
-
-    AssembleTeamCityPluginTask ( )
-    {
-        destinationDir = destinationDir ?: new File( project.buildDir, 'teamcity' )
-        archiveName    = ( archiveName in [ null, '.zip' ] ) ? "${ project.name }-${ project.version }.${ extension }" : archiveName
-    }
+    AssembleTeamCityPluginTask (){}
 
 
     @TaskAction
@@ -42,10 +31,15 @@ class AssembleTeamCityPluginTask extends Zip
         assert ( agentJars || serverJars ), \
                "Neither of agent or server-related properties specified in ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ .. }"
 
-        archivePlugin( agentJars, serverJars )
-        assert archivePath.file
+        final archive = archivePlugin( agentJars, serverJars )
+        logger.info( "Plugin archive created at [${ archive.canonicalPath }]" )
 
-        logger.info( "Plugin created at [${ archivePath.canonicalPath }]" )
+
+        ext.artifactConfigurations.each {
+            Configuration configuration ->
+            project.artifacts.pushArtifact( configuration, archive, null )
+            logger.info( "Plugin archive added as $configuration artifact" )
+        }
     }
 
 
@@ -80,6 +74,29 @@ class AssembleTeamCityPluginTask extends Zip
 
 
     /**
+     * Creates a zip archive specified.
+     *
+     * @param archive     archive to create
+     * @param zipClosure  closure to run in {@code ant.zip{ .. }} context
+     * @return archive created
+     */
+    @Requires({ archive && zipClosure })
+    @Ensures ({ result.file })
+    File zip( File archive, Closure zipClosure )
+    {
+        delete( archive )
+
+        /**
+         * http://evgeny-goldin.org/javadoc/ant/Tasks/zip.html
+         */
+        ant.zip( destfile: archive, duplicate: 'fail', whenempty: 'fail', level: 9 ){ zipClosure() }
+
+        assert archive.file
+        archive
+    }
+
+
+    /**
      * Archives the plugin based on 'agent' and 'server' jars specified.
      *
      * @param agentJars  jar files to be packed as 'agent' plugin's part
@@ -88,20 +105,22 @@ class AssembleTeamCityPluginTask extends Zip
      */
     @Requires({ serverJars || agentJars })
     @Ensures ({ result.file })
-    void archivePlugin( Collection<File> agentJars, Collection<File> serverJars )
+    File archivePlugin( Collection<File> agentJars, Collection<File> serverJars )
     {
         final ext           = ext()
         final pluginXmlFile = pluginXmlFile()
 
         assert ext.name && project.name && project.version && pluginXmlFile.file
 
-        final Closure file         = { String name -> new File( project.buildDir, "teamcity/${ name }.zip" )}
-        final File    agentArchive = ( agentJars ? ( ext.agentArchivePath ?: file( "${ project.name }-agent-${ project.version }" )) : null )
+        final archive       = { String name -> new File( project.buildDir, "teamcity/${ name }.zip" )}
+        final pluginArchive = ext.archivePath ?: archive( project.name + ( project.version ? "-$project.version" : '' ))
+        final agentArchive  = ( agentJars ? ( ext.agentArchivePath ?: archive( "${ project.name }-agent-${ project.version }" )) :
+                                            null )
 
         /**
-         * -----------------------------------------------------------------------------------
-         * "Plugins Packaging": http://confluence.jetbrains.net/display/TCD7/Plugins+Packaging
-         * -----------------------------------------------------------------------------------
+         * ----------------------------------------------------------------------------------
+         * Plugins Packaging: http://confluence.jetbrains.net/display/TCD7/Plugins+Packaging
+         * ----------------------------------------------------------------------------------
          */
 
         if ( agentJars )
@@ -111,7 +130,7 @@ class AssembleTeamCityPluginTask extends Zip
             }
         }
 
-        zip( archivePath ) {
+        zip( pluginArchive ) {
 
             ant.zipfileset( file: pluginXmlFile, fullpath: 'teamcity-plugin.xml' )
 
@@ -122,7 +141,7 @@ class AssembleTeamCityPluginTask extends Zip
 
             if ( serverJars )
             {
-                addFilesToArchive( archivePath, serverJars, 'server', 'plugin' )
+                addFilesToArchive( pluginArchive, serverJars, 'server', 'plugin' )
             }
 
             ext.resources.each {
@@ -130,36 +149,13 @@ class AssembleTeamCityPluginTask extends Zip
                 final FileCollection files  = resources.files as FileCollection
                 final String         prefix = ( resources.prefix != null ) ? resources.prefix : ''
                 assert resources.files, "Specify 'files(..)', 'files : files(..)' or 'files : fileTree(..)' when adding resources to archive"
-                addFilesToArchive( archivePath, files.files, prefix, 'plugin' )
+                addFilesToArchive( pluginArchive, files.files, prefix, 'plugin' )
             }
         }
 
-        assert ( ! agentArchive.file ) || ( agentArchive.delete()), "Failed to delete [${ agentArchive.canonicalPath }]"
-        assert pluginXmlFile.delete(),                              "Failed to delete [${ pluginXmlFile.canonicalPath }]"
-    }
-
-
-    /**
-     * Creates a zip archive specified.
-     *
-     * @param archivePath archive to create
-     * @param zipClosure  closure to run in {@code ant.zip{ .. }} context
-     * @return archive created
-     */
-    @Requires({ archivePath && zipClosure })
-    @Ensures ({ result.file })
-    File zip( File archivePath, Closure zipClosure )
-    {
-        assert (( ! archivePath.file ) || archivePath.delete()), \
-               "Failed to delete old version of [${ archivePath.canonicalPath }]"
-
-        /**
-         * http://evgeny-goldin.org/javadoc/ant/Tasks/zip.html
-         */
-        ant.zip( destfile: archivePath, duplicate: 'fail', whenempty: 'fail', level: 9 ){ zipClosure() }
-
-        assert archivePath.file
-        archivePath
+        delete( agentArchive, pluginXmlFile )
+        assert pluginArchive.file
+        pluginArchive
     }
 
 
@@ -196,13 +192,13 @@ class AssembleTeamCityPluginTask extends Zip
     @Ensures({ result.file })
     File pluginXmlFile ()
     {
-        final extension = ext()
-        extension.name   ( extension.name    ?: project.name )
-        extension.version( extension.version ?: project.version.toString())
+        final ext = ext()
+        ext.name   ( ext.name    ?: project.name )
+        ext.version( ext.version ?: project.version.toString())
 
         final pluginXmlFile     = File.createTempFile( project.name , null )
         final pluginXmlTemplate = new GStringTemplateEngine().createTemplate( this.class.getResource( '/teamcity-plugin.xml' )).
-                                  make([ ext: extension ])
+                                  make([ ext: ext ])
 
         pluginXmlFile.deleteOnExit()
         pluginXmlFile.withWriter { pluginXmlTemplate.writeTo( it )}

@@ -95,6 +95,23 @@ abstract class BaseTask extends DefaultTask
 
 
     /**
+     * Deletes files specified.
+     *
+     * @param files files to delete, may be {@code null} or non-existing.
+     */
+    File delete ( File ... files )
+    {
+        for ( file in files.grep())
+        {
+            if      ( file.file      ){ assert file.delete(),    "Failed to delete file [$file.canonicalPath]"      }
+            else if ( file.directory ){ assert file.deleteDir(), "Failed to delete directory [$file.canonicalPath]" }
+        }
+
+        (( files.size() > 0 ) ? files[ 0 ] : null )
+    }
+
+
+    /**
      * Should be implemented by task.
      * Called after all fields are initialized.
      */

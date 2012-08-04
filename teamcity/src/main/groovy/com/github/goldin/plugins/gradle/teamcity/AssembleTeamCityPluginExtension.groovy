@@ -5,6 +5,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.bundling.Jar
 
+
 /**
  * {@link AssembleTeamCityPluginTask} extension.
  */
@@ -12,7 +13,7 @@ import org.gradle.api.tasks.bundling.Jar
 class AssembleTeamCityPluginExtension
 {
     /**
-     * Template properties and setters.
+     * Template properties.
      */
 
     String  name                   = ''
@@ -37,17 +38,18 @@ class AssembleTeamCityPluginExtension
     void vendorLogo             ( String vendorLogo              ){ this.vendorLogo             = vendorLogo             }
     void useSeparateClassloader ( boolean useSeparateClassloader ){ this.useSeparateClassloader = useSeparateClassloader }
 
-
     /**
-     * Agent archive path and setter.
+     * Plugin / agent archive paths.
      */
+
+    File archivePath
+    void archivePath      ( File archivePath      ){ this.archivePath      = archivePath }
 
     File agentArchivePath
     void agentArchivePath ( File agentArchivePath ){ this.agentArchivePath = agentArchivePath }
 
-
     /**
-     * Server / agent properties and setters.
+     * Server / agent properties.
      */
 
     final List<Project>       serverProjects       = [] // Projects packed as 'server' plugins
@@ -66,13 +68,19 @@ class AssembleTeamCityPluginExtension
     void agentConfigurations  ( Configuration ... configurations ){ agentConfigurations.addAll( configurations )}
     void agentJarTasks        ( Jar           ... jars           ){ agentJarTasks.addAll( jars )}
 
-
     /**
-     * Static resources to be added to archive and setters.
+     * Static resources to be added to archive.
      * Each Map's eys: 'files' (required), 'prefix' (optional)
      */
 
     final List<Map<String, Object>> resources = []
     void  resources( Map<String, Object> resourcesMap ){ resources << resourcesMap }
     void  resources( FileCollection      files        ){ resources << [ files: files, prefix: '' ]}
+
+    /**
+     * Configurations to add artifact to.
+     */
+
+    final List<Configuration> artifactConfigurations = []
+    void artifacts( Project ... projects ){ artifactConfigurations.addAll( projects*.configurations*.archives.flatten() )}
 }

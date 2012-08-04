@@ -4,6 +4,7 @@ import org.gcontracts.annotations.Requires
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+
 /**
  * Plugin for building and packaging TeamCity plugins.
  */
@@ -24,9 +25,6 @@ class TeamCityPlugin implements Plugin<Project>
         final jarTask            = tasks[ 'jar'   ]
         final testTask           = tasks[ 'test'  ]
         final buildTask          = tasks[ 'build' ]
-
-        assemblePluginTask.from( project.buildDir.absoluteFile )
-        project.subprojects.each { assemblePluginTask.from( it.buildDir.absoluteFile )}
 
         if ( jarTask   ) { assemblePluginTask.dependsOn( jarTask.name   )}
         if ( testTask  ) { assemblePluginTask.dependsOn( testTask.name  )}

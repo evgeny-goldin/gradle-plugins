@@ -94,7 +94,7 @@ class AboutTask extends BaseTask
             log.info( "Added  \"about\" to [$aboutPath]" )
         }
 
-        project.delete( tempFile )
+        delete( tempFile )
     }
 
 
@@ -202,9 +202,7 @@ class AboutTask extends BaseTask
 
         DependencyReportTask task = ( DependencyReportTask ) project.tasks[ ProjectReportsPlugin.DEPENDENCY_REPORT ]
         def renderer              = new AsciiReportRenderer()
-        def file                  = new File( project.buildDir, 'dependencies.txt' )
-        assert ( ! file.file ) || file.delete()
-
+        def file                  = delete( new File( project.buildDir, 'dependencies.txt' ))
         renderer.outputFile       = file
         task.renderer             = renderer
         task.generate( project )
