@@ -221,13 +221,24 @@ class AssembleTeamCityPluginTask extends BaseTask
                     addTag( 'description',  ext.description )
                     addTag( 'download-url', ext.downloadUrl )
                     addTag( 'email',        ext.email       )
-                    vendor {
-                        addTag( 'name',     ext.vendorName  )
-                        addTag( 'url',      ext.vendorUrl   )
-                        addTag( 'logo',     ext.vendorLogo  )
+                    if ( ext.vendorName || ext.vendorUrl || ext.vendorLogo )
+                    {
+                        vendor {
+                            addTag( 'name', ext.vendorName  )
+                            addTag( 'url',  ext.vendorUrl   )
+                            addTag( 'logo', ext.vendorLogo  )
+                        }
                     }
                 }
+                if (( ext.minBuild > -1 ) || ( ext.maxBuild > -1 ))
+                {
+                    requirements([ 'min-build': ext.minBuild, 'max-build': ext.maxBuild ].findAll{ it.value > - 1 })
+                }
                 deployment( 'use-separate-classloader' : ext.useSeparateClassloader )
+                if ( ext.parameters )
+                {
+                    parameters{ ext.parameters.each{ parameter( name: it ) }}
+                }
             }
         }
 
