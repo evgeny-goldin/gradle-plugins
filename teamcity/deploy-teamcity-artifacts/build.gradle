@@ -133,6 +133,7 @@ List<File> downloadArtifacts ( Project project, String teamCityVersion, File dow
      * "teamcityCommonEx" configuration
      */
     addFile( 'webapps/ROOT/WEB-INF/lib/common-impl.jar',   'common-impl'   )
+    addFile( 'webapps/ROOT/WEB-INF/lib/openapi.jar',       'idea-openapi'  )
     /**
      * "teamcityServer" configuration
      */
