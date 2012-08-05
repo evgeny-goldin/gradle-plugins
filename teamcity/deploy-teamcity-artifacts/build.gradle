@@ -120,19 +120,34 @@ List<File> downloadArtifacts ( Project project, String teamCityVersion, File dow
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
 
+    /**
+     * "teamcityCommon" configuration
+     */
     addFile( 'lib/servlet-api.jar',                        'servlet-api'   )
-
-    addFile( 'buildAgent/lib/agent.jar',                   'agent'         )
-    addFile( 'buildAgent/lib/agent-openapi.jar',           'agent-api'     )
-
-    addFile( 'webapps/ROOT/WEB-INF/lib/server.jar',        'server'        )
-    addFile( 'webapps/ROOT/WEB-INF/lib/server-api.jar',    'server-api'    )
-
     addFile( 'webapps/ROOT/WEB-INF/lib/common-api.jar',    'common-api'    )
     addFile( 'webapps/ROOT/WEB-INF/lib/annotations.jar',   'annotations'   )
     addFile( 'webapps/ROOT/WEB-INF/lib/util.jar',          'util'          )
+    addFile( 'webapps/ROOT/WEB-INF/lib/jdom.jar',          'jdom'          )
     addFile( 'webapps/ROOT/WEB-INF/lib/spring.jar',        'spring'        )
+    /**
+     * "teamcityServer" configuration
+     */
+    addFile( 'webapps/ROOT/WEB-INF/lib/server-api.jar',    'server-api'    )
     addFile( 'webapps/ROOT/WEB-INF/lib/spring-webmvc.jar', 'spring-webmvc' )
+    /**
+     * "teamcityServerEx" configuration
+     */
+    addFile( 'webapps/ROOT/WEB-INF/lib/server.jar',        'server'        )
+    addFile( 'webapps/ROOT/WEB-INF/lib/web.jar',           'web'           )
+    /**
+     * "teamcityAgent" configuration
+     */
+    addFile( 'buildAgent/lib/agent-openapi.jar',           'agent-api'     )
+    /**
+     * "teamcityAgentEx" configuration
+     */
+    addFile( 'buildAgent/lib/agent.jar',                   'agent'         )
+
 
     files
 }

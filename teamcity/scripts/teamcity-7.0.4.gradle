@@ -42,12 +42,14 @@ allprojects {
                          "org.jetbrains.teamcity:common-api:$_teamCityVersion_",
                          "org.jetbrains.teamcity:annotations:$_teamCityVersion_",
                          "org.jetbrains.teamcity:util:$_teamCityVersion_",
-                         "org.jetbrains.teamcity:spring:$_teamCityVersion_",
+                         "org.jetbrains.teamcity:jdom:$_teamCityVersion_",
+                         "org.jetbrains.teamcity:spring:$_teamCityVersion_"
+
+        teamcityServer   "org.jetbrains.teamcity:server-api:$_teamCityVersion_",
                          "org.jetbrains.teamcity:spring-webmvc:$_teamCityVersion_"
 
-        teamcityServer   "org.jetbrains.teamcity:server-api:$_teamCityVersion_"
-
-        teamcityServerEx "org.jetbrains.teamcity:server:$_teamCityVersion_"
+        teamcityServerEx "org.jetbrains.teamcity:server:$_teamCityVersion_",
+                         "org.jetbrains.teamcity:web:$_teamCityVersion_"
 
         teamcityAgent    "org.jetbrains.teamcity:agent-api:$_teamCityVersion_"
 
