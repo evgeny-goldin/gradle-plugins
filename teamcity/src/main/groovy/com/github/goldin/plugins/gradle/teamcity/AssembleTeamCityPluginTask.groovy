@@ -208,7 +208,14 @@ class AssembleTeamCityPluginTask extends BaseTask
 
         final writer  = new StringWriter()
         final builder = new MarkupBuilder( writer )
-        final addTag  = { String tagName, Object value -> if ( ! ( value in [ null, '' ] )){ builder."$tagName"( value ) }}
+        final addTag  = {
+            String tagName, Object value ->
+            if ( value?.toString()?.trim() != '' ){ builder."$tagName"( value.toString().trim()) }
+        }
+
+        /**
+         * http://confluence.jetbrains.net/display/TCD7/Plugins+Packaging#PluginsPackaging-PluginDescriptor%28%7B%7Bteamcityplugin.xml%7D%7D%29
+         */
 
         builder.doubleQuotes = true
         builder.mkp.xmlDeclaration( version : '1.0', encoding: 'UTF-8' )
@@ -239,7 +246,13 @@ class AssembleTeamCityPluginTask extends BaseTask
             deployment( 'use-separate-classloader' : ext.useSeparateClassloader )
             if ( ext.parameters )
             {
-                parameters{ ext.parameters.each{ parameter( name: it ) }}
+                parameters { ext.parameters.each {
+                    Map m ->
+                    assert m.name,        "Parameter's 'name' should be specified"
+                    assert m.value,       "Parameter's 'value' should be specified"
+                    assert m.size() == 2, "Only Parameter's 'name' and 'value' should be specified"
+                    parameter( name: m.name, m.value )
+                }}
             }
         }
 

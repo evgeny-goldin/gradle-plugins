@@ -16,19 +16,19 @@ class AssembleTeamCityPluginExtension
      * Template properties.
      */
 
-    String       name                   = ''
-    String       displayName            = ''
-    String       version                = ''
-    String       description            = ''
-    String       downloadUrl            = ''
-    String       email                  = ''
-    String       vendorName             = ''
-    String       vendorUrl              = ''
-    String       vendorLogo             = ''
-    long         minBuild               = -1
-    long         maxBuild               = -1
-    boolean      useSeparateClassloader = false
-    List<String> parameters             = []
+    String  name                         = ''
+    String  displayName                  = ''
+    String  version                      = ''
+    String  description                  = ''
+    String  downloadUrl                  = ''
+    String  email                        = ''
+    String  vendorName                   = ''
+    String  vendorUrl                    = ''
+    String  vendorLogo                   = ''
+    long    minBuild                     = -1
+    long    maxBuild                     = -1
+    boolean useSeparateClassloader       = false
+    List<Map<String, Object>> parameters = [] // Each Map has two keys: "name", "value"
 
     void name                   ( String name                    ){ this.name                   = name                   }
     void displayName            ( String displayName             ){ this.displayName            = displayName            }
@@ -41,7 +41,7 @@ class AssembleTeamCityPluginExtension
     void vendorLogo             ( String vendorLogo              ){ this.vendorLogo             = vendorLogo             }
     void minBuild               ( long   minBuild                ){ this.minBuild               = minBuild               }
     void maxBuild               ( long   maxBuild                ){ this.maxBuild               = maxBuild               }
-    void parameters             ( String ... parameters          ){ this.parameters.addAll( parameters )                 }
+    void parameter              ( Map<String, Object> parameter  ){ this.parameters.addAll( parameter )                  }
     void useSeparateClassloader ( boolean useSeparateClassloader ){ this.useSeparateClassloader = useSeparateClassloader }
 
     /**
