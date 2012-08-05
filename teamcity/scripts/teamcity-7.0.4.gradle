@@ -30,10 +30,11 @@ allprojects {
 
     configurations {
         teamcityCommon
+        teamcityCommonEx { extendsFrom teamcityCommon }
         teamcityServer   { extendsFrom teamcityCommon }
-        teamcityServerEx { extendsFrom teamcityServer }
+        teamcityServerEx { extendsFrom teamcityServer, teamcityCommonEx }
         teamcityAgent    { extendsFrom teamcityCommon }
-        teamcityAgentEx  { extendsFrom teamcityAgent  }
+        teamcityAgentEx  { extendsFrom teamcityAgent,  teamcityCommonEx }
     }
 
     dependencies {
@@ -44,6 +45,8 @@ allprojects {
                          "org.jetbrains.teamcity:util:$_teamCityVersion_",
                          "org.jetbrains.teamcity:jdom:$_teamCityVersion_",
                          "org.jetbrains.teamcity:spring:$_teamCityVersion_"
+
+        teamcityCommonEx "org.jetbrains.teamcity:common-impl:$_teamCityVersion_"
 
         teamcityServer   "org.jetbrains.teamcity:server-api:$_teamCityVersion_",
                          "org.jetbrains.teamcity:spring-webmvc:$_teamCityVersion_"

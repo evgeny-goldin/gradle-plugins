@@ -130,6 +130,10 @@ List<File> downloadArtifacts ( Project project, String teamCityVersion, File dow
     addFile( 'webapps/ROOT/WEB-INF/lib/jdom.jar',          'jdom'          )
     addFile( 'webapps/ROOT/WEB-INF/lib/spring.jar',        'spring'        )
     /**
+     * "teamcityCommonEx" configuration
+     */
+    addFile( 'webapps/ROOT/WEB-INF/lib/common-impl.jar',   'common-impl'   )
+    /**
      * "teamcityServer" configuration
      */
     addFile( 'webapps/ROOT/WEB-INF/lib/server-api.jar',    'server-api'    )
