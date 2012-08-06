@@ -89,9 +89,10 @@ List<File> downloadArtifacts ( Project project, String teamCityVersion, File dow
     final File       archiveFile  = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
     final File       unpackDir    = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
     final Closure    addFile      = {
-        String filePath, String artifactId ->
-        files << addArtifact( project, new File( unpackDir, "TeamCity/$filePath" ),
-                              'org.jetbrains.teamcity', artifactId, teamCityVersion )
+        List<String> filePaths, String artifactId ->
+        final  file = filePaths.collect { new File( unpackDir, "TeamCity/$it" ) }.find { it.file }
+        assert file, "None of $filePaths correspond to existing file in [$unpackDir.canonicalPath]"
+        files << addArtifact( project, file, 'org.jetbrains.teamcity', artifactId, teamCityVersion )
     }
 
     /**
@@ -122,34 +123,35 @@ List<File> downloadArtifacts ( Project project, String teamCityVersion, File dow
 
 
     // "teamcityTest" configuration
-    addFile( 'devPackage/tests/tests-support.jar',         'tests'         )
-    addFile( 'devPackage/tests/jmock-SNAPSHOT.jar',        'jmock'         )
+    addFile( [ 'devPackage/tests/tests-support.jar' ],        'tests' )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/jmock-SNAPSHOT.jar',
+               'devPackage/tests/jmock-SNAPSHOT.jar' ],       'jmock' )
 
     // "teamcityCommon" configuration
-    addFile( 'lib/servlet-api.jar',                        'servlet-api'   )
-    addFile( 'webapps/ROOT/WEB-INF/lib/common-api.jar',    'common-api'    )
-    addFile( 'webapps/ROOT/WEB-INF/lib/annotations.jar',   'annotations'   )
-    addFile( 'webapps/ROOT/WEB-INF/lib/util.jar',          'util'          )
-    addFile( 'webapps/ROOT/WEB-INF/lib/jdom.jar',          'jdom'          )
-    addFile( 'webapps/ROOT/WEB-INF/lib/spring.jar',        'spring'        )
+    addFile( [ 'lib/servlet-api.jar'                      ],    'servlet-api'   )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/common-api.jar'  ],    'common-api'    )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/annotations.jar' ],    'annotations'   )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/util.jar'        ],    'util'          )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/jdom.jar'        ],    'jdom'          )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/spring.jar'      ],    'spring'        )
 
     // "teamcityCommonEx" configuration
-    addFile( 'webapps/ROOT/WEB-INF/lib/common-impl.jar',   'common-impl'   )
-    addFile( 'webapps/ROOT/WEB-INF/lib/openapi.jar',       'idea-openapi'  )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/common-impl.jar' ],    'common-impl'   )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/openapi.jar'     ],    'idea-openapi'  )
 
     // "teamcityServer" configuration
-    addFile( 'webapps/ROOT/WEB-INF/lib/server-api.jar',    'server-api'    )
-    addFile( 'webapps/ROOT/WEB-INF/lib/spring-webmvc.jar', 'spring-webmvc' )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/server-api.jar'    ],  'server-api'    )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/spring-webmvc.jar' ],  'spring-webmvc' )
 
     // "teamcityServerEx" configuration
-    addFile( 'webapps/ROOT/WEB-INF/lib/server.jar',        'server'        )
-    addFile( 'webapps/ROOT/WEB-INF/lib/web.jar',           'web'           )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/server.jar' ],         'server'        )
+    addFile( [ 'webapps/ROOT/WEB-INF/lib/web.jar'    ],         'web'           )
 
     // "teamcityAgent" configuration
-    addFile( 'buildAgent/lib/agent-openapi.jar',           'agent-api'     )
+    addFile( [ 'buildAgent/lib/agent-openapi.jar' ],            'agent-api'     )
 
     // "teamcityAgentEx" configuration
-    addFile( 'buildAgent/lib/agent.jar',                   'agent'         )
+    addFile( [ 'buildAgent/lib/agent.jar' ],                    'agent'         )
 
     files
 }
