@@ -1,31 +1,35 @@
 /**
  * ----------------------------------------------------------------------
- * Gradle script to be included for using with TeamCity version "7.0.4"
+ * Gradle script to be included for using with TeamCity version "7.1"
  * ----------------------------------------------------------------------
  */
 
 apply plugin: 'teamcity'
 
 
-final String  _teamCityVersion_ = '7.0.4'
-final Project _p_               = project.rootProject
+final Project      _p_               = project.rootProject
+final List<String> _knownVersions_   = '7.1 7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'.tokenize()
+final String       _teamCityVersion_ = _p_.hasProperty( 'teamCityVersion' ) ? _p_.properties[ 'teamCityVersion' ] : _knownVersions_[ 0 ]
+
+assert _teamCityVersion_ in _knownVersions_, "'teamCityVersion' value should be one of $_knownVersions_"
+
+_p_.logger.info( "TeamCity version is [$_teamCityVersion_]" )
 
 
 buildscript {
-    repositories {
-        mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
-    }
-    dependencies {
-        classpath 'com.github.goldin.plugins:teamcity:0.1.4-SNAPSHOT'
-    }
+    /**
+     * Gradle plugin repository and coordinates.
+     */
+    repositories { mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
+    dependencies { classpath 'com.github.goldin.plugins:teamcity:0.1.4-SNAPSHOT'       }
 }
 
 
 allprojects {
-
-    repositories {
-        mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/teamcity/'
-    }
+    /**
+     * TeamCity artifacts repository.
+     */
+    repositories { mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/teamcity/' }
 
 
     configurations {
@@ -40,7 +44,8 @@ allprojects {
 
     dependencies {
 
-        teamcityTest     "org.jetbrains.teamcity:tests:$_teamCityVersion_"
+        teamcityTest     "org.jetbrains.teamcity:tests:$_teamCityVersion_",
+                         "org.jetbrains.teamcity:jmock:$_teamCityVersion_"
 
         teamcityCommon   "org.jetbrains.teamcity:servlet-api:$_teamCityVersion_",
                          "org.jetbrains.teamcity:common-api:$_teamCityVersion_",
@@ -64,17 +69,22 @@ allprojects {
     }
 
 
+    /**
+     * Verifying no forbidden dependencies (spring, jdom, servlet-api) are explicitly used.
+     */
     _p_.gradle.taskGraph.whenReady {
 
-        final errors = []
+        final errors                = []
+        final configurations        = _p_.allprojects*.configurations*.asMap.flatten()
+        final compileConfigurations = ( configurations*.getAt( 'compile' ) + configurations*.getAt( 'testCompile' )).grep()
 
-        for ( Configuration compileConfiguration in _p_.allprojects*.configurations*.asMap*.getAt( 'compile' ).grep())
+        for ( Configuration compileConfiguration in compileConfigurations )
         {
             final Set<Dependency> badDependencies = compileConfiguration.dependencies.findAll {
                 Dependency d ->
-                (( d.group in [ 'org.springframework'    ] ) && ( d.name  in [ 'spring', 'spring-core', 'spring-webmvc' ] )) ||
-                (  d.group in [ 'org.jetbrains.teamcity', 'org.jdom' ] ) ||
-                (  d.name  in [ 'servlet-api'            ] )
+                (( d.group in [ 'org.springframework' ] ) && ( d.name  in [ 'spring', 'spring-core', 'spring-webmvc' ] )) ||
+                (( d.group in [ 'javax.servlet'       ] ) && ( d.name  in [ 'servlet-api' ] )) ||
+                (  d.group in [ 'org.jetbrains.teamcity', 'org.jdom' ] )
             }
 
             final Configuration teamcityConfiguration = compileConfiguration.extendsFrom.find { it.name.startsWith( 'teamcity' )}
