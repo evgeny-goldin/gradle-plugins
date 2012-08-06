@@ -67,9 +67,11 @@ allprojects {
 
     _p_.gradle.taskGraph.whenReady {
 
-        final errors = []
+        final errors                = []
+        final configurations        = _p_.allprojects*.configurations*.asMap.flatten()
+        final compileConfigurations = ( configurations*.getAt( 'compile' ) + configurations*.getAt( 'testCompile' )).grep()
 
-        for ( Configuration compileConfiguration in _p_.allprojects*.configurations*.asMap*.getAt( 'compile' ).grep())
+        for ( Configuration compileConfiguration in compileConfigurations )
         {
             final Set<Dependency> badDependencies = compileConfiguration.dependencies.findAll {
                 Dependency d ->
