@@ -1,7 +1,7 @@
 /**
  * ---------------------------------------------------------------
  * Gradle script to be included for using TeamCity Gradle plugin:
- * apply from: "https://raw.github.com/evgeny-goldin/gradle-plugins/master/teamcity/scripts/teamcity.gradle"
+ * apply from: "https://raw.github.com/evgeny-goldin/gradle-plugins/master/teamcity/teamcity.gradle"
  * ---------------------------------------------------------------
  */
 
