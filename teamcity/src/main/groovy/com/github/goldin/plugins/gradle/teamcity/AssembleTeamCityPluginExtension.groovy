@@ -61,6 +61,7 @@ class AssembleTeamCityPluginExtension
     final List<Project>       serverProjects       = [] // Projects packed as 'server' plugins
     final List<Configuration> serverConfigurations = [] // 'server' plugins dependencies, 'compile' if 'serverProjects' specified
     final List<Jar>           serverJarTasks       = [] // 'jar' tasks creating 'server' plugin archives, 'jar' if 'serverProjects' specified
+          File                serverResources
 
     final List<Project>       agentProjects        = [] // Projects packed as 'agent' plugins
     final List<Configuration> agentConfigurations  = [] // 'agent' plugins dependencies, 'compile' if 'agentProjects' specified
@@ -69,6 +70,7 @@ class AssembleTeamCityPluginExtension
     void server               ( Project       ... projects       ){ serverProjects.addAll( projects )}
     void serverConfigurations ( Configuration ... configurations ){ serverConfigurations.addAll( configurations )}
     void serverJarTasks       ( Jar           ... jars           ){ serverJarTasks.addAll( jars )}
+    void serverResources      ( File serverResourcesDir          ){ serverResources = serverResourcesDir }
 
     void agent                ( Project       ... projects       ){ agentProjects.addAll( projects )}
     void agentConfigurations  ( Configuration ... configurations ){ agentConfigurations.addAll( configurations )}
