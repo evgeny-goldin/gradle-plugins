@@ -29,6 +29,7 @@ allprojects {
 
 
     configurations {
+        teamcityTest
         teamcityCommon
         teamcityCommonEx { extendsFrom teamcityCommon }
         teamcityServer   { extendsFrom teamcityCommon }
@@ -38,6 +39,8 @@ allprojects {
     }
 
     dependencies {
+
+        teamcityTest     "org.jetbrains.teamcity:tests:$_teamCityVersion_"
 
         teamcityCommon   "org.jetbrains.teamcity:servlet-api:$_teamCityVersion_",
                          "org.jetbrains.teamcity:common-api:$_teamCityVersion_",
