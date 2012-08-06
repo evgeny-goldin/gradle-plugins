@@ -123,6 +123,7 @@ List<File> downloadArtifacts ( Project project, String teamCityVersion, File dow
 
     // "teamcityTest" configuration
     addFile( 'devPackage/tests/tests-support.jar',         'tests'         )
+    addFile( 'devPackage/tests/jmock-SNAPSHOT.jar',        'jmock'         )
 
     // "teamcityCommon" configuration
     addFile( 'lib/servlet-api.jar',                        'servlet-api'   )
