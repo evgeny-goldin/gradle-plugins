@@ -127,7 +127,7 @@ class AssembleTeamCityPluginTask extends BaseTask
         assert ext.name && project.name && project.version && pluginXmlFile.file
 
         final pluginArchive          = ( ext.archivePath ?: buildFile( project.name + ( project.version ? "-$project.version" : '' )))
-        final serverResourcesArchive = ( ext.serverProjects && ( ! ext.serverProjects.any{ new File( it.rootDir, "src/main/resources/$BSR" ).directory } )) ?
+        final serverResourcesArchive = ( ext.serverProjects && ( ! ext.serverProjects.any{ new File( it.projectDir, "src/main/resources/$BSR" ).directory } )) ?
                                        archiveServerResources( ext.serverResources ) : null
         final agentArchive           = ( agentJars ? ( ext.agentArchivePath ?: buildFile( "${ project.name }-agent-${ project.version }" )) :
                                                      null )
