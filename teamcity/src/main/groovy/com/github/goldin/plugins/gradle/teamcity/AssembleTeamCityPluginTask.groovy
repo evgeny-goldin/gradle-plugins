@@ -93,24 +93,6 @@ class AssembleTeamCityPluginTask extends BaseTask
 
 
     /**
-     * Creates an archive specified.
-     *
-     * @param archive     archive to create
-     * @param zipClosure  closure to run in {@code ant.zip{ .. }} context
-     * @return archive created
-     */
-    @Requires({ archive && zipClosure })
-    @Ensures ({ result.file })
-    File archive ( File archive, Closure zipClosure )
-    {
-        delete( archive )
-        ant.zip( destfile: archive, duplicate: 'fail', whenempty: 'fail', level: 9 ){ zipClosure() }
-        assert archive.file
-        archive
-    }
-
-
-    /**
      * Archives the plugin based on 'agent' and 'server' jars specified.
      *
      * @param agentJars  jar files to be packed as 'agent' plugin's part
@@ -126,7 +108,6 @@ class AssembleTeamCityPluginTask extends BaseTask
 
         assert ext.name && project.name && project.version && pluginXmlFile.file
 
-        File  serverResourcesArchive = null
         final pluginArchive = ( ext.archivePath ?: buildFile( project.name + ( project.version ? "-$project.version" : '' )))
         final agentArchive  = ( agentJars ? ( ext.agentArchivePath ?: buildFile( "${ project.name }-agent-${ project.version }" )) :
                                             null )
@@ -136,36 +117,44 @@ class AssembleTeamCityPluginTask extends BaseTask
          * ----------------------------------------------------------------------------------
          */
 
-        if ( ext.serverProjects && ( ! ext.serverProjects.any{ new File( it.projectDir, "src/main/resources/$BSR" ).directory } ))
+        if ( ext.serverResources )
         {
-            serverResourcesArchive = archiveServerResources()
-            serverJars << serverResourcesArchive
+            serverJars << archiveServerResources()
         }
 
         if ( agentJars )
         {
-            archive( agentArchive ) { addFilesToArchive( agentArchive, agentJars, "${ ext.name }/lib", 'agent' )}
+            archive( agentArchive ) { addFilesToArchive( agentArchive, agentJars, "${ ext.name }/lib" )}
         }
 
         archive( pluginArchive ) {
 
             ant.zipfileset( file: pluginXmlFile, fullpath: 'teamcity-plugin.xml' )
 
-            if ( agentJars  ){ ant.zipfileset( file: agentArchive, prefix: 'agent' )}
-            if ( serverJars ){ addFilesToArchive( pluginArchive, serverJars, 'server', 'plugin' )}
+            if ( agentJars  )
+            {
+                addFileToArchive( pluginArchive, agentArchive, 'agent' )
+            }
+
+            if ( serverJars )
+            {
+                addFilesToArchive( pluginArchive, serverJars, 'server' )
+                assert new URLClassLoader( serverJars*.toURI()*.toURL() as URL[] ).getResource( BSR ), \
+                       "No '$BSR' found in 'server' jar${ serverJars.size() == 1 ? '' : 's'} $serverJars"
+            }
 
             ext.resources.each {
                 Map<String, Object> resources ->
                 final FileCollection files    = resources.files as FileCollection
-                final String         prefix   = ( resources.prefix != null ) ? resources.prefix : ''
+                final String         prefix   = resources.prefix ?: ''
                 final List<String>   includes = ( List<String> )( resources.includes ?: [] ).with { delegate instanceof String ? [ delegate ] : delegate }
                 final List<String>   excludes = ( List<String> )( resources.excludes ?: [] ).with { delegate instanceof String ? [ delegate ] : delegate }
                 assert resources.files, "Specify 'files(..)', 'files : files(..)' or 'files : fileTree(..)' when adding resources to archive"
-                addFilesToArchive( pluginArchive, files.files, prefix, 'plugin', includes, excludes )
+                addFilesToArchive( pluginArchive, files.files, prefix, includes, excludes )
             }
         }
 
-        delete( serverResourcesArchive, agentArchive, pluginXmlFile )
+        delete( agentArchive, pluginXmlFile )
         assert pluginArchive.file
         pluginArchive
     }
@@ -180,93 +169,21 @@ class AssembleTeamCityPluginTask extends BaseTask
     {
         final ext                = ext()
         final serverResourcesDir = ext.serverResources
+        final path               = serverResourcesDir.canonicalPath
 
-        assert ext.serverProjects
-        assert serverResourcesDir, \
-            "[$project] - no 'src/main/resources/$BSR' found in 'server' project${ ext.serverProjects.size() == 1 ? '' : 's' } " +
-            "${ ext.serverProjects*.projectDir*.canonicalPath }, specify '${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ serverResources file( .. ) }'"
-
-        assert serverResourcesDir.directory, \
-            "[${ serverResourcesDir.canonicalPath }] - not found"
+        assert serverResourcesDir?.directory, "[$path] - not found"
 
         assert ( ! serverResourcesDir.listFiles().any { ( it.directory ) && ( it.name == BSR ) }), \
-            "'serverResources' [$serverResourcesDir.canonicalPath] should *not* reference a directory containing a '$BSR' directory"
+            "'serverResources' [$path] should *not* reference a directory containing a '$BSR' directory"
 
         final resourcesArchive = buildFile( "resources-${ project.version }", 'jar' )
-        final files            = project.fileTree( serverResourcesDir ).files
-        final basePath         = serverResourcesDir.canonicalPath
 
-        assert files, \
-               "No files found in [${ serverResourcesDir.canonicalPath }]"
-        assert files.any { it.name.endsWith( '.jsp' )}, \
-               "No '*.jsp' files found in [${ serverResourcesDir.canonicalPath }]"
+        assert project.fileTree( serverResourcesDir ).files.any { it.name.endsWith( '.jsp' )}, \
+               "No '*.jsp' files found in [$path]"
 
+        archive( resourcesArchive ){ addFileToArchive( resourcesArchive, serverResourcesDir, BSR ) }
         resourcesArchive.deleteOnExit()
-
-        archive( resourcesArchive ) {
-            for ( f in files )
-            {
-                addFileToArchive( resourcesArchive, f, "$BSR/${ f.canonicalPath - basePath - f.name - '/' }", 'resources' )
-            }
-        }
-
         resourcesArchive
-    }
-
-
-    /**
-     * Adds files specified to the archive through {@code ant.zipfileset( file: file, prefix: prefix )}.
-     *
-     * @param archive  archive to add files specified
-     * @param files    files to add to the archive
-     * @param prefix   files prefix in the archive
-     * @param title    archive title to use for error message if any of the files is not found
-     * @param includes patterns of files to include, all files are included if null or empty
-     * @param excludes patterns of files to exclude, no files are excluded if null or empty
-     */
-    void addFilesToArchive ( File             archive,
-                             Collection<File> files,
-                             String           prefix,
-                             String           title,
-                             List<String>     includes = null,
-                             List<String>     excludes = null )
-    {
-        files.each { addFileToArchive( archive, it, prefix, title, includes, excludes )}
-    }
-
-
-    /**
-     * Adds file specified to the archive through {@code ant.zipfileset( file: file, prefix: prefix )}.
-     *
-     * @param archive  archive to add files specified
-     * @param file     file to add to the archive
-     * @param prefix   files prefix in the archive
-     * @param title    archive title to use for error message if any of the files is not found
-     * @param includes patterns of files to include, all files are included if null or empty
-     * @param excludes patterns of files to exclude, no files are excluded if null or empty
-     */
-    @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
-    void addFileToArchive ( File         archive,
-                            File         file,
-                            String       prefix,
-                            String       title,
-                            List<String> includes = null,
-                            List<String> excludes = null )
-    {
-        assert archive && file && title
-
-        prefix = prefix.startsWith( '/' ) ? prefix.substring( 1 )                      : prefix
-        prefix = prefix.endsWith  ( '/' ) ? prefix.substring( 0, prefix.length() - 1 ) : prefix
-
-        assert ( file.file || file.directory ), \
-               "[${ file.canonicalPath }] - not found when creating $title archive [${ archive.canonicalPath }]. " +
-               "Make sure task \"${ TeamCityPlugin.ASSEMBLE_PLUGIN_TASK }\" dependencies specified correctly"
-
-        final arguments = [ ( file.file ? 'file' : 'dir' ) : file, prefix: prefix ]
-        if ( includes ) { arguments[ 'includes' ] = includes.join( ',' )}
-        if ( excludes ) { arguments[ 'excludes' ] = excludes.join( ',' )}
-
-        ant.zipfileset( arguments )
     }
 
 

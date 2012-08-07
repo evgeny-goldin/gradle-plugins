@@ -16,9 +16,16 @@ abstract class BaseTask extends DefaultTask
     String version
 
 
+    /**
+     * Should be implemented by task.
+     * Called after all fields are initialized.
+     */
+    abstract void taskAction()
+
+
     @TaskAction
     @Requires({ project.rootDir && project.version })
-    def doTask()
+    final void doTask()
     {
         this.rootDir = project.rootDir
         this.version = project.version
@@ -35,7 +42,7 @@ abstract class BaseTask extends DefaultTask
      */
     @Requires({ extensionName && extensionType })
     @Ensures ({ extensionType.isInstance( result ) })
-    public <T> T extension( String extensionName, Class<T> extensionType )
+    final public <T> T extension( String extensionName, Class<T> extensionType )
     {
         final  extension = project[ extensionName ]
         assert extensionType.isInstance( extension ), \
@@ -60,12 +67,12 @@ abstract class BaseTask extends DefaultTask
      * @return files under base directory specified passing an inclusion/exclusion patterns
      */
     @Requires({ baseDirectory.directory })
-    List<File> files ( File         baseDirectory,
-                       List<String> includePatterns    = null,
-                       List<String> excludePatterns    = null,
-                       boolean      isCaseSensitive    = true,
-                       boolean      includeDirectories = false,
-                       boolean      failIfNotFound     = true )
+    final List<File> files ( File         baseDirectory,
+                             List<String> includePatterns    = null,
+                             List<String> excludePatterns    = null,
+                             boolean      isCaseSensitive    = true,
+                             boolean      includeDirectories = false,
+                             boolean      failIfNotFound     = true )
     {
         def scanner = new DirectoryScanner()
 
@@ -99,7 +106,7 @@ abstract class BaseTask extends DefaultTask
      *
      * @param files files to delete, may be {@code null} or non-existing.
      */
-    File delete ( File ... files )
+    final File delete ( File ... files )
     {
         for ( file in files.grep())
         {
@@ -113,8 +120,70 @@ abstract class BaseTask extends DefaultTask
 
 
     /**
-     * Should be implemented by task.
-     * Called after all fields are initialized.
+     * Creates an archive specified.
+     *
+     * @param archive     archive to create
+     * @param zipClosure  closure to run in {@code ant.zip{ .. }} context
+     * @return archive created
      */
-    abstract void taskAction()
+    @Requires({ archive && zipClosure })
+    @Ensures ({ result.file })
+    final File archive ( File archive, Closure zipClosure )
+    {
+        delete( archive )
+        ant.zip( destfile: archive, duplicate: 'fail', whenempty: 'fail', level: 9 ){ zipClosure() }
+        assert archive.file, "Failed to create [$archive.canonicalPath] using 'ant.zip( .. ){ .. }'"
+        archive
+    }
+
+
+    /**
+     * Adds files specified to the archive through {@code ant.zipfileset( file: file, prefix: prefix )}.
+     *
+     * @param archive  archive to add files specified
+     * @param files    files to add to the archive
+     * @param prefix   files prefix in the archive
+     * @param includes patterns of files to include, all files are included if null or empty
+     * @param excludes patterns of files to exclude, no files are excluded if null or empty
+     */
+    final void addFilesToArchive ( File             archive,
+                                   Collection<File> files,
+                                   String           prefix,
+                                   List<String>     includes = null,
+                                   List<String>     excludes = null )
+    {
+        files.each { addFileToArchive( archive, it, prefix, includes, excludes )}
+    }
+
+
+    /**
+     * Adds file specified to the archive through {@code ant.zipfileset( file: file, prefix: prefix )}.
+     *
+     * @param archive  archive to add files specified
+     * @param file     file to add to the archive
+     * @param prefix   files prefix in the archive
+     * @param includes patterns of files to include, all files are included if null or empty
+     * @param excludes patterns of files to exclude, no files are excluded if null or empty
+     */
+    @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
+    final void addFileToArchive ( File         archive,
+                                  File         file,
+                                  String       prefix,
+                                  List<String> includes = null,
+                                  List<String> excludes = null )
+    {
+        assert archive && file && ( prefix != null )
+
+        prefix = prefix.startsWith( '/' ) ? prefix.substring( 1 )                      : prefix
+        prefix = prefix.endsWith  ( '/' ) ? prefix.substring( 0, prefix.length() - 1 ) : prefix
+
+        assert ( file.file || file.directory ), \
+               "[${ file.canonicalPath }] - not found when creating [${ archive.canonicalPath }]"
+
+        final arguments = [ ( file.file ? 'file' : 'dir' ) : file, prefix: prefix ]
+        if ( includes ) { arguments[ 'includes' ] = includes.join( ',' )}
+        if ( excludes ) { arguments[ 'excludes' ] = excludes.join( ',' )}
+
+        ant.zipfileset( arguments )
+    }
 }
