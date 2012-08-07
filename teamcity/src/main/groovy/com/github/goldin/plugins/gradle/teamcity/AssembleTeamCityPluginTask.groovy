@@ -239,7 +239,7 @@ class AssembleTeamCityPluginTask extends BaseTask
                             List<String> includes = null,
                             List<String> excludes = null )
     {
-        assert archive && file && prefix && title
+        assert archive && file && title
 
         prefix = prefix.startsWith( '/' ) ? prefix.substring( 1 )                      : prefix
         prefix = prefix.endsWith  ( '/' ) ? prefix.substring( 0, prefix.length() - 1 ) : prefix
