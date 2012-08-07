@@ -153,10 +153,12 @@ class AssembleTeamCityPluginTask extends BaseTask
 
             ext.resources.each {
                 Map<String, Object> resources ->
-                final FileCollection files  = resources.files as FileCollection
-                final String         prefix = ( resources.prefix != null ) ? resources.prefix : ''
+                final FileCollection files    = resources.files as FileCollection
+                final String         prefix   = ( resources.prefix != null ) ? resources.prefix : ''
+                final List<String>   includes = ( List<String> )( resources.includes ?: [] ).with { delegate instanceof String ? [ delegate ] : delegate }
+                final List<String>   excludes = ( List<String> )( resources.excludes ?: [] ).with { delegate instanceof String ? [ delegate ] : delegate }
                 assert resources.files, "Specify 'files(..)', 'files : files(..)' or 'files : fileTree(..)' when adding resources to archive"
-                addFilesToArchive( pluginArchive, files.files, prefix, 'plugin' )
+                addFilesToArchive( pluginArchive, files.files, prefix, 'plugin', includes, excludes )
             }
         }
 
@@ -201,30 +203,44 @@ class AssembleTeamCityPluginTask extends BaseTask
     /**
      * Adds files specified to the archive through {@code ant.zipfileset( file: file, prefix: prefix )}.
      *
-     * @param archive archive to add files specified
-     * @param files   files to add to the archive
-     * @param prefix  files prefix in the archive
-     * @param title   archive title to use for error message if any of the files is not found
+     * @param archive  archive to add files specified
+     * @param files    files to add to the archive
+     * @param prefix   files prefix in the archive
+     * @param title    archive title to use for error message if any of the files is not found
+     * @param includes patterns of files to include, all files are included if null or empty
+     * @param excludes patterns of files to exclude, no files are excluded if null or empty
      */
-    @Requires({ archive && files && prefix && title })
-    void addFilesToArchive ( File archive, Collection<File> files, String prefix, String title )
+    void addFilesToArchive ( File             archive,
+                             Collection<File> files,
+                             String           prefix,
+                             String           title,
+                             List<String>     includes = null,
+                             List<String>     excludes = null )
     {
-        files.each { addFileToArchive( archive, it, prefix, title )}
+        files.each { addFileToArchive( archive, it, prefix, title, includes, excludes )}
     }
 
 
     /**
      * Adds file specified to the archive through {@code ant.zipfileset( file: file, prefix: prefix )}.
      *
-     * @param archive archive to add files specified
-     * @param file    file to add to the archive
-     * @param prefix  files prefix in the archive
-     * @param title   archive title to use for error message if any of the files is not found
+     * @param archive  archive to add files specified
+     * @param file     file to add to the archive
+     * @param prefix   files prefix in the archive
+     * @param title    archive title to use for error message if any of the files is not found
+     * @param includes patterns of files to include, all files are included if null or empty
+     * @param excludes patterns of files to exclude, no files are excluded if null or empty
      */
-    @Requires({ archive && files && prefix && title })
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
-    void addFileToArchive ( File archive, File file, String prefix, String title )
+    void addFileToArchive ( File         archive,
+                            File         file,
+                            String       prefix,
+                            String       title,
+                            List<String> includes = null,
+                            List<String> excludes = null )
     {
+        assert archive && file && prefix && title
+
         prefix = prefix.startsWith( '/' ) ? prefix.substring( 1 )                      : prefix
         prefix = prefix.endsWith  ( '/' ) ? prefix.substring( 0, prefix.length() - 1 ) : prefix
 
@@ -232,8 +248,11 @@ class AssembleTeamCityPluginTask extends BaseTask
                "[${ file.canonicalPath }] - not found when creating $title archive [${ archive.canonicalPath }]. " +
                "Make sure task \"${ TeamCityPlugin.ASSEMBLE_PLUGIN_TASK }\" dependencies specified correctly"
 
-        if ( file.file ) { ant.zipfileset( file: file, prefix: prefix )}
-        else             { ant.zipfileset( dir:  file, prefix: prefix )}
+        final arguments = [ ( file.file ? 'file' : 'dir' ) : file, prefix: prefix ]
+        if ( includes ) { arguments[ 'includes' ] = includes.join( ',' )}
+        if ( excludes ) { arguments[ 'excludes' ] = excludes.join( ',' )}
+
+        ant.zipfileset( arguments )
     }
 
 
