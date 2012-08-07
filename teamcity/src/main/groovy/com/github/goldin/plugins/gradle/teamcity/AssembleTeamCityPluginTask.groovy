@@ -88,7 +88,7 @@ class AssembleTeamCityPluginTask extends BaseTask
         Collection<File> teamcityJars     = (( Collection<Configuration> ) dependencies*.extendsFrom.flatten()).
                                             findAll { it.name.startsWith( 'teamcity' )}*.resolve().flatten() as Collection<File>
 
-        (( Collection<File> )( pluginJars + dependenciesJars - teamcityJars )).asImmutable()
+        ( Collection<File> )( pluginJars + dependenciesJars - teamcityJars )
     }
 
 
@@ -126,17 +126,21 @@ class AssembleTeamCityPluginTask extends BaseTask
 
         assert ext.name && project.name && project.version && pluginXmlFile.file
 
-        final pluginArchive          = ( ext.archivePath ?: buildFile( project.name + ( project.version ? "-$project.version" : '' )))
-        final serverResourcesArchive = ( ext.serverProjects && ( ! ext.serverProjects.any{ new File( it.projectDir, "src/main/resources/$BSR" ).directory } )) ?
-                                       archiveServerResources( ext.serverResources ) : null
-        final agentArchive           = ( agentJars ? ( ext.agentArchivePath ?: buildFile( "${ project.name }-agent-${ project.version }" )) :
-                                                     null )
-
+        File  serverResourcesArchive = null
+        final pluginArchive = ( ext.archivePath ?: buildFile( project.name + ( project.version ? "-$project.version" : '' )))
+        final agentArchive  = ( agentJars ? ( ext.agentArchivePath ?: buildFile( "${ project.name }-agent-${ project.version }" )) :
+                                            null )
         /**
          * ----------------------------------------------------------------------------------
          * Plugins Packaging: http://confluence.jetbrains.net/display/TCD7/Plugins+Packaging
          * ----------------------------------------------------------------------------------
          */
+
+        if ( ext.serverProjects && ( ! ext.serverProjects.any{ new File( it.projectDir, "src/main/resources/$BSR" ).directory } ))
+        {
+            serverResourcesArchive = archiveServerResources()
+            serverJars << serverResourcesArchive
+        }
 
         if ( agentJars )
         {
@@ -147,9 +151,8 @@ class AssembleTeamCityPluginTask extends BaseTask
 
             ant.zipfileset( file: pluginXmlFile, fullpath: 'teamcity-plugin.xml' )
 
-            if ( agentJars              ){ ant.zipfileset( file: agentArchive, prefix: 'agent' )}
-            if ( serverJars             ){ addFilesToArchive( pluginArchive, serverJars,             'server', 'plugin' )}
-            if ( serverResourcesArchive ){ addFileToArchive ( pluginArchive, serverResourcesArchive, 'server', 'plugin' )}
+            if ( agentJars  ){ ant.zipfileset( file: agentArchive, prefix: 'agent' )}
+            if ( serverJars ){ addFilesToArchive( pluginArchive, serverJars, 'server', 'plugin' )}
 
             ext.resources.each {
                 Map<String, Object> resources ->
@@ -170,16 +173,24 @@ class AssembleTeamCityPluginTask extends BaseTask
 
     /**
      * Archives resources file.
-     * @param serverResourcesDir directory where server resources, such as *.jsp files, are contained.
      *
      * @return resources file archive
      */
-    private File archiveServerResources ( File serverResourcesDir )
+    private File archiveServerResources ()
     {
-        assert serverResourcesDir,           "No 'src/main/resources/$BSR' found in 'server' projects, specify 'serverResources'"
-        assert serverResourcesDir.directory, "[${ serverResourcesDir.canonicalPath }] - not found"
+        final ext                = ext()
+        final serverResourcesDir = ext.serverResources
+
+        assert ext.serverProjects
+        assert serverResourcesDir, \
+            "[$project] - no 'src/main/resources/$BSR' found in 'server' project${ ext.serverProjects.size() == 1 ? '' : 's' } " +
+            "${ ext.serverProjects*.projectDir*.canonicalPath }, specify '${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ serverResources file( .. ) }'"
+
+        assert serverResourcesDir.directory, \
+            "[${ serverResourcesDir.canonicalPath }] - not found"
+
         assert ( ! serverResourcesDir.listFiles().any { ( it.directory ) && ( it.name == BSR ) }), \
-               "'serverResources' should *not* reference a directory containing a '$BSR' directory"
+            "'serverResources' [$serverResourcesDir.canonicalPath] should *not* reference a directory containing a '$BSR' directory"
 
         final resourcesArchive = buildFile( "resources-${ project.version }", 'jar' )
         final files            = project.fileTree( serverResourcesDir ).files
@@ -190,12 +201,15 @@ class AssembleTeamCityPluginTask extends BaseTask
         assert files.any { it.name.endsWith( '.jsp' )}, \
                "No '*.jsp' files found in [${ serverResourcesDir.canonicalPath }]"
 
+        resourcesArchive.deleteOnExit()
+
         archive( resourcesArchive ) {
             for ( f in files )
             {
                 addFileToArchive( resourcesArchive, f, "$BSR/${ f.canonicalPath - basePath - f.name - '/' }", 'resources' )
             }
         }
+
         resourcesArchive
     }
 
