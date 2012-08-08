@@ -186,4 +186,18 @@ abstract class BaseTask extends DefaultTask
 
         ant.zipfileset( arguments )
     }
+
+
+    /**
+     * Verifies resources specified can be found in files provided.
+     *
+     * @param files     files to check
+     * @param resources resources to locate in the files provided
+     */
+    final void checkResources( Collection<File> files, String ... resources )
+    {
+        assert files && resources
+        final cl = new URLClassLoader( files*.toURI()*.toURL() as URL[] )
+        resources.each { assert cl.getResource( it ), "No '$it' resource found in $files" }
+    }
 }

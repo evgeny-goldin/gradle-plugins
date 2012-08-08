@@ -111,6 +111,7 @@ class AssembleTeamCityPluginTask extends BaseTask
         final pluginArchive = ( ext.archivePath ?: buildFile( project.name + ( project.version ? "-$project.version" : '' )))
         final agentArchive  = ( agentJars ? ( ext.agentArchivePath ?: buildFile( "${ project.name }-agent-${ project.version }" )) :
                                             null )
+
         /**
          * ----------------------------------------------------------------------------------
          * Plugins Packaging: http://confluence.jetbrains.net/display/TCD7/Plugins+Packaging
@@ -134,13 +135,13 @@ class AssembleTeamCityPluginTask extends BaseTask
             if ( agentJars  )
             {
                 addFileToArchive( pluginArchive, agentArchive, 'agent' )
+                checkResources( agentJars, "META-INF/build-agent-plugin-${ ext.name }.xml" )
             }
 
             if ( serverJars )
             {
                 addFilesToArchive( pluginArchive, serverJars, 'server' )
-                assert new URLClassLoader( serverJars*.toURI()*.toURL() as URL[] ).getResource( BSR ), \
-                       "No '$BSR' found in 'server' jar${ serverJars.size() == 1 ? '' : 's'} $serverJars"
+                checkResources( serverJars, BSR, "META-INF/build-server-plugin-${ ext.name }.xml" )
             }
 
             ext.resources.each {
