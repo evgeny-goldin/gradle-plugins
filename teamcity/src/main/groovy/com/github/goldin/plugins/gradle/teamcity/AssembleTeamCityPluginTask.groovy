@@ -18,14 +18,15 @@ class AssembleTeamCityPluginTask extends BaseTask
     private static final String BSR = 'buildServerResources'
 
 
-    private AssembleTeamCityPluginExtension ext() {
-        extension( TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION, AssembleTeamCityPluginExtension )
-    }
+    /**
+     * Archive created
+     */
+    File archive
 
 
-    private buildFile ( String name, String extension = 'zip' ) {
-        new File( project.buildDir, "teamcity/$name.$extension" )
-    }
+    private AssembleTeamCityPluginExtension ext() { extension( TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION, AssembleTeamCityPluginExtension )}
+    private buildFile( String name, String extension = 'zip' ) { new File( project.buildDir, "teamcity/$name.$extension" )}
+
 
     AssembleTeamCityPluginTask (){}
 
@@ -46,7 +47,7 @@ class AssembleTeamCityPluginTask extends BaseTask
         assert ( agentJars || serverJars ), \
                "Neither of agent or server-related properties specified in ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ .. }"
 
-        final archive = archivePlugin( agentJars, serverJars )
+        archive = archivePlugin( agentJars, serverJars )
         logger.info( "Plugin archive created at [${ archive.canonicalPath }]" )
 
         ext.artifactConfigurations.each {
