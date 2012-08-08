@@ -1,5 +1,4 @@
 package com.github.goldin.plugins.gradle.teamcity
-
 import com.github.goldin.plugins.gradle.common.BaseTask
 import groovy.xml.MarkupBuilder
 import org.gcontracts.annotations.Ensures
@@ -9,10 +8,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
-
-import javax.xml.XMLConstants
-import javax.xml.transform.stream.StreamSource
-import javax.xml.validation.SchemaFactory
 
 
 /**
@@ -44,7 +39,7 @@ class AssembleTeamCityPluginTask extends BaseTask
         if ( project.hasProperty( this.class.name )) { return }
         project.ext."${ this.class.name }" = "Executed already"
 
-        final ext        = ext()
+        final ext        = validateExtension()
         final agentJars  = jars( ext.agentProjects,  ext.agentConfigurations,  ext.agentJarTasks  )
         final serverJars = jars( ext.serverProjects, ext.serverConfigurations, ext.serverJarTasks )
 
@@ -59,6 +54,27 @@ class AssembleTeamCityPluginTask extends BaseTask
             project.artifacts.pushArtifact( configuration, archive, null )
             logger.info( "Plugin archive added as $configuration artifact" )
         }
+    }
+
+
+    /**
+     * Validates {@link AssembleTeamCityPluginExtension} instance initiated by Gradle.
+     * @return {@link AssembleTeamCityPluginExtension} instance initiated by Gradle.
+     */
+    private AssembleTeamCityPluginExtension validateExtension()
+    {
+        final ext = ext()
+
+        ext.name   ( ext.name    ?: project.name )
+        ext.version( ext.version ?: project.version.toString())
+
+        assert ext.name,        "$project - ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ name        '..' } is not specified"
+        assert ext.displayName, "$project - ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ displayName '..' } is not specified"
+        assert ext.version,     "$project - ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ version     '..' } is not specified"
+        assert ext.vendorName,  "$project - ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ vendorName  '..' } is not specified"
+        assert ext.description, "$project - ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ description '..' } is not specified"
+
+        ext
     }
 
 
@@ -196,10 +212,7 @@ class AssembleTeamCityPluginTask extends BaseTask
     @Ensures({ result.file })
     File pluginXmlFile ()
     {
-        final ext = ext()
-        ext.name   ( ext.name    ?: project.name )
-        ext.version( ext.version ?: project.version.toString())
-
+        final ext     = ext()
         final writer  = new StringWriter()
         final builder = new MarkupBuilder( writer )
         final addTag  = {
@@ -250,13 +263,8 @@ class AssembleTeamCityPluginTask extends BaseTask
             }
         }
 
-        final xml = writer.toString()
-
-        SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ).
-        newSchema( this.class.getResource( '/teamcity-plugin-descriptor.xsd' )).
-        newValidator().
-        validate( new StreamSource( new StringReader( xml )))
-
+        final schema   = this.class.getResource( '/teamcity-plugin-descriptor.xsd' ).getText( 'UTF-8' )
+        final xml      = validateXml( writer.toString(), schema )
         final tempFile = File.createTempFile( project.name , null )
         tempFile.write( xml, 'UTF-8' )
         tempFile.deleteOnExit()

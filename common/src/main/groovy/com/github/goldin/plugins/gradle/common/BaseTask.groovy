@@ -4,7 +4,12 @@ import org.apache.tools.ant.DirectoryScanner
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
+
+import javax.xml.XMLConstants
+import javax.xml.transform.stream.StreamSource
+import javax.xml.validation.SchemaFactory
 
 
 /**
@@ -199,5 +204,33 @@ abstract class BaseTask extends DefaultTask
         assert files && resources
         final cl = new URLClassLoader( files*.toURI()*.toURL() as URL[] )
         resources.each { assert cl.getResource( it ), "No '$it' resource found in $files" }
+    }
+
+
+    /**
+     * Validates XML specified with Schema provided.
+     *
+     * @param xml    XML to validate
+     * @param schema schema to validate with
+     * @return       same XML instance
+     * @throws       GradleException if validation fails
+     */
+    final String validateXml( String xml, String schema )
+    {
+        assert xml && schema
+
+        try
+        {
+            SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ).
+            newSchema( new StreamSource( new StringReader( schema ))).
+            newValidator().
+            validate( new StreamSource( new StringReader( xml )))
+        }
+        catch ( e )
+        {
+            throw new GradleException( "Failed to validate XML\n[$xml]\nusing schema\n[$schema]", e )
+        }
+
+        xml
     }
 }
