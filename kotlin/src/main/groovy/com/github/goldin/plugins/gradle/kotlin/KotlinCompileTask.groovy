@@ -25,7 +25,7 @@ class KotlinCompileTask extends AbstractCompile
         args.sourceDirs       = source.files*.canonicalPath
         args.outputDir        = destinationDir.canonicalPath
 
-        for ( compileTask in dependsOn.findAll{ it instanceof Compile } )
+        for ( compileTask in dependsOn.findAll{ it instanceof AbstractCompile } )
         {
             final destinationDir = (( Compile ) compileTask ).destinationDir
             if ( destinationDir.directory )
