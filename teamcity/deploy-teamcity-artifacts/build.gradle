@@ -92,7 +92,7 @@ List<File> downloadArtifacts ( Project project, String teamCityVersion, File dow
         List<String> filePaths, String artifactId ->
         final  file = filePaths.collect { new File( unpackDir, "TeamCity/$it" ) }.find { it.file }
         assert file, "None of $filePaths correspond to existing file in [$unpackDir.canonicalPath]"
-        files << addArtifact( project, file, 'org.jetbrains.teamcity', artifactId, teamCityVersion )
+        files << addArtifact( project, file, 'teamcity', artifactId, teamCityVersion )
     }
 
     /**

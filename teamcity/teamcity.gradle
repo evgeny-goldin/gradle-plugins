@@ -1,3 +1,9 @@
+import org.gradle.api.GradleException
+import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+
+
 /**
  * ---------------------------------------------------------------
  * Gradle script to be included for using TeamCity Gradle plugin:
@@ -46,28 +52,28 @@ allprojects {
 
     dependencies {
 
-        teamcityTest     "org.jetbrains.teamcity:tests:$_teamCityVersion_",
-                         "org.jetbrains.teamcity:jmock:$_teamCityVersion_"
+        teamcityTest     "teamcity:tests:$_teamCityVersion_",
+                         "teamcity:jmock:$_teamCityVersion_"
 
-        teamcityCommon   "org.jetbrains.teamcity:servlet-api:$_teamCityVersion_",
-                         "org.jetbrains.teamcity:common-api:$_teamCityVersion_",
-                         "org.jetbrains.teamcity:annotations:$_teamCityVersion_",
-                         "org.jetbrains.teamcity:util:$_teamCityVersion_",
-                         "org.jetbrains.teamcity:jdom:$_teamCityVersion_",
-                         "org.jetbrains.teamcity:spring:$_teamCityVersion_"
+        teamcityCommon   "teamcity:servlet-api:$_teamCityVersion_",
+                         "teamcity:common-api:$_teamCityVersion_",
+                         "teamcity:annotations:$_teamCityVersion_",
+                         "teamcity:util:$_teamCityVersion_",
+                         "teamcity:jdom:$_teamCityVersion_",
+                         "teamcity:spring:$_teamCityVersion_"
 
-        teamcityCommonEx "org.jetbrains.teamcity:common-impl:$_teamCityVersion_",
-                         "org.jetbrains.teamcity:idea-openapi:$_teamCityVersion_"
+        teamcityCommonEx "teamcity:common-impl:$_teamCityVersion_",
+                         "teamcity:idea-openapi:$_teamCityVersion_"
 
-        teamcityServer   "org.jetbrains.teamcity:server-api:$_teamCityVersion_",
-                         "org.jetbrains.teamcity:spring-webmvc:$_teamCityVersion_"
+        teamcityServer   "teamcity:server-api:$_teamCityVersion_",
+                         "teamcity:spring-webmvc:$_teamCityVersion_"
 
-        teamcityServerEx "org.jetbrains.teamcity:server:$_teamCityVersion_",
-                         "org.jetbrains.teamcity:web:$_teamCityVersion_"
+        teamcityServerEx "teamcity:server:$_teamCityVersion_",
+                         "teamcity:web:$_teamCityVersion_"
 
-        teamcityAgent    "org.jetbrains.teamcity:agent-api:$_teamCityVersion_"
+        teamcityAgent    "teamcity:agent-api:$_teamCityVersion_"
 
-        teamcityAgentEx  "org.jetbrains.teamcity:agent:$_teamCityVersion_"
+        teamcityAgentEx  "teamcity:agent:$_teamCityVersion_"
     }
 
 
@@ -84,9 +90,8 @@ allprojects {
         {
             final Set<Dependency> badDependencies = compileConfiguration.dependencies.findAll {
                 Dependency d ->
-                (( d.group in [ 'org.springframework' ] ) && ( d.name  in [ 'spring', 'spring-core', 'spring-webmvc' ] )) ||
-                (( d.group in [ 'javax.servlet'       ] ) && ( d.name  in [ 'servlet-api' ] )) ||
-                (  d.group in [ 'org.jetbrains.teamcity', 'org.jdom' ] )
+                ( d.group in [ 'org.jetbrains.teamcity', 'teamcity', 'org.jdom' ]) ||
+                ( d.name  in [ 'servlet-api', 'spring', 'spring-core', 'spring-webmvc', 'jdom' ])
             }
 
             final Configuration teamcityConfiguration = compileConfiguration.extendsFrom.find { it.name.startsWith( 'teamcity' )}
