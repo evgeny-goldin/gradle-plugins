@@ -13,7 +13,7 @@ apply plugin: 'java'
  * http://confluence.jetbrains.net/display/TW/Previous+Releases+Downloads
  */
 
-final String     teamCityVersions = '7.1 7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'
+final String     teamCityVersions = '7.1.1 7.1 7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'
 final List<File> files            = [] // Files to be deployed
 
 
@@ -84,8 +84,8 @@ List<File> downloadArtifacts ( Project project, String teamCityVersion, File dow
     assert project && teamCityVersion && downloadsDir.directory
 
     final List<File> files        = []
-    final String     downloadLink = "http://download.labs.intellij.net/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
-    //                              "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
+    final String     downloadLink = "http://download.jetbrains.com/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
+    //                              "http://download.labs.intellij.net/teamcity/TeamCity-${ teamCityVersion }.tar.gz"
     final File       archiveFile  = new File( downloadsDir, "TeamCity-${ teamCityVersion }.tar.gz" )
     final File       unpackDir    = new File( downloadsDir, "TeamCity-${ teamCityVersion }" )
     final Closure    addFile      = {
@@ -181,4 +181,4 @@ File addArtifact( Project project, File file, String groupId, String artifactId,
 }
 
 
-task wrapper( type: Wrapper ) { gradleVersion = '1.1' }
+task wrapper( type: Wrapper ) { gradleVersion = '1.2' }
