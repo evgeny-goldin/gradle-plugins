@@ -64,7 +64,7 @@ class DuplicatesFinderTask extends BaseTask
         if ( ! configFiles ) { return [:] }
 
         Map<File, String> f2d = filesToDependencies( config )
-        assert ( configFiles.size() == f2d.size()) && ( configFiles.each { f2d[ it ] } )
+        assert ( configFiles.size() == f2d.size()) && ( configFiles.every { f2d[ it ] } )
 
        /**
         * 1) Mapping of class names to files they're found in:
