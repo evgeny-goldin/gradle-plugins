@@ -1,5 +1,4 @@
 package com.github.goldin.plugins.gradle.crawler
-
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -16,15 +15,19 @@ import java.util.regex.Pattern
  */
 class CrawlerTask extends BaseTask
 {
+    private final ThreadPoolExecutor threadPool  = Executors.newFixedThreadPool( 1 ) as ThreadPoolExecutor
+    private final LinksReport        linksReport = new LinksReport()
+
+
     /**
      * Retrieves current plugin extension object.
      * @return current plugin extension object
      */
-    private CrawlerExtension ext () { extension ( 'crawler', CrawlerExtension ) }
+    CrawlerExtension ext () { extension ( 'crawler', CrawlerExtension ) }
 
 
-    private final ThreadPoolExecutor threadPool  = Executors.newFixedThreadPool( 1 ) as ThreadPoolExecutor
-    private final LinksReport        linksReport = new LinksReport()
+    String s( Collection c ){ s( c.size()) }
+    String s( int        j ){ j == 1 ? '' : 's' }
 
 
     @Override
@@ -34,31 +37,24 @@ class CrawlerTask extends BaseTask
         threadPool.corePoolSize = ext.threadPoolSize
 
         printStartBanner()
+        submitRootLinks()
+        waitForIdle()
+        printReport()
 
-        for ( link in linksReport.addLinksToProcess( ext.rootLinks ))
+        if ( linksReport.brokenLinksNumber() && ext.failOnBrokenLinks )
         {
-            final pageUrl     = link // Otherwise, various invocations share the same "link" instance when invoked
-            final linksReport = linksReport
-            threadPool.submit({ checkLinks( pageUrl, 'Root link' )} as Runnable )
+            throw new GradleException(
+                "[${ linksReport.brokenLinksNumber() }] broken link${ s( linksReport.brokenLinksNumber())} found" )
         }
-
-        synchronized ( threadPool )
-        {
-            while ( threadPool.activeCount || ( ! threadPool.queue.empty ))
-            {
-                threadPool.wait()
-            }
-        }
-
-        linksReport.lock()
-        threadPool.shutdown()
-        threadPool.awaitTermination( 1L, TimeUnit.SECONDS )
-
-        printReport( ext.failOnBrokenLinks )
     }
 
 
-    private CrawlerExtension verifyAndUpdateExtension ()
+    /**
+     * Verifies {@link CrawlerExtension} contains proper settings and updates it with additional properties.
+     * @return {@link CrawlerExtension} instance verified and updated.
+     */
+    @Ensures({ result })
+    CrawlerExtension verifyAndUpdateExtension ()
     {
         final ext                  = ext()
         final extensionDescription = "${ CrawlerPlugin.EXTENSION_NAME } { .. }"
@@ -79,6 +75,88 @@ class CrawlerTask extends BaseTask
     }
 
 
+    /**
+     * Prints startup banner.
+     */
+    void printStartBanner ()
+    {
+        final ext           = ext()
+        final bannerMessage = "Checking [http://$ext.host] links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }, verbose [$ext.verbose]"
+        final bannerLine    = "-" * ( bannerMessage.size() + 2 )
+
+        logger.info( bannerLine )
+        logger.info( " $bannerMessage" )
+        logger.info( " Root link${ s( ext.rootLinks )}:" )
+        ext.rootLinks.each { logger.info( " * [$it]" )}
+        logger.info( bannerLine )
+    }
+
+
+    /**
+     * Submits root links for checking and starts the crawling process.
+     *
+     * @param ext
+     */
+    void submitRootLinks ()
+    {
+        final ext = ext()
+        for ( link in linksReport.addLinksToProcess( ext.rootLinks ))
+        {
+            final pageUrl = link // Otherwise, various invocations share the same "link" instance when invoked
+            threadPool.submit({ checkLinks( pageUrl , 'Root link' )} as Runnable )
+        }
+    }
+
+
+    /**
+     * Blocks until there is no more activity in a thread pool, meaning all links are checked.
+     */
+    void waitForIdle ()
+    {
+        synchronized ( threadPool )
+        {
+            while ( threadPool.activeCount || ( ! threadPool.queue.empty ))
+            {
+                threadPool.wait()
+            }
+        }
+
+        linksReport.lock()
+        threadPool.shutdown()
+        threadPool.awaitTermination( 1L, TimeUnit.SECONDS )
+    }
+
+
+    /**
+     * Prints final report after all links are checked.
+     */
+    void printReport ()
+    {
+        final message = new StringBuilder (
+            "\n[${ linksReport.processedLinksNumber()}] link${ s( linksReport.processedLinksNumber() ) } checked in " +
+            "${ ( System.currentTimeMillis() - startTime ) / 1000 } sec:\n" +
+            toMultiLines( linksReport.processedLinks()) +
+            "\n[${ linksReport.brokenLinksNumber()}] broken link${ s( linksReport.brokenLinksNumber()) } found" )
+
+        if ( linksReport.brokenLinksNumber())
+        {
+            message << ':\n\n'
+            for ( brokenLink in linksReport.brokenLinks())
+            {
+                message << "- [$brokenLink] - referred to by \n  ${ linksReport.brokenLinkReferrers( brokenLink ) }\n\n"
+            }
+        }
+
+        logger.info( message.toString())
+    }
+
+
+    /**
+     * <b>Invoked in a thread pool worker</b> - checks links in the page specified.
+     *
+     * @param pageUrl     URL of a page to check its links
+     * @param referrerUrl URL of another page referring to the one being checked
+     */
     void checkLinks ( String pageUrl, String referrerUrl )
     {
         try
@@ -116,14 +194,22 @@ class CrawlerTask extends BaseTask
             logger.error( "Failed to check links of page [$pageUrl], referrer [$referrerUrl]", error )
         }
         finally
-        {
+        {   /**
+             * Notifying main thread after every page checked.
+             */
             synchronized ( threadPool ){ threadPool.notify()}
         }
     }
 
 
+    /**
+     * Reads all hyperlinks in the content specified.ß
+     * @param pageContent content of the page downloaded previously
+     * @return all links found with {@link CrawlerExtension#baseUrl} being replaced to {@link CrawlerExtension#host}
+     */
     @Requires({ pageContent })
-    private Collection<String> readLinks ( String pageContent )
+    @Ensures({ result != null })
+    Collection<String> readLinks ( String pageContent )
     {
         final ext         = ext()
         final String text = ext.cleanupPatterns ?
@@ -136,10 +222,16 @@ class CrawlerTask extends BaseTask
     }
 
 
-
+    /**
+     * Retrieves {@code byte[]} content of the link specified.
+     *
+     * @param link URL of a link to read
+     * @param referrer URL of link referrer
+     * @return content of link specified
+     */
     @Requires({ link && referrer && linksReport })
     @Ensures({ result != null })
-    private byte[] readBytes ( String link, String referrer )
+    byte[] readBytes ( String link, String referrer )
     {
         final ext = ext()
         final t   = System.currentTimeMillis()
@@ -155,6 +247,7 @@ class CrawlerTask extends BaseTask
             connection.connectTimeout = ext.connectTimeout
             connection.readTimeout    = ext.readTimeout
             final byte[] bytes        = connection.inputStream.bytes
+            assert       bytes
 
             if ( ext.verbose )
             {
@@ -172,52 +265,14 @@ class CrawlerTask extends BaseTask
     }
 
 
-    void printStartBanner ()
-    {
-        final ext           = ext()
-        final bannerMessage = "Checking [http://$ext.host] links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }, verbose [$ext.verbose]"
-        final bannerLine    = "-" * ( bannerMessage.size() + 2 )
-
-        logger.info( bannerLine )
-        logger.info( " $bannerMessage" )
-        logger.info( " Root link${ s( ext.rootLinks )}:" )
-        ext.rootLinks.each { logger.info( " * [$it]" )}
-        logger.info( bannerLine )
-    }
-
-
-    void printReport ( boolean failOnBrokenLinks )
-    {
-        final message = new StringBuilder (
-            "\n[${ linksReport.processedLinksNumber()}] link${ s( linksReport.processedLinksNumber() ) } checked in " +
-            "${ ( System.currentTimeMillis() - startTime ) / 1000 } sec:\n" +
-            toMultiLines( linksReport.processedLinks()) +
-            "\n[${ linksReport.brokenLinksNumber()}] broken link${ s( linksReport.brokenLinksNumber()) } found" )
-
-        if ( linksReport.brokenLinksNumber())
-        {
-            message << ':\n\n'
-            for ( brokenLink in linksReport.brokenLinks())
-            {
-                message << "- [$brokenLink] - referred to by \n  ${ linksReport.brokenLinkReferrers( brokenLink ) }\n\n"
-            }
-        }
-
-        logger.info( message.toString())
-
-        if ( linksReport.brokenLinksNumber() && failOnBrokenLinks )
-        {
-            throw new GradleException( "[${ linksReport.brokenLinksNumber() }] broken link${ s( linksReport.brokenLinksNumber())} found" )
-        }
-    }
-
-
+    /**
+     * Converts collection specified to multiline String.
+     * @param c Collection to convert.
+     * @param delimiter Delimiter to use on every line.
+     * @return collection specified converted to multiline String
+     */
     String toMultiLines( Collection c, String delimiter = '*' )
     {
         "\n$delimiter [${ c.sort().join( "]\n$delimiter [" ) }]\n"
     }
-
-    private String s( Collection c ){ s( c.size()) }
-    private String s( int        j ){ j == 1 ? '' : 's' }
-
 }
