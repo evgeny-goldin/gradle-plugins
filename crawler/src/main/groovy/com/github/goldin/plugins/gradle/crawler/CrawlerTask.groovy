@@ -1,10 +1,13 @@
 package com.github.goldin.plugins.gradle.crawler
+
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -17,6 +20,7 @@ class CrawlerTask extends BaseTask
 {
     private final ThreadPoolExecutor threadPool   = Executors.newFixedThreadPool( 1 ) as ThreadPoolExecutor
     private final LinksStorage       linksStorage = new LinksStorage()
+    private final Queue<Future>      futures      = new ConcurrentLinkedQueue<Future>()
 
 
     /**
@@ -86,8 +90,18 @@ class CrawlerTask extends BaseTask
 
         logger.info( bannerLine )
         logger.info( " $bannerMessage" )
-        logger.info( " Root link${ s( ext.rootLinks )}:" )
-        ext.rootLinks.each { logger.info( " * [$it]" )}
+
+        if ( ext.verbose )
+        {
+            logger.info( " Base URL         - [${ ext.baseUrl }]" )
+            logger.info( " Base regex       - [${ ext.baseRegex }]" )
+            logger.info( " Base pattern     - [${ ext.basePattern }]" )
+            logger.info( " Link pattern     - [${ ext.linkPattern }]" )
+            logger.info( " Cleanup patterns - ${ ext.cleanupPatterns }" )
+            logger.info( " Root link${ s( ext.rootLinks )}:" )
+            ext.rootLinks.each { logger.info( " * [$it]" )}
+        }
+
         logger.info( bannerLine )
     }
 
@@ -103,7 +117,7 @@ class CrawlerTask extends BaseTask
         for ( link in linksStorage.addLinksToProcess( ext.rootLinks ))
         {
             final pageUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-            threadPool.submit({ checkLinks( pageUrl , 'Root link' )} as Runnable )
+            futures << threadPool.submit({ checkLinks( pageUrl , 'Root link' )} as Runnable )
         }
     }
 
@@ -115,12 +129,13 @@ class CrawlerTask extends BaseTask
     {
         synchronized ( threadPool )
         {
-            while ( threadPool.activeCount || ( ! threadPool.queue.empty ))
+            while (( threadPool.activeCount > 0 ) || ( ! threadPool.queue.empty ))
             {
                 threadPool.wait()
             }
         }
 
+        futures.each { it.get() }
         linksStorage.lock()
         threadPool.shutdown()
         threadPool.awaitTermination( 1L, TimeUnit.SECONDS )
@@ -184,7 +199,7 @@ class CrawlerTask extends BaseTask
             for ( link in linksStorage.addLinksToProcess( pageLinks ))
             {
                 final String linkUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-                threadPool.submit({ checkLinks( linkUrl, pageUrl )} as Runnable )
+                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl )} as Runnable )
             }
         }
         catch( Throwable error )

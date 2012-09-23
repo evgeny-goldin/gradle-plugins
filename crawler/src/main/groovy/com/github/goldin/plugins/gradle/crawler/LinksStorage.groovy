@@ -76,7 +76,7 @@ class LinksStorage
 
         synchronized ( processedLinks )
         {
-            links.findAll { processedLinks.add( it )}
+            links.findAll { processedLinks.add( it.toString())}  /* To convert possible GStrings */
         }
     }
 
@@ -86,6 +86,6 @@ class LinksStorage
     void addBrokenLink ( String link, String referrer )
     {
         assert ( ! locked )
-        brokenLinks[ link ] = referrer
+        brokenLinks[ link.toString() ] = referrer  /* To convert possible GStrings */
     }
 }
