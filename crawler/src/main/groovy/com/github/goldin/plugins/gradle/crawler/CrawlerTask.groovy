@@ -216,7 +216,7 @@ class CrawlerTask extends BaseTask
 
         cleanedText.findAll ( ext.linkPattern ) { it[ 1 ] }.
                     toSet().
-                    findAll { String link -> ( ! ext.ignoredLinks.any { String ignored -> link.endsWith( ignored )} )}
+                    findAll { String link -> ( ! ext.ignoredLinks.any { String ignored -> link.endsWith( ignored )} )}.
                     collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}
     }
 
