@@ -258,7 +258,7 @@ class CrawlerTask extends BaseTask
         catch ( Throwable error )
         {
             linksStorage.addBrokenLink( link, referrer )
-            logger.warn( "! [$link] - $error (referred to by [$referrer])" )
+            logger.warn( "! [$link] - $error, referred to by \n  [$referrer]\n" )
             new byte[ 0 ]
         }
     }
