@@ -250,7 +250,7 @@ class CrawlerTask extends BaseTask
 
             if ( ext.verbose )
             {
-                logger.info( "[$link] - [${ bytes.size()}] bytes, [${ System.currentTimeMillis() - t }] ms" )
+                logger.info( "[$link] - [${ bytes.size()}] byte${ s( bytes.size())}, [${ System.currentTimeMillis() - t }] ms" )
             }
 
             bytes
