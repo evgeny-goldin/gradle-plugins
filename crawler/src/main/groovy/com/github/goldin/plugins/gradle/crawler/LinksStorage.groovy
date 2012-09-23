@@ -6,11 +6,11 @@ import org.gcontracts.annotations.Requires
 /**
  * Links reporting storage
  */
-class LinksReport
+class LinksStorage
 {
-    private final Set<String>               processedLinks = [] as Set
-    private final Map<String, List<String>> brokenLinks    = [:].withDefault{[]}
-    private volatile boolean                locked         = false
+    private final    Set<String>         processedLinks = [] as Set
+    private final    Map<String, String> brokenLinks    = [:]
+    private volatile boolean             locked         = false
 
 
     void lock()
@@ -37,7 +37,7 @@ class LinksReport
 
     @Requires({ link })
     @Ensures({ result })
-    List<String> brokenLinkReferrers( String link )
+    String brokenLinkReferrer ( String link )
     {
         assert locked
         brokenLinks[ link ]
@@ -86,7 +86,7 @@ class LinksReport
 
         synchronized ( brokenLinks )
         {
-            brokenLinks[ link ] << referrer
+            brokenLinks[ link ] = referrer
         }
     }
 }

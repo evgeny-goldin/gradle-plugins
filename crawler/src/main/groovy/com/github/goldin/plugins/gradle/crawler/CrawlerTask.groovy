@@ -15,8 +15,8 @@ import java.util.regex.Pattern
  */
 class CrawlerTask extends BaseTask
 {
-    private final ThreadPoolExecutor threadPool  = Executors.newFixedThreadPool( 1 ) as ThreadPoolExecutor
-    private final LinksReport        linksReport = new LinksReport()
+    private final ThreadPoolExecutor threadPool   = Executors.newFixedThreadPool( 1 ) as ThreadPoolExecutor
+    private final LinksStorage       linksStorage = new LinksStorage()
 
 
     /**
@@ -41,10 +41,10 @@ class CrawlerTask extends BaseTask
         waitForIdle()
         printReport()
 
-        if ( linksReport.brokenLinksNumber() && ext.failOnBrokenLinks )
+        if ( linksStorage.brokenLinksNumber() && ext.failOnBrokenLinks )
         {
             throw new GradleException(
-                "[${ linksReport.brokenLinksNumber() }] broken link${ s( linksReport.brokenLinksNumber())} found" )
+                "[${ linksStorage.brokenLinksNumber() }] broken link${ s( linksStorage.brokenLinksNumber())} found" )
         }
     }
 
@@ -100,7 +100,7 @@ class CrawlerTask extends BaseTask
     void submitRootLinks ()
     {
         final ext = ext()
-        for ( link in linksReport.addLinksToProcess( ext.rootLinks ))
+        for ( link in linksStorage.addLinksToProcess( ext.rootLinks ))
         {
             final pageUrl = link // Otherwise, various invocations share the same "link" instance when invoked
             threadPool.submit({ checkLinks( pageUrl , 'Root link' )} as Runnable )
@@ -121,7 +121,7 @@ class CrawlerTask extends BaseTask
             }
         }
 
-        linksReport.lock()
+        linksStorage.lock()
         threadPool.shutdown()
         threadPool.awaitTermination( 1L, TimeUnit.SECONDS )
     }
@@ -133,17 +133,17 @@ class CrawlerTask extends BaseTask
     void printReport ()
     {
         final message = new StringBuilder (
-            "\n[${ linksReport.processedLinksNumber()}] link${ s( linksReport.processedLinksNumber() ) } checked in " +
+            "\n\n[${ linksStorage.processedLinksNumber()}] link${ s( linksStorage.processedLinksNumber() ) } checked in " +
             "${ ( System.currentTimeMillis() - startTime ) / 1000 } sec:\n" +
-            toMultiLines( linksReport.processedLinks()) +
-            "\n[${ linksReport.brokenLinksNumber()}] broken link${ s( linksReport.brokenLinksNumber()) } found" )
+            toMultiLines( linksStorage.processedLinks()) +
+            "\n[${ linksStorage.brokenLinksNumber()}] broken link${ s( linksStorage.brokenLinksNumber()) } found" )
 
-        if ( linksReport.brokenLinksNumber())
+        if ( linksStorage.brokenLinksNumber())
         {
             message << ':\n\n'
-            for ( brokenLink in linksReport.brokenLinks())
+            for ( brokenLink in linksStorage.brokenLinks())
             {
-                message << "- [$brokenLink] - referred to by \n  ${ linksReport.brokenLinkReferrers( brokenLink ) }\n\n"
+                message << "- [$brokenLink] - referred to by \n  [${ linksStorage.brokenLinkReferrer( brokenLink )}]\n\n"
             }
         }
 
@@ -161,11 +161,9 @@ class CrawlerTask extends BaseTask
     {
         try
         {
-            assert pageUrl && referrerUrl && linksReport && threadPool
+            assert pageUrl && referrerUrl && linksStorage && threadPool
 
-            final ext = ext()
-            if ( ext.ignoredLinks.any { pageUrl.endsWith( it )}) { return }
-
+            final ext          = ext()
             final byte[] bytes = readBytes( pageUrl, referrerUrl )
 
             if (( ! bytes ) || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )}){ return }
@@ -174,16 +172,16 @@ class CrawlerTask extends BaseTask
 
             if ( ext.verbose )
             {
-                final links           = linksReport
+                final links           = linksStorage
                 final newLinks        = pageLinks.findAll { ! links.isProcessedLink( it ) }
                 final linksMessage    = pageLinks ? ", ${ newLinks.size() == 0 ? 'no' : newLinks.size()} new" : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"                          : ''
 
                 logger.info( "[$pageUrl] - [${ pageLinks.size() }] link${ s( pageLinks ) } found${ linksMessage } " +
-                             "(${ linksReport.processedLinksNumber() } checked so far)${ newLinksMessage }" )
+                             "(${ linksStorage.processedLinksNumber() } checked so far)${ newLinksMessage }" )
             }
 
-            for ( link in linksReport.addLinksToProcess( pageLinks ))
+            for ( link in linksStorage.addLinksToProcess( pageLinks ))
             {
                 final String linkUrl = link // Otherwise, various invocations share the same "link" instance when invoked
                 threadPool.submit({ checkLinks( linkUrl, pageUrl )} as Runnable )
@@ -211,14 +209,15 @@ class CrawlerTask extends BaseTask
     @Ensures({ result != null })
     Collection<String> readLinks ( String pageContent )
     {
-        final ext         = ext()
-        final String text = ext.cleanupPatterns ?
+        final ext                = ext()
+        final String cleanedText = ext.cleanupPatterns ?
             ext.cleanupPatterns.inject( pageContent ) { String text, Pattern p -> text.replaceAll( p, '' )} :
             pageContent
 
-        text.findAll ( ext.linkPattern ) { it[ 1 ] }.
-             toSet().
-             collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}
+        cleanedText.findAll ( ext.linkPattern ) { it[ 1 ] }.
+                    toSet().
+                    findAll { String link -> ( ! ext.ignoredLinks.any { String ignored -> link.endsWith( ignored )} )}
+                    collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}
     }
 
 
@@ -229,7 +228,7 @@ class CrawlerTask extends BaseTask
      * @param referrer URL of link referrer
      * @return content of link specified
      */
-    @Requires({ link && referrer && linksReport })
+    @Requires({ link && referrer && linksStorage })
     @Ensures({ result != null })
     byte[] readBytes ( String link, String referrer )
     {
@@ -258,8 +257,8 @@ class CrawlerTask extends BaseTask
         }
         catch ( Throwable error )
         {
-            linksReport.addBrokenLink( link, referrer )
-            logger.warn( "[$link]: Failed - $error (referrer [$referrer])" )
+            linksStorage.addBrokenLink( link, referrer )
+            logger.warn( "! [$link]: Failed - $error (referrer [$referrer])" )
             new byte[ 0 ]
         }
     }
