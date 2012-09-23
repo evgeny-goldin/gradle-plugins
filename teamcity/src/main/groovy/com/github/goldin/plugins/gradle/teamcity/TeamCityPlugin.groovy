@@ -10,17 +10,17 @@ import org.gradle.api.Project
  */
 class TeamCityPlugin implements Plugin<Project>
 {
-    static final String ASSEMBLE_PLUGIN_TASK      = 'assembleTeamcityPlugin'
-    static final String ASSEMBLE_PLUGIN_EXTENSION = 'assembleTeamcityPluginConfig'
+    static final String TASK_NAME      = 'assembleTeamcityPlugin'
+    static final String EXTENSION_NAME = 'assembleTeamcityPluginConfig'
 
 
     @Requires({ project })
     @Override
     void apply ( Project project )
     {
-        project.extensions.create ( ASSEMBLE_PLUGIN_EXTENSION, TeamCityExtension )
+        project.extensions.create ( EXTENSION_NAME, TeamCityExtension )
 
-        final assemblePluginTask = project.tasks.add ( ASSEMBLE_PLUGIN_TASK, TeamCityTask )
+        final assemblePluginTask = project.tasks.add ( TASK_NAME, TeamCityTask )
         final tasks              = project.tasks.asMap
         final jarTask            = tasks[ 'jar'   ]
         final testTask           = tasks[ 'test'  ]

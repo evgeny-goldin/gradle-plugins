@@ -24,7 +24,7 @@ class TeamCityTask extends BaseTask
     File archive
 
 
-    private TeamCityExtension ext() { extension( TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION, TeamCityExtension )}
+    private TeamCityExtension ext() { extension( TeamCityPlugin.EXTENSION_NAME, TeamCityExtension )}
     private buildFile( String name, String extension = 'zip' ) { new File( project.buildDir, "teamcity/$name.$extension" )}
 
 
@@ -45,7 +45,7 @@ class TeamCityTask extends BaseTask
         final serverJars = jars( ext.serverProjects, ext.serverConfigurations, ext.serverJarTasks )
 
         assert ( agentJars || serverJars ), \
-               "Neither of agent or server-related properties specified in ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ .. }"
+               "Neither of agent or server-related properties specified in ${ TeamCityPlugin.EXTENSION_NAME }{ .. }"
 
         archive = archivePlugin( agentJars, serverJars )
         logger.info( "Plugin archive created at [${ archive.canonicalPath }]" )
@@ -69,11 +69,11 @@ class TeamCityTask extends BaseTask
         ext.name   ( ext.name    ?: project.name )
         ext.version( ext.version ?: project.version.toString())
 
-        assert ext.name,        "$project - ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ name        '..' } is not specified"
-        assert ext.displayName, "$project - ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ displayName '..' } is not specified"
-        assert ext.version,     "$project - ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ version     '..' } is not specified"
-        assert ext.vendorName,  "$project - ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ vendorName  '..' } is not specified"
-        assert ext.description, "$project - ${ TeamCityPlugin.ASSEMBLE_PLUGIN_EXTENSION }{ description '..' } is not specified"
+        assert ext.name,        "$project - ${ TeamCityPlugin.EXTENSION_NAME }{ name        '..' } is not specified"
+        assert ext.displayName, "$project - ${ TeamCityPlugin.EXTENSION_NAME }{ displayName '..' } is not specified"
+        assert ext.version,     "$project - ${ TeamCityPlugin.EXTENSION_NAME }{ version     '..' } is not specified"
+        assert ext.vendorName,  "$project - ${ TeamCityPlugin.EXTENSION_NAME }{ vendorName  '..' } is not specified"
+        assert ext.description, "$project - ${ TeamCityPlugin.EXTENSION_NAME }{ description '..' } is not specified"
 
         ext
     }
