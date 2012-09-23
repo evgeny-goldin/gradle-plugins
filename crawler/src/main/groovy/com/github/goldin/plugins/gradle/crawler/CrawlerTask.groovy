@@ -1,11 +1,9 @@
 package com.github.goldin.plugins.gradle.crawler
-
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.ThreadPoolExecutor
@@ -20,7 +18,7 @@ class CrawlerTask extends BaseTask
 {
     private final ThreadPoolExecutor threadPool   = Executors.newFixedThreadPool( 1 ) as ThreadPoolExecutor
     private final LinksStorage       linksStorage = new LinksStorage()
-    private final Queue<Future>      futures      = new ConcurrentLinkedQueue<Future>()
+    private final List<Future>       futures      = []
 
 
     /**
@@ -63,15 +61,15 @@ class CrawlerTask extends BaseTask
         final ext                  = ext()
         final extensionDescription = "${ CrawlerPlugin.EXTENSION_NAME } { .. }"
 
-        assert ext.host,               "No 'host' defined in $extensionDescription"
-        assert ext.baseUrl,            "No 'companyUrl' defined in $extensionDescription"
-        assert ext.threadPoolSize > 0, "threadPoolSize [${ ext.threadPoolSize }] in $extensionDescription should be positive"
-        assert ext.connectTimeout > 0, "connectTimeout [${ ext.connectTimeout }] in $extensionDescription should be positive"
-        assert ext.readTimeout    > 0, "readTimeout [${ ext.readTimeout }] in $extensionDescription should be positive"
+        assert ext.baseUrl,            "No 'baseUrl' defined in $extensionDescription"
+        assert ext.threadPoolSize > 0, "'threadPoolSize' [${ ext.threadPoolSize }] in $extensionDescription should be positive"
+        assert ext.connectTimeout > 0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
+        assert ext.readTimeout    > 0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
 
-        ext.baseRegex       = /\Q${ ext.baseUrl }\E/
-        ext.basePattern     = Pattern.compile( ext.baseRegex )
-        ext.linkPattern     = Pattern.compile( /(?:'|")(https?:\/\/${ ext.baseRegex }.*?)(?:'|")/ )
+        ext.baseUrl         = ext.baseUrl.replaceAll( '^.*?://', '' ) // Cleaning up any protocols specified
+        ext.host            = ext.host ?: ext.baseUrl
+        ext.basePattern     = Pattern.compile( /\Q${ ext.baseUrl }\E/ )
+        ext.linkPattern     = Pattern.compile( /(?:'|")(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|")/ )
         ext.cleanupPatterns = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
         ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect { "http://$ext.host/$it" }
 
@@ -94,7 +92,6 @@ class CrawlerTask extends BaseTask
         if ( ext.verbose )
         {
             logger.info( " Base URL         - [${ ext.baseUrl }]" )
-            logger.info( " Base regex       - [${ ext.baseRegex }]" )
             logger.info( " Base pattern     - [${ ext.basePattern }]" )
             logger.info( " Link pattern     - [${ ext.linkPattern }]" )
             logger.info( " Cleanup patterns - ${ ext.cleanupPatterns }" )
@@ -135,7 +132,7 @@ class CrawlerTask extends BaseTask
             }
         }
 
-        futures.each { it.get() }
+        synchronized ( futures ){ futures.each { it.get() }}
         linksStorage.lock()
         threadPool.shutdown()
         threadPool.awaitTermination( 1L, TimeUnit.SECONDS )
@@ -199,7 +196,10 @@ class CrawlerTask extends BaseTask
             for ( link in linksStorage.addLinksToProcess( pageLinks ))
             {
                 final String linkUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl )} as Runnable )
+                synchronized ( futures )
+                {
+                    futures << threadPool.submit({ checkLinks( linkUrl, pageUrl )} as Runnable )
+                }
             }
         }
         catch( Throwable error )

@@ -12,7 +12,6 @@ class CrawlerExtension
      * Required properties, verified ib {@link CrawlerTask#verifyAndUpdateExtension()}
      */
 
-    String        host
     String        baseUrl
     int           threadPoolSize = 5
     int           connectTimeout = 10000
@@ -33,7 +32,7 @@ class CrawlerExtension
      * Internal properties, calculated in {@link CrawlerTask#verifyAndUpdateExtension()}
      */
 
-    String        baseRegex
+    String        host
     Pattern       basePattern
     Pattern       linkPattern
     List<Pattern> cleanupPatterns = []
