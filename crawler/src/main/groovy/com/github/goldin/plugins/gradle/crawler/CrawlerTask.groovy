@@ -250,7 +250,7 @@ class CrawlerTask extends BaseTask
 
             if ( ext.verbose )
             {
-                logger.info( "[$link]: Ok - [${ bytes.size()}] bytes, [${ System.currentTimeMillis() - t }] ms" )
+                logger.info( "[$link] - [${ bytes.size()}] bytes, [${ System.currentTimeMillis() - t }] ms" )
             }
 
             bytes
@@ -258,7 +258,7 @@ class CrawlerTask extends BaseTask
         catch ( Throwable error )
         {
             linksStorage.addBrokenLink( link, referrer )
-            logger.warn( "! [$link]: Failed - $error (referrer [$referrer])" )
+            logger.warn( "! [$link] - $error (referred to by [$referrer])" )
             new byte[ 0 ]
         }
     }
