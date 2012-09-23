@@ -1,6 +1,9 @@
 package com.github.goldin.plugins.gradle.crawler
+
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
+
+import java.util.concurrent.ConcurrentHashMap
 
 
 /**
@@ -9,7 +12,7 @@ import org.gcontracts.annotations.Requires
 class LinksStorage
 {
     private final    Set<String>         processedLinks = [] as Set
-    private final    Map<String, String> brokenLinks    = [:]
+    private final    Map<String, String> brokenLinks    = new ConcurrentHashMap<String, String>()
     private volatile boolean             locked         = false
 
 
@@ -83,10 +86,6 @@ class LinksStorage
     void addBrokenLink ( String link, String referrer )
     {
         assert ( ! locked )
-
-        synchronized ( brokenLinks )
-        {
-            brokenLinks[ link ] = referrer
-        }
+        brokenLinks[ link ] = referrer
     }
 }
