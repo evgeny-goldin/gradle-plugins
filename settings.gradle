@@ -1,3 +1,2 @@
-include 'common', 'general', 'kotlin', 'teamcity'
-
-project( ':general' ).name = 'gradle'
+include 'about', 'codenarc', 'common', 'crawler', 'duplicates', 'kotlin', 'teamcity'
+rootProject.name = 'gradle-plugins'

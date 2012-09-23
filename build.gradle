@@ -12,7 +12,7 @@ ext.codenarcRuleSetFiles = [ "$rootDir/codenarc.groovy" ]
 ext.codenarcExtensions   = [ '**/*.groovy' ]
 ext.codenarcSources      = project.subprojects.collect{[ "${ it.projectDir.name }/src/main/groovy",
                                                          "${ it.projectDir.name }/src/test/groovy" ]}.flatten()
-apply from: 'file:src/main/groovy/CodeNarc.gradle'
+apply from: 'file:codenarc/CodeNarc.gradle'
 
 
 idea.project {
@@ -40,7 +40,7 @@ subprojects {
     apply plugin: 'idea'
 
     sourceCompatibility = 1.6
-    group               = 'com.github.goldin.plugins'
+    group               = 'com.github.goldin.plugins.gradle'
 
     clean { delete( "$rootDir/out", "$rootDir/build" ) }
 
@@ -56,6 +56,8 @@ subprojects {
         testCompile "junit:junit:$junitVersion"
     }
 
+    jar { from files( "${ project.rootProject.projectDir }/license.txt" ) }
+
     idea.module {
         downloadSources = true
         downloadJavadoc = false
@@ -68,11 +70,13 @@ subprojects {
     task sourcesJar( type: Jar, dependsOn: classes ) {
         classifier = 'sources'
         from sourceSets.main.allSource
+        from files( "${ project.rootProject.projectDir }/license.txt" )
     }
 
     task groovydocJar( type: Jar, dependsOn: groovydoc ) {
-         classifier = 'javadoc'
-         from groovydoc.destinationDir
+        classifier = 'javadoc'
+        from groovydoc.destinationDir
+        from files( "${ project.rootProject.projectDir }/license.txt" )
     }
 
     artifacts {
@@ -107,5 +111,6 @@ project( ':teamcity' ) {
         }
     }
 }
+
 
 task wrapper( type: Wrapper ) { gradleVersion = '1.2' }

@@ -18,9 +18,9 @@ class TeamCityPlugin implements Plugin<Project>
     @Override
     void apply ( Project project )
     {
-        project.extensions.create ( ASSEMBLE_PLUGIN_EXTENSION, AssembleTeamCityPluginExtension )
+        project.extensions.create ( ASSEMBLE_PLUGIN_EXTENSION, TeamCityExtension )
 
-        final assemblePluginTask = project.tasks.add ( ASSEMBLE_PLUGIN_TASK, AssembleTeamCityPluginTask )
+        final assemblePluginTask = project.tasks.add ( ASSEMBLE_PLUGIN_TASK, TeamCityTask )
         final tasks              = project.tasks.asMap
         final jarTask            = tasks[ 'jar'   ]
         final testTask           = tasks[ 'test'  ]
