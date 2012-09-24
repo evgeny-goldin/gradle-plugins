@@ -14,7 +14,8 @@ import java.util.regex.Pattern
  */
 class CrawlerTask extends BaseTask
 {
-    private final ThreadPoolExecutor threadPool      = Executors.newFixedThreadPool( 1 ) as ThreadPoolExecutor
+    private       ThreadPoolExecutor threadPool
+    private final Object             mainThreadLock  = new Object()
     private final LinksStorage       linksStorage    = new LinksStorage()
     private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
@@ -34,8 +35,8 @@ class CrawlerTask extends BaseTask
     @Override
     void taskAction ()
     {
-        final ext               = verifyAndUpdateExtension()
-        threadPool.corePoolSize = ext.threadPoolSize
+        final ext  = verifyAndUpdateExtension()
+        threadPool = Executors.newFixedThreadPool( ext.threadPoolSize ) as ThreadPoolExecutor
 
         printStartBanner()
         submitRootLinks()
@@ -138,11 +139,11 @@ class CrawlerTask extends BaseTask
      */
     void waitForIdle ()
     {
-        synchronized ( threadPool )
+        synchronized ( mainThreadLock )
         {
             while (( threadPool.activeCount > 0 ) || ( ! threadPool.queue.empty ) || ( futures.any{ ! it.done } ))
             {
-                threadPool.wait()
+                mainThreadLock.wait()
             }
         }
 
@@ -209,7 +210,7 @@ class CrawlerTask extends BaseTask
                 final linksMessage    = pageLinks ? ", ${ newLinks ? newLinks.size() : 'no' } new" : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"               : ''
 
-                logger.info( "[${ Thread.currentThread() }][$pageUrl] - [${ pageLinks.size() }] link${ s( pageLinks ) } found${ linksMessage } " +
+                logger.info( "[$pageUrl] - [${ pageLinks.size() }] link${ s( pageLinks ) } found${ linksMessage } " +
                              "(${ linksStorage.processedLinksNumber() } checked so far)${ newLinksMessage }" )
             }
 
@@ -227,7 +228,7 @@ class CrawlerTask extends BaseTask
         {   /**
              * Notifying main thread after every page checked.
              */
-            synchronized ( threadPool ){ threadPool.notify()}
+            synchronized ( mainThreadLock ){ mainThreadLock.notify()}
         }
     }
 
