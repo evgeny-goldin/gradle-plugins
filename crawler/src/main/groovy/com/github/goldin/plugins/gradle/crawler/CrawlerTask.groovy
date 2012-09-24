@@ -4,6 +4,7 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.ThreadPoolExecutor
@@ -18,7 +19,7 @@ class CrawlerTask extends BaseTask
 {
     private final ThreadPoolExecutor threadPool   = Executors.newFixedThreadPool( 1 ) as ThreadPoolExecutor
     private final LinksStorage       linksStorage = new LinksStorage()
-    private final List<Future>       futures      = []
+    private final Queue<Future>      futures      = new ConcurrentLinkedQueue<Future>()
 
 
     /**
@@ -127,15 +128,12 @@ class CrawlerTask extends BaseTask
     {
         synchronized ( threadPool )
         {
-            while (( threadPool.activeCount > 0 ) ||
-                   ( ! threadPool.queue.empty   ) ||
-                   ( threadPool.completedTaskCount < ext().rootLinks.size()))
+            while (( threadPool.activeCount > 0 ) || ( ! threadPool.queue.empty ) || ( futures.any{ ! it.done }))
             {
                 threadPool.wait()
             }
         }
 
-        synchronized ( futures ){ futures.each { it.get() }}
         linksStorage.lock()
         threadPool.shutdown()
         threadPool.awaitTermination( 1L, TimeUnit.SECONDS )
@@ -199,10 +197,7 @@ class CrawlerTask extends BaseTask
             for ( link in linksStorage.addLinksToProcess( pageLinks ))
             {
                 final String linkUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-                synchronized ( futures )
-                {
-                    futures << threadPool.submit({ checkLinks( linkUrl, pageUrl )} as Runnable )
-                }
+                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl )} as Runnable )
             }
         }
         catch( Throwable error )
