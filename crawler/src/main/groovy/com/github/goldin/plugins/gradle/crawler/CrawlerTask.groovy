@@ -254,7 +254,7 @@ class CrawlerTask extends BaseTask
         {
             if ( ext.verbose )
             {
-                logger.info( "Reading [$link] .." )
+                logger.info( "[$link] - reading .." )
             }
 
             final  connection         = link.toURL().openConnection()
