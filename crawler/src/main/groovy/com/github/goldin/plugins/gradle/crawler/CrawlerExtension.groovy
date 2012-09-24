@@ -9,7 +9,7 @@ import java.util.regex.Pattern
 class CrawlerExtension
 {
     final Pattern relativeLinkPattern = Pattern.compile( 'href="/(.+?)"' )
-    final Pattern anchorPattern       = Pattern.compile( '#[^/]+$' )
+    final Pattern anchorPattern       = Pattern.compile( '#.*?$' )
 
     /**
      * Required properties, verified ib {@link CrawlerTask#verifyAndUpdateExtension()}
