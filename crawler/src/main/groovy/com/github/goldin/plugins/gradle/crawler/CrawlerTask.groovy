@@ -197,7 +197,9 @@ class CrawlerTask extends BaseTask
             final ext          = ext()
             final byte[] bytes = readBytes( pageUrl, referrerUrl )
 
-            if (( ! bytes ) || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )}){ return }
+            if (( ! bytes ) ||
+                ext.nonHtmlContains.any  { pageUrl.contains( it )} ||
+                ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )}){ return }
 
             final pageLinks = readLinks( new String( bytes, 'UTF-8' ))
             final newLinks  = linksStorage.addLinksToProcess( pageLinks )
@@ -207,7 +209,7 @@ class CrawlerTask extends BaseTask
                 final linksMessage    = pageLinks ? ", ${ newLinks ? newLinks.size() : 'no' } new" : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"               : ''
 
-                logger.info( "[$pageUrl] - [${ pageLinks.size() }] link${ s( pageLinks ) } found${ linksMessage } " +
+                logger.info( "[${ Thread.currentThread() }][$pageUrl] - [${ pageLinks.size() }] link${ s( pageLinks ) } found${ linksMessage } " +
                              "(${ linksStorage.processedLinksNumber() } checked so far)${ newLinksMessage }" )
             }
 
