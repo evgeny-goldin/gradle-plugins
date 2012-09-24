@@ -154,8 +154,8 @@ class CrawlerTask extends BaseTask
      */
     void printReport ()
     {
-        final kbDownloaded = ( long )( bytesDownloaded.get() / 1024 )
         final mbDownloaded = ( long )( bytesDownloaded.get() / ( 1024 * 1024 ))
+        final kbDownloaded = ( long )( bytesDownloaded.get() / ( 1024 ))
         final downloaded   = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
 
         final message = new StringBuilder().
