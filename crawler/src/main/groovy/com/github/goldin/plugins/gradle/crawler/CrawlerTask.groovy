@@ -164,7 +164,7 @@ class CrawlerTask extends BaseTask
               append( "$downloaded:\n".toString()).
               append( toMultiLines( linksStorage.processedLinks())).
               append( "\n[${ linksStorage.brokenLinksNumber()}] broken link${ s( linksStorage.brokenLinksNumber()) } found".toString()).
-              append( linksStorage.brokenLinksNumber() ? '' : ' - congratulations!' )
+              append( linksStorage.brokenLinksNumber() ? '' : ' - congratulations :)' )
 
         if ( linksStorage.brokenLinksNumber())
         {
