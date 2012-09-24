@@ -4,11 +4,8 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
-import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicLong
 import java.util.regex.Pattern
 
 
@@ -17,9 +14,10 @@ import java.util.regex.Pattern
  */
 class CrawlerTask extends BaseTask
 {
-    private final ThreadPoolExecutor threadPool   = Executors.newFixedThreadPool( 1 ) as ThreadPoolExecutor
-    private final LinksStorage       linksStorage = new LinksStorage()
-    private final Queue<Future>      futures      = new ConcurrentLinkedQueue<Future>()
+    private final ThreadPoolExecutor threadPool      = Executors.newFixedThreadPool( 1 ) as ThreadPoolExecutor
+    private final LinksStorage       linksStorage    = new LinksStorage()
+    private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
+    private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
 
 
     /**
@@ -128,7 +126,7 @@ class CrawlerTask extends BaseTask
     {
         synchronized ( threadPool )
         {
-            while (( threadPool.activeCount > 0 ) || ( ! threadPool.queue.empty ) || ( futures.any{ ! it.done }))
+            while (( threadPool.activeCount > 0 ) || ( ! threadPool.queue.empty ) || ( futures.any{ ! it.done } ))
             {
                 threadPool.wait()
             }
@@ -145,18 +143,24 @@ class CrawlerTask extends BaseTask
      */
     void printReport ()
     {
-        final message = new StringBuilder (
-            "\n\n[${ linksStorage.processedLinksNumber()}] link${ s( linksStorage.processedLinksNumber() ) } checked in " +
-            "${ ( System.currentTimeMillis() - startTime ) / 1000 } sec:\n" +
-            toMultiLines( linksStorage.processedLinks()) +
-            "\n[${ linksStorage.brokenLinksNumber()}] broken link${ s( linksStorage.brokenLinksNumber()) } found" )
+        final kbDownloaded = ( long )( bytesDownloaded.get() / 1024 )
+        final mbDownloaded = ( long )( bytesDownloaded.get() / ( 1024 * 1024 ))
+        final downloaded   = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
+
+        final message = new StringBuilder().
+              append( "\n\n[${ linksStorage.processedLinksNumber()}] link${ s( linksStorage.processedLinksNumber() ) } checked in ".toString()).
+              append( "${ ( System.currentTimeMillis() - startTime ) / 1000 } sec, ".toString()).
+              append( "$downloaded:\n".toString()).
+              append( toMultiLines( linksStorage.processedLinks())).
+              append( "\n[${ linksStorage.brokenLinksNumber()}] broken link${ s( linksStorage.brokenLinksNumber()) } found".toString()).
+              append( linksStorage.brokenLinksNumber() ? '' : ' - congratulations!' )
 
         if ( linksStorage.brokenLinksNumber())
         {
-            message << ':\n\n'
+            message.append( ':\n\n' )
             for ( brokenLink in linksStorage.brokenLinks())
             {
-                message << "- [$brokenLink] - referred to by \n  [${ linksStorage.brokenLinkReferrer( brokenLink )}]\n\n"
+                message.append( "- [$brokenLink] - referred to by \n  [${ linksStorage.brokenLinkReferrer( brokenLink )}]\n\n".toString())
             }
         }
 
@@ -260,6 +264,8 @@ class CrawlerTask extends BaseTask
             connection.readTimeout    = ext.readTimeout
             final byte[] bytes        = connection.inputStream.bytes
             assert       bytes
+
+            bytesDownloaded.addAndGet( bytes.size())
 
             if ( ext.verbose )
             {
