@@ -149,7 +149,7 @@ class CrawlerTask extends BaseTask
 
         final message = new StringBuilder().
               append( "\n\n[${ linksStorage.processedLinksNumber()}] link${ s( linksStorage.processedLinksNumber() ) } checked in ".toString()).
-              append( "${ ( System.currentTimeMillis() - startTime ) / 1000 } sec, ".toString()).
+              append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
               append( "$downloaded:\n".toString()).
               append( toMultiLines( linksStorage.processedLinks())).
               append( "\n[${ linksStorage.brokenLinksNumber()}] broken link${ s( linksStorage.brokenLinksNumber()) } found".toString()).
