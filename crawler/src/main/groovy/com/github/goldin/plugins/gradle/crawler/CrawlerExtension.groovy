@@ -23,8 +23,10 @@ class CrawlerExtension
 
     List<String>  nonHtmlExtensions = 'css js gif jpg jpeg png pdf zip rar xml'.tokenize().asImmutable()
     List<String>  rootLinks         = []
-    List<String>  ignoredLinks      = []
     List<String>  cleanupRegexes    = []
+    List<String>  ignoredContains   = []
+    List<String>  ignoredEndsWith   = []
+    List<String>  ignoredRegexes    = []
     boolean       verbose           = false
     boolean       failOnBrokenLinks = false
 
@@ -33,8 +35,10 @@ class CrawlerExtension
      */
 
     String        host
+    String        serverAddress
     Pattern       basePattern
     Pattern       linkPattern
-    List<Pattern> cleanupPatterns = []
-
+    Pattern       relativeLinkPattern = Pattern.compile( 'href="/(.+?)"' )
+    List<Pattern> cleanupPatterns     = []
+    List<Pattern> ignoredPatterns     = []
 }

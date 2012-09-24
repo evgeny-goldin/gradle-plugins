@@ -60,16 +60,24 @@ class CrawlerTask extends BaseTask
         final ext                  = ext()
         final extensionDescription = "${ CrawlerPlugin.EXTENSION_NAME } { .. }"
 
-        assert ext.baseUrl,            "No 'baseUrl' defined in $extensionDescription"
+        assert ext.baseUrl,            "'baseUrl' should be defined in $extensionDescription"
         assert ext.threadPoolSize > 0, "'threadPoolSize' [${ ext.threadPoolSize }] in $extensionDescription should be positive"
         assert ext.connectTimeout > 0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
         assert ext.readTimeout    > 0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
 
+        assert ( ! ext.serverAddress   ), "No 'serverAddress' should be used in $extensionDescription"
+        assert ( ! ext.basePattern     ), "No 'basePattern' should be used in $extensionDescription"
+        assert ( ! ext.linkPattern     ), "No 'linkPattern' should be used in $extensionDescription"
+        assert ( ! ext.cleanupPatterns ), "No 'cleanupPatterns' should be used in $extensionDescription - use 'cleanupRegexes' instead"
+        assert ( ! ext.ignoredPatterns ), "No 'ignoredPatterns' should be used in $extensionDescription - use 'ignoredRegexes' instead"
+
         ext.baseUrl         = ext.baseUrl.replaceAll( '^.*?://', '' ) // Cleaning up any protocols specified
         ext.host            = ext.host ?: ext.baseUrl
+        ext.serverAddress   = ext.host.replaceAll( '(\\\\|/).*', '' )
         ext.basePattern     = Pattern.compile( /\Q${ ext.baseUrl }\E/ )
         ext.linkPattern     = Pattern.compile( /(?:'|")(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|")/ )
         ext.cleanupPatterns = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
+        ext.ignoredPatterns = ( ext.ignoredRegexes ?: []     ).collect { Pattern.compile( it )  }
         ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect { "http://$ext.host/$it" }
 
         assert ext.baseUrl && ext.host && ext.basePattern && ext.linkPattern && ext.rootLinks
@@ -91,10 +99,13 @@ class CrawlerTask extends BaseTask
 
         if ( ext.verbose )
         {
-            logger.info( " Base URL         - [${ ext.baseUrl }]" )
-            logger.info( " Base pattern     - [${ ext.basePattern }]" )
-            logger.info( " Link pattern     - [${ ext.linkPattern }]" )
-            logger.info( " Cleanup patterns - ${ ext.cleanupPatterns }" )
+            logger.info( " Base URL           - [${ ext.baseUrl }]" )
+            logger.info( " Base pattern       - [${ ext.basePattern }]" )
+            logger.info( " Link pattern       - [${ ext.linkPattern }]" )
+            logger.info( " Cleanup patterns   - ${ ext.cleanupPatterns }" )
+            logger.info( " Ignored (contains) - ${ ext.ignoredContains }" )
+            logger.info( " Ignored (endsWith) - ${ ext.ignoredEndsWith }" )
+            logger.info( " Ignored patterns   - ${ ext.ignoredPatterns }" )
             logger.info( " Root link${ s( ext.rootLinks )}:" )
             ext.rootLinks.each { logger.info( " * [$it]" )}
         }
@@ -230,10 +241,13 @@ class CrawlerTask extends BaseTask
             ext.cleanupPatterns.inject( pageContent ) { String text, Pattern p -> text.replaceAll( p, '' )} :
             pageContent
 
-        cleanedText.findAll ( ext.linkPattern ) { it[ 1 ] }.
-                    toSet().
-                    findAll { String link -> ( ! ext.ignoredLinks.any { String ignored -> link.endsWith( ignored )} )}.
-                    collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}
+        ( cleanedText.findAll ( ext.linkPattern         ) { it[ 1 ] } +
+          cleanedText.findAll ( ext.relativeLinkPattern ) { it[ 1 ] }.collect{ "http://${ ext.serverAddress }/$it" } ).
+        toSet().
+        findAll { String link -> ( ext.ignoredContains.every{ String  ignored -> ( ! link.contains( ignored ))}       )}.
+        findAll { String link -> ( ext.ignoredEndsWith.every{ String  ignored -> ( ! link.endsWith( ignored ))}       )}.
+        findAll { String link -> ( ext.ignoredPatterns.every{ Pattern ignored -> ( ! ignored.matcher( link ).find())} )}.
+        collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}
     }
 
 
