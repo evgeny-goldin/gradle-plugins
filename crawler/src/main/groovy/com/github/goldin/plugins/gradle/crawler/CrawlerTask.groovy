@@ -99,13 +99,14 @@ class CrawlerTask extends BaseTask
 
         if ( ext.verbose )
         {
-            logger.info( " Base URL           - [${ ext.baseUrl }]" )
-            logger.info( " Base pattern       - [${ ext.basePattern }]" )
-            logger.info( " Link pattern       - [${ ext.linkPattern }]" )
-            logger.info( " Cleanup patterns   - ${ ext.cleanupPatterns }" )
-            logger.info( " Ignored (contains) - ${ ext.ignoredContains }" )
-            logger.info( " Ignored (endsWith) - ${ ext.ignoredEndsWith }" )
-            logger.info( " Ignored patterns   - ${ ext.ignoredPatterns }" )
+            logger.info( " Base URL             - [${ ext.baseUrl }]" )
+            logger.info( " Base pattern         - [${ ext.basePattern }]" )
+            logger.info( " Link pattern         - [${ ext.linkPattern }]" )
+            logger.info( " Fail on broken links - [${ ext.failOnBrokenLinks }]" )
+            logger.info( " Cleanup patterns     - ${ ext.cleanupPatterns }" )
+            logger.info( " Ignored (contains)   - ${ ext.ignoredContains }" )
+            logger.info( " Ignored (endsWith)   - ${ ext.ignoredEndsWith }" )
+            logger.info( " Ignored patterns     - ${ ext.ignoredPatterns }" )
             logger.info( " Root link${ s( ext.rootLinks )}:" )
             ext.rootLinks.each { logger.info( " * [$it]" )}
         }
