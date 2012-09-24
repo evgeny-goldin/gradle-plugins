@@ -24,7 +24,7 @@ class CrawlerExtension
      * Optional properties
      */
 
-    List<String>  nonHtmlContains   = '.css?ver= .js?ver='.tokenize()
+    List<String>  nonHtmlContains   = '.css? .js?'.tokenize()
     List<String>  nonHtmlExtensions = 'css js ico gif jpg jpeg png doc pdf zip rar xml svg flv mp4 mp3 avi'.tokenize()
     List<String>  rootLinks         = []
     List<String>  cleanupRegexes    = []
