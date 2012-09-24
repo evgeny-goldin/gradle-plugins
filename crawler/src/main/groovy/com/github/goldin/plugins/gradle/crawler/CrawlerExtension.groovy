@@ -24,7 +24,7 @@ class CrawlerExtension
      * Optional properties
      */
 
-    List<String>  nonHtmlExtensions = 'css js gif jpg jpeg png pdf zip rar xml'.tokenize().asImmutable()
+    List<String>  nonHtmlExtensions = 'css js ico gif jpg jpeg png pdf zip rar xml'.tokenize().asImmutable()
     List<String>  rootLinks         = []
     List<String>  cleanupRegexes    = []
     List<String>  ignoredContains   = []
