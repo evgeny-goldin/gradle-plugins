@@ -73,6 +73,7 @@ class CrawlerTask extends BaseTask
         ext.cleanupPatterns = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
         ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect { "http://$ext.host/$it" }
 
+        assert ext.baseUrl && ext.host && ext.basePattern && ext.linkPattern && ext.rootLinks
         ext
     }
 
@@ -126,7 +127,9 @@ class CrawlerTask extends BaseTask
     {
         synchronized ( threadPool )
         {
-            while (( threadPool.activeCount > 0 ) || ( ! threadPool.queue.empty ))
+            while (( threadPool.activeCount > 0 ) ||
+                   ( ! threadPool.queue.empty   ) ||
+                   ( threadPool.completedTaskCount < ext().rootLinks.size()))
             {
                 threadPool.wait()
             }
