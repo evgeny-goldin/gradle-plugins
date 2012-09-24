@@ -186,19 +186,18 @@ class CrawlerTask extends BaseTask
             if (( ! bytes ) || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )}){ return }
 
             final pageLinks = readLinks( new String( bytes, 'UTF-8' ))
+            final newLinks  = linksStorage.addLinksToProcess( pageLinks )
 
             if ( ext.verbose )
             {
-                final links           = linksStorage
-                final newLinks        = pageLinks.findAll { ! links.isProcessedLink( it ) }
-                final linksMessage    = pageLinks ? ", ${ newLinks.size() == 0 ? 'no' : newLinks.size()} new" : ''
-                final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"                          : ''
+                final linksMessage    = pageLinks ? ", ${ newLinks ? newLinks.size() : 'no' } new" : ''
+                final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"               : ''
 
                 logger.info( "[$pageUrl] - [${ pageLinks.size() }] link${ s( pageLinks ) } found${ linksMessage } " +
                              "(${ linksStorage.processedLinksNumber() } checked so far)${ newLinksMessage }" )
             }
 
-            for ( link in linksStorage.addLinksToProcess( pageLinks ))
+            for ( link in newLinks )
             {
                 final String linkUrl = link // Otherwise, various invocations share the same "link" instance when invoked
                 futures << threadPool.submit({ checkLinks( linkUrl, pageUrl )} as Runnable )

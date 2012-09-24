@@ -61,13 +61,6 @@ class LinksStorage
     }
 
 
-    @Requires({ link })
-    boolean isProcessedLink( String link )
-    {
-        link in processedLinks
-    }
-
-
     @Requires({ links })
     @Ensures({ result != null })
     List<String> addLinksToProcess ( Collection<String> links )
