@@ -142,7 +142,7 @@ class CrawlerTask extends BaseTask
     {
         synchronized ( mainThreadLock )
         {
-            while (( threadPool.activeCount > 0 ) || ( ! threadPool.queue.empty ) || ( futures.any{ ! it.done } ))
+            while ( futures.any{ ! it.done })
             {
                 mainThreadLock.wait()
             }
