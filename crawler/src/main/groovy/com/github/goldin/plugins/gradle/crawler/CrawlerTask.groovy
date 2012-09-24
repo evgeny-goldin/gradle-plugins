@@ -65,6 +65,8 @@ class CrawlerTask extends BaseTask
         assert ext.connectTimeout > 0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
         assert ext.readTimeout    > 0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
 
+        assert ext.relativeLinkPattern && ext.anchorPattern
+
         assert ( ! ext.serverAddress   ), "No 'serverAddress' should be used in $extensionDescription"
         assert ( ! ext.basePattern     ), "No 'basePattern' should be used in $extensionDescription"
         assert ( ! ext.linkPattern     ), "No 'linkPattern' should be used in $extensionDescription"
@@ -244,7 +246,9 @@ class CrawlerTask extends BaseTask
 
         ( cleanedText.findAll ( ext.linkPattern         ) { it[ 1 ] } +
           cleanedText.findAll ( ext.relativeLinkPattern ) { it[ 1 ] }.collect{ "http://${ ext.serverAddress }/$it" } ).
+        collect { String link -> link.replaceFirst( ext.anchorPattern, '' )}.
         toSet().
+        grep().
         findAll { String link -> ( ext.ignoredContains.every{ String  ignored -> ( ! link.contains( ignored ))}       )}.
         findAll { String link -> ( ext.ignoredEndsWith.every{ String  ignored -> ( ! link.endsWith( ignored ))}       )}.
         findAll { String link -> ( ext.ignoredPatterns.every{ Pattern ignored -> ( ! ignored.matcher( link ).find())} )}.

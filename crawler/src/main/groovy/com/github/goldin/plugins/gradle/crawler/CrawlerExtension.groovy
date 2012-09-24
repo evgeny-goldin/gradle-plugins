@@ -8,6 +8,9 @@ import java.util.regex.Pattern
  */
 class CrawlerExtension
 {
+    final Pattern relativeLinkPattern = Pattern.compile( 'href="/(.+?)"' )
+    final Pattern anchorPattern       = Pattern.compile( '#[^/]+$' )
+
     /**
      * Required properties, verified ib {@link CrawlerTask#verifyAndUpdateExtension()}
      */
@@ -38,7 +41,6 @@ class CrawlerExtension
     String        serverAddress
     Pattern       basePattern
     Pattern       linkPattern
-    Pattern       relativeLinkPattern = Pattern.compile( 'href="/(.+?)"' )
-    List<Pattern> cleanupPatterns     = []
-    List<Pattern> ignoredPatterns     = []
+    List<Pattern> cleanupPatterns
+    List<Pattern> ignoredPatterns
 }
