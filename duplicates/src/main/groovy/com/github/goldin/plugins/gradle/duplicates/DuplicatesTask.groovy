@@ -62,16 +62,25 @@ class DuplicatesTask extends BaseTask
     @Ensures({ result != null })
     Map<String, List<String>> getViolations( Configuration configuration )
     {
-        Collection<File> configurationFiles = configuration.resolve().findAll{ it.file }
+        final Set<ResolvedArtifact> configurationArtifacts = configuration.resolvedConfiguration.resolvedArtifacts
+        final Collection<File>      configurationFiles     = configurationArtifacts*.file.findAll {
+            it.file && it.name.toLowerCase().with { endsWith( '.jar' ) || endsWith( '.war' ) || endsWith( '.zip' ) }
+        }
 
         if ( ! configurationFiles ) { return [:] }
 
         /**
-         * Mapping of files to their original dependencies: Map<File, String>
-         * Values are of "<group>:<name>:<version>" form.
+         * Mapping of files to their original dependencies:
+         * - Keys are configuration's files.
+         * - Values are file dependencies, in a "<group>:<name>:<version>" form.
          */
 
-        Map<File, String> f2d = filesToDependencies( configuration )
+        Map<File, String> f2d = configurationArtifacts.inject([:]) {
+            Map m, ResolvedArtifact artifact ->
+            artifact.moduleVersion.id.with { m[ artifact.file ] = "$group:$name:$version" }
+            m
+        }
+
         assert ( f2d.size() == configurationFiles.size()), \
                "Files => Dependencies mapping size (${ f2d.size()}) doesn't match " +
                "configuration files amount (${ configurationFiles.size()}):\n\n" +
@@ -80,7 +89,9 @@ class DuplicatesTask extends BaseTask
         configurationFiles.each { assert f2d[ it ] }
 
        /**
-        * Mapping of class names to files they're found in: Map<String, List<File>>
+        * Mapping of class names to files they're found in:
+        * - Keys are class names.
+        * - Values are list of files they're found in.
         */
 
         ( Map ) configurationFiles.inject( [:].withDefault{ [] } ){
@@ -90,13 +101,17 @@ class DuplicatesTask extends BaseTask
         }.
 
        /**
-        * Classes with more than one file they're found in: Map<String, List<File>>
+        * Classes with more than one file they're found in:
+        * - Keys are class names.
+        * - Values are list of files they're found in, larger than one - meaning there's a violation.
         */
 
         findAll { String className, List<File> files -> ( files.size() > 1 )}.
 
         /**
-         * Mapping of violating dependencies to duplicate classes: Map<String, List<String>>
+         * Mapping of violating dependencies to duplicate classes:
+         * - Keys are list of dependencies, stringified.
+         * - Values are list of duplicate class names.
          */
 
         inject( [:].withDefault{ [] } ){
@@ -106,26 +121,6 @@ class DuplicatesTask extends BaseTask
             String violatingDependencies = entry.value.collect{ f2d[ it ] }.toString()
             // Adding duplicate class name to violation dependencies list of classes
             m[ violatingDependencies ] << entry.key
-            m
-        }
-    }
-
-
-   /**
-    * Creates File => Dependency (as String) mapping for Configuration specified.
-    *
-    * @param configuration Configuration to create the mapping for
-    * @return Mapping:
-    *         key   - File
-    *         value - Dependency the file is originated from (as "group:name:version")
-    */
-    @Requires({ configuration })
-    @Ensures({ result != null })
-    Map<File, String> filesToDependencies ( Configuration configuration )
-    {
-        configuration.resolvedConfiguration.resolvedArtifacts.inject([:]) {
-            Map m, ResolvedArtifact artifact ->
-            artifact.moduleVersion.id.with { m[ artifact.file ] = "$group:$name:$version" }
             m
         }
     }
