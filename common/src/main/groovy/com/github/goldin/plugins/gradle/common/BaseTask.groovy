@@ -17,9 +17,9 @@ import javax.xml.validation.SchemaFactory
  */
 abstract class BaseTask extends DefaultTask
 {
-    File       rootDir
-    String     version
-    final long startTime = System.currentTimeMillis()
+    File   rootDir
+    String version
+    long   startTime
 
 
     /**
@@ -33,8 +33,9 @@ abstract class BaseTask extends DefaultTask
     @Requires({ project.rootDir && project.version })
     final void doTask()
     {
-        this.rootDir = project.rootDir
-        this.version = project.version
+        this.rootDir   = project.rootDir
+        this.version   = project.version
+        this.startTime = System.currentTimeMillis()
         taskAction()
     }
 

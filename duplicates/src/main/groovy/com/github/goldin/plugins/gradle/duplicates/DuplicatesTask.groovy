@@ -160,6 +160,7 @@ class DuplicatesTask extends BaseTask
     {
         assert violations
 
+        final ext     = ext()
         final message = violations.collect {
             String configurationName, Map<String, List<String>> configurationViolations ->
 
@@ -168,13 +169,13 @@ class DuplicatesTask extends BaseTask
             [ "\nConfiguration [$configurationName] - duplicates found in:" ] +
             configurationViolations.collect {
                 String dependencies, List<String> classes ->
-                [ "-=-= $dependencies =-=-" ] + ( ext().verbose ? classes.sort().collect { " --- [$it]" } : [] )}
+                [ "-=-= $dependencies =-=-" ] + ( ext.verbose ? classes.sort().collect { " --- [$it]" } : [] )}
         }.
         flatten().
         grep().
         join( '\n' )
 
-        if ( ext().fail ) { throw new RuntimeException( message )}
-        else              { project.logger.error( message )}
+        if ( ext.fail ) { throw new RuntimeException( message )}
+        else            { project.logger.error( message )}
     }
 }
