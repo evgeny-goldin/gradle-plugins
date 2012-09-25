@@ -6,9 +6,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.bundling.Jar
 
 
-/**
- * {@link TeamCityTask} extension.
- */
 @SuppressWarnings([ 'ConfusingMethodName' ])
 class TeamCityExtension
 {

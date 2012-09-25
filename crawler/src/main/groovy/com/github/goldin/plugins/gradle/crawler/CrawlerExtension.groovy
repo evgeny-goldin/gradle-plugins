@@ -3,9 +3,6 @@ package com.github.goldin.plugins.gradle.crawler
 import java.util.regex.Pattern
 
 
-/**
- * {@link CrawlerPlugin} extension.
- */
 class CrawlerExtension
 {
     final Pattern relativeLinkPattern = Pattern.compile( 'href="/(.+?)"' )
