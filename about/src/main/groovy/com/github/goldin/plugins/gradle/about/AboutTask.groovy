@@ -66,7 +66,7 @@ class AboutTask extends BaseTask
         final ext       = ext()
         final jarTask   = ( Jar ) project.tasks[ 'jar' ]
         final directory = ext.directory ?: jarTask.destinationDir
-        final fileName  = ext.fileName  ?: "about-${group}-${name}-${version}.txt"
+        final fileName  = ext.fileName  ?: "about-${project.group}-${project.name}-${project.version}.txt"
         final split     = { String s -> ( List<String> )( s ? s.split( /,/ ).toList()*.trim().findAll{ it } : null ) }
         final files     = files( directory, split( ext.include ), split( ext.exclude ))
         final tempFile  = new File( jarTask.temporaryDir, fileName )
