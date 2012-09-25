@@ -27,7 +27,7 @@ class AboutTask extends BaseTask
      * Retrieves current plugin extension object.
      * @return current plugin extension object
      */
-    private AboutExtension ext () { extension ( 'about', AboutExtension ) }
+    private AboutExtension ext () { extension ( AboutPlugin.EXTENSION_NAME, AboutExtension ) }
 
 
     private String padLines ( String s )

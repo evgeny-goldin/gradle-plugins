@@ -18,7 +18,7 @@ class DuplicatesTask extends BaseTask
      * Retrieves current plugin extension object.
      * @return current plugin extension object
      */
-    DuplicatesExtension ext() { extension( 'duplicates', DuplicatesExtension ) }
+    DuplicatesExtension ext() { extension( DuplicatesPlugin.EXTENSION_NAME, DuplicatesExtension ) }
 
 
     /**

@@ -10,11 +10,15 @@ import org.gradle.api.Project
  */
 class DuplicatesPlugin implements Plugin<Project>
 {
+    static final String TASK_NAME      = 'duplicates'
+    static final String EXTENSION_NAME = 'duplicates'
+
+
     @Requires({ project })
     @Override
     void apply ( Project project )
     {
-        project.tasks.add        ( 'duplicates', DuplicatesTask )
-        project.extensions.create( 'duplicates', DuplicatesExtension )
+        project.tasks.add        ( TASK_NAME,      DuplicatesTask )
+        project.extensions.create( EXTENSION_NAME, DuplicatesExtension )
     }
 }
