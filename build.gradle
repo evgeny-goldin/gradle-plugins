@@ -1,11 +1,12 @@
 apply plugin: 'idea'
 
+
 final kotlinVersion     = '0.1.3395' // http://repository.jetbrains.com/kotlin/org/jetbrains/kotlin/kotlin-compiler/
 final gcontractsVersion = '1.2.5'    // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.gcontracts%22%20AND%20a%3A%22gcontracts-core%22
 final junitVersion      = '4.10'     // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22junit%22%20AND%20a%3A%22junit%22
 
 
-defaultTasks 'clean', 'codenarc', 'groovydoc', 'build', 'install'
+defaultTasks 'duplicates', 'clean', 'codenarc', 'groovydoc', 'build', 'about', 'install'
 
 
 ext.codenarcRuleSetFiles = [ "$rootDir/codenarc.groovy" ]
@@ -13,6 +14,13 @@ ext.codenarcExtensions   = [ '**/*.groovy' ]
 ext.codenarcSources      = project.subprojects.collect{[ "${ it.projectDir.name }/src/main/groovy",
                                                          "${ it.projectDir.name }/src/test/groovy" ]}.flatten()
 apply from: 'file:codenarc/CodeNarc.gradle'
+
+
+buildscript {
+    repositories { mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
+    dependencies { classpath      "com.github.goldin.plugins.gradle:about:0.2-beta",
+                                  "com.github.goldin.plugins.gradle:duplicates:0.2-beta" }
+}
 
 
 idea.project {
@@ -38,9 +46,13 @@ subprojects {
     apply plugin: 'groovy'
     apply plugin: 'maven'
     apply plugin: 'idea'
+    apply plugin: 'about'
+    apply plugin: 'duplicates'
+
 
     sourceCompatibility = 1.6
     group               = 'com.github.goldin.plugins.gradle'
+
 
     clean { delete( "$rootDir/out", "$rootDir/build" ) }
 
@@ -48,6 +60,12 @@ subprojects {
         mavenRepo url: 'http://repository.jetbrains.com/kotlin/'
         mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
     }
+
+    about        { dumpDependencies = true
+                   prefix           = '/'
+                   fileName         = 'about.txt' }
+    duplicates   { configurations   = [ 'runtime' ]
+                   verbose          = true }
 
     dependencies {
         groovy      localGroovy()
@@ -92,6 +110,7 @@ subprojects.findAll{ it.name != 'common' }.each {
 
 
 project( ':kotlin' ) {
+    duplicates   { fail = false; verbose = false }
     dependencies {
         compile "org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion",
                 "org.jetbrains.kotlin:kdoc:$kotlinVersion"
