@@ -62,9 +62,8 @@ class DuplicatesTask extends BaseTask
     @Ensures({ result != null })
     Map<String, List<String>> getViolations( Configuration configuration )
     {
-        final Set<ResolvedArtifact> configurationArtifacts = configuration.resolvedConfiguration.resolvedArtifacts.
-            findAll { it.file.file &&
-                      it.file.name.toLowerCase().with { endsWith( '.jar' ) || endsWith( '.war' ) || endsWith( '.zip' ) }}
+        final Collection<ResolvedArtifact> configurationArtifacts =
+            configuration.resolvedConfiguration.resolvedArtifacts.findAll { it.file.file }
 
         if ( ! configurationArtifacts ) { return [:] }
 
@@ -124,6 +123,8 @@ class DuplicatesTask extends BaseTask
      * @param file Zip archive to read
      * @return list of class names stored in it
      */
+    @Requires({ file.file })
+    @Ensures({ result != null })
     List<String> classNames ( File file )
     {
         assert file.file
@@ -133,16 +134,21 @@ class DuplicatesTask extends BaseTask
             return classesCache[ file ]
         }
 
-        ZipFile zip = new ZipFile( file )
+        ZipFile zip = null
 
         try
         {
+            zip = new ZipFile( file )
             classesCache[ file ] =
                 zip.entries().findAll{ ZipEntry entry -> entry.name.endsWith( '.class' ) }.
                               collect{ ZipEntry entry -> entry.name.replace( '/', '.' ).
                                                                     replaceAll( /\.class$/, '' ) }
         }
-        finally { zip.close() }
+        catch ( e )
+        {
+            logger.warn( "Unable to read Zip entries of [$file.canonicalPath]", e )
+        }
+        finally { if ( zip ) { zip.close()} }
     }
 
 
@@ -156,6 +162,7 @@ class DuplicatesTask extends BaseTask
      *                value - duplicate classes found in violating dependencies
      */
     @SuppressWarnings( 'UseCollectMany' )
+    @Requires({ violations })
     void reportViolations( Map<String, Map<String, List<String>>> violations )
     {
         assert violations
