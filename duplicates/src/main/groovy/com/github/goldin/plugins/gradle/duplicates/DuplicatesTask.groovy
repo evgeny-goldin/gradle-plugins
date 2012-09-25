@@ -62,12 +62,11 @@ class DuplicatesTask extends BaseTask
     @Ensures({ result != null })
     Map<String, List<String>> getViolations( Configuration configuration )
     {
-        final Set<ResolvedArtifact> configurationArtifacts = configuration.resolvedConfiguration.resolvedArtifacts
-        final Collection<File>      configurationFiles     = configurationArtifacts*.file.findAll {
-            it.file && it.name.toLowerCase().with { endsWith( '.jar' ) || endsWith( '.war' ) || endsWith( '.zip' ) }
-        }
+        final Set<ResolvedArtifact> configurationArtifacts = configuration.resolvedConfiguration.resolvedArtifacts.
+            findAll { it.file.file &&
+                      it.file.name.toLowerCase().with { endsWith( '.jar' ) || endsWith( '.war' ) || endsWith( '.zip' ) }}
 
-        if ( ! configurationFiles ) { return [:] }
+        if ( ! configurationArtifacts ) { return [:] }
 
         /**
          * Mapping of files to their original dependencies:
@@ -81,20 +80,13 @@ class DuplicatesTask extends BaseTask
             m
         }
 
-        assert ( f2d.size() == configurationFiles.size()), \
-               "Files => Dependencies mapping size (${ f2d.size()}) doesn't match " +
-               "configuration files amount (${ configurationFiles.size()}):\n\n" +
-               "$f2d\n\n$configurationFiles"
-
-        configurationFiles.each { assert f2d[ it ] }
-
        /**
         * Mapping of class names to files they're found in:
         * - Keys are class names.
         * - Values are list of files they're found in.
         */
 
-        ( Map ) configurationFiles.inject( [:].withDefault{ [] } ){
+        ( Map ) configurationArtifacts*.file.inject( [:].withDefault{ [] } ){
             Map m, File f ->
             classNames( f ).each{ String className -> m[ className ] << f }
             m
