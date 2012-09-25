@@ -15,19 +15,12 @@ import java.util.regex.Pattern
 class CrawlerTask extends BaseTask
 {
     private       ThreadPoolExecutor threadPool
-    private final Object             mainThreadLock  = new Object()
     private final LinksStorage       linksStorage    = new LinksStorage()
     private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
 
 
-    /**
-     * Retrieves current plugin extension object.
-     * @return current plugin extension object
-     */
-    CrawlerExtension ext () { extension ( 'crawler', CrawlerExtension ) }
-
-
+    CrawlerExtension ext () { extension ( CrawlerPlugin.EXTENSION_NAME, CrawlerExtension ) }
     String s( Collection c ){ s( c.size()) }
     String s( int        j ){ j == 1 ? '' : 's' }
 
@@ -140,12 +133,9 @@ class CrawlerTask extends BaseTask
      */
     void waitForIdle ()
     {
-        synchronized ( mainThreadLock )
+        while ( futures.any{ ! it.done })
         {
-            while ( futures.any{ ! it.done })
-            {
-                mainThreadLock.wait()
-            }
+            sleep( 5000 )
         }
 
         linksStorage.lock()
@@ -224,12 +214,6 @@ class CrawlerTask extends BaseTask
         catch( Throwable error )
         {
             logger.error( "Failed to check links of page [$pageUrl], referrer [$referrerUrl]", error )
-        }
-        finally
-        {   /**
-             * Notifying main thread after every page checked.
-             */
-            synchronized ( mainThreadLock ){ mainThreadLock.notify()}
         }
     }
 
