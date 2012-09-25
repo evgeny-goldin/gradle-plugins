@@ -177,7 +177,7 @@ class AboutTask extends BaseTask
         | Version       : [${ project.gradle.gradleVersion }]
         | Project       : [${ ext.dumpPaths ? project.toString() : project.toString().replaceAll( /\s+@.+/, '' )}]
         | Tasks         : ${ project.gradle.startParameter.taskNames }
-        | Coordinates   : [$group:$name:$version]
+        | Coordinates   : [$project.group:$project.name:$project.version]
         | ${ ext.dumpDependencies ? 'Dependencies  : [' + padLines( dependenciesContent()) + ']' : '' }""" +
 
         ( ext.dumpSystem ?
