@@ -307,7 +307,10 @@ class CrawlerTask extends BaseTask
         catch ( Throwable error )
         {
             linksStorage.addBrokenLink( pageUrl, referrer )
-            logger.warn( "! [$pageUrl] - $error, referred to by \n  [$referrer]\n" )
+            if ( ext.verbose )
+            {
+                logger.warn( "! [$pageUrl] - $error, referred to by \n  [$referrer]\n" )
+            }
             null
         }
         finally
