@@ -88,7 +88,9 @@ class CrawlerTask extends BaseTask
     void printStartBanner ()
     {
         final ext           = ext()
-        final bannerMessage = "Checking [http://$ext.host] links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }, verbose [$ext.verbose]"
+        final bannerMessage = "Checking [http://$ext.host] links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }, " +
+                              "verbose [$ext.verbose], " +
+                              "displayLinks [${ext.displayLinks}]"
         final bannerLine    = "-" * ( bannerMessage.size() + 2 )
 
         logger.info( bannerLine )
