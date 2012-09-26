@@ -279,9 +279,6 @@ class CrawlerTask extends BaseTask
             if ( ext.nonHtmlContains.any  { pageUrl.contains( it )} ||
                  ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )}){
 
-                assert inputStream.read() > -1
-                bytesDownloaded.addAndGet( 1L )
-
                 if ( ext.verbose )
                 {
                     logger.info( "[$pageUrl] - checked that it can be read, [${ System.currentTimeMillis() - t }] ms" )
