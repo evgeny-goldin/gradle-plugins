@@ -38,9 +38,9 @@ class CrawlerTask extends BaseTask
 
         if ( linksStorage.brokenLinksNumber() && ext.failOnBrokenLinks )
         {
-            throw new GradleException(
-                "[${ linksStorage.brokenLinksNumber() }] broken link${ s( linksStorage.brokenLinksNumber())} found:\n" +
-                toMultiLines( linksStorage.brokenLinks()))
+            throw new GradleException (
+                "[${ linksStorage.brokenLinksNumber() }] broken link${ s( linksStorage.brokenLinksNumber())} found, " +
+                "see above for more details" )
         }
     }
 
