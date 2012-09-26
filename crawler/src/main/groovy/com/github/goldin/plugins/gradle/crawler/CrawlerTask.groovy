@@ -189,9 +189,7 @@ class CrawlerTask extends BaseTask
             final ext          = ext()
             final byte[] bytes = readBytes( pageUrl, referrerUrl )
 
-            if (( ! bytes ) ||
-                ext.nonHtmlContains.any  { pageUrl.contains( it )} ||
-                ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )}){ return }
+            if ( ! bytes ) { return }
 
             final pageLinks = readLinks( new String( bytes, 'UTF-8' ))
             final newLinks  = linksStorage.addLinksToProcess( pageLinks )
@@ -247,44 +245,66 @@ class CrawlerTask extends BaseTask
     /**
      * Retrieves {@code byte[]} content of the link specified.
      *
-     * @param link URL of a link to read
+     * @param pageUrl URL of a link to read
      * @param referrer URL of link referrer
      * @return content of link specified
      */
-    @Requires({ link && referrer && linksStorage })
-    @Ensures({ result != null })
-    byte[] readBytes ( String link, String referrer )
+    @Requires({ pageUrl && referrer && linksStorage })
+    byte[] readBytes ( String pageUrl, String referrer )
     {
-        final ext = ext()
-        final t   = System.currentTimeMillis()
+        final       ext         = ext()
+        InputStream inputStream = null
 
         try
         {
             if ( ext.verbose )
             {
-                logger.info( "[$link] - reading .." )
+                logger.info( "[$pageUrl] - reading .." )
             }
 
-            final  connection         = link.toURL().openConnection()
+            final  t                  = System.currentTimeMillis()
+            final  connection         = pageUrl.toURL().openConnection()
             connection.connectTimeout = ext.connectTimeout
             connection.readTimeout    = ext.readTimeout
-            final byte[] bytes        = connection.inputStream.bytes
-            assert       bytes
+            inputStream               = connection.inputStream
 
-            bytesDownloaded.addAndGet( bytes.size())
+            if ( ext.nonHtmlContains.any  { pageUrl.contains( it )} ||
+                 ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )}){
 
-            if ( ext.verbose )
-            {
-                logger.info( "[$link] - [${ bytes.size()}] byte${ s( bytes.size())}, [${ System.currentTimeMillis() - t }] ms" )
+                assert inputStream.read() > -1
+                bytesDownloaded.addAndGet( 1L )
+
+                if ( ext.verbose )
+                {
+                    logger.info( "[$pageUrl] - checked that it can be read, [${ System.currentTimeMillis() - t }] ms" )
+                }
+
+                null
             }
+            else
+            {
+                final byte[] bytes = inputStream.bytes
+                assert       bytes
 
-            bytes
+                bytesDownloaded.addAndGet( bytes.size())
+
+                if ( ext.verbose )
+                {
+                    logger.info( "[$pageUrl] - [${ bytes.size()}] byte${ s( bytes.size())}, [${ System.currentTimeMillis() - t }] ms" )
+                }
+
+                bytes
+            }
         }
         catch ( Throwable error )
         {
-            linksStorage.addBrokenLink( link, referrer )
-            logger.warn( "! [$link] - $error, referred to by \n  [$referrer]\n" )
-            new byte[ 0 ]
+            linksStorage.addBrokenLink( pageUrl, referrer )
+            logger.warn( "! [$pageUrl] - $error, referred to by \n  [$referrer]\n" )
+            null
+        }
+        finally
+        {
+            if ( inputStream ){ inputStream.close() }
         }
     }
 
