@@ -149,6 +149,7 @@ class CrawlerTask extends BaseTask
      */
     void printReport ()
     {
+        final ext          = ext()
         final mbDownloaded = ( long )( bytesDownloaded.get() / ( 1024 * 1024 ))
         final kbDownloaded = ( long )( bytesDownloaded.get() / ( 1024 ))
         final downloaded   = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
@@ -156,10 +157,15 @@ class CrawlerTask extends BaseTask
         final message = new StringBuilder().
               append( "\n\n[${ linksStorage.processedLinksNumber()}] link${ s( linksStorage.processedLinksNumber() ) } checked in ".toString()).
               append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
-              append( "$downloaded:\n".toString()).
-              append( toMultiLines( linksStorage.processedLinks())).
-              append( "\n[${ linksStorage.brokenLinksNumber()}] broken link${ s( linksStorage.brokenLinksNumber()) } found".toString()).
-              append( linksStorage.brokenLinksNumber() ? '' : ' - congratulations :)' )
+              append( downloaded.toString())
+
+        if ( ext.displayLinks )
+        {
+            message.append( ':\n' ).append( toMultiLines( linksStorage.processedLinks()))
+        }
+
+        message.append( "\n[${ linksStorage.brokenLinksNumber()}] broken link${ s( linksStorage.brokenLinksNumber()) } found".toString()).
+                append( linksStorage.brokenLinksNumber() ? '' : ' - congratulations :)' )
 
         if ( linksStorage.brokenLinksNumber())
         {

@@ -28,6 +28,7 @@ class CrawlerExtension
     List<String>  ignoredContains   = []
     List<String>  ignoredEndsWith   = []
     List<String>  ignoredRegexes    = []
+    boolean       displayLinks      = true
     boolean       verbose           = false
     boolean       failOnBrokenLinks = false
 
