@@ -260,8 +260,9 @@ class CrawlerTask extends BaseTask
     @Requires({ pageUrl && referrer && linksStorage })
     byte[] readBytes ( String pageUrl, String referrer )
     {
-        final       ext         = ext()
-        InputStream inputStream = null
+        final       ext               = ext()
+        InputStream       inputStream = null
+        HttpURLConnection connection  = null
 
         try
         {
@@ -271,7 +272,7 @@ class CrawlerTask extends BaseTask
             }
 
             final  t                  = System.currentTimeMillis()
-            final  connection         = pageUrl.toURL().openConnection()
+            connection                = pageUrl.toURL().openConnection() as HttpURLConnection
             connection.connectTimeout = ext.connectTimeout
             connection.readTimeout    = ext.readTimeout
             inputStream               = connection.inputStream
@@ -303,11 +304,22 @@ class CrawlerTask extends BaseTask
         }
         catch ( Throwable error )
         {
-            linksStorage.addBrokenLink( pageUrl, referrer )
+            def message = "! [$pageUrl] - $error, referred to by \n  [$referrer]\n"
+
+            if ( ext.ignoreStatusCodes.any { it == connection.responseCode })
+            {
+                message = "! [$pageUrl] - $error (ignored, status code is ${ connection.responseCode }), referred to by \n  [$referrer]\n"
+            }
+            else
+            {
+                linksStorage.addBrokenLink( pageUrl, referrer )
+            }
+
             if ( ext.verbose )
             {
-                logger.warn( "! [$pageUrl] - $error, referred to by \n  [$referrer]\n" )
+                logger.warn( message )
             }
+
             null
         }
         finally
