@@ -194,7 +194,7 @@ class CrawlerTask extends BaseTask
         final ext            = ext()
         final linksMap       = linksStorage.linksMap()
         final linksMapReport = linksMap.keySet().sort().
-                               collect { String pageUrl -> "[$pageUrl]:${ toMultiLines( linksMap[ pageUrl ]) }" }.
+                               collect { String pageUrl -> "[$pageUrl]:\n${ toMultiLines( linksMap[ pageUrl ]) }" }.
                                join( '\n' )
 
         ext.linksMapFile.write( linksMapReport, 'UTF-8' )
@@ -227,7 +227,7 @@ class CrawlerTask extends BaseTask
                 final linksMessage    = pageLinks ? ", ${ newLinks ? newLinks.size() : 'no' } new" : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"               : ''
 
-                if ( ext.linksMapFile )
+                if ( ext.linksMapFile && newLinks )
                 {
                     linksStorage.updateLinksMap( pageUrl, newLinks )
                 }

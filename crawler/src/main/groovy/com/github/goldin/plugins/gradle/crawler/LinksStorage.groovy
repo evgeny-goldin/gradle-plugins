@@ -86,7 +86,7 @@ class LinksStorage
     }
 
 
-    @Requires({ pageUrl && ( links != null ) })
+    @Requires({ pageUrl && links })
     void updateLinksMap ( String pageUrl, Set<String> links )
     {
         assert ! ( locked || ( pageUrl.toString() in linksMap.keySet()))
