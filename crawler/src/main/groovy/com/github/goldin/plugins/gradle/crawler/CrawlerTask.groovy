@@ -36,10 +36,8 @@ class CrawlerTask extends BaseTask
         waitForIdle()
         printReport()
 
-        if ( ext.linksMapFile )
-        {
-            printLinksMapFile()
-        }
+        if ( ext.linksMapFile    ) { printLinksMapFile( ext.linksMapFile,    linksStorage.linksMap(),    'Links map'     )}
+        if ( ext.newLinksMapFile ) { printLinksMapFile( ext.newLinksMapFile, linksStorage.newLinksMap(), 'New links map' )}
 
         if ( linksStorage.brokenLinksNumber() && ext.failOnBrokenLinks )
         {
@@ -189,16 +187,14 @@ class CrawlerTask extends BaseTask
 
 
     @Requires({ ext().linksMapFile })
-    void printLinksMapFile()
+    void printLinksMapFile( File file, Map<String, Set<String>> linksMap, String title )
     {
-        final ext            = ext()
-        final linksMap       = linksStorage.linksMap()
         final linksMapReport = linksMap.keySet().sort().
                                collect { String pageUrl -> "[$pageUrl]:\n${ toMultiLines( linksMap[ pageUrl ]) }" }.
                                join( '\n' )
 
-        ext.linksMapFile.write( linksMapReport, 'UTF-8' )
-        logger.info( "Links map is written to [${ ext.linksMapFile.canonicalPath }]" )
+        file.write( linksMapReport, 'UTF-8' )
+        logger.info( "$title is written to [${ file.canonicalPath }]" )
     }
 
 
@@ -227,10 +223,8 @@ class CrawlerTask extends BaseTask
                 final linksMessage    = pageLinks ? ", ${ newLinks ? newLinks.size() : 'no' } new" : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"               : ''
 
-                if ( ext.linksMapFile && newLinks )
-                {
-                    linksStorage.updateLinksMap( pageUrl, newLinks )
-                }
+                if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
+                if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
 
                 logger.info( "[$pageUrl] - [${ pageLinks.size() }] link${ s( pageLinks ) } found${ linksMessage } " +
                              "(${ linksStorage.processedLinksNumber() } checked so far)${ newLinksMessage }" )

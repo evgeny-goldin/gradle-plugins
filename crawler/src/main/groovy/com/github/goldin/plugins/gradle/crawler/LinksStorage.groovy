@@ -13,6 +13,7 @@ class LinksStorage
     private final    Set<String>              processedLinks = [] as Set
     private final    Map<String, String>      brokenLinks    = new ConcurrentHashMap<String, String>()
     private final    Map<String, Set<String>> linksMap       = new ConcurrentHashMap<String, Set<String>>()
+    private final    Map<String, Set<String>> newLinksMap    = new ConcurrentHashMap<String, Set<String>>()
     private volatile boolean                  locked         = false
 
 
@@ -43,6 +44,14 @@ class LinksStorage
     {
         assert locked
         linksMap.asImmutable()
+    }
+
+
+    @Ensures({ result != null })
+    Map<String, Set<String>> newLinksMap()
+    {
+        assert locked
+        newLinksMap.asImmutable()
     }
 
 
@@ -86,11 +95,19 @@ class LinksStorage
     }
 
 
-    @Requires({ pageUrl && links })
+    @Requires({ pageUrl && ( links != null ) })
     void updateLinksMap ( String pageUrl, Set<String> links )
     {
         assert ! ( locked || ( pageUrl.toString() in linksMap.keySet()))
         linksMap[ pageUrl.toString() ] = links
+    }
+
+
+    @Requires({ pageUrl && newLinks })
+    void updateNewLinksMap ( String pageUrl, Set<String> newLinks )
+    {
+        assert ! ( locked || ( pageUrl.toString() in newLinksMap.keySet()))
+        newLinksMap[ pageUrl.toString() ] = newLinks
     }
 
 

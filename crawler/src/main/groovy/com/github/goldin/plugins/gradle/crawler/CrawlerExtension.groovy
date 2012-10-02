@@ -22,6 +22,7 @@ class CrawlerExtension
      */
 
     File          linksMapFile
+    File          newLinksMapFile
     List<String>  nonHtmlContains    = '.css? .js?'.tokenize()
     List<String>  nonHtmlExtensions  = 'css js ico gif jpg jpeg png doc pdf zip rar xml svg flv mp4 mp3 avi'.tokenize()
     List<Integer> ignoredStatusCodes = []
