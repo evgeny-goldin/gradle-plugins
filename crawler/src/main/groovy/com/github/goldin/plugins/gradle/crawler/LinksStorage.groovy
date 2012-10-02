@@ -1,5 +1,4 @@
 package com.github.goldin.plugins.gradle.crawler
-
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
@@ -11,9 +10,10 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class LinksStorage
 {
-    private final    Set<String>         processedLinks = [] as Set
-    private final    Map<String, String> brokenLinks    = new ConcurrentHashMap<String, String>()
-    private volatile boolean             locked         = false
+    private final    Set<String>              processedLinks = [] as Set
+    private final    Map<String, String>      brokenLinks    = new ConcurrentHashMap<String, String>()
+    private final    Map<String, Set<String>> linksMap       = new ConcurrentHashMap<String, Set<String>>()
+    private volatile boolean                  locked         = false
 
 
     void lock()
@@ -35,6 +35,14 @@ class LinksStorage
     {
         assert locked
         brokenLinks.keySet().asImmutable()
+    }
+
+
+    @Ensures({ result != null })
+    Map<String, Set<String>> linksMap()
+    {
+        assert locked
+        linksMap.asImmutable()
     }
 
 
@@ -63,22 +71,33 @@ class LinksStorage
 
     @Requires({ links })
     @Ensures({ result != null })
-    List<String> addLinksToProcess ( Collection<String> links )
+    Set<String> addLinksToProcess ( Collection<String> links )
     {
         assert ( ! locked )
+
+        def result
 
         synchronized ( processedLinks )
         {
-            links.findAll { processedLinks.add( it.toString())}  /* To convert possible GStrings */
+            result = links.findAll { processedLinks.add( it.toString())}.toSet()
         }
+
+        result
     }
 
 
-    @Requires({ link && referrer })
-    @Ensures({ link in brokenLinks.keySet() })
-    void addBrokenLink ( String link, String referrer )
+    @Requires({ pageUrl && ( links != null ) })
+    void updateLinksMap ( String pageUrl, Set<String> links )
     {
-        assert ( ! locked )
-        brokenLinks[ link.toString() ] = referrer  /* To convert possible GStrings */
+        assert ! ( locked || ( pageUrl.toString() in linksMap.keySet()))
+        linksMap[ pageUrl.toString() ] = links
+    }
+
+
+    @Requires({ brokenLink && referrer })
+    void addBrokenLink ( String brokenLink, String referrer )
+    {
+        assert ! ( locked || ( brokenLink.toString() in brokenLinks.keySet()))
+        brokenLinks[ brokenLink.toString() ] = referrer
     }
 }

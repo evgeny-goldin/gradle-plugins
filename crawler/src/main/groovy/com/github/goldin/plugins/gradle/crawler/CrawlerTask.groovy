@@ -36,6 +36,11 @@ class CrawlerTask extends BaseTask
         waitForIdle()
         printReport()
 
+        if ( ext.linksMapFile )
+        {
+            printLinksMapFile()
+        }
+
         if ( linksStorage.brokenLinksNumber() && ext.failOnBrokenLinks )
         {
             throw new GradleException (
@@ -106,6 +111,7 @@ class CrawlerTask extends BaseTask
             logger.info( " Ignored (contains)   - ${ ext.ignoredContains }" )
             logger.info( " Ignored (endsWith)   - ${ ext.ignoredEndsWith }" )
             logger.info( " Ignored patterns     - ${ ext.ignoredPatterns }" )
+            logger.info( " Ignored status codes - ${ ext.ignoredStatusCodes }" )
             logger.info( " Root link${ s( ext.rootLinks )}:" )
             ext.rootLinks.each { logger.info( " * [$it]" )}
         }
@@ -182,6 +188,20 @@ class CrawlerTask extends BaseTask
     }
 
 
+    @Requires({ ext().linksMapFile })
+    void printLinksMapFile()
+    {
+        final ext            = ext()
+        final linksMap       = linksStorage.linksMap()
+        final linksMapReport = linksMap.keySet().sort().
+                               collect { String pageUrl -> "[$pageUrl]:${ toMultiLines( linksMap[ pageUrl ]) }" }.
+                               join( '\n' )
+
+        ext.linksMapFile.write( linksMapReport, 'UTF-8' )
+        logger.info( "Links map is written to [${ ext.linksMapFile.canonicalPath }]" )
+    }
+
+
     /**
      * <b>Invoked in a thread pool worker</b> - checks links in the page specified.
      *
@@ -199,13 +219,18 @@ class CrawlerTask extends BaseTask
 
             if ( ! bytes ) { return }
 
-            final pageLinks = readLinks( new String( bytes, 'UTF-8' ))
-            final newLinks  = linksStorage.addLinksToProcess( pageLinks )
+            final Set<String> pageLinks = readLinks( new String( bytes, 'UTF-8' ))
+            final Set<String> newLinks  = linksStorage.addLinksToProcess( pageLinks )
 
             if ( ext.verbose )
             {
                 final linksMessage    = pageLinks ? ", ${ newLinks ? newLinks.size() : 'no' } new" : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"               : ''
+
+                if ( ext.linksMapFile )
+                {
+                    linksStorage.updateLinksMap( pageUrl, newLinks )
+                }
 
                 logger.info( "[$pageUrl] - [${ pageLinks.size() }] link${ s( pageLinks ) } found${ linksMessage } " +
                              "(${ linksStorage.processedLinksNumber() } checked so far)${ newLinksMessage }" )
@@ -231,7 +256,7 @@ class CrawlerTask extends BaseTask
      */
     @Requires({ pageContent })
     @Ensures({ result != null })
-    Collection<String> readLinks ( String pageContent )
+    Set<String> readLinks ( String pageContent )
     {
         final ext                = ext()
         final String cleanedText = ext.cleanupPatterns ?
@@ -246,7 +271,8 @@ class CrawlerTask extends BaseTask
         findAll { String link -> ( ext.ignoredContains.every{ String  ignored -> ( ! link.contains( ignored ))}       )}.
         findAll { String link -> ( ext.ignoredEndsWith.every{ String  ignored -> ( ! link.endsWith( ignored ))}       )}.
         findAll { String link -> ( ext.ignoredPatterns.every{ Pattern ignored -> ( ! ignored.matcher( link ).find())} )}.
-        collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}
+        collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}.
+        toSet()
     }
 
 
@@ -306,7 +332,7 @@ class CrawlerTask extends BaseTask
         {
             def message = "! [$pageUrl] - $error, referred to by \n  [$referrer]\n"
 
-            if ( ext.ignoreStatusCodes.any { it == connection.responseCode })
+            if ( ext.ignoredStatusCodes.any { it == connection.responseCode })
             {
                 message = "! [$pageUrl] - $error (ignored, status code is ${ connection.responseCode }), referred to by \n  [$referrer]\n"
             }
