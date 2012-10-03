@@ -186,7 +186,7 @@ class CrawlerTask extends BaseTask
     }
 
 
-    @Requires({ ext().linksMapFile })
+    @Requires({ file && ( linksMap != null ) && title })
     void printLinksMapFile( File file, Map<String, Set<String>> linksMap, String title )
     {
         final linksMapReport = linksMap.keySet().sort().
@@ -194,7 +194,10 @@ class CrawlerTask extends BaseTask
                                join( '\n' )
 
         file.write( linksMapReport, 'UTF-8' )
-        logger.info( "$title is written to [${ file.canonicalPath }]" )
+        if ( linksMap ){ assert file.size()}
+
+        logger.info( "$title is written to [${ file.canonicalPath }], " +
+                     "[${ linksMap.size() }] entr${ linksMap.size() == 1 ? 'y' : 'ies' }" )
     }
 
 
