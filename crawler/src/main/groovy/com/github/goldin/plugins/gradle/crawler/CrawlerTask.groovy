@@ -221,13 +221,13 @@ class CrawlerTask extends BaseTask
             final Set<String> pageLinks = readLinks( new String( bytes, 'UTF-8' ))
             final Set<String> newLinks  = linksStorage.addLinksToProcess( pageLinks )
 
+            if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
+            if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
+
             if ( ext.verbose )
             {
                 final linksMessage    = pageLinks ? ", ${ newLinks ? newLinks.size() : 'no' } new" : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"               : ''
-
-                if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
-                if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
 
                 logger.info( "[$pageUrl] - [${ pageLinks.size() }] link${ s( pageLinks ) } found${ linksMessage } " +
                              "(${ linksStorage.processedLinksNumber() } checked so far)${ newLinksMessage }" )
