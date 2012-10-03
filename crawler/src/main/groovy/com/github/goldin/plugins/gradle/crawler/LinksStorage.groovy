@@ -98,7 +98,7 @@ class LinksStorage
     @Requires({ pageUrl && ( links != null ) })
     void updateLinksMap ( String pageUrl, Set<String> links )
     {
-        assert ! ( locked || ( pageUrl.toString() in linksMap.keySet()))
+        assert ! ( locked || linksMap.containsKey( pageUrl.toString()))
         linksMap[ pageUrl.toString() ] = links
     }
 
@@ -106,7 +106,7 @@ class LinksStorage
     @Requires({ pageUrl && newLinks })
     void updateNewLinksMap ( String pageUrl, Set<String> newLinks )
     {
-        assert ! ( locked || ( pageUrl.toString() in newLinksMap.keySet()))
+        assert ! ( locked || newLinksMap.containsKey( pageUrl.toString()))
         newLinksMap[ pageUrl.toString() ] = newLinks
     }
 
