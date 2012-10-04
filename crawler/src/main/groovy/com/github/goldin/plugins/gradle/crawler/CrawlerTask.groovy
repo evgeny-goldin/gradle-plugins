@@ -7,6 +7,8 @@ import org.gradle.api.GradleException
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
 import java.util.regex.Pattern
+import java.util.zip.DeflaterInputStream
+import java.util.zip.GZIPInputStream
 
 
 /**
@@ -208,7 +210,7 @@ class CrawlerTask extends BaseTask
     /**
      * Checks if build should fail and fails it if required.
      */
-    private void checkIfBuildShouldFail ( )
+    void checkIfBuildShouldFail ( )
     {
         final ext   = ext()
         final links = linksStorage.processedLinksNumber()
@@ -356,7 +358,7 @@ class CrawlerTask extends BaseTask
                     logger.info( "[$pageUrl] - [${ bytes.size()}] byte${ s( bytes.size())}, [${ System.currentTimeMillis() - t }] ms" )
                 }
 
-                bytes
+                decodeBytes( bytes, connection.getHeaderField( 'Content-Encoding' ))
             }
         }
         catch ( Throwable error )
@@ -383,6 +385,24 @@ class CrawlerTask extends BaseTask
         {
             if ( inputStream ){ inputStream.close() }
         }
+    }
+
+
+    @Requires({ bytes })
+    @Ensures({ result })
+    byte[] decodeBytes( byte[] bytes, String contentEncoding )
+    {
+        if ( ! contentEncoding ) { return bytes }
+
+        final inputStream = new ByteArrayInputStream( bytes ).with {
+            InputStream is ->
+            ( 'gzip'    == contentEncoding ) ? new GZIPInputStream( is ) :
+            ( 'deflate' == contentEncoding ) ? new DeflaterInputStream( is ) :
+                                               null
+        }
+
+        assert inputStream, "Unknown content encoding [$contentEncoding]"
+        inputStream.bytes
     }
 
 
