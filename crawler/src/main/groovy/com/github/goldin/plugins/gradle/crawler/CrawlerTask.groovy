@@ -22,7 +22,7 @@ class CrawlerTask extends BaseTask
 
     CrawlerExtension ext () { extension ( CrawlerPlugin.EXTENSION_NAME, CrawlerExtension ) }
     String s( Collection c ){ s( c.size()) }
-    String s( int        j ){ j == 1 ? '' : 's' }
+    String s( Number     j ){ j == 1 ? '' : 's' }
 
 
     @Override
@@ -35,16 +35,8 @@ class CrawlerTask extends BaseTask
         submitRootLinks()
         waitForIdle()
         printReport()
-
-        if ( ext.linksMapFile    ) { printLinksMapFile( ext.linksMapFile,    linksStorage.linksMap(),    'Links map'     )}
-        if ( ext.newLinksMapFile ) { printLinksMapFile( ext.newLinksMapFile, linksStorage.newLinksMap(), 'New links map' )}
-
-        if ( linksStorage.brokenLinksNumber() && ext.failOnBrokenLinks )
-        {
-            throw new GradleException (
-                "[${ linksStorage.brokenLinksNumber() }] broken link${ s( linksStorage.brokenLinksNumber())} found, " +
-                "see above for more details" )
-        }
+        writeLinksMapFiles()
+        checkIfBuildShouldFail()
     }
 
 
@@ -186,18 +178,60 @@ class CrawlerTask extends BaseTask
     }
 
 
-    @Requires({ file && ( linksMap != null ) && title })
-    void printLinksMapFile( File file, Map<String, Set<String>> linksMap, String title )
+    /**
+     * Writes "links map" files.
+     */
+    void writeLinksMapFiles ()
     {
-        final linksMapReport = linksMap.keySet().sort().
-                               collect { String pageUrl -> "[$pageUrl]:\n${ toMultiLines( linksMap[ pageUrl ]) }" }.
-                               join( '\n' )
+        final ext   = ext()
+        final print = {
+            File file, Map<String, Set<String>> linksMap, String title ->
 
-        file.write( linksMapReport, 'UTF-8' )
-        if ( linksMap ){ assert file.size()}
+            assert file && ( linksMap != null ) && title
 
-        logger.info( "$title is written to [${ file.canonicalPath }], " +
-                     "[${ linksMap.size() }] entr${ linksMap.size() == 1 ? 'y' : 'ies' }" )
+            final linksMapReport = linksMap.keySet().sort().
+                                   collect { String pageUrl -> "[$pageUrl]:\n${ toMultiLines( linksMap[ pageUrl ]) }" }.
+                                   join( '\n' )
+
+            file.write( linksMapReport, 'UTF-8' )
+            if ( linksMap ){ assert file.size()}
+
+            logger.info( "$title is written to [${ file.canonicalPath }], " +
+                         "[${ linksMap.size() }] entr${ linksMap.size() == 1 ? 'y' : 'ies' }" )
+        }
+
+        if ( ext.linksMapFile    ) { print( ext.linksMapFile,    linksStorage.linksMap(),    'Links map'     )}
+        if ( ext.newLinksMapFile ) { print( ext.newLinksMapFile, linksStorage.newLinksMap(), 'New links map' )}
+    }
+
+
+    /**
+     * Checks if build should fail and fails it if required.
+     */
+    private void checkIfBuildShouldFail ( )
+    {
+        final ext   = ext()
+        final links = linksStorage.processedLinksNumber()
+        final bytes = bytesDownloaded.get()
+
+        if ( linksStorage.brokenLinksNumber() && ext.failOnBrokenLinks )
+        {
+            throw new GradleException(
+                    "[${ linksStorage.brokenLinksNumber() }] broken link${ s( linksStorage.brokenLinksNumber() )} found, " +
+                    "see above for more details" )
+        }
+
+        if ( links < ext.minimumLinks )
+        {
+            throw new GradleException(
+                    "Only [$links] link${ s( links )} checked, [${ ext.minimumLinks }] link${ s( ext.minimumLinks )} at least required." )
+        }
+
+        if ( bytes < ext.minimumBytes )
+        {
+            throw new GradleException(
+                    "Only [$bytes] byte${ s( bytes )} downloaded, [${ ext.minimumBytes }] byte${ s( ext.minimumBytes )} at least required." )
+        }
     }
 
 
