@@ -69,7 +69,7 @@ class CrawlerTask extends BaseTask
         ext.host            = ext.host ?: ext.baseUrl
         ext.serverAddress   = ext.host.replaceAll( '(\\\\|/).*', '' )
         ext.basePattern     = Pattern.compile( /\Q${ ext.baseUrl }\E/ )
-        ext.linkPattern     = Pattern.compile( /(?:'|")(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|")/ )
+        ext.linkPattern     = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
         ext.cleanupPatterns = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
         ext.ignoredPatterns = ( ext.ignoredRegexes ?: []     ).collect { Pattern.compile( it )  }
         ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect { "http://$ext.host/$it" }
