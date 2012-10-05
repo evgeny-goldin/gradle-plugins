@@ -26,7 +26,7 @@ class CrawlerExtension
     int           minimumLinks       = Integer.MIN_VALUE
     long          minimumBytes       = Long.MIN_VALUE
     List<String>  nonHtmlContains    = '.css? .js?'.tokenize()
-    List<String>  nonHtmlExtensions  = 'css js ico gif jpg jpeg png doc pdf zip rar xml svg flv mp4 mp3 avi'.tokenize()
+    List<String>  nonHtmlExtensions  = 'css js ico gif jpg jpeg png doc pdf zip rar xml xsl svg flv mp4 mp3 avi'.tokenize()
     List<Integer> ignoredStatusCodes = []
     List<String>  rootLinks          = []
     List<String>  cleanupRegexes     = []
