@@ -334,6 +334,7 @@ class CrawlerTask extends BaseTask
             connection                = pageUrl.toURL().openConnection() as HttpURLConnection
             connection.connectTimeout = ext.connectTimeout
             connection.readTimeout    = ext.readTimeout
+            connection.setRequestProperty( 'User-Agent', ext.userAgent )
             inputStream               = connection.inputStream
 
             if ( ext.nonHtmlContains.any  { pageUrl.contains( it )} ||
