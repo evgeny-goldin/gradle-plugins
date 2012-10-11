@@ -1,4 +1,5 @@
 package com.github.goldin.plugins.gradle.crawler
+
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -57,7 +58,7 @@ class CrawlerTask extends BaseTask
         assert ext.connectTimeout > 0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
         assert ext.readTimeout    > 0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
 
-        assert ext.relativeLinkPattern && ext.anchorPattern
+        assert ext.externalLinkPattern && ext.absoluteLinkPattern && ext.relativeLinkPattern && ext.anchorPattern
 
         assert ( ! ext.serverAddress   ), "No 'serverAddress' should be used in $extensionDescription"
         assert ( ! ext.basePattern     ), "No 'basePattern' should be used in $extensionDescription"
@@ -72,7 +73,7 @@ class CrawlerTask extends BaseTask
         ext.linkPattern     = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
         ext.cleanupPatterns = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
         ext.ignoredPatterns = ( ext.ignoredRegexes ?: []     ).collect { Pattern.compile( it )  }
-        ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect { "http://$ext.host/$it" }
+        ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect { "http://$ext.host${ it ? '/' : '' }$it" }
 
         assert ext.baseUrl && ext.host && ext.basePattern && ext.linkPattern && ext.rootLinks
         ext
@@ -85,7 +86,7 @@ class CrawlerTask extends BaseTask
     void printStartBanner ()
     {
         final ext           = ext()
-        final ipAddress     = (( ext.host =~ /^\d+/ ) ? '' : " (${ InetAddress.getByName( ext.host ).hostAddress })" )
+        final ipAddress     = (( ext.host =~ /^\d+/ ) ? '' : " (${ InetAddress.getByName( ext.host.replaceAll( '/.*', '' )).hostAddress })" )
         final bannerMessage = "Checking [http://$ext.host]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }, " +
                               "verbose [$ext.verbose], " +
                               "displayLinks [${ext.displayLinks}]"
@@ -96,15 +97,6 @@ class CrawlerTask extends BaseTask
 
         if ( ext.verbose )
         {
-            logger.info( " Base URL             - [${ ext.baseUrl }]" )
-            logger.info( " Base pattern         - [${ ext.basePattern }]" )
-            logger.info( " Link pattern         - [${ ext.linkPattern }]" )
-            logger.info( " Fail on broken links - [${ ext.failOnBrokenLinks }]" )
-            logger.info( " Cleanup patterns     - ${ ext.cleanupPatterns }" )
-            logger.info( " Ignored (contains)   - ${ ext.ignoredContains }" )
-            logger.info( " Ignored (endsWith)   - ${ ext.ignoredEndsWith }" )
-            logger.info( " Ignored patterns     - ${ ext.ignoredPatterns }" )
-            logger.info( " Ignored status codes - ${ ext.ignoredStatusCodes }" )
             logger.info( " Root link${ s( ext.rootLinks )}:" )
             ext.rootLinks.each { logger.info( " * [$it]" )}
         }
@@ -255,7 +247,7 @@ class CrawlerTask extends BaseTask
 
             if ( ! bytes ) { return }
 
-            final Set<String> pageLinks = readLinks( new String( bytes, 'UTF-8' ))
+            final Set<String> pageLinks = readLinks( pageUrl, new String( bytes, 'UTF-8' ))
             final Set<String> newLinks  = linksStorage.addLinksToProcess( pageLinks )
 
             if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
@@ -278,7 +270,7 @@ class CrawlerTask extends BaseTask
         }
         catch( Throwable error )
         {
-            logger.error( "Failed to check links of page [$pageUrl], referrer [$referrerUrl]", error )
+            logger.error( "Failed to read [$pageUrl], referrer [$referrerUrl]", error )
         }
     }
 
@@ -288,25 +280,41 @@ class CrawlerTask extends BaseTask
      * @param pageContent content of the page downloaded previously
      * @return all links found with {@link CrawlerExtension#baseUrl} being replaced to {@link CrawlerExtension#host}
      */
-    @Requires({ pageContent })
+    @Requires({ pageUrl && pageContent })
     @Ensures({ result != null })
-    Set<String> readLinks ( String pageContent )
+    List<String> readLinks ( String pageUrl, String pageContent )
     {
         final ext                = ext()
         final String cleanedText = ext.cleanupPatterns ?
             ext.cleanupPatterns.inject( pageContent ) { String text, Pattern p -> text.replaceAll( p, '' )} :
             pageContent
 
-        ( cleanedText.findAll ( ext.linkPattern         ) { it[ 1 ] } +
-          cleanedText.findAll ( ext.relativeLinkPattern ) { it[ 1 ] }.collect{ "http://${ ext.serverAddress }/$it" } ).
-        collect { String link -> link.replaceFirst( ext.anchorPattern, '' )}.
-        toSet().
-        grep().
-        findAll { String link -> ( ext.ignoredContains.every{ String  ignored -> ( ! link.contains( ignored ))}       )}.
-        findAll { String link -> ( ext.ignoredEndsWith.every{ String  ignored -> ( ! link.endsWith( ignored ))}       )}.
-        findAll { String link -> ( ext.ignoredPatterns.every{ Pattern ignored -> ( ! ignored.matcher( link ).find())} )}.
-        collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}.
-        toSet()
+        final links = cleanedText.findAll ( ext.linkPattern ) { it[ 1 ] }
+
+        if ( ext.checkExternalLinks ) {
+            links.addAll( cleanedText.findAll ( ext.externalLinkPattern ) { it[ 1 ] })
+        }
+
+        if ( ext.checkAbsoluteLinks ) {
+            links.addAll( cleanedText.findAll ( ext.absoluteLinkPattern ) { it[ 1 ] }.
+                                      collect{ "http://${ ext.serverAddress }${ ext.serverAddress.endsWith( '/' ) ? '' : '/' }$it".toString() })
+        }
+
+        if ( ext.checkRelativeLinks ) {
+            links.addAll( cleanedText.findAll ( ext.relativeLinkPattern ) { it[ 1 ] }.
+                                      collect{ "$pageUrl${ pageUrl.endsWith( '/' ) ? '' : '/' }$it".toString() })
+        }
+
+        final foundLinks = links.
+                           collect { it.replaceFirst( ext.anchorPattern, '' ).replaceAll( /(?<=[^:])\/\//, '/' ) }. // "http://host//link" => "http://host/link"
+                           toSet().
+                           grep().
+                           findAll { String link -> ( ext.ignoredContains.every{ String  ignored -> ( ! link.contains( ignored ))}       )}.
+                           findAll { String link -> ( ext.ignoredEndsWith.every{ String  ignored -> ( ! link.endsWith( ignored ))}       )}.
+                           findAll { String link -> ( ext.ignoredPatterns.every{ Pattern ignored -> ( ! ignored.matcher( link ).find())} )}.
+                           collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}.
+                           sort()
+        foundLinks
     }
 
 
@@ -320,10 +328,12 @@ class CrawlerTask extends BaseTask
     @Requires({ pageUrl && referrer && linksStorage })
     byte[] readBytes ( String pageUrl, String referrer )
     {
-        final       ext               = ext()
-        InputStream       inputStream = null
-        HttpURLConnection connection  = null
-
+        final             ext                = ext()
+        HttpURLConnection connection         = null
+        InputStream       inputStream        = null
+        final             shouldBeDownloaded = pageUrl.contains( ext.baseUrl ) &&
+                                               ( ! ( ext.nonHtmlContains.any  { pageUrl.contains( it     )} ||
+                                                     ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )}))
         try
         {
             if ( ext.verbose )
@@ -331,48 +341,29 @@ class CrawlerTask extends BaseTask
                 logger.info( "[$pageUrl] - reading .." )
             }
 
-            final  t                  = System.currentTimeMillis()
-            connection                = pageUrl.toURL().openConnection() as HttpURLConnection
-            connection.connectTimeout = ext.connectTimeout
-            connection.readTimeout    = ext.readTimeout
-            connection.setRequestProperty( 'User-Agent',      ext.userAgent  )
-            connection.setRequestProperty( 'Accept-Encoding', 'gzip,deflate' )
-            inputStream               = connection.inputStream
+            final t            = System.currentTimeMillis()
+            connection         = makeConnection( pageUrl, shouldBeDownloaded )
+            inputStream        = connection.inputStream
+            final byte[] bytes = inputStream.bytes
+            bytesDownloaded.addAndGet( bytes.size())
 
-            if ( ext.nonHtmlContains.any  { pageUrl.contains( it )} ||
-                 ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )}){
-
-                if ( ext.verbose )
-                {
-                    logger.info( "[$pageUrl] - checked that it can be read, [${ System.currentTimeMillis() - t }] ms" )
-                }
-
-                null
-            }
-            else
+            if ( ext.verbose )
             {
-                final byte[] bytes = inputStream.bytes
-                assert       bytes
-
-                bytesDownloaded.addAndGet( bytes.size())
-
-                if ( ext.verbose )
-                {
-                    logger.info( "[$pageUrl] - [${ bytes.size()}] byte${ s( bytes.size())}, [${ System.currentTimeMillis() - t }] ms" )
-                }
-
-                decodeBytes( bytes, connection.getHeaderField( 'Content-Encoding' ))
+                logger.info( "[$pageUrl] - " +
+                             ( shouldBeDownloaded ? "[${ bytes.size()}] byte${ s( bytes.size())}" : 'can be read' ) +
+                             ", [${ System.currentTimeMillis() - t }] ms" )
             }
+
+            ( bytes ? decodeBytes( bytes, connection.getHeaderField( 'Content-Encoding' )) : bytes ) as byte[]
         }
         catch ( Throwable error )
         {
-            def message = "! [$pageUrl] - $error, referred to by \n  [$referrer]\n"
+            final canBeIgnored = ( connection && ext.ignoredStatusCodes.any { it == connection.responseCode })
+            final message      = "! [$pageUrl] - $error, " +
+                                 ( canBeIgnored ? "ignored (status code is ${ connection.responseCode }), " : '' ) +
+                                 "referred to by \n  [$referrer]\n"
 
-            if ( ext.ignoredStatusCodes.any { it == connection.responseCode })
-            {
-                message = "! [$pageUrl] - $error (ignored, status code is ${ connection.responseCode }), referred to by \n  [$referrer]\n"
-            }
-            else
+            if ( ! canBeIgnored )
             {
                 linksStorage.addBrokenLink( pageUrl, referrer )
             }
@@ -388,6 +379,25 @@ class CrawlerTask extends BaseTask
         {
             if ( inputStream ){ inputStream.close() }
         }
+    }
+
+
+    @Requires({ pageUrl })
+    @Ensures({ result })
+    HttpURLConnection makeConnection ( String pageUrl, boolean shouldBeDownloaded )
+    {
+        final ext = ext()
+
+        final connection          = pageUrl.toURL().openConnection() as HttpURLConnection
+        connection.connectTimeout = ext.connectTimeout
+        connection.readTimeout    = ext.readTimeout
+        connection.requestMethod  = ( shouldBeDownloaded ? 'GET' : 'HEAD' )
+
+        connection.setRequestProperty( 'User-Agent' ,     ext.userAgent  )
+        connection.setRequestProperty( 'Accept-Encoding', 'gzip,deflate' )
+        connection.setRequestProperty( 'Connection' ,     'keep-alive'   )
+
+        connection
     }
 
 
