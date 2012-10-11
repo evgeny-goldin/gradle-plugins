@@ -76,6 +76,7 @@ class CrawlerTask extends BaseTask
         ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect { "http://$ext.host${ it ? '/' : '' }$it" }
 
         assert ext.baseUrl && ext.host && ext.basePattern && ext.linkPattern && ext.rootLinks
+        assert ( ! ext.serverAddress.endsWith( '/' ))
         ext
     }
 
@@ -285,9 +286,9 @@ class CrawlerTask extends BaseTask
     List<String> readLinks ( String pageUrl, String pageContent )
     {
         final ext                = ext()
-        final String cleanedText = ext.cleanupPatterns ?
+        final String cleanedText = (( String )( ext.cleanupPatterns ?
             ext.cleanupPatterns.inject( pageContent ) { String text, Pattern p -> text.replaceAll( p, '' )} :
-            pageContent
+            pageContent )).replace( '%3A', ':' ).replace( '%2F', '/' )
 
         final links = cleanedText.findAll ( ext.linkPattern ) { it[ 1 ] }
 
@@ -297,7 +298,7 @@ class CrawlerTask extends BaseTask
 
         if ( ext.checkAbsoluteLinks ) {
             links.addAll( cleanedText.findAll ( ext.absoluteLinkPattern ) { it[ 1 ] }.
-                                      collect{ "http://${ ext.serverAddress }${ ext.serverAddress.endsWith( '/' ) ? '' : '/' }$it".toString() })
+                                      collect{ "http://${ ext.serverAddress }$it".toString() })
         }
 
         if ( ext.checkRelativeLinks ) {
@@ -305,14 +306,15 @@ class CrawlerTask extends BaseTask
                                       collect{ "$pageUrl${ pageUrl.endsWith( '/' ) ? '' : '/' }$it".toString() })
         }
 
+        links.each { assert it }
         final foundLinks = links.
-                           collect { it.replaceFirst( ext.anchorPattern, '' ).replaceAll( /(?<=[^:])\/\//, '/' ) }. // "http://host//link" => "http://host/link"
+                           collect { it.replaceFirst( ext.anchorPattern, '' )}.
                            toSet().
-                           grep().
                            findAll { String link -> ( ext.ignoredContains.every{ String  ignored -> ( ! link.contains( ignored ))}       )}.
                            findAll { String link -> ( ext.ignoredEndsWith.every{ String  ignored -> ( ! link.endsWith( ignored ))}       )}.
                            findAll { String link -> ( ext.ignoredPatterns.every{ Pattern ignored -> ( ! ignored.matcher( link ).find())} )}.
                            collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}.
+                           toSet().
                            sort()
         foundLinks
     }
