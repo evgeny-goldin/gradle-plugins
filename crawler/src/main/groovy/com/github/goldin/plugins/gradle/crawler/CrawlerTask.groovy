@@ -333,7 +333,7 @@ class CrawlerTask extends BaseTask
         final             ext                = ext()
         HttpURLConnection connection         = null
         InputStream       inputStream        = null
-        final             shouldBeDownloaded = pageUrl.contains( ext.baseUrl ) &&
+        final             shouldBeDownloaded = pageUrl.with { contains( ext.baseUrl ) || contains( ext.host ) } &&
                                                ( ! ( ext.nonHtmlContains.any  { pageUrl.contains( it     )} ||
                                                      ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )}))
         try
