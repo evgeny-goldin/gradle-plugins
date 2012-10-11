@@ -58,7 +58,7 @@ class CrawlerTask extends BaseTask
         assert ext.connectTimeout > 0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
         assert ext.readTimeout    > 0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
 
-        assert ext.externalLinkPattern && ext.absoluteLinkPattern && ext.relativeLinkPattern && ext.anchorPattern
+        assert ext.externalLinkPattern && ext.absoluteLinkPattern && ext.relativeLinkPattern && ext.anchorPattern && ext.protocolPattern
 
         assert ( ! ext.serverAddress   ), "No 'serverAddress' should be used in $extensionDescription"
         assert ( ! ext.basePattern     ), "No 'basePattern' should be used in $extensionDescription"
@@ -66,8 +66,8 @@ class CrawlerTask extends BaseTask
         assert ( ! ext.cleanupPatterns ), "No 'cleanupPatterns' should be used in $extensionDescription - use 'cleanupRegexes' instead"
         assert ( ! ext.ignoredPatterns ), "No 'ignoredPatterns' should be used in $extensionDescription - use 'ignoredRegexes' instead"
 
-        ext.baseUrl         = ext.baseUrl.replaceAll( '^.*?://', '' ) // Cleaning up any protocols specified
-        ext.host            = ext.host ?: ext.baseUrl
+        ext.baseUrl         = ext.baseUrl.replaceAll( ext.protocolPattern, '' )
+        ext.host            = ext.host?.  replaceAll( ext.protocolPattern, '' ) ?: ext.baseUrl
         ext.serverAddress   = ext.host.replaceAll( '(\\\\|/).*', '' )
         ext.basePattern     = Pattern.compile( /\Q${ ext.baseUrl }\E/ )
         ext.linkPattern     = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
@@ -86,8 +86,11 @@ class CrawlerTask extends BaseTask
      */
     void printStartBanner ()
     {
-        final ext           = ext()
-        final ipAddress     = (( ext.host =~ /^\d+/ ) ? '' : " (${ InetAddress.getByName( ext.host.replaceAll( '/.*', '' )).hostAddress })" )
+        final ext  = ext()
+        final host = ext.host.replaceAll( '/.*', '' )
+        assert ( ! host.contains( '/' ))
+
+        final ipAddress     = (( ext.host =~ /^\d+/ ) ? '' : " (${ InetAddress.getByName( host ).hostAddress })" )
         final bannerMessage = "Checking [http://$ext.host]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }, " +
                               "verbose [$ext.verbose], " +
                               "displayLinks [${ext.displayLinks}]"

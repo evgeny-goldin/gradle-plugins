@@ -13,6 +13,8 @@ class CrawlerExtension
     final Pattern relativeLinkPattern = Pattern.compile( /(?:src|href)=(?:'|")([^\/#][^:]+?)(?:'|")/ )
     // "#anchorName"
     final Pattern anchorPattern       = Pattern.compile( '#.*?$' )
+    // "http://"
+    final Pattern protocolPattern     = Pattern.compile( '^.*?://' )
 
     /**
      * Required properties, verified ib {@link CrawlerTask#verifyAndUpdateExtension()}
