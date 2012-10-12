@@ -8,6 +8,7 @@ import org.gradle.api.GradleException
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
 import java.util.regex.Pattern
+import java.util.zip.Deflater
 import java.util.zip.DeflaterInputStream
 import java.util.zip.GZIPInputStream
 
@@ -69,17 +70,17 @@ class CrawlerTask extends BaseTask
         assert ( ! ext.cleanupPatterns ), "No 'cleanupPatterns' should be used in $extensionDescription - use 'cleanupRegexes' instead"
         assert ( ! ext.ignoredPatterns ), "No 'ignoredPatterns' should be used in $extensionDescription - use 'ignoredRegexes' instead"
 
-        ext.baseUrl           = ext.baseUrl.replaceAll( ext.protocolPattern, '' )
-        ext.host              = ext.host?.  replaceAll( ext.protocolPattern, '' ) ?: ext.baseUrl
-        ext.serverAddress     = ext.host.replaceAll( '(\\\\|/).*', '' )
-        ext.basePattern       = Pattern.compile( /\Q${ ext.baseUrl }\E/ )
-        ext.linkPattern       = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
-        ext.domainLinkPattern = ( ext.baseUrl == ext.host ) ?
+        ext.baseUrl         = ext.baseUrl.replaceAll( ext.protocolPattern, '' )
+        ext.host            = ext.host?.  replaceAll( ext.protocolPattern, '' ) ?: ext.baseUrl
+        ext.serverAddress   = ext.host.replaceAll( '(\\\\|/).*', '' )
+        ext.basePattern     = Pattern.compile( /\Q${ ext.baseUrl }\E/ )
+        ext.linkPattern     = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
+        ext.internalLinkPattern = ( ext.baseUrl == ext.host ) ?
             Pattern.compile( /^https?:\/\/\Q${ ext.baseUrl }\E.*$/ ) :
             Pattern.compile( /^https?:\/\/((\Q${ ext.baseUrl }\E)|(\Q${ ext.host }\E)).*$/ )
-        ext.cleanupPatterns   = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
-        ext.ignoredPatterns   = ( ext.ignoredRegexes ?: []     ).collect { Pattern.compile( it )  }
-        ext.rootLinks         = ( ext.rootLinks      ?: [ '' ] ).collect {
+        ext.cleanupPatterns = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
+        ext.ignoredPatterns = ( ext.ignoredRegexes ?: []     ).collect { Pattern.compile( it )  }
+        ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect {
             "http://$ext.host${ (( ! it ) || ext.host.endsWith( '/' ) || it.startsWith( '/' )) ? '' : '/' }$it".toString()
         }.grep().toSet().sort()
 
@@ -334,55 +335,59 @@ class CrawlerTask extends BaseTask
     /**
      * Retrieves {@code byte[]} content of the link specified.
      *
-     * @param pageUrl  URL of a link to read
-     * @param referrer URL of link referrer
-     * @param rootLink whether a link is a root link
+     * @param pageUrl       URL of a link to read
+     * @param referrer      URL of link referrer
+     * @param forceDownload whether a link should be downloaded in any case (even if non-HTML link)
      *
      * @return binary content of link specified or null if link shouldn't be read
      */
-    byte[] readBytes ( String pageUrl, String referrer, boolean rootLink, int retry = 1 )
+    byte[] readBytes ( String pageUrl, String referrer, boolean forceDownload, int retry = 1 )
     {
         assert pageUrl && referrer && linksStorage && ( retry > 0 )
 
-        final             ext                = ext()
-        HttpURLConnection connection         = null
-        InputStream       inputStream        = null
-        final             nonHtmlLink        = ( ext.nonHtmlContains.any{ pageUrl.contains( it ) } || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )})
-        final             shouldBeDownloaded = (( rootLink ) || (( pageUrl ==~ ext.domainLinkPattern ) && ( ! nonHtmlLink )))
+        final             ext           = ext()
+        HttpURLConnection connection    = null
+        InputStream       inputStream   = null
+        final             nonHtmlLink   = ( ext.nonHtmlContains.any{ pageUrl.contains( it ) } || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )})
+        final             internalLink  = ( pageUrl ==~ ext.internalLinkPattern )
+        final             isHeadRequest = (( ! forceDownload ) && ( nonHtmlLink || ( ! internalLink )))
 
         try
         {
-            if ( ext.verbose )
-            {
-                logger.info( "[$pageUrl] - reading .." )
-            }
+            if ( ext.verbose ){ logger.info( "[$pageUrl] - reading .." )}
 
-            final t            = System.currentTimeMillis()
-            connection         = makeConnection( pageUrl, shouldBeDownloaded )
-            inputStream        = connection.inputStream
-            final byte[] bytes = inputStream.bytes
-            bytesDownloaded.addAndGet( bytes.size())
+            final t                = System.currentTimeMillis()
+            connection             = makeConnection( pageUrl, isHeadRequest )
+            inputStream            = connection.inputStream
+            final byte[] bytes     = (( isHeadRequest || internalLink ) ? inputStream.bytes : [ inputStream.read() ]) as byte[]
+            final responseEncoding = connection.getHeaderField( 'Content-Encoding' )
+            final responseSize     = Integer.valueOf( connection.getHeaderField( 'Content-Length' ) ?: '-1' )
+
+            if ( isHeadRequest ) { assert bytes.length == 0  }
+            else { bytesDownloaded.addAndGet( bytes.length ) }
 
             if ( ext.verbose )
             {
                 logger.info( "[$pageUrl] - " +
-                             ( shouldBeDownloaded ? "[${ bytes.size()}] byte${ s( bytes.size())}" : 'can be read' ) +
+                             (( isHeadRequest || ( ! internalLink )) ? 'can be read' : "[${ bytes.size()}] byte${ s( bytes.size())}" ) +
                              ", [${ System.currentTimeMillis() - t }] ms" )
             }
 
-            (( shouldBeDownloaded && bytes ) ? decodeBytes( bytes, connection.getHeaderField( 'Content-Encoding' )) : null ) as byte[]
+            ( bytes && internalLink ) ? decodeBytes( bytes, responseEncoding, responseSize ) : null
         }
         catch ( Throwable error )
         {
-            final statusCode = ( connection ? connection.responseCode : -1 )
-            final isIgnored  = ( connection &&  ext.ignoredStatusCodes.any { it == statusCode })
-            final isRetry    = ( connection && ( ! isIgnored) && ( ext.retries > 0 ) && ( ext.retryStatusCodes.any { it == statusCode }))
+            final statusCode   = ( connection ? connection.responseCode : -1 )
+            final isIgnored    = ( connection &&  ext.ignoredStatusCodes.any { it == statusCode })
+            final isRetry      = ( connection && ( ! isIgnored) && ( ext.retries > 0 ) && ( ext.retryStatusCodes.any { it == statusCode }))
+            final isRetryAsGet = ( connection && ( ! isIgnored) && ( ! isRetry ) && isHeadRequest && ( statusCode == 405 ))
 
             if ( ext.verbose )
             {
                 final message = "! [$pageUrl] - $error, status code [$statusCode], " +
-                                ( isIgnored ? 'ignored, '        : '' ) +
-                                ( isRetry   ? "attempt $retry, " : '' ) +
+                                ( isIgnored    ? 'ignored, '                        : '' ) +
+                                ( isRetry      ? "attempt $retry, "                 : '' ) +
+                                ( isRetryAsGet ? 'will be retried as GET request, ' : '' ) +
                                 "referred to by \n  [$referrer]\n"
                 logger.warn( message )
             }
@@ -392,7 +397,13 @@ class CrawlerTask extends BaseTask
                 if ( isRetry && ( retry < ext.retries ))
                 {
                     sleep( ext.retryDelay )
-                    return readBytes( pageUrl, referrer, rootLink, retry + 1 )
+                    return readBytes( pageUrl, referrer, forceDownload, retry + 1 )
+                }
+
+                if ( isRetryAsGet )
+                {
+                    sleep( ext.retryDelay )
+                    return readBytes( pageUrl, referrer, true, retry )
                 }
 
                 linksStorage.addBrokenLink( pageUrl, referrer )
@@ -409,13 +420,13 @@ class CrawlerTask extends BaseTask
 
     @Requires({ pageUrl })
     @Ensures({ result })
-    HttpURLConnection makeConnection ( String pageUrl, boolean shouldBeDownloaded )
+    HttpURLConnection makeConnection ( String pageUrl, boolean isHeadRequest )
     {
         final ext                 = ext()
         final connection          = pageUrl.toURL().openConnection() as HttpURLConnection
         connection.connectTimeout = ext.connectTimeout
         connection.readTimeout    = ext.readTimeout
-        connection.requestMethod  = ( shouldBeDownloaded ? 'GET' : 'HEAD' )
+        connection.requestMethod  = ( isHeadRequest ? 'HEAD' : 'GET' )
 
         connection.setRequestProperty( 'User-Agent' ,     ext.userAgent  )
         connection.setRequestProperty( 'Accept-Encoding', 'gzip,deflate' )
@@ -427,27 +438,28 @@ class CrawlerTask extends BaseTask
 
     @Requires({ bytes })
     @Ensures({ result })
-    byte[] decodeBytes( byte[] bytes, String contentEncoding )
+    byte[] decodeBytes( byte[] bytes, String responseEncoding, int responseSize )
     {
-        if ( ! contentEncoding ) { return bytes }
+        if ( ! responseEncoding ) { return bytes }
 
+        final bufferSize  = ((( responseSize > 0 ) && ( responseSize < 10 * 1024 * 1024 )) ? responseSize : 10 * 1024 )
         final inputStream = new ByteArrayInputStream( bytes ).with {
             InputStream is ->
-            ( 'gzip'    == contentEncoding ) ? new GZIPInputStream( is ) :
-            ( 'deflate' == contentEncoding ) ? new DeflaterInputStream( is ) :
-                                               null
+            ( 'gzip'    == responseEncoding ) ? new GZIPInputStream( is, bufferSize ) :
+            ( 'deflate' == responseEncoding ) ? new DeflaterInputStream( is, new Deflater(), bufferSize ) :
+                                                null
         }
 
-        assert inputStream, "Unknown content encoding [$contentEncoding]"
+        assert inputStream, "Unknown content encoding [$responseEncoding]"
         inputStream.bytes
     }
 
 
     /**
-     * Converts collection specified to multiline String.
+     * Converts collection specified to multi-line String.
      * @param c Collection to convert.
      * @param delimiter Delimiter to use on every line.
-     * @return collection specified converted to multiline String
+     * @return collection specified converted to multi-line String
      */
     String toMultiLines( Collection c, String delimiter = '*' )
     {
