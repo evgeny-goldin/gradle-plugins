@@ -31,7 +31,7 @@ class CrawlerExtension
 
     File          linksMapFile
     File          newLinksMapFile
-    String        userAgent          = 'com.github.goldin.plugins.gradle.crawler'
+    String        userAgent          = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.79 Safari/537.4'
     int           minimumLinks       = Integer.MIN_VALUE
     long          minimumBytes       = Long.MIN_VALUE
     List<String>  nonHtmlContains    = '.css? .js?'.tokenize()
