@@ -57,6 +57,7 @@ class CrawlerExtension
     String        serverAddress
     Pattern       basePattern
     Pattern       linkPattern
+    Pattern       domainLinkPattern
     List<Pattern> cleanupPatterns
     List<Pattern> ignoredPatterns
 }

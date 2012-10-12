@@ -68,14 +68,17 @@ class CrawlerTask extends BaseTask
         assert ( ! ext.cleanupPatterns ), "No 'cleanupPatterns' should be used in $extensionDescription - use 'cleanupRegexes' instead"
         assert ( ! ext.ignoredPatterns ), "No 'ignoredPatterns' should be used in $extensionDescription - use 'ignoredRegexes' instead"
 
-        ext.baseUrl         = ext.baseUrl.replaceAll( ext.protocolPattern, '' )
-        ext.host            = ext.host?.  replaceAll( ext.protocolPattern, '' ) ?: ext.baseUrl
-        ext.serverAddress   = ext.host.replaceAll( '(\\\\|/).*', '' )
-        ext.basePattern     = Pattern.compile( /\Q${ ext.baseUrl }\E/ )
-        ext.linkPattern     = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
-        ext.cleanupPatterns = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
-        ext.ignoredPatterns = ( ext.ignoredRegexes ?: []     ).collect { Pattern.compile( it )  }
-        ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect {
+        ext.baseUrl           = ext.baseUrl.replaceAll( ext.protocolPattern, '' )
+        ext.host              = ext.host?.  replaceAll( ext.protocolPattern, '' ) ?: ext.baseUrl
+        ext.serverAddress     = ext.host.replaceAll( '(\\\\|/).*', '' )
+        ext.basePattern       = Pattern.compile( /\Q${ ext.baseUrl }\E/ )
+        ext.linkPattern       = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
+        ext.domainLinkPattern = ( ext.baseUrl == ext.host ) ?
+            Pattern.compile( /^https?:\/\/\Q${ ext.baseUrl }\E.*$/ ) :
+            Pattern.compile( /^https?:\/\/((\Q${ ext.baseUrl }\E)|(\Q${ ext.host }\E)).*$/ )
+        ext.cleanupPatterns   = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
+        ext.ignoredPatterns   = ( ext.ignoredRegexes ?: []     ).collect { Pattern.compile( it )  }
+        ext.rootLinks         = ( ext.rootLinks      ?: [ '' ] ).collect {
             "http://$ext.host${ (( ! it ) || ext.host.endsWith( '/' ) || it.startsWith( '/' )) ? '' : '/' }$it".toString()
         }.grep().toSet().sort()
 
@@ -342,10 +345,8 @@ class CrawlerTask extends BaseTask
         final             ext                = ext()
         HttpURLConnection connection         = null
         InputStream       inputStream        = null
-        final             shouldBeDownloaded = rootLink ||
-            (( pageUrl.with { contains( ext.baseUrl ) || contains( ext.host ) }) &&
-             ( ! ext.nonHtmlContains.  any{ pageUrl.contains( it ) } )           &&
-             ( ! ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" ) } ))
+        final             nonHtmlLink        = ( ext.nonHtmlContains.any{ pageUrl.contains( it ) } || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )})
+        final             shouldBeDownloaded = (( rootLink ) || (( pageUrl ==~ ext.domainLinkPattern ) && ( ! nonHtmlLink )))
 
         try
         {
