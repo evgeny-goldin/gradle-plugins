@@ -6,7 +6,7 @@ import org.gradle.api.Project
 
 
 /**
- * Gradle links crawler plugin.
+ * Gradle plugin for Git repositories backup.
  */
 class GitDumpPlugin implements Plugin<Project>
 {
