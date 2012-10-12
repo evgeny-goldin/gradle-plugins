@@ -21,6 +21,7 @@ class CrawlerTask extends BaseTask
     private final LinksStorage       linksStorage    = new LinksStorage()
     private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
+    private final static String ROOT_LINK_REFERRER   = 'Root link'
 
 
     CrawlerExtension ext () { extension ( CrawlerPlugin.EXTENSION_NAME, CrawlerExtension ) }
@@ -54,6 +55,7 @@ class CrawlerTask extends BaseTask
         final extensionDescription = "${ CrawlerPlugin.EXTENSION_NAME } { .. }"
 
         assert ext.baseUrl,            "'baseUrl' should be defined in $extensionDescription"
+        assert ext.userAgent,          "'userAgent' should be defined in $extensionDescription"
         assert ext.threadPoolSize > 0, "'threadPoolSize' [${ ext.threadPoolSize }] in $extensionDescription should be positive"
         assert ext.connectTimeout > 0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
         assert ext.readTimeout    > 0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
@@ -73,8 +75,11 @@ class CrawlerTask extends BaseTask
         ext.linkPattern     = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
         ext.cleanupPatterns = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
         ext.ignoredPatterns = ( ext.ignoredRegexes ?: []     ).collect { Pattern.compile( it )  }
-        ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect { "http://$ext.host${ it ? '/' : '' }$it" }
+        ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect {
+            "http://$ext.host${ (( ! it ) || ext.host.endsWith( '/' ) || it.startsWith( '/' )) ? '' : '/' }$it".toString()
+        }.grep().toSet().toList()
 
+        assert ext.rootLinks, "No root links specified in $extensionDescription to start crawling from"
         assert ext.baseUrl && ext.host && ext.basePattern && ext.linkPattern && ext.rootLinks
         assert ( ! ext.serverAddress.endsWith( '/' ))
         ext
@@ -120,7 +125,7 @@ class CrawlerTask extends BaseTask
         for ( link in linksStorage.addLinksToProcess( ext.rootLinks ))
         {
             final pageUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-            futures << threadPool.submit({ checkLinks( pageUrl , 'Root link' )} as Runnable )
+            futures << threadPool.submit({ checkLinks( pageUrl, ROOT_LINK_REFERRER )} as Runnable )
         }
     }
 
@@ -240,14 +245,13 @@ class CrawlerTask extends BaseTask
      * @param pageUrl     URL of a page to check its links
      * @param referrerUrl URL of another page referring to the one being checked
      */
+    @Requires({ pageUrl && referrerUrl && linksStorage && threadPool })
     void checkLinks ( String pageUrl, String referrerUrl )
     {
         try
         {
-            assert pageUrl && referrerUrl && linksStorage && threadPool
-
             final ext          = ext()
-            final byte[] bytes = readBytes( pageUrl, referrerUrl )
+            final byte[] bytes = readBytes( pageUrl, referrerUrl, referrerUrl == ROOT_LINK_REFERRER )
 
             if ( ! bytes ) { return }
 
@@ -326,19 +330,23 @@ class CrawlerTask extends BaseTask
     /**
      * Retrieves {@code byte[]} content of the link specified.
      *
-     * @param pageUrl URL of a link to read
+     * @param pageUrl  URL of a link to read
      * @param referrer URL of link referrer
-     * @return content of link specified
+     * @param rootLink whether a link is a root link
+     *
+     * @return binary content of link specified or null if link shouldn't be read
      */
     @Requires({ pageUrl && referrer && linksStorage })
-    byte[] readBytes ( String pageUrl, String referrer )
+    byte[] readBytes ( String pageUrl, String referrer, boolean rootLink )
     {
         final             ext                = ext()
         HttpURLConnection connection         = null
         InputStream       inputStream        = null
-        final             shouldBeDownloaded = pageUrl.with { contains( ext.baseUrl ) || contains( ext.host ) } &&
-                                               ( ! ( ext.nonHtmlContains.any  { pageUrl.contains( it     )} ||
-                                                     ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )}))
+        final             shouldBeDownloaded = rootLink ||
+            (( pageUrl.with { contains( ext.baseUrl ) || contains( ext.host ) }) &&
+             ( ! ext.nonHtmlContains.  any{ pageUrl.contains( it ) } )           &&
+             ( ! ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" ) } ))
+
         try
         {
             if ( ext.verbose )
@@ -359,7 +367,7 @@ class CrawlerTask extends BaseTask
                              ", [${ System.currentTimeMillis() - t }] ms" )
             }
 
-            ( bytes ? decodeBytes( bytes, connection.getHeaderField( 'Content-Encoding' )) : bytes ) as byte[]
+            (( shouldBeDownloaded && bytes ) ? decodeBytes( bytes, connection.getHeaderField( 'Content-Encoding' )) : null ) as byte[]
         }
         catch ( Throwable error )
         {
@@ -391,8 +399,7 @@ class CrawlerTask extends BaseTask
     @Ensures({ result })
     HttpURLConnection makeConnection ( String pageUrl, boolean shouldBeDownloaded )
     {
-        final ext = ext()
-
+        final ext                 = ext()
         final connection          = pageUrl.toURL().openConnection() as HttpURLConnection
         connection.connectTimeout = ext.connectTimeout
         connection.readTimeout    = ext.readTimeout
