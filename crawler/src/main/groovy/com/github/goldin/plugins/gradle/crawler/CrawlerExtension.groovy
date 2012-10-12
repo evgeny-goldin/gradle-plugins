@@ -22,8 +22,8 @@ class CrawlerExtension
 
     String        baseUrl
     int           threadPoolSize = Runtime.runtime.availableProcessors()
-    int           connectTimeout = 10000
-    int           readTimeout    = 10000
+    int           connectTimeout = 15000
+    int           readTimeout    = 15000
 
     /**
      * Optional properties
