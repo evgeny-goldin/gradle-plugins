@@ -375,8 +375,8 @@ class CrawlerTask extends BaseTask
         catch ( Throwable error )
         {
             final statusCode = ( connection ? connection.responseCode : -1 )
-            final isIgnored  = ext.ignoredStatusCodes.any { it == statusCode }
-            final isRetry    = ( ! isIgnored) && ( ext.retries > 0 ) && ( ext.retryStatusCodes.any { it == statusCode })
+            final isIgnored  = ( connection &&  ext.ignoredStatusCodes.any { it == statusCode })
+            final isRetry    = ( connection && ( ! isIgnored) && ( ext.retries > 0 ) && ( ext.retryStatusCodes.any { it == statusCode }))
 
             if ( ext.verbose )
             {
