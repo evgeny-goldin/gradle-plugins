@@ -48,6 +48,9 @@ class CrawlerExtension
     boolean       displayLinks       = true
     boolean       verbose            = false
     boolean       failOnBrokenLinks  = false
+    int           retries            = 3
+    long          retryDelay         = 3000
+    List<Integer> retryStatusCodes   = [ 500 ]
 
     /**
      * Internal properties, calculated in {@link CrawlerTask#verifyAndUpdateExtension()}

@@ -54,11 +54,12 @@ class CrawlerTask extends BaseTask
         final ext                  = ext()
         final extensionDescription = "${ CrawlerPlugin.EXTENSION_NAME } { .. }"
 
-        assert ext.baseUrl,            "'baseUrl' should be defined in $extensionDescription"
-        assert ext.userAgent,          "'userAgent' should be defined in $extensionDescription"
-        assert ext.threadPoolSize > 0, "'threadPoolSize' [${ ext.threadPoolSize }] in $extensionDescription should be positive"
-        assert ext.connectTimeout > 0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
-        assert ext.readTimeout    > 0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
+        assert ext.baseUrl,             "'baseUrl' should be defined in $extensionDescription"
+        assert ext.userAgent,           "'userAgent' should be defined in $extensionDescription"
+        assert ext.threadPoolSize >  0, "'threadPoolSize' [${ ext.threadPoolSize }] in $extensionDescription should be positive"
+        assert ext.connectTimeout >  0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
+        assert ext.readTimeout    >  0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
+        assert ext.retryDelay     > -1, "'retryDelay' [${ ext.retryDelay }] in $extensionDescription should be zero or positive"
 
         assert ext.externalLinkPattern && ext.absoluteLinkPattern && ext.relativeLinkPattern && ext.anchorPattern && ext.protocolPattern
 
@@ -339,9 +340,10 @@ class CrawlerTask extends BaseTask
      *
      * @return binary content of link specified or null if link shouldn't be read
      */
-    @Requires({ pageUrl && referrer && linksStorage })
-    byte[] readBytes ( String pageUrl, String referrer, boolean rootLink )
+    byte[] readBytes ( String pageUrl, String referrer, boolean rootLink, int retry = 1 )
     {
+        assert pageUrl && referrer && linksStorage && ( retry > 0 )
+
         final             ext                = ext()
         HttpURLConnection connection         = null
         InputStream       inputStream        = null
@@ -372,19 +374,28 @@ class CrawlerTask extends BaseTask
         }
         catch ( Throwable error )
         {
-            final canBeIgnored = ( connection && ext.ignoredStatusCodes.any { it == connection.responseCode })
-            final message      = "! [$pageUrl] - $error, " +
-                                 ( canBeIgnored ? "ignored (status code is ${ connection.responseCode }), " : '' ) +
-                                 "referred to by \n  [$referrer]\n"
-
-            if ( ! canBeIgnored )
-            {
-                linksStorage.addBrokenLink( pageUrl, referrer )
-            }
+            final statusCode = ( connection ? connection.responseCode : -1 )
+            final isIgnored  = ext.ignoredStatusCodes.any { it == statusCode }
+            final isRetry    = ( ! isIgnored) && ( ext.retries > 0 ) && ( ext.retryStatusCodes.any { it == statusCode })
 
             if ( ext.verbose )
             {
+                final message = "! [$pageUrl] - $error, status code [$statusCode], " +
+                                ( isIgnored ? 'ignored, '        : '' ) +
+                                ( isRetry   ? "attempt $retry, " : '' ) +
+                                "referred to by \n  [$referrer]\n"
                 logger.warn( message )
+            }
+
+            if ( ! isIgnored )
+            {
+                if ( isRetry && ( retry < ext.retries ))
+                {
+                    sleep( ext.retryDelay )
+                    return readBytes( pageUrl, referrer, rootLink, retry + 1 )
+                }
+
+                linksStorage.addBrokenLink( pageUrl, referrer )
             }
 
             null
