@@ -10,7 +10,7 @@ class CrawlerExtension
     // href="/style/custom.css"
     final Pattern absoluteLinkPattern = Pattern.compile( /(?:src|href)=(?:'|")(\/.+?)(?:'|")/ )
     // href="style/custom.css"
-    final Pattern relativeLinkPattern = Pattern.compile( /(?:src|href)=(?:'|")([^\/#][^:]+?)(?:'|")/ )
+    final Pattern relativeLinkPattern = Pattern.compile( /(?:src|href)=(?:'|")([^\/\\\\#'"][^:]+?)(?:'|")/ )
     // "#anchorName"
     final Pattern anchorPattern       = Pattern.compile( '#.*?$' )
     // "http://"
