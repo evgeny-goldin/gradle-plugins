@@ -326,6 +326,8 @@ class CrawlerTask extends BaseTask
                            findAll { String link -> ( ext.ignoredEndsWith.every{ String  ignored -> ( ! link.endsWith( ignored ))}       )}.
                            findAll { String link -> ( ext.ignoredPatterns.every{ Pattern ignored -> ( ! ignored.matcher( link ).find())} )}.
                            collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}.
+                           collect { String link -> ext.linkTransformers ? ext.linkTransformers.inject( link ){ String newLink, Closure transformer -> transformer( newLink )} :
+                                                                           link }.
                            toSet().
                            sort()
         foundLinks
@@ -382,6 +384,7 @@ class CrawlerTask extends BaseTask
             final isIgnored    = ext.ignoredStatusCodes.any { it == statusCode }
             final isRetry      = (( ! isIgnored ) && ( attempt < ext.retries ) && ( ext.retryStatusCodes.any { it == statusCode }))
             final isRetryAsGet = (( ! isIgnored ) && isHeadRequest && (( statusCode == 405 ) || ( ! isRetry )))
+            final isBrokenLink = (( ! isIgnored ) && ( ! isRetry ) && ( ! isRetryAsGet ))
 
             if ( ext.verbose )
             {
@@ -389,6 +392,7 @@ class CrawlerTask extends BaseTask
                                 ( isIgnored    ? 'ignored, '                        : '' ) +
                                 ( isRetry      ? "attempt $attempt, "               : '' ) +
                                 ( isRetryAsGet ? 'will be retried as GET request, ' : '' ) +
+                                ( isBrokenLink ? 'registered as broken link, '      : '' ) +
                                 "referred to by \n  [$referrer]\n"
                 logger.warn( message )
             }
