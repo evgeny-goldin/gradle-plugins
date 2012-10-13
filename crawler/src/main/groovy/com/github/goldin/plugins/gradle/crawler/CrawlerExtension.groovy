@@ -43,10 +43,10 @@ class CrawlerExtension
     List<String>  ignoredEndsWith    = []
     List<String>  ignoredRegexes     = []
     List<Closure> linkTransformers   = []
-    boolean       checkExternalLinks = false
     boolean       checkAbsoluteLinks = true
     boolean       checkRelativeLinks = true
-    boolean       displayLinks       = true
+    boolean       checkExternalLinks = false
+    boolean       displayLinks       = false
     boolean       failOnBrokenLinks  = false
     int           retries            = 3
     long          retryDelay         = 3000
