@@ -28,6 +28,8 @@ class CrawlerTask extends BaseTask
     CrawlerExtension ext () { extension ( CrawlerPlugin.EXTENSION_NAME, CrawlerExtension ) }
     String s( Collection c ){ s( c.size()) }
     String s( Number     j ){ j == 1 ? '' : 's' }
+    String brokenLinkMessage()                 { 'registered as broken link'     }
+    String referredByMessage( String referrer ){ "referred to by\n  [$referrer]" }
 
 
     @Override
@@ -176,10 +178,10 @@ class CrawlerTask extends BaseTask
 
         if ( linksStorage.brokenLinksNumber())
         {
-            message.append( ':\n\n' )
+            message << ':\n\n'
             for ( brokenLink in linksStorage.brokenLinks())
             {
-                message.append( "- [$brokenLink] - referred to by \n  [${ linksStorage.brokenLinkReferrer( brokenLink )}]\n\n".toString())
+                message << "- [$brokenLink] - ${ referredByMessage( linksStorage.brokenLinkReferrer( brokenLink ))}\n\n"
             }
         }
 
@@ -227,7 +229,7 @@ class CrawlerTask extends BaseTask
         {
             throw new GradleException(
                     "[${ linksStorage.brokenLinksNumber() }] broken link${ s( linksStorage.brokenLinksNumber() )} found, " +
-                    "see above for more details" )
+                    'run Gradle with \'-i\' flag to see the details' )
         }
 
         if ( links < ext.minimumLinks )
@@ -347,20 +349,21 @@ class CrawlerTask extends BaseTask
     {
         assert pageUrl && referrer && linksStorage && ( attempt > 0 )
 
-        final       HttpURLConnection connection = null
-        final       ext           = ext()
-        InputStream inputStream   = null
-        final       nonHtmlLink   = ( ext.nonHtmlContains.any{ pageUrl.contains( it ) } || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )})
-        final       internalLink  = ( pageUrl ==~ ext.internalLinkPattern )
-        final       isHeadRequest = (( ! forceGetRequest ) && ( nonHtmlLink || ( ! internalLink )))
-        final       requestMethod = ( isHeadRequest ? 'HEAD' : 'GET' )
+        final        ext           = ext()
+        InputStream  inputStream   = null
+        RequestData  request       = null
+        final        nonHtmlLink   = ( ext.nonHtmlContains.any{ pageUrl.contains( it ) } || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )})
+        final        internalLink  = ( pageUrl ==~ ext.internalLinkPattern )
+        final        isHeadRequest = (( ! forceGetRequest ) && ( nonHtmlLink || ( ! internalLink )))
+        final        requestMethod = ( isHeadRequest ? 'HEAD' : 'GET' )
 
         try
         {
             if ( ext.verbose ){ logger.info( "[$pageUrl] - sending $requestMethod request .." )}
 
             final t                = System.currentTimeMillis()
-            connection             = makeConnection( pageUrl, requestMethod )
+            final connection       = openConnection( pageUrl, requestMethod )
+            request                = new RequestData( pageUrl, referrer, linksStorage, connection, attempt, forceGetRequest, isHeadRequest )
             inputStream            = connection.inputStream
             final byte[] bytes     = (( isHeadRequest || internalLink ) ? inputStream.bytes : [ inputStream.read() ]) as byte[]
             final responseEncoding = connection.getHeaderField( 'Content-Encoding' )
@@ -378,43 +381,13 @@ class CrawlerTask extends BaseTask
 
             ( bytes && internalLink ) ? decodeBytes( bytes, responseEncoding, responseSize ) : null
         }
+        catch ( UnknownHostException error )
+        {
+            return handleUnrecoverableError( request, error )
+        }
         catch ( Throwable error )
         {
-            final statusCode   = ( connection ? connection.responseCode : -1 )
-            final isIgnored    = ext.ignoredStatusCodes.any { it == statusCode }
-            final isRetry      = (( ! isIgnored ) && ( attempt < ext.retries ) && ( ext.retryStatusCodes.any { it == statusCode }))
-            final isRetryAsGet = (( ! isIgnored ) && isHeadRequest && (( statusCode == 405 ) || ( ! isRetry )))
-            final isBrokenLink = (( ! isIgnored ) && ( ! isRetry ) && ( ! isRetryAsGet ))
-
-            if ( ext.verbose )
-            {
-                final message = "! [$pageUrl] - $error, status code [$statusCode], " +
-                                ( isIgnored    ? 'ignored, '                        : '' ) +
-                                ( isRetry      ? "attempt $attempt, "               : '' ) +
-                                ( isRetryAsGet ? 'will be retried as GET request, ' : '' ) +
-                                ( isBrokenLink ? 'registered as broken link, '      : '' ) +
-                                "referred to by \n  [$referrer]\n"
-                logger.warn( message )
-            }
-
-            if ( ! isIgnored )
-            {
-                if ( isRetryAsGet )
-                {
-                    sleep( ext.retryDelay )
-                    return readBytes( pageUrl, referrer, true, 1 )
-                }
-
-                if ( isRetry )
-                {
-                    sleep( ext.retryDelay )
-                    return readBytes( pageUrl, referrer, forceGetRequest, attempt + 1 )
-                }
-
-                linksStorage.addBrokenLink( pageUrl, referrer )
-            }
-
-            null
+            return handleUnknownError( request, error )
         }
         finally
         {
@@ -423,9 +396,71 @@ class CrawlerTask extends BaseTask
     }
 
 
+    @Requires({ request && error })
+    byte[] handleUnrecoverableError ( RequestData request, Throwable error )
+    {
+        request.with {
+            logger.warn( "! [$pageUrl] - $error, ${ brokenLinkMessage()}, ${ referredByMessage( referrer )}\n" )
+            linksStorage.addBrokenLink( pageUrl, referrer )
+        }
+
+        null
+    }
+
+
+    @Requires({ request && error })
+    byte[] handleUnknownError ( RequestData request, Throwable error )
+    {
+        try {
+            request.with {
+                final ext          = ext()
+                final statusCode   = ( connection ? connection.responseCode : -1 ) // Reading status code may throw another exception, like SocketTimeoutException
+                final isIgnored    = ext.ignoredStatusCodes.any { it == statusCode }
+                final isRetry      = (( ! isIgnored ) && ( attempt < ext.retries ) && ( ext.retryStatusCodes.any { it == statusCode }))
+                final isRetryAsGet = (( ! isIgnored ) && isHeadRequest && (( statusCode == 405 ) || ( ! isRetry )))
+                final isBrokenLink = (( ! isIgnored ) && ( ! isRetry ) && ( ! isRetryAsGet ))
+
+                if ( ext.verbose )
+                {
+                    final message = "! [$pageUrl] - $error, status code [$statusCode], " +
+                                    ( isIgnored    ? 'ignored, '                        : '' ) +
+                                    ( isRetry      ? "attempt $attempt, "               : '' ) +
+                                    ( isRetryAsGet ? 'will be retried as GET request, ' : '' ) +
+                                    ( isBrokenLink ? "${ brokenLinkMessage()}, "        : '' ) +
+                                    referredByMessage( referrer )
+                    logger.warn( message )
+                }
+
+                if ( ! isIgnored )
+                {
+                    if ( isRetryAsGet )
+                    {
+                        sleep( ext.retryDelay )
+                        return readBytes( pageUrl, referrer, true, 1 )
+                    }
+
+                    if ( isRetry )
+                    {
+                        sleep( ext.retryDelay )
+                        return readBytes( pageUrl, referrer, forceGetRequest, attempt + 1 )
+                    }
+
+                    linksStorage.addBrokenLink( pageUrl, referrer )
+                }
+            }
+        }
+        catch ( Throwable newError )
+        {
+            handleUnrecoverableError( request, newError )
+        }
+
+        null
+    }
+
+
     @Requires({ pageUrl && requestMethod })
     @Ensures({ result })
-    HttpURLConnection makeConnection ( String pageUrl, String requestMethod )
+    HttpURLConnection openConnection ( String pageUrl, String requestMethod )
     {
         final ext                 = ext()
         final connection          = pageUrl.toURL().openConnection() as HttpURLConnection

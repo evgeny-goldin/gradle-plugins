@@ -17,6 +17,14 @@ class LinksStorage
     private volatile boolean                  locked         = false
 
 
+    @Requires({ map && key && value })
+    private <T> void updateMap( Map<String, T> map, String key, T value )
+    {
+        assert ( ! ( locked || map.containsKey( key.toString())))
+        map[ key.toString() ] = value
+    }
+
+
     void lock()
     {
         locked = true
@@ -98,23 +106,20 @@ class LinksStorage
     @Requires({ pageUrl && ( links != null ) })
     void updateLinksMap ( String pageUrl, Set<String> links )
     {
-        assert ! ( locked || linksMap.containsKey( pageUrl.toString()))
-        linksMap[ pageUrl.toString() ] = links
+        updateMap( linksMap, pageUrl, links )
     }
 
 
     @Requires({ pageUrl && newLinks })
     void updateNewLinksMap ( String pageUrl, Set<String> newLinks )
     {
-        assert ! ( locked || newLinksMap.containsKey( pageUrl.toString()))
-        newLinksMap[ pageUrl.toString() ] = newLinks
+        updateMap( newLinksMap, pageUrl, newLinks )
     }
 
 
     @Requires({ brokenLink && referrer })
     void addBrokenLink ( String brokenLink, String referrer )
     {
-        assert ! ( locked || ( brokenLink.toString() in brokenLinks.keySet()))
-        brokenLinks[ brokenLink.toString() ] = referrer
+        updateMap( brokenLinks, brokenLink, referrer )
     }
 }
