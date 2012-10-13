@@ -98,26 +98,22 @@ class CrawlerTask extends BaseTask
      */
     void printStartBanner ()
     {
-        final ext  = ext()
-        final host = ext.host.replaceAll( ':.*', '' ).replaceAll( '/.*', '' )
-        assert ( ! host.with { contains( ':' ) || contains( '/' ) })
-
-        final ipAddress     = (( ext.host =~ /^\d+/ ) ? '' : " (${ InetAddress.getByName( host ).hostAddress })" )
-        final bannerMessage = "Checking [http://$ext.host]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }, " +
-                              "verbose [$ext.verbose], " +
-                              "displayLinks [${ext.displayLinks}]"
-        final bannerLine    = "-" * ( bannerMessage.size() + 2 )
-
-        logger.info( bannerLine )
-        logger.info( " $bannerMessage" )
-
-        if ( ext.verbose )
+        if ( logger.isInfoEnabled())
         {
+            final ext  = ext()
+            final host = ext.host.replaceAll( ':.*', '' ).replaceAll( '/.*', '' )
+            assert ( ! host.with { contains( ':' ) || contains( '/' ) })
+
+            final ipAddress     = (( ext.host =~ /^\d+/ ) ? '' : " (${ InetAddress.getByName( host ).hostAddress })" )
+            final bannerMessage = "Checking [http://$ext.host]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }"
+            final bannerLine    = "-" * ( bannerMessage.size() + 2 )
+
+            logger.info( bannerLine )
+            logger.info( " $bannerMessage" )
             logger.info( " Root link${ s( ext.rootLinks )}:" )
             ext.rootLinks.each { logger.info( " * [$it]" )}
+            logger.info( bannerLine )
         }
-
-        logger.info( bannerLine )
     }
 
 
@@ -185,7 +181,7 @@ class CrawlerTask extends BaseTask
             }
         }
 
-        logger.info( message.toString())
+        ( linksStorage.brokenLinksNumber() ? logger.&error : logger.&info )( message.toString())
     }
 
 
@@ -207,8 +203,10 @@ class CrawlerTask extends BaseTask
             file.write( linksMapReport, 'UTF-8' )
             if ( linksMap ){ assert file.size()}
 
-            logger.info( "$title is written to [${ file.canonicalPath }], " +
-                         "[${ linksMap.size() }] entr${ linksMap.size() == 1 ? 'y' : 'ies' }" )
+            if ( logger.isInfoEnabled())
+            {
+                logger.info( "$title is written to [${ file.canonicalPath }], [${ linksMap.size() }] entr${ linksMap.size() == 1 ? 'y' : 'ies' }" )
+            }
         }
 
         if ( ext.linksMapFile    ) { print( ext.linksMapFile,    linksStorage.linksMap(),    'Links map'     )}
@@ -229,7 +227,7 @@ class CrawlerTask extends BaseTask
         {
             throw new GradleException(
                     "[${ linksStorage.brokenLinksNumber() }] broken link${ s( linksStorage.brokenLinksNumber() )} found, " +
-                    'run Gradle with \'-i\' flag to see the details' )
+                    'see above for more details' )
         }
 
         if ( links < ext.minimumLinks )
@@ -268,7 +266,7 @@ class CrawlerTask extends BaseTask
             if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
             if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
 
-            if ( ext.verbose )
+            if ( logger.isInfoEnabled())
             {
                 final linksMessage    = pageLinks ? ", ${ newLinks ? newLinks.size() : 'no' } new" : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"               : ''
@@ -359,7 +357,7 @@ class CrawlerTask extends BaseTask
 
         try
         {
-            if ( ext.verbose ){ logger.info( "[$pageUrl] - sending $requestMethod request .." )}
+            if ( logger.isInfoEnabled()){ logger.info( "[$pageUrl] - sending $requestMethod request .." )}
 
             final t                = System.currentTimeMillis()
             final connection       = openConnection( pageUrl, requestMethod )
@@ -372,7 +370,7 @@ class CrawlerTask extends BaseTask
             if ( isHeadRequest ) { assert bytes.length == 0  }
             else { bytesDownloaded.addAndGet( bytes.length ) }
 
-            if ( ext.verbose )
+            if ( logger.isInfoEnabled())
             {
                 logger.info( "[$pageUrl] - " +
                              (( isHeadRequest || ( ! internalLink )) ? 'can be read' : "[${ bytes.size()}] byte${ s( bytes.size())}" ) +
@@ -400,7 +398,7 @@ class CrawlerTask extends BaseTask
     byte[] handleUnrecoverableError ( RequestData request, Throwable error )
     {
         request.with {
-            logger.warn( "! [$pageUrl] - $error, ${ brokenLinkMessage()}, ${ referredByMessage( referrer )}\n" )
+            if ( logger.isInfoEnabled()) { logger.warn( "! [$pageUrl] - $error, ${ brokenLinkMessage()}, ${ referredByMessage( referrer )}\n" )}
             linksStorage.addBrokenLink( pageUrl, referrer )
         }
 
@@ -420,7 +418,7 @@ class CrawlerTask extends BaseTask
                 final isRetryAsGet = (( ! isIgnored ) && isHeadRequest && (( statusCode == 405 ) || ( ! isRetry )))
                 final isBrokenLink = (( ! isIgnored ) && ( ! isRetry ) && ( ! isRetryAsGet ))
 
-                if ( ext.verbose )
+                if ( logger.isInfoEnabled())
                 {
                     final message = "! [$pageUrl] - $error, status code [$statusCode], " +
                                     ( isIgnored    ? 'ignored, '                        : '' ) +

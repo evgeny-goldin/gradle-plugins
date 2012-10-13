@@ -47,7 +47,6 @@ class CrawlerExtension
     boolean       checkAbsoluteLinks = true
     boolean       checkRelativeLinks = true
     boolean       displayLinks       = true
-    boolean       verbose            = false
     boolean       failOnBrokenLinks  = false
     int           retries            = 3
     long          retryDelay         = 3000
