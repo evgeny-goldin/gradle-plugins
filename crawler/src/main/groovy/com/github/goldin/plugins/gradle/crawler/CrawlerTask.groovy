@@ -97,8 +97,8 @@ class CrawlerTask extends BaseTask
     void printStartBanner ()
     {
         final ext  = ext()
-        final host = ext.host.replaceAll( '/.*', '' )
-        assert ( ! host.contains( '/' ))
+        final host = ext.host.replaceAll( ':.*', '' ).replaceAll( '/.*', '' )
+        assert ( ! host.with { contains( ':' ) || contains( '/' ) })
 
         final ipAddress     = (( ext.host =~ /^\d+/ ) ? '' : " (${ InetAddress.getByName( host ).hostAddress })" )
         final bannerMessage = "Checking [http://$ext.host]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }, " +
