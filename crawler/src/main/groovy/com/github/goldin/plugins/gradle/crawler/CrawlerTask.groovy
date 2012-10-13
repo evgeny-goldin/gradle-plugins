@@ -335,29 +335,30 @@ class CrawlerTask extends BaseTask
     /**
      * Retrieves {@code byte[]} content of the link specified.
      *
-     * @param pageUrl       URL of a link to read
-     * @param referrer      URL of link referrer
-     * @param forceDownload whether a link should be downloaded in any case (even if non-HTML link)
+     * @param pageUrl         URL of a link to read
+     * @param referrer        URL of link referrer
+     * @param forceGetRequest whether a link should be GET-requested in any case
      *
      * @return binary content of link specified or null if link shouldn't be read
      */
-    byte[] readBytes ( String pageUrl, String referrer, boolean forceDownload, int retry = 1 )
+    byte[] readBytes ( final String pageUrl, final String referrer, final boolean forceGetRequest, final int attempt = 1 )
     {
-        assert pageUrl && referrer && linksStorage && ( retry > 0 )
+        assert pageUrl && referrer && linksStorage && ( attempt > 0 )
 
-        final             ext           = ext()
-        HttpURLConnection connection    = null
-        InputStream       inputStream   = null
-        final             nonHtmlLink   = ( ext.nonHtmlContains.any{ pageUrl.contains( it ) } || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )})
-        final             internalLink  = ( pageUrl ==~ ext.internalLinkPattern )
-        final             isHeadRequest = (( ! forceDownload ) && ( nonHtmlLink || ( ! internalLink )))
+        final       HttpURLConnection connection = null
+        final       ext           = ext()
+        InputStream inputStream   = null
+        final       nonHtmlLink   = ( ext.nonHtmlContains.any{ pageUrl.contains( it ) } || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )})
+        final       internalLink  = ( pageUrl ==~ ext.internalLinkPattern )
+        final       isHeadRequest = (( ! forceGetRequest ) && ( nonHtmlLink || ( ! internalLink )))
+        final       requestMethod = ( isHeadRequest ? 'HEAD' : 'GET' )
 
         try
         {
-            if ( ext.verbose ){ logger.info( "[$pageUrl] - reading .." )}
+            if ( ext.verbose ){ logger.info( "[$pageUrl] - sending $requestMethod request .." )}
 
             final t                = System.currentTimeMillis()
-            connection             = makeConnection( pageUrl, isHeadRequest )
+            connection             = makeConnection( pageUrl, requestMethod )
             inputStream            = connection.inputStream
             final byte[] bytes     = (( isHeadRequest || internalLink ) ? inputStream.bytes : [ inputStream.read() ]) as byte[]
             final responseEncoding = connection.getHeaderField( 'Content-Encoding' )
@@ -378,15 +379,15 @@ class CrawlerTask extends BaseTask
         catch ( Throwable error )
         {
             final statusCode   = ( connection ? connection.responseCode : -1 )
-            final isIgnored    = ( connection &&  ext.ignoredStatusCodes.any { it == statusCode })
-            final isRetry      = ( connection && ( ! isIgnored) && ( ext.retries > 0 ) && ( ext.retryStatusCodes.any { it == statusCode }))
-            final isRetryAsGet = ( connection && ( ! isIgnored) && ( ! isRetry ) && isHeadRequest && ( statusCode == 405 ))
+            final isIgnored    = ext.ignoredStatusCodes.any { it == statusCode }
+            final isRetry      = (( ! isIgnored ) && ( attempt < ext.retries ) && ( ext.retryStatusCodes.any { it == statusCode }))
+            final isRetryAsGet = (( ! isIgnored ) && isHeadRequest && (( statusCode == 405 ) || ( ! isRetry )))
 
             if ( ext.verbose )
             {
                 final message = "! [$pageUrl] - $error, status code [$statusCode], " +
                                 ( isIgnored    ? 'ignored, '                        : '' ) +
-                                ( isRetry      ? "attempt $retry, "                 : '' ) +
+                                ( isRetry      ? "attempt $attempt, "               : '' ) +
                                 ( isRetryAsGet ? 'will be retried as GET request, ' : '' ) +
                                 "referred to by \n  [$referrer]\n"
                 logger.warn( message )
@@ -394,16 +395,16 @@ class CrawlerTask extends BaseTask
 
             if ( ! isIgnored )
             {
-                if ( isRetry && ( retry < ext.retries ))
-                {
-                    sleep( ext.retryDelay )
-                    return readBytes( pageUrl, referrer, forceDownload, retry + 1 )
-                }
-
                 if ( isRetryAsGet )
                 {
                     sleep( ext.retryDelay )
-                    return readBytes( pageUrl, referrer, true, retry )
+                    return readBytes( pageUrl, referrer, true, 1 )
+                }
+
+                if ( isRetry )
+                {
+                    sleep( ext.retryDelay )
+                    return readBytes( pageUrl, referrer, forceGetRequest, attempt + 1 )
                 }
 
                 linksStorage.addBrokenLink( pageUrl, referrer )
@@ -418,15 +419,15 @@ class CrawlerTask extends BaseTask
     }
 
 
-    @Requires({ pageUrl })
+    @Requires({ pageUrl && requestMethod })
     @Ensures({ result })
-    HttpURLConnection makeConnection ( String pageUrl, boolean isHeadRequest )
+    HttpURLConnection makeConnection ( String pageUrl, String requestMethod )
     {
         final ext                 = ext()
         final connection          = pageUrl.toURL().openConnection() as HttpURLConnection
         connection.connectTimeout = ext.connectTimeout
         connection.readTimeout    = ext.readTimeout
-        connection.requestMethod  = ( isHeadRequest ? 'HEAD' : 'GET' )
+        connection.requestMethod  = requestMethod
 
         connection.setRequestProperty( 'User-Agent' ,     ext.userAgent  )
         connection.setRequestProperty( 'Accept-Encoding', 'gzip,deflate' )
