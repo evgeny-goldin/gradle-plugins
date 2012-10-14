@@ -4,12 +4,10 @@ package com.github.goldin.plugins.gradle.gitdump
 class GitDumpExtension
 {
     List<String> urls
-    File         directory
-    String       singleArchiveName
-
-    boolean      useTarGzip          = true
-    boolean      useZip              = false
+    File         outputDirectory
+    boolean      useZip              = true
     boolean      singleArchive       = false
+    String       singleArchiveName   = 'gitdump'
     long         singleBackupMaxSize = Long.MAX_VALUE
     long         totalBackupMaxSize  = Long.MAX_VALUE
 }

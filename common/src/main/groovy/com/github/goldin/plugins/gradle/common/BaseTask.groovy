@@ -30,7 +30,7 @@ abstract class BaseTask extends DefaultTask
 
 
     @TaskAction
-    @Requires({ project.rootDir && project.version })
+    @Requires({ project && project.rootDir && project.version })
     final void doTask()
     {
         this.rootDir   = project.rootDir
