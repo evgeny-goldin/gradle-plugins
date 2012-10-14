@@ -33,7 +33,8 @@ class GitDumpTask extends BaseTask
 
         if ( ext.singleArchive )
         {
-            archive( ext.outputDirectory, ext.singleArchiveName, false, ext.totalBackupMaxSize )
+            final archive = archive( ext.outputDirectory, ext.singleArchiveName, false, ext.totalBackupMaxSize )
+            project.delete( ext.outputDirectory.listFiles().findAll{ it.name != archive.name })
         }
     }
 
