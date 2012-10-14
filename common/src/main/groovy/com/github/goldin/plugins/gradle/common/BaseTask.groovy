@@ -40,6 +40,10 @@ abstract class BaseTask extends DefaultTask
     }
 
 
+    final String s( Collection c ){ s( c.size()) }
+    final String s( Number     j ){ j == 1 ? '' : 's' }
+
+
     /**
      * Retrieves extension of the type specified.
      *

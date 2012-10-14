@@ -26,8 +26,6 @@ class CrawlerTask extends BaseTask
 
 
     CrawlerExtension ext () { extension ( CrawlerPlugin.EXTENSION_NAME, CrawlerExtension ) }
-    String s( Collection c ){ s( c.size()) }
-    String s( Number     j ){ j == 1 ? '' : 's' }
     String brokenLinkMessage()                 { 'registered as broken link'     }
     String referredByMessage( String referrer ){ "referred to by\n  [$referrer]" }
 

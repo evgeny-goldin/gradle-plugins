@@ -73,7 +73,7 @@ class GitDumpTask extends BaseTask
     {
         final ext       = ext()
         final directory = makeEmptyDirectory( new File( ext.outputDirectory, projectName ))
-        final command   = [ 'git', 'clone', '--bare', repoUrl, directory.canonicalPath ]
+        final command   = [ 'git', 'clone',  *ext.cloneFlags, ext.bareClone ? '--bare' : '', repoUrl, directory.canonicalPath ].grep()
 
         logger.info( "Running $command .." )
         project.exec { executable( command.head()); args( command.tail()) }
@@ -91,6 +91,7 @@ class GitDumpTask extends BaseTask
     {
         final ext     = ext()
         final archive = new File( ext.outputDirectory, "${ archiveBaseName }.${ ext.useZip ? 'zip' : 'tar.gz' }" )
+
         project.delete( archive )
         assert ( ! archive.file )
 
@@ -99,8 +100,8 @@ class GitDumpTask extends BaseTask
             ant.zip( destfile        : archive,
                      basedir         : directory,
                      whenempty       : 'fail',
-                     level           : 9,
-                     defaultexcludes : 'no' )
+                     defaultexcludes : 'no',
+                     level           : 9 )
         }
         else
         {
@@ -109,8 +110,11 @@ class GitDumpTask extends BaseTask
                      compression : 'gzip' )
         }
 
-        assert ( archive.file && archive.length())
-        assert ( archive.length() < maxSizeLimit ), "[$archive.canonicalPath] size [${ archive.length()}] is larger than [$maxSizeLimit] bytes"
+        final size = archive.length()
+        assert ( archive.file && size )
+        assert ( size < maxSizeLimit ), \
+               "[$archive.canonicalPath] size is [$size] byte${ s( size )}, it is larger than limit of [$maxSizeLimit] byte${ s( maxSizeLimit )}"
+
         logger.info( "[$directory.canonicalPath] archived to [$archive.canonicalPath]" )
 
         if ( deleteDirectory )
