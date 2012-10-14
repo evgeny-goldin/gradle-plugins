@@ -6,6 +6,7 @@ import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecSpec
 
 import javax.xml.XMLConstants
 import javax.xml.transform.stream.StreamSource
@@ -49,22 +50,34 @@ abstract class BaseTask extends DefaultTask
      *
      * @param command   command to execute
      * @param arguments command arguments
-     * @return command standart and error output
+     * @param directory process working directory
+     * @return process standard and error output
      */
-    @Requires({ command && ( arguments != null ) })
-    final String exec( String command, List<String> arguments )
+    @Requires({  })
+    final String exec( String command, List<String> arguments, File directory = null )
     {
-        final outputStream = new ByteArrayOutputStream()
-        project.exec {
-            executable( command )
-            args( arguments )
-            setStandartOutput( outputStream )
-            setErrorOutput( outputStream )
+        assert command && ( arguments != null )
+        if ( logger.isInfoEnabled())
+        {
+            logger.info( "Running [$command] with arguments $arguments${ directory ? ' in [' + directory.canonicalPath + ']' : '' }" )
         }
 
+        final outputStream = new ByteArrayOutputStream()
+
+        project.exec {
+            ExecSpec spec ->
+            spec.with {
+                executable( command )
+                args( arguments )
+                standardOutput = outputStream
+                errorOutput    = outputStream
+                if ( directory ) { workingDir = directory }
+            }
+        }
+
+        if ( logger.isInfoEnabled()) { logger.info( 'Done' )}
         outputStream.toString()
     }
-
 
 
     /**

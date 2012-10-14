@@ -81,11 +81,16 @@ class GitDumpTask extends BaseTask
     {
         final ext       = ext()
         final directory = makeEmptyDirectory( new File( ext.outputDirectory, projectName ))
-        final command   = [ 'git', 'clone',  *ext.cloneFlags, ext.bareClone ? '--bare' : '', repoUrl, directory.canonicalPath ].grep()
+        final arguments = [ 'clone',  *ext.cloneFlags, ext.bareClone ? '--bare' : '', repoUrl, directory.canonicalPath ].grep()
 
-        logger.info( "Running $command .." )
-        exec(( String ) command.head(), ( List<String> ) command.tail())
-        logger.info( 'Done' )
+        exec( 'git', ( List<String> ) arguments )
+
+        if ( ext.runGitGc )
+        {
+            exec( 'git', 'fsck --unreachable --strict'.tokenize(), directory )
+            exec( 'git', 'prune -v'.tokenize(), directory )
+            exec( 'git', [ 'gc' ], directory )
+        }
 
         assert directory.list(), "[$directory.canonicalPath] contains no files"
         logger.info( "[$repoUrl] cloned to [$directory.canonicalPath]" )

@@ -9,6 +9,7 @@ class GitDumpExtension
     File         outputDirectory
     boolean      useZip                 = true
     boolean      bareClone              = true
+    boolean      runGitGc               = true
     List<String> cloneFlags             = []
     boolean      singleArchive          = false
     String       singleArchiveName      = 'gitdump'
