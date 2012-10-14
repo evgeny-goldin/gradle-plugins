@@ -17,11 +17,12 @@ class GitDumpTask extends BaseTask
     void taskAction ( )
     {
         final ext = verifyAndUpdateExtension()
+        verifyGitAvailable()
+
         for ( repoUrl in ext.urls )
         {
-            final  projectName = repoUrl.find( /\/([^\/]+).git$/ ){ it[1] }
+            final  projectName  = repoUrl.find( ext.gitProjectNamePattern ){ it[ 1 ] }
             assert projectName, "Failed to match a project name in [$repoUrl]"
-
             final repoDirectory = cloneRepository( repoUrl, projectName )
 
             if ( ! ext.singleArchive )
@@ -46,11 +47,18 @@ class GitDumpTask extends BaseTask
         assert ext.urls, "List of Git URLs is not defined in $description"
         ext.urls.each { assert it.endsWith( '.git' ), "[$it] is not a Git repository URL, should end with '.git'" }
         assert ext.singleArchiveName,       "'singleArchiveName' should be defined in $description"
+        assert ext.gitProjectNamePattern,   "'gitProjectNamePattern' should be defined in $description"
         assert ext.singleBackupMaxSize > 0, "'singleBackupMaxSize' should be positive in $description"
         assert ext.totalBackupMaxSize  > 0, "'totalBackupMaxSize' should be positive in $description"
 
         ext.outputDirectory = makeEmptyDirectory( ext.outputDirectory?: new File( project.buildDir, 'gitdump' ))
         ext
+    }
+
+
+    void verifyGitAvailable ( )
+    {
+        assert exec( 'git', [ '--version' ]).contains( 'git version' ), "'git' client is not available :("
     }
 
 
@@ -76,7 +84,7 @@ class GitDumpTask extends BaseTask
         final command   = [ 'git', 'clone',  *ext.cloneFlags, ext.bareClone ? '--bare' : '', repoUrl, directory.canonicalPath ].grep()
 
         logger.info( "Running $command .." )
-        project.exec { executable( command.head()); args( command.tail()) }
+        exec(( String ) command.head(), ( List<String> ) command.tail())
         logger.info( 'Done' )
 
         assert directory.list(), "[$directory.canonicalPath] contains no files"

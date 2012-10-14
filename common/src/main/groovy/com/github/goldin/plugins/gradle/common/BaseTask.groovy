@@ -45,6 +45,29 @@ abstract class BaseTask extends DefaultTask
 
 
     /**
+     * Executes the command specified.
+     *
+     * @param command   command to execute
+     * @param arguments command arguments
+     * @return command standart and error output
+     */
+    @Requires({ command && ( arguments != null ) })
+    final String exec( String command, List<String> arguments )
+    {
+        final outputStream = new ByteArrayOutputStream()
+        project.exec {
+            executable( command )
+            args( arguments )
+            setStandartOutput( outputStream )
+            setErrorOutput( outputStream )
+        }
+
+        outputStream.toString()
+    }
+
+
+
+    /**
      * Retrieves extension of the type specified.
      *
      * @param extensionName name of extension
