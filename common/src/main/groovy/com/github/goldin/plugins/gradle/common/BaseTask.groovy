@@ -1,5 +1,4 @@
 package com.github.goldin.plugins.gradle.common
-
 import org.apache.tools.ant.DirectoryScanner
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -11,6 +10,8 @@ import org.gradle.process.ExecSpec
 import javax.xml.XMLConstants
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 
 
 /**
@@ -21,6 +22,7 @@ abstract class BaseTask extends DefaultTask
     File   rootDir
     String version
     long   startTime
+    final  DateFormat dateFormatter = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
 
 
     /**

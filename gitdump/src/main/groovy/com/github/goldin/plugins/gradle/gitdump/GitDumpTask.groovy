@@ -21,6 +21,11 @@ class GitDumpTask extends BaseTask
         final ext = verifyAndUpdateExtension()
         verifyGitAvailable()
 
+        if ( ext.aboutFile )
+        {
+            ext.aboutFile.write( dateFormatter.format( startTime ))
+        }
+
         for ( repoUrl in ext.urls )
         {
             final  projectName  = repoUrl.find( ext.gitProjectNamePattern ){ it[ 1 ] }
@@ -55,6 +60,7 @@ class GitDumpTask extends BaseTask
         assert ext.totalBackupMaxSize  > 0, "'totalBackupMaxSize' should be positive in $description"
 
         ext.outputDirectory = makeEmptyDirectory( ext.outputDirectory?: new File( project.buildDir, 'gitdump' ))
+        ext.aboutFile       = ( ext.addAbout ? new File( ext.outputDirectory, 'about.txt' ) : null )
         ext
     }
 
@@ -103,6 +109,15 @@ class GitDumpTask extends BaseTask
 
         assert targetDirectory.list(), "[$targetDirectory.canonicalPath] contains no files"
         logger.info( "[$repoUrl] cloned into [$targetDirectory.canonicalPath]" )
+
+        if ( ext.addAbout )
+        {
+            ext.aboutFile.append( """
+[$projectName]:
+ * Repo   - [$repoUrl]
+ * Commit - [${ gitExec( 'log -1 --format=format:%H' )}]""" )
+        }
+
         targetDirectory
     }
 
