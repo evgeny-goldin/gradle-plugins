@@ -91,7 +91,6 @@ class GitDumpTask extends BaseTask
         if ( ext.runAggressiveGitGc )
         {
             project.delete( new File( targetDirectory, ext.bareClone ? 'hooks' : '.git/hooks' ))
-            if ( ! ext.bareClone ) { gitExec( 'stash clear',  targetDirectory )}
             gitExec( 'reflog expire --all --expire=1.minute', targetDirectory )
         }
 
