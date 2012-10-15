@@ -49,7 +49,9 @@ class GitDumpTask extends BaseTask
         final description = "${ GitDumpPlugin.EXTENSION_NAME } { .. }"
 
         assert ext.urls, "List of Git URLs is not defined in $description"
+        ext.urls = ext.urls.toSet().sort()
         ext.urls.each { assert it.endsWith( '.git' ), "[$it] is not a Git repository URL, should end with '.git'" }
+
         assert ext.singleArchiveName,       "'singleArchiveName' should be defined in $description"
         assert ext.gitProjectNamePattern,   "'gitProjectNamePattern' should be defined in $description"
         assert ext.singleBackupMaxSize > 0, "'singleBackupMaxSize' should be positive in $description"
