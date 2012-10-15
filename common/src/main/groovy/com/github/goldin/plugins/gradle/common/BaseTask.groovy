@@ -49,11 +49,24 @@ abstract class BaseTask extends DefaultTask
      * Executes the command specified.
      *
      * @param command   command to execute
+     * @param arguments command arguments, will be tokenized
+     * @param directory process working directory
+     * @return process standard and error output
+     */
+    final String exec( String command, String arguments, File directory = null )
+    {
+        exec( command, arguments.tokenize(), directory )
+    }
+
+
+    /**
+     * Executes the command specified.
+     *
+     * @param command   command to execute
      * @param arguments command arguments
      * @param directory process working directory
      * @return process standard and error output
      */
-    @Requires({  })
     final String exec( String command, List<String> arguments, File directory = null )
     {
         assert command && ( arguments != null )

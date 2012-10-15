@@ -11,6 +11,8 @@ import org.gcontracts.annotations.Requires
 class GitDumpTask extends BaseTask
 {
     private GitDumpExtension ext () { extension ( GitDumpPlugin.EXTENSION_NAME, GitDumpExtension ) }
+    private gitExec( List<String> commands, File directory = null ){ exec( 'git', commands, directory )}
+    private gitExec( String command,        File directory = null ){ exec( 'git', command,  directory )}
 
 
     @Override
@@ -59,7 +61,7 @@ class GitDumpTask extends BaseTask
 
     void verifyGitAvailable ( )
     {
-        assert exec( 'git', [ '--version' ]).contains( 'git version' ), "'git' client is not available :("
+        assert gitExec( '--version' ).contains( 'git version' ), "'git' client is not available :^("
     }
 
 
@@ -80,22 +82,29 @@ class GitDumpTask extends BaseTask
     @Ensures({ result.directory })
     File cloneRepository ( String repoUrl, String projectName )
     {
-        final ext       = ext()
-        final directory = makeEmptyDirectory( new File( ext.outputDirectory, projectName ))
-        final arguments = [ 'clone', *ext.cloneFlags, ext.bareClone ? '--bare' : '', repoUrl, directory.canonicalPath ].grep()
+        final ext             = ext()
+        final targetDirectory = makeEmptyDirectory( new File( ext.outputDirectory, projectName ))
+        final arguments       = ( List<String> ) [ 'clone', *ext.cloneFlags, ext.bareClone ? '--bare' : '',
+                                                   repoUrl, targetDirectory.canonicalPath ].grep()
+        gitExec( arguments )
 
-        exec( 'git', ( List<String> ) arguments )
+        if ( ext.runAggressiveGitGc )
+        {
+            project.delete( new File( targetDirectory, ext.bareClone ? 'hooks' : '.git/hooks' ))
+            gitExec( 'stash clear' )
+            gitExec( 'reflog expire --all --expire=1.minute' )
+        }
 
         if ( ext.runGitGc )
         {
-            exec( 'git', 'fsck --unreachable --strict'.tokenize(), directory )
-            exec( 'git', 'prune -v'.tokenize(), directory )
-            exec( 'git', [ 'gc' ], directory )
+            gitExec( 'fsck --unreachable --strict', targetDirectory )
+            gitExec( 'prune', targetDirectory )
+            gitExec( 'gc', targetDirectory )
         }
 
-        assert directory.list(), "[$directory.canonicalPath] contains no files"
-        logger.info( "[$repoUrl] cloned to [$directory.canonicalPath]" )
-        directory
+        assert targetDirectory.list(), "[$targetDirectory.canonicalPath] contains no files"
+        logger.info( "[$repoUrl] cloned into [$targetDirectory.canonicalPath]" )
+        targetDirectory
     }
 
 
