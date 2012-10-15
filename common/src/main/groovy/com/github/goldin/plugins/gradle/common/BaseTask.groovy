@@ -77,15 +77,23 @@ abstract class BaseTask extends DefaultTask
 
         final outputStream = new ByteArrayOutputStream()
 
-        project.exec {
-            ExecSpec spec ->
-            spec.with {
-                executable( command )
-                args( arguments )
-                standardOutput = outputStream
-                errorOutput    = outputStream
-                if ( directory ) { workingDir = directory }
+        try
+        {
+            project.exec {
+                ExecSpec spec ->
+                spec.with {
+                    executable( command )
+                    args( arguments )
+                    standardOutput = outputStream
+                    errorOutput    = outputStream
+                    if ( directory ) { workingDir = directory }
+                }
             }
+        }
+        catch ( Throwable error )
+        {
+            throw new GradleException( "Failed to execute [$command] with arguments $arguments, output is [${ outputStream.toString()}]",
+                                       error )
         }
 
         if ( logger.debugEnabled )
