@@ -20,11 +20,7 @@ class GitDumpTask extends BaseTask
     {
         final ext = verifyAndUpdateExtension()
         verifyGitAvailable()
-
-        if ( ext.aboutFile )
-        {
-            ext.aboutFile.write( dateFormatter.format( startTime ))
-        }
+        initAboutFile()
 
         for ( repoUrl in ext.urls )
         {
@@ -110,15 +106,34 @@ class GitDumpTask extends BaseTask
         assert targetDirectory.list(), "[$targetDirectory.canonicalPath] contains no files"
         logger.info( "[$repoUrl] cloned into [$targetDirectory.canonicalPath]" )
 
-        if ( ext.addAbout )
+        updateAboutFile( projectName, repoUrl, targetDirectory )
+        targetDirectory
+    }
+
+
+    void initAboutFile ()
+    {
+        final ext = ext()
+        if ( ext.aboutFile )
+        {
+            final date = dateFormatter.format( startTime )
+            final line = ( '-' * ( date.length() + 2 ))
+            ext.aboutFile.write( "$line\n $date\n$line" )
+        }
+    }
+
+
+    void updateAboutFile ( String projectName, String repoUrl, File projectDirectory )
+    {
+        final ext = ext()
+        if ( ext.aboutFile )
         {
             ext.aboutFile.append( """
+
 [$projectName]:
  * Repo   - [$repoUrl]
- * Commit - [${ gitExec( 'log -1 --format=format:%H' )}]""" )
+ * Commit - [${ gitExec( 'log -1 --format=format:%H', projectDirectory )}]""" )
         }
-
-        targetDirectory
     }
 
 
