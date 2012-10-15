@@ -92,7 +92,7 @@ abstract class BaseTask extends DefaultTask
         }
         catch ( Throwable error )
         {
-            throw new GradleException( "Failed to execute [$command] with arguments $arguments, output is [${ outputStream.toString()}]",
+            throw new GradleException( "Failed to execute [$command] with arguments $arguments, output is [${ outputStream.toString().trim()}]",
                                        error )
         }
 
