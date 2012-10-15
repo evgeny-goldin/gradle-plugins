@@ -82,7 +82,7 @@ class GitDumpTask extends BaseTask
     {
         final ext       = ext()
         final directory = makeEmptyDirectory( new File( ext.outputDirectory, projectName ))
-        final arguments = [ 'clone', '-q', *ext.cloneFlags, ext.bareClone ? '--bare' : '', repoUrl, directory.canonicalPath ].grep()
+        final arguments = [ 'clone', *ext.cloneFlags, ext.bareClone ? '--bare' : '', repoUrl, directory.canonicalPath ].grep()
 
         exec( 'git', ( List<String> ) arguments )
 

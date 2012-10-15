@@ -96,7 +96,7 @@ class CrawlerTask extends BaseTask
      */
     void printStartBanner ()
     {
-        if ( logger.isInfoEnabled())
+        if ( logger.infoEnabled )
         {
             final ext  = ext()
             final host = ext.host.replaceAll( ':.*', '' ).replaceAll( '/.*', '' )
@@ -201,7 +201,7 @@ class CrawlerTask extends BaseTask
             file.write( linksMapReport, 'UTF-8' )
             if ( linksMap ){ assert file.size()}
 
-            if ( logger.isInfoEnabled())
+            if ( logger.infoEnabled )
             {
                 logger.info( "$title is written to [${ file.canonicalPath }], [${ linksMap.size() }] entr${ linksMap.size() == 1 ? 'y' : 'ies' }" )
             }
@@ -264,7 +264,7 @@ class CrawlerTask extends BaseTask
             if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
             if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
 
-            if ( logger.isInfoEnabled())
+            if ( logger.infoEnabled )
             {
                 final linksMessage    = pageLinks ? ", ${ newLinks ? newLinks.size() : 'no' } new" : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"               : ''
@@ -355,7 +355,7 @@ class CrawlerTask extends BaseTask
 
         try
         {
-            if ( logger.isInfoEnabled()){ logger.info( "[$pageUrl] - sending $requestMethod request .." )}
+            if ( logger.infoEnabled ){ logger.info( "[$pageUrl] - sending $requestMethod request .." )}
 
             final t                = System.currentTimeMillis()
             final connection       = openConnection( pageUrl, requestMethod )
@@ -368,7 +368,7 @@ class CrawlerTask extends BaseTask
             if ( isHeadRequest ) { assert bytes.length == 0  }
             else { bytesDownloaded.addAndGet( bytes.length ) }
 
-            if ( logger.isInfoEnabled())
+            if ( logger.infoEnabled )
             {
                 logger.info( "[$pageUrl] - " +
                              (( isHeadRequest || ( ! internalLink )) ? 'can be read' : "[${ bytes.size()}] byte${ s( bytes.size())}" ) +
@@ -396,7 +396,7 @@ class CrawlerTask extends BaseTask
     byte[] handleUnrecoverableError ( RequestData request, Throwable error )
     {
         request.with {
-            if ( logger.isInfoEnabled()) { logger.warn( "! [$pageUrl] - $error, ${ brokenLinkMessage()}, ${ referredByMessage( referrer )}\n" )}
+            if ( logger.infoEnabled ) { logger.warn( "! [$pageUrl] - $error, ${ brokenLinkMessage()}, ${ referredByMessage( referrer )}\n" )}
             linksStorage.addBrokenLink( pageUrl, referrer )
         }
 
@@ -416,7 +416,7 @@ class CrawlerTask extends BaseTask
                 final isRetryAsGet = (( ! isIgnored ) && isHeadRequest && (( statusCode == 405 ) || ( ! isRetry )))
                 final isBrokenLink = (( ! isIgnored ) && ( ! isRetry ) && ( ! isRetryAsGet ))
 
-                if ( logger.isInfoEnabled())
+                if ( logger.infoEnabled )
                 {
                     final message = "! [$pageUrl] - $error, status code [$statusCode], " +
                                     ( isIgnored    ? 'ignored, '                        : '' ) +

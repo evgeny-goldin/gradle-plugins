@@ -57,7 +57,7 @@ abstract class BaseTask extends DefaultTask
     final String exec( String command, List<String> arguments, File directory = null )
     {
         assert command && ( arguments != null )
-        if ( logger.isInfoEnabled())
+        if ( logger.infoEnabled )
         {
             logger.info( "Running [$command] with arguments $arguments${ directory ? ' in [' + directory.canonicalPath + ']' : '' }" )
         }
@@ -75,7 +75,11 @@ abstract class BaseTask extends DefaultTask
             }
         }
 
-        if ( logger.isInfoEnabled()) { logger.info( 'Done' )}
+        if ( logger.debugEnabled )
+        {
+            final output = outputStream.toString().trim()
+            if ( output ) { logger.debug( '>> ' + output.readLines().join( '\n>> ' )) }
+        }
         outputStream.toString()
     }
 
