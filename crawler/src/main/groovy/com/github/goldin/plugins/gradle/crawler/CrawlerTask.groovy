@@ -81,7 +81,9 @@ class CrawlerTask extends BaseTask
         ext.cleanupPatterns = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
         ext.ignoredPatterns = ( ext.ignoredRegexes ?: []     ).collect { Pattern.compile( it )  }
         ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect {
-            "http://$ext.host${ (( ! it ) || ext.host.endsWith( '/' ) || it.startsWith( '/' )) ? '' : '/' }$it".toString()
+            ( it ==~ ext.internalLinkPattern ) ?
+                it :
+                "http://$ext.host${ (( ! it ) || ext.host.endsWith( '/' ) || it.startsWith( '/' )) ? '' : '/' }$it".toString()
         }.grep().toSet().sort()
 
         assert ext.rootLinks, "No root links specified in $extensionDescription to start crawling from"
