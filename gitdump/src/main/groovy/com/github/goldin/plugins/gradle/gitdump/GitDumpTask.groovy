@@ -48,7 +48,7 @@ class GitDumpTask extends BaseTask
         final ext = ext()
         final description = "${ GitDumpPlugin.EXTENSION_NAME } { .. }"
 
-        assert ext.urls, "List of Git URLs is not defined in $description"
+        assert ext.urls, "List of Git URLs should be specifed in $description"
         ext.urls = ext.urls.toSet().sort()
         ext.urls.each { assert it.endsWith( '.git' ), "[$it] is not a Git repository URL, should end with '.git'" }
 
@@ -59,6 +59,12 @@ class GitDumpTask extends BaseTask
 
         ext.outputDirectory = makeEmptyDirectory( ext.outputDirectory?: new File( project.buildDir, 'gitdump' ))
         ext.aboutFile       = ( ext.addAbout ? new File( ext.outputDirectory, 'about.txt' ) : null )
+
+        if ( logger.isInfoEnabled())
+        {
+            logger.info( "Dumping Git repositories $ext.urls to [$ext.outputDirectory.canonicalPath]" )
+        }
+
         ext
     }
 
