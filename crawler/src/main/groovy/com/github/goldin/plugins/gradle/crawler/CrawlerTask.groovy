@@ -263,7 +263,7 @@ class CrawlerTask extends BaseTask
             if ( ! bytes ) { return }
 
             final Set<String> pageLinks = readLinks( pageUrl, new String( bytes, 'UTF-8' ))
-            final Set<String> newLinks  = linksStorage.addLinksToProcess( pageLinks )
+            final Set<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
 
             if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
             if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
