@@ -13,7 +13,7 @@ class GitDumpTask extends BaseTask
     private GitDumpExtension ext () { extension ( GitDumpPlugin.EXTENSION_NAME, GitDumpExtension ) }
     private gitExec( List<String> commands, File directory = null ){ exec( 'git', commands, directory )}
     private gitExec( String command,        File directory = null ){ exec( 'git', command,  directory )}
-
+    private getLastCommit( File projectDirectory ){ gitExec( 'log -1 --format=format:%H', projectDirectory ) }
 
     @Override
     void taskAction ( )
@@ -84,15 +84,17 @@ class GitDumpTask extends BaseTask
     File cloneRepository ( String repoUrl, String projectName )
     {
         final   ext             = ext()
-        String  commit          = null
+        String  checkoutId      = null
+        String  lastCommit      = null
         boolean bareClone       = ext.bareClone
         final   targetDirectory = makeEmptyDirectory( new File( ext.outputDirectory, projectName ))
         final   dotGit          = new File( targetDirectory, '.git' )
 
+
         if ( repoUrl ==~ ext.gitUrlWithCommitPattern )
         {
-            ( repoUrl, commit ) = repoUrl.findAll( ext.gitUrlWithCommitPattern ){ it[ 1 .. 2 ] }[ 0 ]
-            assert ( repoUrl && commit ), "Failed to match repo URL and commit in [$repoUrl]"
+            ( repoUrl, checkoutId ) = repoUrl.findAll( ext.gitUrlWithCommitPattern ){ it[ 1 .. 2 ] }[ 0 ]
+            assert ( repoUrl && checkoutId ), "Failed to match repo URL and commit in [$repoUrl]"
             bareClone = false
         }
 
@@ -101,13 +103,16 @@ class GitDumpTask extends BaseTask
 
         if ( ! bareClone ){ assert dotGit.directory }
 
-        if ( commit )
+        if ( checkoutId )
         {
-            gitExec( "checkout $commit", targetDirectory )
+            gitExec( "checkout $checkoutId", targetDirectory )
+            lastCommit = getLastCommit( targetDirectory )
             assert ( project.delete( dotGit ) && ( ! dotGit.directory ))
         }
         else
         {
+            lastCommit = getLastCommit( targetDirectory )
+
             if ( ext.runAggressiveGitGc )
             {
                 project.delete( new File( targetDirectory, ( bareClone ? 'hooks' : '.git/hooks' )))
@@ -126,10 +131,10 @@ class GitDumpTask extends BaseTask
 
         if ( logger.infoEnabled )
         {
-            logger.info( "[$repoUrl${ commit ? ':' + commit : '' }] cloned into [$targetDirectory.canonicalPath]" )
+            logger.info( "[$repoUrl${ checkoutId ? ':' + checkoutId : '' }] cloned into [$targetDirectory.canonicalPath]" )
         }
 
-        updateAboutFile( projectName, repoUrl, commit ?: gitExec( 'log -1 --format=format:%H', targetDirectory ))
+        updateAboutFile( projectName, repoUrl, lastCommit )
         targetDirectory
     }
 
@@ -146,16 +151,16 @@ class GitDumpTask extends BaseTask
     }
 
 
-    @Requires({ projectName && repoUrl && commit })
-    void updateAboutFile ( String projectName, String repoUrl, String commit )
+    @Requires({ projectName && repoUrl && lastCommit })
+    void updateAboutFile ( String projectName, String repoUrl, String lastCommit )
     {
         final ext = ext()
         if ( ext.aboutFile )
         {
             ext.aboutFile.append( """\n
 [$projectName]:
- * Repo   - [$repoUrl]
- * Commit - [$commit]""" )
+ * Repo        - [$repoUrl]
+ * Last commit - [$lastCommit]""" )
         }
     }
 
