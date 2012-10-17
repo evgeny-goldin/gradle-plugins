@@ -17,7 +17,7 @@ class LinksStorage
     private volatile boolean                  locked         = false
 
 
-    @Requires({ map && key && value })
+    @Requires({ ( map != null ) && key && value })
     private <T> void updateMap( Map<String, T> map, String key, T value )
     {
         assert ( ! ( locked || map.containsKey( key.toString())))
