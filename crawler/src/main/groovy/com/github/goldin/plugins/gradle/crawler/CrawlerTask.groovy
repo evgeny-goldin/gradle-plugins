@@ -23,11 +23,13 @@ class CrawlerTask extends BaseTask
     private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
     private final static String ROOT_LINK_REFERRER   = 'Root link'
+    private final static int    METHOD_NOT_ALLOWED   = 405
 
 
     CrawlerExtension ext () { extension ( CrawlerPlugin.EXTENSION_NAME, CrawlerExtension ) }
     String brokenLinkMessage()                 { 'registered as broken link'     }
     String referredByMessage( String referrer ){ "referred to by\n  [$referrer]" }
+    void delay( long delayInMilliseconds )     { if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}}
 
 
     @Override
@@ -55,40 +57,35 @@ class CrawlerTask extends BaseTask
         final ext                  = ext()
         final extensionDescription = "${ CrawlerPlugin.EXTENSION_NAME } { .. }"
 
-        assert ext.baseUrl,             "'baseUrl' should be defined in $extensionDescription"
+        assert ext.externalLinkPattern && ext.absoluteLinkPattern && ext.relativeLinkPattern && ext.anchorPattern
+
+        assert ( ! ext.rootUrl             ), "'rootUrl' should not be used in $extensionDescription - private area"
+        assert ( ! ext.internalLinkPattern ), "'internalLinkPattern' should not be used in $extensionDescription - private area"
+
+        ext.baseUrl             = ext.baseUrl?.trim()?.replace( '\\', '/' )?.replaceAll( '^.+?:/+', '' ) // Protocol part removed
+        ext.rootUrl             = ext.baseUrl.replaceAll( '/.*', '' )                                    // Path part removed
+        ext.internalLinkPattern = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
+
+        assert ext.baseUrl, "'baseUrl' should be defined in $extensionDescription"
+        assert ext.rootUrl && ( ! ext.rootUrl.endsWith( '/' )) && ext.internalLinkPattern
+
         assert ext.userAgent,           "'userAgent' should be defined in $extensionDescription"
         assert ext.threadPoolSize >  0, "'threadPoolSize' [${ ext.threadPoolSize }] in $extensionDescription should be positive"
         assert ext.connectTimeout >  0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
         assert ext.readTimeout    >  0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
-        assert ext.retryDelay     > -1, "'retryDelay' [${ ext.retryDelay }] in $extensionDescription should be zero or positive"
+        assert ext.minimumLinks   >  0, "'minimumLinks' [${ ext.minimumLinks }] in $extensionDescription should be positive"
+        assert ext.minimumBytes   >  0, "'minimumBytes' [${ ext.minimumBytes }] in $extensionDescription should be positive"
+        assert ext.retries        > -1, "'retries' [${ ext.retries }] in $extensionDescription should not be negative"
+        assert ext.retryDelay     > -1, "'retryDelay' [${ ext.retryDelay }] in $extensionDescription should not be negative"
+        assert ext.requestDelay   > -1, "'requestDelay' [${ ext.requestDelay }] in $extensionDescription should not be negative"
 
-        assert ext.externalLinkPattern && ext.absoluteLinkPattern && ext.relativeLinkPattern && ext.anchorPattern && ext.protocolPattern
-
-        assert ( ! ext.serverAddress   ), "No 'serverAddress' should be used in $extensionDescription"
-        assert ( ! ext.basePattern     ), "No 'basePattern' should be used in $extensionDescription"
-        assert ( ! ext.linkPattern     ), "No 'linkPattern' should be used in $extensionDescription"
-        assert ( ! ext.cleanupPatterns ), "No 'cleanupPatterns' should be used in $extensionDescription - use 'cleanupRegexes' instead"
-        assert ( ! ext.ignoredPatterns ), "No 'ignoredPatterns' should be used in $extensionDescription - use 'ignoredRegexes' instead"
-
-        ext.baseUrl         = ext.baseUrl.replaceAll( ext.protocolPattern, '' )
-        ext.host            = ext.host?.  replaceAll( ext.protocolPattern, '' ) ?: ext.baseUrl
-        ext.serverAddress   = ext.host.replaceAll( '(\\\\|/).*', '' )
-        ext.basePattern     = Pattern.compile( /\Q${ ext.baseUrl }\E/ )
-        ext.linkPattern     = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
-        ext.internalLinkPattern = ( ext.baseUrl == ext.host ) ?
-            Pattern.compile( /^https?:\/\/\Q${ ext.baseUrl }\E.*$/ ) :
-            Pattern.compile( /^https?:\/\/((\Q${ ext.baseUrl }\E)|(\Q${ ext.host }\E)).*$/ )
-        ext.cleanupPatterns = ( ext.cleanupRegexes ?: []     ).collect { Pattern.compile( it )  }
-        ext.ignoredPatterns = ( ext.ignoredRegexes ?: []     ).collect { Pattern.compile( it )  }
-        ext.rootLinks       = ( ext.rootLinks      ?: [ '' ] ).collect {
-            ( it ==~ ext.internalLinkPattern ) ?
-                it :
-                "http://$ext.host${ (( ! it ) || ext.host.endsWith( '/' ) || it.startsWith( '/' )) ? '' : '/' }$it".toString()
-        }.grep().toSet().sort()
-
-        assert ext.rootLinks, "No root links specified in $extensionDescription to start crawling from"
-        assert ext.baseUrl && ext.host && ext.basePattern && ext.linkPattern && ext.rootLinks
-        assert ( ! ext.serverAddress.endsWith( '/' ))
+        ext.rootLinks = ( ext.rootLinks?.grep()?.toSet()?.sort() ?: [ "http://$ext.baseUrl" ]).collect {
+            String rootLink ->
+            final isGoodEnough = rootLink && rootLink.with { startsWith( 'http://' ) || startsWith( 'https://' )}
+            final noSlash      = (( ! rootLink ) || ext.baseUrl.endsWith( '/' ) || rootLink.startsWith( '/' ))
+            isGoodEnough ? rootLink : "http://${ ext.baseUrl }${ noSlash ? '' : '/' }${ rootLink ?: '' }"
+        }
+        assert ext.rootLinks && ext.rootLinks.every{ it }
         ext
     }
 
@@ -101,11 +98,9 @@ class CrawlerTask extends BaseTask
         if ( logger.infoEnabled )
         {
             final ext  = ext()
-            final host = ext.host.replaceAll( ':.*', '' ).replaceAll( '/.*', '' )
-            assert ( ! host.with { contains( ':' ) || contains( '/' ) })
 
-            final ipAddress     = (( ext.host =~ /^\d+/ ) ? '' : " (${ InetAddress.getByName( host ).hostAddress })" )
-            final bannerMessage = "Checking [http://$ext.host]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }"
+            final ipAddress     = (( ext.rootUrl ==~ /^\d+\.\d+\.\d+\.\d+$/ ) ? '' : " (${ InetAddress.getByName( ext.rootUrl ).hostAddress })" )
+            final bannerMessage = "Checking [http://$ext.rootUrl]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }"
             final bannerLine    = "-" * ( bannerMessage.size() + 2 )
 
             logger.info( bannerLine )
@@ -255,9 +250,11 @@ class CrawlerTask extends BaseTask
     @Requires({ pageUrl && referrerUrl && linksStorage && threadPool })
     void checkLinks ( String pageUrl, String referrerUrl )
     {
+        final ext = ext()
+        delay( ext.requestDelay )
+
         try
         {
-            final ext          = ext()
             final byte[] bytes = readBytes( pageUrl, referrerUrl, referrerUrl == ROOT_LINK_REFERRER )
 
             if ( ! bytes ) { return }
@@ -293,30 +290,32 @@ class CrawlerTask extends BaseTask
     /**
      * Reads all hyperlinks in the content specified.ß
      * @param pageContent content of the page downloaded previously
-     * @return all links found with {@link CrawlerExtension#baseUrl} being replaced to {@link CrawlerExtension#host}
+     * @return all links found in the page content
      */
     @Requires({ pageUrl && pageContent })
     @Ensures({ result != null })
     List<String> readLinks ( String pageUrl, String pageContent )
     {
-        final ext                = ext()
-        final String cleanedText = (( String )( ext.cleanupPatterns ?
-            ext.cleanupPatterns.inject( pageContent ) { String text, Pattern p -> text.replaceAll( p, '' )} :
-            pageContent )).replace( '%3A', ':' ).replace( '%2F', '/' )
+        final ext   = ext()
+        // noinspection GroovyAssignmentToMethodParameter
+        pageContent =
+            (( String ) ext.pageTransformers.inject( pageContent ){ String content, Closure transformer -> transformer( content ) }).
+            replace( '%3A', ':' ).
+            replace( '%2F', '/' )
 
-        final links = cleanedText.findAll ( ext.linkPattern ) { it[ 1 ] }
+        final links = pageContent.findAll ( ext.internalLinkPattern ) { it[ 1 ] }
 
         if ( ext.checkExternalLinks ) {
-            links.addAll( cleanedText.findAll ( ext.externalLinkPattern ) { it[ 1 ] })
+            links.addAll( pageContent.findAll ( ext.externalLinkPattern ) { it[ 1 ] })
         }
 
         if ( ext.checkAbsoluteLinks ) {
-            links.addAll( cleanedText.findAll ( ext.absoluteLinkPattern ) { it[ 1 ] }.
-                                      collect{ "http://${ ext.serverAddress }$it".toString() })
+            links.addAll( pageContent.findAll ( ext.absoluteLinkPattern ) { it[ 1 ] }.
+                                      collect{ "http://${ ext.rootUrl }$it".toString() })
         }
 
         if ( ext.checkRelativeLinks ) {
-            links.addAll( cleanedText.findAll ( ext.relativeLinkPattern ) { it[ 1 ] }.
+            links.addAll( pageContent.findAll ( ext.relativeLinkPattern ) { it[ 1 ] }.
                                       collect{ "$pageUrl${ pageUrl.endsWith( '/' ) ? '' : '/' }$it".toString() })
         }
 
@@ -324,13 +323,7 @@ class CrawlerTask extends BaseTask
         final foundLinks = links.
                            collect { it.replaceFirst( ext.anchorPattern, '' )}.
                            toSet().
-                           findAll { String link -> ( ext.ignoredContains.every{ String  ignored -> ( ! link.contains( ignored ))}       )}.
-                           findAll { String link -> ( ext.ignoredEndsWith.every{ String  ignored -> ( ! link.endsWith( ignored ))}       )}.
-                           findAll { String link -> ( ext.ignoredPatterns.every{ Pattern ignored -> ( ! ignored.matcher( link ).find())} )}.
-                           collect { String link -> link.replaceFirst( ext.basePattern, ext.host )}.
-                           collect { String link -> ext.linkTransformers ? ext.linkTransformers.inject( link ){ String newLink, Closure transformer -> transformer( newLink )} :
-                                                                           link }.
-                           toSet().
+                           findAll { String link -> ( ! ext.ignoredLinks.any { Closure c -> c( link ) }) }.
                            sort()
         foundLinks
     }
@@ -353,7 +346,7 @@ class CrawlerTask extends BaseTask
         InputStream  inputStream   = null
         RequestData  request       = null
         final        nonHtmlLink   = ( ext.nonHtmlContains.any{ pageUrl.contains( it ) } || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )})
-        final        internalLink  = ( pageUrl ==~ ext.internalLinkPattern )
+        final        internalLink  = ext.isInternalLink ( pageUrl )
         final        isHeadRequest = (( ! forceGetRequest ) && ( nonHtmlLink || ( ! internalLink )))
         final        requestMethod = ( isHeadRequest ? 'HEAD' : 'GET' )
 
@@ -411,47 +404,50 @@ class CrawlerTask extends BaseTask
     @Requires({ request && error })
     byte[] handleUnknownError ( RequestData request, Throwable error )
     {
-        try {
-            request.with {
-                final ext          = ext()
-                final statusCode   = ( connection ? connection.responseCode : -1 ) // Reading status code may throw another exception, like SocketTimeoutException
-                final isIgnored    = ext.ignoredStatusCodes.any { it == statusCode }
-                final isRetry      = (( ! isIgnored ) && ( attempt < ext.retries ) && ( ext.retryStatusCodes.any { it == statusCode }))
-                final isRetryAsGet = (( ! isIgnored ) && isHeadRequest && (( statusCode == 405 ) || ( ! isRetry )))
-                final isBrokenLink = (( ! isIgnored ) && ( ! isRetry ) && ( ! isRetryAsGet ))
+        final ext = ext()
+        request.with {
+            try {
+                final statusCode   = connection.responseCode // Reading status code may throw another exception, like SocketTimeoutException
+                final isRetryAsGet = ( isHeadRequest && ( statusCode == METHOD_NOT_ALLOWED ))
+                final isRetry      = (( ! isRetryAsGet        ) &&
+                                      ( attempt < ext.retries ) &&
+                                      ( ext.retryStatusCodes?.any { it == statusCode } || ext.retryExceptions?.any { it.isInstance( error ) } ))
 
                 if ( logger.infoEnabled )
                 {
                     final message = "! [$pageUrl] - $error, status code [$statusCode], " +
-                                    ( isIgnored    ? 'ignored, '                        : '' ) +
-                                    ( isRetry      ? "attempt $attempt, "               : '' ) +
-                                    ( isRetryAsGet ? 'will be retried as GET request, ' : '' ) +
-                                    ( isBrokenLink ? "${ brokenLinkMessage()}, "        : '' ) +
+                                    ( isRetryAsGet                    ? 'will be retried as GET request, ' : '' ) +
+                                    ( isRetry                         ? "attempt $attempt, "               : '' ) +
+                                    (( ! ( isRetry || isRetryAsGet )) ? "${ brokenLinkMessage()}, "        : '' ) +
                                     referredByMessage( referrer )
+
                     logger.warn( message )
                 }
 
-                if ( ! isIgnored )
+                if ( isRetryAsGet )
                 {
-                    if ( isRetryAsGet )
-                    {
-                        sleep( ext.retryDelay )
-                        return readBytes( pageUrl, referrer, true, 1 )
-                    }
-
-                    if ( isRetry )
-                    {
-                        sleep( ext.retryDelay )
-                        return readBytes( pageUrl, referrer, forceGetRequest, attempt + 1 )
-                    }
-
-                    linksStorage.addBrokenLink( pageUrl, referrer )
+                    delay( ext.retryDelay )
+                    return readBytes( pageUrl, referrer, true, 1 )
                 }
+
+                if ( isRetry )
+                {
+                    delay( ext.retryDelay )
+                    return readBytes( pageUrl, referrer, forceGetRequest, attempt + 1 )
+                }
+
+                linksStorage.addBrokenLink( pageUrl, referrer )
             }
-        }
-        catch ( Throwable newError )
-        {
-            handleUnrecoverableError( request, newError )
+            catch ( Throwable newError )
+            {
+                if (( attempt < ext.retries ) && ext.retryExceptions.any { it.isInstance( newError ) })
+                {
+                    delay( ext.retryDelay )
+                    return readBytes( pageUrl, referrer, forceGetRequest, attempt + 1 )
+                }
+
+                handleUnrecoverableError( request, newError )
+            }
         }
 
         null
