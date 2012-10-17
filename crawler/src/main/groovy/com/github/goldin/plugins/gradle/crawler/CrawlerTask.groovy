@@ -181,7 +181,9 @@ class CrawlerTask extends BaseTask
             }
         }
 
-        ( linksStorage.brokenLinksNumber() ? logger.&error : logger.&info )( message.toString())
+        ( linksStorage.brokenLinksNumber() ? logger.&error :
+          ext.printSummary                 ? logger.&warn  :
+                                             logger.&info )( message.toString())
     }
 
 

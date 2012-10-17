@@ -39,6 +39,14 @@ class LinksStorage
     }
 
 
+    @Ensures({ result >= 0 })
+    int brokenLinksNumber()
+    {
+        assert locked
+        brokenLinks.size()
+    }
+
+
     @Ensures({ result != null })
     Set<String> brokenLinks()
     {
@@ -76,13 +84,6 @@ class LinksStorage
     int processedLinksNumber()
     {
         processedLinks.size()
-    }
-
-
-    @Ensures({ result >= 0 })
-    int brokenLinksNumber()
-    {
-        brokenLinks.size()
     }
 
 

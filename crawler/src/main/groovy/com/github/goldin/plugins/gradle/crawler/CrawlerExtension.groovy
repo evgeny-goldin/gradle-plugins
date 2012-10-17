@@ -43,6 +43,7 @@ class CrawlerExtension
     List<String>  ignoredEndsWith    = []
     List<String>  ignoredRegexes     = []
     List<Closure> linkTransformers   = []
+    boolean       printSummary       = true
     boolean       checkAbsoluteLinks = true
     boolean       checkRelativeLinks = true
     boolean       checkExternalLinks = false
