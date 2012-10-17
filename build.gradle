@@ -2,7 +2,7 @@ apply plugin: 'idea'
 
 
 final kotlinVersion     = '0.1.3395' // http://repository.jetbrains.com/kotlin/org/jetbrains/kotlin/kotlin-compiler/
-final gcontractsVersion = '1.2.5'    // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.gcontracts%22%20AND%20a%3A%22gcontracts-core%22
+final gcontractsVersion = '1.2.10'   // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.gcontracts%22%20AND%20a%3A%22gcontracts-core%22
 final junitVersion      = '4.10'     // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22junit%22%20AND%20a%3A%22junit%22
 
 

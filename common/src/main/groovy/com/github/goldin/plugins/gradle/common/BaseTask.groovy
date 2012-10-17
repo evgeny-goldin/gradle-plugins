@@ -69,12 +69,14 @@ abstract class BaseTask extends DefaultTask
      * @param directory process working directory
      * @return process standard and error output
      */
+    @Requires({ command && ( arguments != null ) })
+    @Ensures({ result != null })
     final String exec( String command, List<String> arguments, File directory = null )
     {
-        assert command && ( arguments != null )
+        final commandDescription = "[$command] with arguments $arguments${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
         if ( logger.infoEnabled )
         {
-            logger.info( "Running [$command] with arguments $arguments${ directory ? ' in [' + directory.canonicalPath + ']' : '' }" )
+            logger.info( "Running $commandDescription" )
         }
 
         final outputStream = new ByteArrayOutputStream()
@@ -94,7 +96,7 @@ abstract class BaseTask extends DefaultTask
         }
         catch ( Throwable error )
         {
-            throw new GradleException( "Failed to execute [$command] with arguments $arguments, output is [${ outputStream.toString().trim()}]",
+            throw new GradleException( "Failed to execute $commandDescription, output is [${ outputStream.toString().trim()}]",
                                        error )
         }
 
@@ -103,6 +105,7 @@ abstract class BaseTask extends DefaultTask
             final output = outputStream.toString().trim()
             if ( output ) { logger.debug( '>> ' + output.readLines().join( '\n>> ' )) }
         }
+
         outputStream.toString()
     }
 
@@ -273,6 +276,15 @@ abstract class BaseTask extends DefaultTask
         assert files && resources
         final cl = new URLClassLoader( files*.toURI()*.toURL() as URL[] )
         resources.each { assert cl.getResource( it ), "No '$it' resource found in $files" }
+    }
+
+
+    @Requires({ dir })
+    @Ensures({ ( result == dir ) && ( result.directory ) && ( ! result.list())})
+    final File makeEmptyDirectory( File dir )
+    {
+        assert (( ! dir.exists()) || ( project.delete( dir ) && ( ! dir.exists())))
+        project.mkdir( dir )
     }
 
 

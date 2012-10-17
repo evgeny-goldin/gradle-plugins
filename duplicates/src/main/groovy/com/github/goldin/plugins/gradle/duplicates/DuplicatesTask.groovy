@@ -183,6 +183,6 @@ class DuplicatesTask extends BaseTask
         join( '\n' )
 
         if ( ext.fail ) { throw new RuntimeException( message )}
-        else            { project.logger.error( message )}
+        else            { logger.error( message )}
     }
 }
