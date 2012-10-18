@@ -413,9 +413,9 @@ class CrawlerTask extends BaseTask
                 if ( logger.infoEnabled )
                 {
                     final message = "! [$pageUrl] - $error, status code [$statusCode], " +
-                                    ( isHeadRequest ? 'will be retried as GET request, ' : '' ) +
-                                    ( isRetry       ? "attempt $attempt, "               : '' ) +
-                                    ( ! isRetry     ? "${ brokenLinkMessage()}, "        : '' ) +
+                                    ( isRetry && (   isHeadRequest ) ? 'will be retried as GET request, ' : '' ) +
+                                    ( isRetry && ( ! isHeadRequest ) ? "attempt $attempt, "               : '' ) +
+                                    ( ! isRetry                      ? "${ brokenLinkMessage()}, "        : '' ) +
                                     referredByMessage( referrer )
 
                     logger.warn( message )
