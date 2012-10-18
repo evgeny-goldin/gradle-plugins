@@ -1,7 +1,5 @@
 package com.github.goldin.plugins.gradle.crawler
 
-import org.gcontracts.annotations.Requires
-
 import java.util.regex.Pattern
 
 
@@ -55,7 +53,4 @@ class CrawlerExtension
 
     List<Integer>                    retryStatusCodes = [ -1, 500 ]
     List<Class<? extends Exception>> retryExceptions  = [ SocketTimeoutException ]
-
-    @Requires({ link })
-    boolean isInternalLink( String link ){ link.with { startsWith( "http://$baseUrl" ) || startsWith( "https://$baseUrl" )}}
 }

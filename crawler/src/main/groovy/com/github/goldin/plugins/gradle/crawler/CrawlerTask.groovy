@@ -41,6 +41,8 @@ class CrawlerTask extends BaseTask
 
     String referredByMessage( String referrer ){ "referred to by\n  [$referrer]" }
     void delay( long delayInMilliseconds )     { if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}}
+    boolean isInternalLink( String link )      { link.with { startsWith( "http://${ ext().baseUrl }"  ) ||
+                                                             startsWith( "https://${ ext().baseUrl }" )}}
 
 
     @Override
@@ -343,9 +345,7 @@ class CrawlerTask extends BaseTask
             final relativeLinks = findAll ( pageContent, ext.relativeLinkPattern )
             assert ( ! pageBaseUrl.endsWith( '/' )) && ( ! requestBaseUrl.endsWith( '?' )) && relativeLinks.every { ! it.startsWith( '/' )}
 
-            links.addAll( relativeLinks.collect{
-                ( it.startsWith( '?' ) ? "$requestBaseUrl${ requestBaseUrl.endsWith( '/' ) ? '' : '/' }$it" :
-                                         "$pageBaseUrl/$it" ).toString() })
+            links.addAll( relativeLinks.collect{( it.startsWith( '?' ) ? "$requestBaseUrl$it" : "$pageBaseUrl/$it" ).toString() })
         }
 
         assert links.every{ it }
@@ -370,25 +370,25 @@ class CrawlerTask extends BaseTask
     @Requires({ pageUrl && referrer && linksStorage && ( attempt > 0 ) })
     byte[] readBytes ( final String pageUrl, final String referrer, final boolean forceGetRequest, final int attempt = 1 )
     {
-        final        ext           = ext()
-        InputStream  inputStream   = null
-        RequestData  request       = null
-        final        nonHtmlLink   = ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" ) || pageUrl.contains( ".$it?" ) }
-        final        internalLink  = ext.isInternalLink ( pageUrl )
-        final        isHeadRequest = (( ! forceGetRequest ) && ( nonHtmlLink || ( ! internalLink )))
-        final        requestMethod = ( isHeadRequest ? 'HEAD' : 'GET' )
+        final        ext             = ext()
+        InputStream  inputStream     = null
+        RequestData  request         = null
+        final        htmlLink        = ( ! ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" ) || pageUrl.contains( ".$it?" ) })
+        final        readFullContent = ( htmlLink && isInternalLink ( pageUrl ))
+        final        isHeadRequest   = (( ! forceGetRequest ) && ( ! readFullContent ))
+        final        requestMethod   = ( isHeadRequest ? 'HEAD' : 'GET' )
 
         try
         {
             if ( logger.infoEnabled ){ logger.info( "[$pageUrl] - sending $requestMethod request .." )}
 
-            final t                = System.currentTimeMillis()
-            final connection       = openConnection( pageUrl, requestMethod )
-            request                = new RequestData( pageUrl, referrer, linksStorage, connection, attempt, forceGetRequest, isHeadRequest )
-            inputStream            = connection.inputStream
-            final byte[] bytes     = (( isHeadRequest || internalLink ) ? inputStream.bytes : [ inputStream.read() ]) as byte[]
-            final responseEncoding = connection.getHeaderField( 'Content-Encoding' )
-            final responseSize     = Integer.valueOf( connection.getHeaderField( 'Content-Length' ) ?: '-1' )
+            final t            = System.currentTimeMillis()
+            final connection   = openConnection( pageUrl, requestMethod )
+            request            = new RequestData( pageUrl, referrer, linksStorage, connection, attempt, forceGetRequest, isHeadRequest )
+            inputStream        = connection.inputStream
+            final byte[] bytes = ( byte[] )( isHeadRequest || readFullContent ) ?
+                                    inputStream.bytes :
+                                    inputStream.read().with{ ( delegate == -1 ) ? [] : [ delegate ] }
 
             if ( isHeadRequest ) { assert bytes.length == 0  }
             else { bytesDownloaded.addAndGet( bytes.length ) }
@@ -396,11 +396,11 @@ class CrawlerTask extends BaseTask
             if ( logger.infoEnabled )
             {
                 logger.info( "[$pageUrl] - " +
-                             (( isHeadRequest || ( ! internalLink )) ? 'can be read' : "[${ bytes.size()}] byte${ s( bytes.size())}" ) +
+                             ( readFullContent ? "[${ bytes.size()}] byte${ s( bytes.size())}" : 'can be read' ) +
                              ", [${ System.currentTimeMillis() - t }] ms" )
             }
 
-            ( bytes && internalLink ) ? decodeBytes( bytes, responseEncoding, responseSize ) : null
+            ( readFullContent && bytes ) ? decodeBytes( bytes, request ) : null
         }
         catch ( Throwable error )
         {
@@ -480,11 +480,15 @@ class CrawlerTask extends BaseTask
     }
 
 
-    @Requires({ bytes })
-    @Ensures({ result })
-    byte[] decodeBytes( byte[] bytes, String responseEncoding, int responseSize )
+    @Requires({ bytes && request && request.connection })
+    @Ensures ({ result && ( result.length <= bytes.length ) })
+    byte[] decodeBytes( byte[] bytes, RequestData request )
     {
+        final responseEncoding = request.connection.getHeaderField( 'Content-Encoding' )
+
         if ( ! responseEncoding ) { return bytes }
+
+        final responseSize = Integer.valueOf( request.connection.getHeaderField( 'Content-Length' ) ?: '-1' )
 
         final bufferSize  = ((( responseSize > 0 ) && ( responseSize < 10 * 1024 * 1024 )) ? responseSize : 10 * 1024 )
         final inputStream = new ByteArrayInputStream( bytes ).with {
