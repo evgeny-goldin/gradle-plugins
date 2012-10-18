@@ -408,7 +408,7 @@ class CrawlerTask extends BaseTask
         request.with {
             try {
                 final statusCode   = connection.responseCode // Reading status code may throw another exception, like SocketTimeoutException
-                final isRetryAsGet = ( isHeadRequest && ( statusCode == METHOD_NOT_ALLOWED ))
+                final isRetryAsGet = ( isHeadRequest )
                 final isRetry      = (( ! isRetryAsGet        ) &&
                                       ( attempt < ext.retries ) &&
                                       ( ext.retryStatusCodes?.any { it == statusCode } || ext.retryExceptions?.any { it.isInstance( error ) } ))
