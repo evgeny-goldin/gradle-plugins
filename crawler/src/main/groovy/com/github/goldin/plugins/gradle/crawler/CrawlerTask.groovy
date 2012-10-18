@@ -337,10 +337,9 @@ class CrawlerTask extends BaseTask
      *
      * @return binary content of link specified or null if link shouldn't be read
      */
+    @Requires({ pageUrl && referrer && linksStorage && ( attempt > 0 ) })
     byte[] readBytes ( final String pageUrl, final String referrer, final boolean forceGetRequest, final int attempt = 1 )
     {
-        assert pageUrl && referrer && linksStorage && ( attempt > 0 )
-
         final        ext           = ext()
         InputStream  inputStream   = null
         RequestData  request       = null
@@ -406,33 +405,26 @@ class CrawlerTask extends BaseTask
         final ext = ext()
         request.with {
             try {
-                final statusCode   = connection.responseCode // Reading status code may throw another exception, like SocketTimeoutException
-                final isRetryAsGet = ( isHeadRequest )
-                final isRetry      = (( ! isRetryAsGet        ) &&
-                                      ( attempt < ext.retries ) &&
-                                      ( ext.retryStatusCodes?.any { it == statusCode } || ext.retryExceptions?.any { it.isInstance( error ) } ))
+                final statusCode = connection.responseCode // Reading status code may throw another exception, like SocketTimeoutException
+                final isRetry    = (( isHeadRequest ) ||
+                                    (( attempt < ext.retries ) &&
+                                     ( ext.retryStatusCodes?.any { it == statusCode } || ext.retryExceptions?.any { it.isInstance( error ) } )))
 
                 if ( logger.infoEnabled )
                 {
                     final message = "! [$pageUrl] - $error, status code [$statusCode], " +
-                                    ( isRetryAsGet                    ? 'will be retried as GET request, ' : '' ) +
-                                    ( isRetry                         ? "attempt $attempt, "               : '' ) +
-                                    (( ! ( isRetry || isRetryAsGet )) ? "${ brokenLinkMessage()}, "        : '' ) +
+                                    ( isHeadRequest ? 'will be retried as GET request, ' : '' ) +
+                                    ( isRetry       ? "attempt $attempt, "               : '' ) +
+                                    ( ! isRetry     ? "${ brokenLinkMessage()}, "        : '' ) +
                                     referredByMessage( referrer )
 
                     logger.warn( message )
                 }
 
-                if ( isRetryAsGet )
-                {
-                    delay( ext.retryDelay )
-                    return readBytes( pageUrl, referrer, true, 1 )
-                }
-
                 if ( isRetry )
                 {
                     delay( ext.retryDelay )
-                    return readBytes( pageUrl, referrer, forceGetRequest, attempt + 1 )
+                    return readBytes( pageUrl, referrer, true, isHeadRequest ? 1 : attempt + 1 )
                 }
 
                 linksStorage.addBrokenLink( pageUrl, referrer )
@@ -442,7 +434,7 @@ class CrawlerTask extends BaseTask
                 if (( attempt < ext.retries ) && ext.retryExceptions.any { it.isInstance( newError ) })
                 {
                     delay( ext.retryDelay )
-                    return readBytes( pageUrl, referrer, forceGetRequest, attempt + 1 )
+                    return readBytes( pageUrl, referrer, true, isHeadRequest ? 1 : attempt + 1 )
                 }
 
                 handleUnrecoverableError( request, newError )

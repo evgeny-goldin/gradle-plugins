@@ -243,14 +243,13 @@ abstract class BaseTask extends DefaultTask
      * @param excludes patterns of files to exclude, no files are excluded if null or empty
      */
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
+    @Requires({ archive && file && ( prefix != null ) })
     final void addFileToArchive ( File         archive,
                                   File         file,
                                   String       prefix,
                                   List<String> includes = null,
                                   List<String> excludes = null )
     {
-        assert archive && file && ( prefix != null )
-
         prefix = prefix.startsWith( '/' ) ? prefix.substring( 1 )                      : prefix
         prefix = prefix.endsWith  ( '/' ) ? prefix.substring( 0, prefix.length() - 1 ) : prefix
 
@@ -271,9 +270,9 @@ abstract class BaseTask extends DefaultTask
      * @param files     files to check
      * @param resources resources to locate in the files provided
      */
+    @Requires({ files && resources })
     final void checkResources( Collection<File> files, String ... resources )
     {
-        assert files && resources
         final cl = new URLClassLoader( files*.toURI()*.toURL() as URL[] )
         resources.each { assert cl.getResource( it ), "No '$it' resource found in $files" }
     }
@@ -296,10 +295,9 @@ abstract class BaseTask extends DefaultTask
      * @return       same XML instance
      * @throws       GradleException if validation fails
      */
+    @Requires({ xml && schema })
     final String validateXml( String xml, String schema )
     {
-        assert xml && schema
-
         try
         {
             SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ).

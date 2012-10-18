@@ -127,8 +127,6 @@ class DuplicatesTask extends BaseTask
     @Ensures({ result != null })
     List<String> classNames ( File file )
     {
-        assert file.file
-
         if ( classesCache.containsKey( file ))
         {
             return classesCache[ file ]
@@ -165,8 +163,6 @@ class DuplicatesTask extends BaseTask
     @Requires({ violations })
     void reportViolations( Map<String, Map<String, List<String>>> violations )
     {
-        assert violations
-
         final ext     = ext()
         final message = violations.collect {
             String configurationName, Map<String, List<String>> configurationViolations ->
