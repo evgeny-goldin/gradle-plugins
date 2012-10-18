@@ -338,12 +338,13 @@ class CrawlerTask extends BaseTask
 
         if ( ext.checkRelativeLinks ) {
 
-            final pageBaseUrl   = pageUrl.replaceFirst( ext.relativeLinkReminderPattern, '' )
+            final pageBaseUrl    = pageUrl.replaceFirst( ext.relativeLinkReminderPattern, '' )
+            final requestBaseUrl = pageUrl.contains( '?' ) ? pageUrl.substring( 0, pageUrl.indexOf( '?' )) : pageBaseUrl
             final relativeLinks = findAll ( pageContent, ext.relativeLinkPattern )
-            assert ( ! pageBaseUrl.endsWith( '/' )) && relativeLinks.every { ! it.startsWith( '/' )}
+            assert ( ! pageBaseUrl.endsWith( '/' )) && ( ! requestBaseUrl.endsWith( '?' )) && relativeLinks.every { ! it.startsWith( '/' )}
 
             links.addAll( relativeLinks.collect{
-                ( it.startsWith( '?' ) ? "$pageUrl${ pageUrl.endsWith( '/' ) ? '' : '/' }$it" :
+                ( it.startsWith( '?' ) ? "$requestBaseUrl${ requestBaseUrl.endsWith( '/' ) ? '' : '/' }$it" :
                                          "$pageBaseUrl/$it" ).toString() })
         }
 
