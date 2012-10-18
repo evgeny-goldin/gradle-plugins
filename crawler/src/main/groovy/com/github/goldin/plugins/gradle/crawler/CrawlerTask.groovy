@@ -26,7 +26,6 @@ class CrawlerTask extends BaseTask
 
 
     CrawlerExtension ext () { extension ( CrawlerPlugin.EXTENSION_NAME, CrawlerExtension ) }
-    String brokenLinkMessage()                 { 'registered as broken link'     }
     String referredByMessage( String referrer ){ "referred to by\n  [$referrer]" }
     void delay( long delayInMilliseconds )     { if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}}
 
@@ -77,6 +76,9 @@ class CrawlerTask extends BaseTask
         assert ext.retries        > -1, "'retries' [${ ext.retries }] in $extensionDescription should not be negative"
         assert ext.retryDelay     > -1, "'retryDelay' [${ ext.retryDelay }] in $extensionDescription should not be negative"
         assert ext.requestDelay   > -1, "'requestDelay' [${ ext.requestDelay }] in $extensionDescription should not be negative"
+
+        assert ext.retryStatusCodes.every { it }, "'retryStatusCodes' should not contain nulls in $extensionDescription"
+        assert ext.retryExceptions. every { it }, "'retryExceptions' should not contain nulls in $extensionDescription"
 
         ext.rootLinks = ( ext.rootLinks?.grep()?.toSet()?.sort() ?: [ "http://$ext.baseUrl" ]).collect {
             String rootLink ->
@@ -281,7 +283,7 @@ class CrawlerTask extends BaseTask
         }
         catch( Throwable error )
         {
-            logger.error( "Failed to read [$pageUrl], referrer [$referrerUrl]", error )
+            logger.error( "Interanl error while reading [$pageUrl], referrer [$referrerUrl]", error )
         }
     }
 
@@ -372,13 +374,9 @@ class CrawlerTask extends BaseTask
 
             ( bytes && internalLink ) ? decodeBytes( bytes, responseEncoding, responseSize ) : null
         }
-        catch ( UnknownHostException error )
-        {
-            return handleUnrecoverableError( request, error )
-        }
         catch ( Throwable error )
         {
-            return handleUnknownError( request, error )
+            return handleError( request, error )
         }
         finally
         {
@@ -388,60 +386,51 @@ class CrawlerTask extends BaseTask
 
 
     @Requires({ request && error })
-    byte[] handleUnrecoverableError ( RequestData request, Throwable error )
+    byte[] handleError ( RequestData request, Throwable error )
     {
         request.with {
-            if ( logger.infoEnabled ) { logger.warn( "! [$pageUrl] - $error, ${ brokenLinkMessage()}, ${ referredByMessage( referrer )}\n" )}
-            linksStorage.addBrokenLink( pageUrl, referrer )
-        }
+            final ext             = ext()
+            final statusCode      = statusCode ( connection )
+            final statusCodeError = ( statusCode instanceof Throwable ? statusCode : null )
+            final isRetryMatch    = ( ext.retryStatusCodes?.any { it == statusCode } ||
+                                      ext.retryExceptions?. any { it.with { isInstance( error ) || isInstance( statusCodeError ) }} )
+            final isRetry         = ( isHeadRequest || ( isRetryMatch && ( attempt < ext.retries )))
+            final isAttempt       = (( ! isHeadRequest ) && ( ext.retries > 1 ) && ( isRetryMatch ))
 
-        null
+            if ( logger.infoEnabled )
+            {
+                final message = "! [$pageUrl] - $error, status code [${ statusCodeError ? 'unknown' : statusCode }], " +
+                                ( isRetry && isHeadRequest ? 'will be retried as GET request, ' : '' ) +
+                                ( isAttempt                ? "attempt $attempt, "               : '' ) +
+                                ( ! isRetry                ? 'registered as broken link, '      : '' ) +
+                                referredByMessage( referrer )
+
+                logger.warn( message )
+            }
+
+            if ( isRetry )
+            {
+                delay( ext.retryDelay )
+                return readBytes( pageUrl, referrer, true, isHeadRequest ? 1 : attempt + 1 )
+            }
+
+            linksStorage.addBrokenLink( pageUrl, referrer )
+            null
+        }
     }
 
 
-    @Requires({ request && error })
-    byte[] handleUnknownError ( RequestData request, Throwable error )
+    /**
+     * Attempts to read connection status code.
+     * @param connection connection to read its status code
+     * @return connection status code or exception thrown
+     */
+    @Requires({ connection })
+    @Ensures({ result })
+    Object statusCode( HttpURLConnection connection )
     {
-        final ext = ext()
-        request.with {
-            try {
-                final statusCode = connection.responseCode // Reading status code may throw another exception, like SocketTimeoutException
-                final isRetry    = (( isHeadRequest ) ||
-                                    (( attempt < ext.retries ) &&
-                                     ( ext.retryStatusCodes?.any { it == statusCode } || ext.retryExceptions?.any { it.isInstance( error ) } )))
-
-                if ( logger.infoEnabled )
-                {
-                    final message = "! [$pageUrl] - $error, status code [$statusCode], " +
-                                    ( isRetry && (   isHeadRequest ) ? 'will be retried as GET request, ' : '' ) +
-                                    ( isRetry && ( ! isHeadRequest ) ? "attempt $attempt, "               : '' ) +
-                                    ( ! isRetry                      ? "${ brokenLinkMessage()}, "        : '' ) +
-                                    referredByMessage( referrer )
-
-                    logger.warn( message )
-                }
-
-                if ( isRetry )
-                {
-                    delay( ext.retryDelay )
-                    return readBytes( pageUrl, referrer, true, isHeadRequest ? 1 : attempt + 1 )
-                }
-
-                linksStorage.addBrokenLink( pageUrl, referrer )
-            }
-            catch ( Throwable newError )
-            {
-                if (( attempt < ext.retries ) && ext.retryExceptions.any { it.isInstance( newError ) })
-                {
-                    delay( ext.retryDelay )
-                    return readBytes( pageUrl, referrer, true, isHeadRequest ? 1 : attempt + 1 )
-                }
-
-                handleUnrecoverableError( request, newError )
-            }
-        }
-
-        null
+        try { connection.responseCode }
+        catch ( Throwable error ) { error }
     }
 
 
