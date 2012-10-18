@@ -33,8 +33,8 @@ class CrawlerExtension
     int           threadPoolSize     = Runtime.runtime.availableProcessors()
     int           connectTimeout     = 15000
     int           readTimeout        = 15000
-    int           minimumLinks       = Integer.MIN_VALUE
-    long          minimumBytes       = Long.MIN_VALUE
+    int           minimumLinks       = -1
+    long          minimumBytes       = -1
     int           retries            = 3
     long          retryDelay         = 5000
     long          requestDelay       = 0

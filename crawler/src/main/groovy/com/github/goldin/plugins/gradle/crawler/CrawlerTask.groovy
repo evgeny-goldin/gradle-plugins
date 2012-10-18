@@ -19,13 +19,26 @@ import java.util.zip.GZIPInputStream
 class CrawlerTask extends BaseTask
 {
     private       ThreadPoolExecutor threadPool
+    private       String             extensionName   = CrawlerPlugin.EXTENSION_NAME
     private final LinksStorage       linksStorage    = new LinksStorage()
     private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
     private final static String ROOT_LINK_REFERRER   = 'Root link'
 
+    CrawlerExtension ext () { extension ( this.extensionName, CrawlerExtension ) }
 
-    CrawlerExtension ext () { extension ( CrawlerPlugin.EXTENSION_NAME, CrawlerExtension ) }
+
+    /**
+     * Passes a new extensions object to the closure specified to use it later.
+     */
+    void config( Closure c ){
+        this.extensionName = this.name
+        final extension    = new CrawlerExtension()
+        project.extensions.add( extensionName, extension )
+        c( extension )
+    }
+
+
     String referredByMessage( String referrer ){ "referred to by\n  [$referrer]" }
     void delay( long delayInMilliseconds )     { if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}}
 
@@ -53,7 +66,7 @@ class CrawlerTask extends BaseTask
     CrawlerExtension verifyAndUpdateExtension ()
     {
         final ext                  = ext()
-        final extensionDescription = "${ CrawlerPlugin.EXTENSION_NAME } { .. }"
+        final extensionDescription = "${ this.extensionName } { .. }"
 
         assert ext.externalLinkPattern && ext.absoluteLinkPattern && ext.relativeLinkPattern && ext.anchorPattern
 
@@ -61,7 +74,7 @@ class CrawlerTask extends BaseTask
         assert ( ! ext.internalLinkPattern ), "'internalLinkPattern' should not be used in $extensionDescription - private area"
 
         ext.baseUrl             = ext.baseUrl?.trim()?.replace( '\\', '/' )?.replaceAll( '^.+?:/+', '' ) // Protocol part removed
-        ext.rootUrl             = ext.baseUrl.replaceAll( '/.*', '' )                                    // Path part removed
+        ext.rootUrl             = ext.baseUrl?.replaceAll( '/.*', '' )                                   // Path part removed
         ext.internalLinkPattern = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
 
         assert ext.baseUrl, "'baseUrl' should be defined in $extensionDescription"
@@ -71,8 +84,6 @@ class CrawlerTask extends BaseTask
         assert ext.threadPoolSize >  0, "'threadPoolSize' [${ ext.threadPoolSize }] in $extensionDescription should be positive"
         assert ext.connectTimeout >  0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
         assert ext.readTimeout    >  0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
-        assert ext.minimumLinks   >  0, "'minimumLinks' [${ ext.minimumLinks }] in $extensionDescription should be positive"
-        assert ext.minimumBytes   >  0, "'minimumBytes' [${ ext.minimumBytes }] in $extensionDescription should be positive"
         assert ext.retries        > -1, "'retries' [${ ext.retries }] in $extensionDescription should not be negative"
         assert ext.retryDelay     > -1, "'retryDelay' [${ ext.retryDelay }] in $extensionDescription should not be negative"
         assert ext.requestDelay   > -1, "'requestDelay' [${ ext.requestDelay }] in $extensionDescription should not be negative"
