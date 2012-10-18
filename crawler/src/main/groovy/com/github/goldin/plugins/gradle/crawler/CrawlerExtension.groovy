@@ -8,13 +8,15 @@ import java.util.regex.Pattern
 class CrawlerExtension
 {
     // href="http://groovy.codehaus.org/style/custom.css"
-    final Pattern externalLinkPattern = Pattern.compile( /(?:src|href)=(?:'|")(https?:\/\/.+?)(?:'|")/ )
+    final Pattern externalLinkPattern         = Pattern.compile( /(?:src|href)=(?:'|")(https?:\/\/.+?)(?:'|")/ )
     // href="/style/custom.css"
-    final Pattern absoluteLinkPattern = Pattern.compile( /(?:src|href)=(?:'|")(\/.+?)(?:'|")/ )
+    final Pattern absoluteLinkPattern         = Pattern.compile( /(?:src|href)=(?:'|")(\/.+?)(?:'|")/ )
     // href="style/custom.css"
-    final Pattern relativeLinkPattern = Pattern.compile( /(?:src|href)=(?:'|")([^\/\\\\#'"][^:]+?)(?:'|")/ )
+    final Pattern relativeLinkPattern         = Pattern.compile( /(?:src|href)=(?:'|")([^\/#'"][^:]+?)(?:'|")/ )
+    // "http://path/reminder" => matches "/reminder"
+    final Pattern relativeLinkReminderPattern = Pattern.compile( '(?<!:/)/+[^/]*$' )
     // "#anchorName"
-    final Pattern anchorPattern       = Pattern.compile( '#.*?$' )
+    final Pattern anchorPattern               = Pattern.compile( '#.*?$' )
 
     /**
      * Internal properties, set in {@link CrawlerTask#verifyAndUpdateExtension()}

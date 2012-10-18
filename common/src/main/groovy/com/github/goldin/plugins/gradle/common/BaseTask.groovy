@@ -12,6 +12,7 @@ import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.regex.Pattern
 
 
 /**
@@ -312,4 +313,12 @@ abstract class BaseTask extends DefaultTask
 
         xml
     }
+
+
+    /**
+     * Retrieves all appearances of the first capturing group of the pattern specified in a String.
+     */
+    @Requires({ s && p })
+    @Ensures({ result != null })
+    final List<String> findAll( String s, Pattern p ){ s.findAll ( p ) { it[ 1 ] }}
 }

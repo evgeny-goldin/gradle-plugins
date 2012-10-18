@@ -112,7 +112,7 @@ class CrawlerTask extends BaseTask
             final ext  = ext()
 
             final ipAddress     = (( ext.rootUrl ==~ /^\d+\.\d+\.\d+\.\d+$/ ) ? '' : " (${ InetAddress.getByName( ext.rootUrl ).hostAddress })" )
-            final bannerMessage = "Checking [http://$ext.rootUrl]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }"
+            final bannerMessage = "Checking [$ext.baseUrl]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }"
             final bannerLine    = "-" * ( bannerMessage.size() + 2 )
 
             logger.info( bannerLine )
@@ -313,25 +313,34 @@ class CrawlerTask extends BaseTask
         pageContent =
             (( String ) ext.pageTransformers.inject( pageContent ){ String content, Closure transformer -> transformer( content ) }).
             replace( '%3A', ':' ).
+            replace( '\\',  '/' ).
             replace( '%2F', '/' )
 
-        final links = pageContent.findAll ( ext.internalLinkPattern ) { it[ 1 ] }
+        final links = findAll( pageContent, ext.internalLinkPattern )
 
         if ( ext.checkExternalLinks ) {
-            links.addAll( pageContent.findAll ( ext.externalLinkPattern ) { it[ 1 ] })
+            final  externalLinks = findAll ( pageContent, ext.externalLinkPattern )
+            assert externalLinks.every { it.startsWith( 'http://' ) || it.startsWith( 'https://' ) }
+
+            links.addAll( externalLinks )
         }
 
         if ( ext.checkAbsoluteLinks ) {
-            links.addAll( pageContent.findAll ( ext.absoluteLinkPattern ) { it[ 1 ] }.
-                                      collect{ "http://${ ext.rootUrl }$it".toString() })
+            final  absoluteLinks = findAll ( pageContent, ext.absoluteLinkPattern )
+            assert absoluteLinks.every{ it.startsWith( '/' ) }
+
+            links.addAll( absoluteLinks.collect{ "http://$ext.rootUrl$it".toString() })
         }
 
         if ( ext.checkRelativeLinks ) {
-            links.addAll( pageContent.findAll ( ext.relativeLinkPattern ) { it[ 1 ] }.
-                                      collect{ "$pageUrl${ pageUrl.endsWith( '/' ) ? '' : '/' }$it".toString() })
+            final pageBaseUrl   = pageUrl.replaceFirst( ext.relativeLinkReminderPattern, '' )
+            final relativeLinks = findAll ( pageContent, ext.relativeLinkPattern )
+            assert ( ! pageBaseUrl.endsWith( '/' )) && relativeLinks.every { ! it.startsWith( '/' )}
+
+            links.addAll( relativeLinks.collect{ "$pageBaseUrl/$it".toString() })
         }
 
-        links.each { assert it }
+        assert links.every{ it }
         final foundLinks = links.
                            collect { it.replaceFirst( ext.anchorPattern, '' )}.
                            toSet().
