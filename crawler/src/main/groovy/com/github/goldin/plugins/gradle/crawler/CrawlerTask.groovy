@@ -356,7 +356,7 @@ class CrawlerTask extends BaseTask
         final        ext           = ext()
         InputStream  inputStream   = null
         RequestData  request       = null
-        final        nonHtmlLink   = ( ext.nonHtmlContains.any{ pageUrl.contains( it ) } || ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" )})
+        final        nonHtmlLink   = ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" ) || pageUrl.contains( ".$it?" ) }
         final        internalLink  = ext.isInternalLink ( pageUrl )
         final        isHeadRequest = (( ! forceGetRequest ) && ( nonHtmlLink || ( ! internalLink )))
         final        requestMethod = ( isHeadRequest ? 'HEAD' : 'GET' )
