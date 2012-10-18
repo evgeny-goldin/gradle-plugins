@@ -23,7 +23,6 @@ class CrawlerTask extends BaseTask
     private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
     private final static String ROOT_LINK_REFERRER   = 'Root link'
-    private final static int    METHOD_NOT_ALLOWED   = 405
 
 
     CrawlerExtension ext () { extension ( CrawlerPlugin.EXTENSION_NAME, CrawlerExtension ) }
