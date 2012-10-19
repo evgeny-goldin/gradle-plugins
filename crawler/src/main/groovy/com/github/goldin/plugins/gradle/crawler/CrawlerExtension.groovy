@@ -47,6 +47,7 @@ class CrawlerExtension
     List<String>  nonHtmlExtensions  = 'css js ico logo gif jpg jpeg png ps eps doc pdf zip rar gz xml xsl svg flv mp4 mp3 avi mkv'.tokenize()
     List<String>  rootLinks          = []
     List<Closure> pageTransformers   = []
+    List<Closure> nonHtmlLinks       = []
     List<Closure> ignoredLinks       = []
     boolean       printSummary       = true
     boolean       checkAbsoluteLinks = true
