@@ -25,8 +25,6 @@ class CrawlerTask extends BaseTask
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
     private final AtomicLong         linksProcessed  = new AtomicLong( 0L )
 
-    private final static String ROOT_LINK_REFERRER   = 'Root link'
-
     CrawlerExtension ext () { extension ( this.extensionName, CrawlerExtension ) }
 
 
@@ -139,7 +137,7 @@ class CrawlerTask extends BaseTask
         for ( link in linksStorage.addLinksToProcess( ext.rootLinks ))
         {
             final pageUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-            futures << threadPool.submit({ checkLinks( pageUrl, ROOT_LINK_REFERRER )} as Runnable )
+            futures << threadPool.submit({ checkLinks( pageUrl, 'Root link', true )} as Runnable )
         }
     }
 
@@ -264,16 +262,17 @@ class CrawlerTask extends BaseTask
      *
      * @param pageUrl     URL of a page to check its links
      * @param referrerUrl URL of another page referring to the one being checked
+     * @param isRootLink  whether url submitted is a root link
      */
     @Requires({ pageUrl && referrerUrl && linksStorage && threadPool })
-    void checkLinks ( String pageUrl, String referrerUrl )
+    void checkLinks ( String pageUrl, String referrerUrl, boolean isRootLink )
     {
         final ext = ext()
         delay( ext.requestDelay )
 
         try
         {
-            final byte[] bytes = readBytes( pageUrl, referrerUrl, referrerUrl == ROOT_LINK_REFERRER )
+            final byte[] bytes = readBytes( pageUrl, referrerUrl, isRootLink )
             linksProcessed.incrementAndGet()
 
             if ( ! bytes ) { return }
@@ -296,7 +295,7 @@ class CrawlerTask extends BaseTask
             for ( link in newLinks )
             {
                 final String linkUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl )} as Runnable )
+                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl, false )} as Runnable )
             }
         }
         catch( Throwable error )
