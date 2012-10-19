@@ -274,6 +274,7 @@ class CrawlerTask extends BaseTask
         try
         {
             final byte[] bytes = readBytes( pageUrl, referrerUrl, referrerUrl == ROOT_LINK_REFERRER )
+            linksProcessed.incrementAndGet()
 
             if ( ! bytes ) { return }
 
