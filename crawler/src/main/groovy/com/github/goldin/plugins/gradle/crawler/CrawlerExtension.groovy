@@ -6,13 +6,17 @@ import java.util.regex.Pattern
 class CrawlerExtension
 {
     // href="http://groovy.codehaus.org/style/custom.css"
-    final Pattern externalLinkPattern         = Pattern.compile( /(?:src|href)=(?:'|")(https?:\/\/.+?)(?:'|")/ )
+    final Pattern externalLinkPattern         = Pattern.compile( /(?:src|href|SRC|HREF)=(?:'|")(https?:\/\/.+?)(?:'|")/ )
+
     // href="/style/custom.css"
-    final Pattern absoluteLinkPattern         = Pattern.compile( /(?:src|href)=(?:'|")(\/.+?)(?:'|")/ )
+    final Pattern absoluteLinkPattern         = Pattern.compile( /(?:src|href|SRC|HREF)=(?:'|")(\/.+?)(?:'|")/ )
+
     // href="style/custom.css"
-    final Pattern relativeLinkPattern         = Pattern.compile( /(?:src|href)=(?:'|")([^\/#'"][^:]+?)(?:'|")/ )
+    final Pattern relativeLinkPattern         = Pattern.compile( /(?:src|href|SRC|HREF)=(?:'|")([^\/#'"][^:]+?)(?:'|")/ )
+
     // "http://path/reminder" => matches "/reminder"
     final Pattern relativeLinkReminderPattern = Pattern.compile( '(?<!(:|:/))/+[^/]*$' )
+
     // "#anchorName"
     final Pattern anchorPattern               = Pattern.compile( '#.*?$' )
 
@@ -40,7 +44,7 @@ class CrawlerExtension
     long          requestDelay       = 0
     File          linksMapFile       = null
     File          newLinksMapFile    = null
-    List<String>  nonHtmlExtensions  = 'css js ico logo gif jpg jpeg png doc pdf zip rar gz xml xsl svg flv mp4 mp3 avi mkv'.tokenize()
+    List<String>  nonHtmlExtensions  = 'css js ico logo gif jpg jpeg png ps eps doc pdf zip rar gz xml xsl svg flv mp4 mp3 avi mkv'.tokenize()
     List<String>  rootLinks          = []
     List<Closure> pageTransformers   = []
     List<Closure> ignoredLinks       = []
