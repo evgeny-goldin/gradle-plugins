@@ -23,6 +23,8 @@ class CrawlerTask extends BaseTask
     private final LinksStorage       linksStorage    = new LinksStorage()
     private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
+    private final AtomicLong         linksProcessed  = new AtomicLong( 0L )
+
     private final static String ROOT_LINK_REFERRER   = 'Root link'
 
     CrawlerExtension ext () { extension ( this.extensionName, CrawlerExtension ) }
@@ -163,19 +165,22 @@ class CrawlerTask extends BaseTask
      */
     void printReport ()
     {
-        final ext          = ext()
-        final mbDownloaded = ( long )( bytesDownloaded.get() / ( 1024 * 1024 ))
-        final kbDownloaded = ( long )( bytesDownloaded.get() / ( 1024 ))
-        final downloaded   = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
+        final processedLinks = linksStorage.processedLinks()
+        final ext            = ext()
+        final mbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 * 1024 ))
+        final kbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 ))
+        final downloaded     = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
+
+        assert linksProcessed.get() == processedLinks.size()
 
         final message = new StringBuilder().
-              append( "\n\n[${ linksStorage.processedLinksNumber()}] link${ s( linksStorage.processedLinksNumber() ) } checked in ".toString()).
+              append( "\n\n[$linksProcessed] link${ s( linksProcessed.get()) } checked in ".toString()).
               append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
               append( downloaded.toString())
 
         if ( ext.displayLinks )
         {
-            message.append( ':\n' ).append( toMultiLines( linksStorage.processedLinks()))
+            message.append( ':\n' ).append( toMultiLines( processedLinks ))
         }
 
         message.append( "\n[${ linksStorage.brokenLinksNumber()}] broken link${ s( linksStorage.brokenLinksNumber()) } found".toString()).
@@ -231,7 +236,6 @@ class CrawlerTask extends BaseTask
     void checkIfBuildShouldFail ( )
     {
         final ext   = ext()
-        final links = linksStorage.processedLinksNumber()
         final bytes = bytesDownloaded.get()
 
         if ( linksStorage.brokenLinksNumber() && ext.failOnBrokenLinks )
@@ -241,10 +245,10 @@ class CrawlerTask extends BaseTask
                     'see above for more details' )
         }
 
-        if ( links < ext.minimumLinks )
+        if ( linksProcessed.get() < ext.minimumLinks )
         {
             throw new GradleException(
-                    "Only [$links] link${ s( links )} checked, [${ ext.minimumLinks }] link${ s( ext.minimumLinks )} at least required." )
+                    "Only [$linksProcessed] link${ s( linksProcessed.get())} checked, [${ ext.minimumLinks }] link${ s( ext.minimumLinks )} at least required." )
         }
 
         if ( bytes < ext.minimumBytes )
@@ -285,7 +289,7 @@ class CrawlerTask extends BaseTask
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}" : ''
 
                 logger.info( "[$pageUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
-                             "${ linksStorage.processedLinksNumber() } processed, ${ threadPool.queue.size()} queued$newLinksMessage" )
+                             "$linksProcessed processed, ${ threadPool.queue.size() } queued$newLinksMessage" )
             }
 
             for ( link in newLinks )
@@ -297,6 +301,10 @@ class CrawlerTask extends BaseTask
         catch( Throwable error )
         {
             logger.error( "Interanl error while reading [$pageUrl], referrer [$referrerUrl]", error )
+        }
+        finally
+        {
+            linksProcessed.incrementAndGet()
         }
     }
 

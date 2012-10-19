@@ -80,13 +80,6 @@ class LinksStorage
     }
 
 
-    @Ensures({ result >= 0 })
-    int processedLinksNumber()
-    {
-        processedLinks.size()
-    }
-
-
     @Requires({ links })
     @Ensures({ result != null })
     Set<String> addLinksToProcess ( Collection<String> links )
