@@ -302,10 +302,6 @@ class CrawlerTask extends BaseTask
         {
             logger.error( "Interanl error while reading [$pageUrl], referrer [$referrerUrl]", error )
         }
-        finally
-        {
-            linksProcessed.incrementAndGet()
-        }
     }
 
 
