@@ -281,8 +281,8 @@ class CrawlerTask extends BaseTask
 
             if ( logger.infoEnabled )
             {
-                final linksMessage    = pageLinks ? ", ${ newLinks ? newLinks.size() : 'no' } new" : ''
-                final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}"               : ''
+                final linksMessage    = pageLinks ? ", ${ newLinks.size() } new"     : ''
+                final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}" : ''
 
                 logger.info( "[$pageUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
                              "${ linksStorage.processedLinksNumber() } processed, ${ threadPool.queue.size()} queued$newLinksMessage" )
