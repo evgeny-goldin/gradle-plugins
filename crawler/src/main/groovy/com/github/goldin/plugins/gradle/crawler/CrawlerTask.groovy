@@ -39,10 +39,27 @@ class CrawlerTask extends BaseTask
     }
 
 
-    String referredByMessage( String referrer ){ "referred to by\n  [$referrer]" }
-    void delay( long delayInMilliseconds )     { if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}}
-    boolean isInternalLink( String link )      { link.with { startsWith( "http://${ ext().baseUrl }"  ) ||
-                                                             startsWith( "https://${ ext().baseUrl }" )}}
+    @Requires({ referrer })
+    @Ensures({ result })
+    String referredByMessage( String referrer ){
+        "referred to by\n  [$referrer]"
+    }
+
+    @Requires({ delayInMilliseconds > -1 })
+    void delay( long delayInMilliseconds ){
+        if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}
+    }
+
+    @Requires({ ch && input && alternative })
+    @Ensures({ result })
+    String removeAllAfter( String ch, String input, String alternative ) {
+        final j = input.indexOf( ch )
+        (( j > 0 ) ? input.substring( 0, j ) : alternative )
+    }
+
+    @Requires({ link })
+    boolean isInternalLink( String link ) { link.startsWith( "http://${ ext().baseUrl }"  ) ||
+                                            link.startsWith( "https://${ ext().baseUrl }" ) }
 
 
     @Override
@@ -70,7 +87,7 @@ class CrawlerTask extends BaseTask
         final ext                  = ext()
         final extensionDescription = "${ this.extensionName } { .. }"
 
-        assert ext.externalLinkPattern && ext.absoluteLinkPattern && ext.relativeLinkPattern && ext.anchorPattern
+        assert ext.externalLinkPattern && ext.absoluteLinkPattern && ext.relativeLinkPattern
 
         assert ( ! ext.rootUrl             ), "'rootUrl' should not be used in $extensionDescription - private area"
         assert ( ! ext.internalLinkPattern ), "'internalLinkPattern' should not be used in $extensionDescription - private area"
@@ -345,8 +362,8 @@ class CrawlerTask extends BaseTask
         if ( ext.checkRelativeLinks ) {
 
             final pageBaseUrl    = pageUrl.replaceFirst( ext.relativeLinkReminderPattern, '' )
-            final requestBaseUrl = pageUrl.contains( '?' ) ? pageUrl.substring( 0, pageUrl.indexOf( '?' )) : pageBaseUrl
-            final relativeLinks = findAll ( pageContent, ext.relativeLinkPattern )
+            final requestBaseUrl = removeAllAfter( '?', pageUrl, pageBaseUrl )
+            final relativeLinks  = findAll ( pageContent, ext.relativeLinkPattern )
             assert ( ! pageBaseUrl.endsWith( '/' )) && ( ! requestBaseUrl.endsWith( '?' )) && relativeLinks.every { ! it.startsWith( '/' )}
 
             links.addAll( relativeLinks.collect{( it.startsWith( '?' ) ? "$requestBaseUrl$it" : "$pageBaseUrl/$it" ).toString() })
@@ -354,11 +371,20 @@ class CrawlerTask extends BaseTask
 
         assert links.every{ it }
         final foundLinks = links.
-                           collect { it.replaceFirst( ext.anchorPattern, '' )}.
+                           collect { normalizeUrl( removeAllAfter( '#', it, it )) }.
                            toSet().
                            findAll { String link -> ( ! ext.ignoredLinks.any { Closure c -> c( link ) }) }.
                            sort()
         foundLinks
+    }
+
+
+    @Requires({ pageUrl })
+    @Ensures({ result })
+    String normalizeUrl( String pageUrl )
+    {
+        try              { return pageUrl.toURI().normalize().toURL().toString().toLowerCase() }
+        catch ( ignored ){ return pageUrl }
     }
 
 
