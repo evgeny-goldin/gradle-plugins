@@ -383,7 +383,7 @@ class CrawlerTask extends BaseTask
     @Ensures({ result })
     String normalizeUrl( String pageUrl )
     {
-        try              { return pageUrl.toURI().normalize().toURL().toString().toLowerCase() }
+        try              { return pageUrl.toURI().normalize().toURL().toString() }
         catch ( ignored ){ return pageUrl }
     }
 
