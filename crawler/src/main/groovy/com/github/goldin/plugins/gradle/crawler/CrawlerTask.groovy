@@ -186,10 +186,8 @@ class CrawlerTask extends BaseTask
         final kbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 ))
         final downloaded     = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
 
-        assert linksProcessed.get() == processedLinks.size()
-
         final message = new StringBuilder().
-              append( "\n\n[$linksProcessed] link${ s( linksProcessed.get()) } checked in ".toString()).
+              append( "\n\n[${ processedLinks.size()}] link${ s( processedLinks.size()) } checked in ".toString()).
               append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
               append( downloaded.toString())
 
@@ -248,28 +246,29 @@ class CrawlerTask extends BaseTask
     /**
      * Checks if build should fail and fails it if required.
      */
-    void checkIfBuildShouldFail ( )
+    void checkIfBuildShouldFail()
     {
-        final ext   = ext()
-        final bytes = bytesDownloaded.get()
+        final ext = ext()
 
         if ( linksStorage.brokenLinksNumber() && ext.failOnBrokenLinks )
         {
             throw new GradleException(
-                    "[${ linksStorage.brokenLinksNumber() }] broken link${ s( linksStorage.brokenLinksNumber() )} found, " +
-                    'see above for more details' )
+                "[${ linksStorage.brokenLinksNumber() }] broken link${ s( linksStorage.brokenLinksNumber() )} found, " +
+                'see above for more details' )
         }
 
         if ( linksProcessed.get() < ext.minimumLinks )
         {
             throw new GradleException(
-                    "Only [$linksProcessed] link${ s( linksProcessed.get())} checked, [${ ext.minimumLinks }] link${ s( ext.minimumLinks )} at least required." )
+                "Only [$linksProcessed] link${ s( linksProcessed.get())} checked, " +
+                "[${ ext.minimumLinks }] link${ s( ext.minimumLinks )} at least required." )
         }
 
-        if ( bytes < ext.minimumBytes )
+        if ( bytesDownloaded.get() < ext.minimumBytes )
         {
             throw new GradleException(
-                    "Only [$bytes] byte${ s( bytes )} downloaded, [${ ext.minimumBytes }] byte${ s( ext.minimumBytes )} at least required." )
+                "Only [$bytesDownloaded] byte${ s( bytesDownloaded.get())} downloaded, " +
+                "[${ ext.minimumBytes }] byte${ s( ext.minimumBytes )} at least required." )
         }
     }
 
@@ -403,7 +402,7 @@ class CrawlerTask extends BaseTask
         final        ext             = ext()
         InputStream  inputStream     = null
         RequestData  request         = null
-        final        htmlLink        = ( ! ext.nonHtmlExtensions.any{ pageUrl.endsWith( ".$it" ) || pageUrl.contains( ".$it?" ) }) &&
+        final        htmlLink        = ( ! pageUrl.toLowerCase().with{ ext.nonHtmlExtensions.any{ endsWith( ".$it" ) || contains( ".$it?" ) }} ) &&
                                        ( ! ext.nonHtmlLinks.any{ Closure c -> c( pageUrl )})
         final        readFullContent = ( htmlLink && isInternalLink ( pageUrl ))
         final        isHeadRequest   = (( ! forceGetRequest ) && ( ! readFullContent ))
