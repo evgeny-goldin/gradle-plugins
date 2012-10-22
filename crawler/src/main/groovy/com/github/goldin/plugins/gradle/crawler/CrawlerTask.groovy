@@ -334,13 +334,14 @@ class CrawlerTask extends BaseTask
         // noinspection GroovyAssignmentToMethodParameter
         pageContent =
             (( String ) ext.pageTransformers.inject( pageContent ){ String content, Closure transformer -> transformer( content ) }).
-            replace( '\\',     '/' ).
-            replace( '%3A',    ':' ).
-            replace( '%2F',    '/' ).
-            replace( '&lt;',   '<' ).
-            replace( '&gt;',   '>' ).
-            replace( '&quot;', '"' ).
-            replace( '&amp;',  '&' )
+            replace( '\\',        '/' ).
+            replace( '%3A',       ':' ).
+            replace( '%2F',       '/' ).
+            replace( '&lt;',      '<' ).
+            replace( '&gt;',      '>' ).
+            replace( '&quot;',    '"' ).
+            replace( '&amp;amp;', '&' ).
+            replace( '&amp;',     '&' )
 
         final links = findAll( pageContent, ext.internalLinkPattern )
 
