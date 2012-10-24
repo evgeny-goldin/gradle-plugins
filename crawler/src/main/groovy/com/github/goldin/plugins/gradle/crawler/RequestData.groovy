@@ -5,11 +5,12 @@ import org.gcontracts.annotations.Invariant
 /**
  * Request data container
  */
-@Invariant({ pageUrl && referrer && linksStorage && connection && ( attempt > 0 )})
+@Invariant({ pageUrl && referrer && referrerContent && linksStorage && connection && ( attempt > 0 )})
 class RequestData
 {
     final String            pageUrl
     final String            referrer
+    final String            referrerContent
     final LinksStorage      linksStorage
     final HttpURLConnection connection
     final int               attempt
@@ -17,8 +18,10 @@ class RequestData
     final boolean           isHeadRequest
 
 
+    @SuppressWarnings([ 'GroovyMethodParameterCount' ])
     RequestData ( String            pageUrl,
                   String            referrer,
+                  String            referrerContent,
                   LinksStorage      linksStorage,
                   HttpURLConnection connection,
                   int               attempt,
@@ -27,6 +30,7 @@ class RequestData
     {
         this.pageUrl         = pageUrl
         this.referrer        = referrer
+        this.referrerContent = referrerContent
         this.linksStorage    = linksStorage
         this.connection      = connection
         this.attempt         = attempt

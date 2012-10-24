@@ -154,7 +154,7 @@ class CrawlerTask extends BaseTask
         for ( link in linksStorage.addLinksToProcess( ext.rootLinks ))
         {
             final pageUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-            futures << threadPool.submit({ checkLinks( pageUrl, 'Root link', true )} as Runnable )
+            futures << threadPool.submit({ checkLinks( pageUrl, 'Root link', 'Root link', true )} as Runnable )
         }
     }
 
@@ -277,24 +277,26 @@ class CrawlerTask extends BaseTask
     /**
      * <b>Invoked in a thread pool worker</b> - checks links in the page specified.
      *
-     * @param pageUrl     URL of a page to check its links
-     * @param referrerUrl URL of another page referring to the one being checked
-     * @param isRootLink  whether url submitted is a root link
+     * @param pageUrl         URL of a page to check its links
+     * @param referrerUrl     URL of another page referring to the one being checked
+     * @param referrerContent Referrer page content
+     * @param isRootLink      whether url submitted is a root link
      */
-    @Requires({ pageUrl && referrerUrl && linksStorage && threadPool })
-    void checkLinks ( String pageUrl, String referrerUrl, boolean isRootLink )
+    @Requires({ pageUrl && referrerUrl && referrerContent && linksStorage && threadPool })
+    void checkLinks ( String pageUrl, String referrerUrl, String referrerContent, boolean isRootLink )
     {
         final ext = ext()
         delay( ext.requestDelay )
 
         try
         {
-            final byte[] bytes = readBytes( pageUrl, referrerUrl, isRootLink )
+            final byte[] bytes = readBytes( pageUrl, referrerUrl, referrerContent, isRootLink )
             linksProcessed.incrementAndGet()
 
             if ( ! bytes ) { return }
 
-            final Set<String> pageLinks = readLinks( pageUrl, new String( bytes, 'UTF-8' ))
+            final pageContent           = new String( bytes, 'UTF-8' )
+            final Set<String> pageLinks = readLinks( pageUrl, pageContent )
             final Set<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
 
             linksStorage.updateBrokenLinkReferrers( pageUrl, pageLinks )
@@ -314,7 +316,7 @@ class CrawlerTask extends BaseTask
             for ( link in newLinks )
             {
                 final String linkUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl, false )} as Runnable )
+                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl, pageContent, false )} as Runnable )
             }
         }
         catch( Throwable error )
@@ -396,12 +398,14 @@ class CrawlerTask extends BaseTask
      *
      * @param pageUrl         URL of a link to read
      * @param referrer        URL of link referrer
+     * @param referrerContent Referrer page content
      * @param forceGetRequest whether a link should be GET-requested in any case
+     * @param attempt         Number of the current attempt, starts from 1
      *
      * @return binary content of link specified or null if link shouldn't be read
      */
-    @Requires({ pageUrl && referrer && linksStorage && ( attempt > 0 ) })
-    byte[] readBytes ( final String pageUrl, final String referrer, final boolean forceGetRequest, final int attempt = 1 )
+    @Requires({ pageUrl && referrer && referrerContent && linksStorage && ( attempt > 0 ) })
+    byte[] readBytes ( final String pageUrl, final String referrer, String referrerContent, final boolean forceGetRequest, final int attempt = 1 )
     {
         final        ext             = ext()
         InputStream  inputStream     = null
@@ -418,7 +422,7 @@ class CrawlerTask extends BaseTask
 
             final t            = System.currentTimeMillis()
             final connection   = openConnection( pageUrl, requestMethod )
-            request            = new RequestData( pageUrl, referrer, linksStorage, connection, attempt, forceGetRequest, isHeadRequest )
+            request            = new RequestData( pageUrl, referrer, referrerContent, linksStorage, connection, attempt, forceGetRequest, isHeadRequest )
             inputStream        = connection.inputStream
             final byte[] bytes = ( byte[] )( isHeadRequest || readFullContent ) ?
                                     inputStream.bytes :
@@ -472,10 +476,14 @@ class CrawlerTask extends BaseTask
             if ( isRetry )
             {
                 delay( ext.retryDelay )
-                return readBytes( pageUrl, referrer, true, isHeadRequest ? 1 : attempt + 1 )
+                return readBytes( pageUrl, referrer, referrerContent, true, isHeadRequest ? 1 : attempt + 1 )
             }
 
-            linksStorage.addBrokenLink( pageUrl, referrer )
+            if ( ext.brokenLinkCallbacks.every{ it( pageUrl, referrer, referrerContent )})
+            {
+                linksStorage.addBrokenLink( pageUrl, referrer )
+            }
+
             null
         }
     }
