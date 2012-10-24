@@ -3,6 +3,7 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 
 
 /**
@@ -10,11 +11,11 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class LinksStorage
 {
-    private final    Set<String>              processedLinks = [] as Set
-    private final    Map<String, String>      brokenLinks    = new ConcurrentHashMap<String, String>()
-    private final    Map<String, Set<String>> linksMap       = new ConcurrentHashMap<String, Set<String>>()
-    private final    Map<String, Set<String>> newLinksMap    = new ConcurrentHashMap<String, Set<String>>()
-    private volatile boolean                  locked         = false
+    private final    Set<String>                     processedLinks = [] as Set
+    private final    Map<String, Collection<String>> brokenLinks    = new ConcurrentHashMap<>()
+    private final    Map<String, Set<String>>        linksMap       = new ConcurrentHashMap<>()
+    private final    Map<String, Set<String>>        newLinksMap    = new ConcurrentHashMap<>()
+    private volatile boolean                         locked         = false
 
 
     @Requires({ ( map != null ) && key && value })
@@ -73,7 +74,7 @@ class LinksStorage
 
     @Requires({ link })
     @Ensures({ result })
-    String brokenLinkReferrer ( String link )
+    Collection<String> brokenLinkReferrers ( String link )
     {
         assert locked
         brokenLinks[ link ]
@@ -114,6 +115,16 @@ class LinksStorage
     @Requires({ brokenLink && referrer })
     void addBrokenLink ( String brokenLink, String referrer )
     {
-        updateMap( brokenLinks, brokenLink, referrer )
+        updateMap( brokenLinks, brokenLink, new ConcurrentLinkedQueue([ referrer ]))
+    }
+
+
+    @Requires({ referrer && ( links != null ) })
+    void updateBrokenLinkReferrers( String referrer, Collection<String> links )
+    {
+        for ( link in links )
+        {
+            brokenLinks[ link ]?.add( referrer )
+        }
     }
 }

@@ -29,7 +29,7 @@ class CrawlerTask extends BaseTask
 
 
     /**
-     * Passes a new extensions object to the closure specified to use it later.
+     * Passes a new extensions object to the closure specified (to use it later).
      */
     void config( Closure c ){
         this.extensionName = this.name
@@ -37,29 +37,6 @@ class CrawlerTask extends BaseTask
         project.extensions.add( extensionName, extension )
         c( extension )
     }
-
-
-    @Requires({ referrer })
-    @Ensures({ result })
-    String referredByMessage( String referrer ){
-        "referred to by\n  [$referrer]"
-    }
-
-    @Requires({ delayInMilliseconds > -1 })
-    void delay( long delayInMilliseconds ){
-        if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}
-    }
-
-    @Requires({ ch && input && alternative })
-    @Ensures({ result })
-    String removeAllAfter( String ch, String input, String alternative ) {
-        final j = input.indexOf( ch )
-        (( j > 0 ) ? input.substring( 0, j ) : alternative )
-    }
-
-    @Requires({ link })
-    boolean isInternalLink( String link ) { link.startsWith( "http://${ ext().baseUrl }"  ) ||
-                                            link.startsWith( "https://${ ext().baseUrl }" ) }
 
 
     @Override
@@ -74,6 +51,29 @@ class CrawlerTask extends BaseTask
         printReport()
         writeLinksMapFiles()
         checkIfBuildShouldFail()
+    }
+
+
+    @Requires({ delayInMilliseconds > -1 })
+    void delay( long delayInMilliseconds )
+    {
+        if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}
+    }
+
+
+    @Requires({ ch && input && alternative })
+    @Ensures({ result })
+    String removeAllAfter( String ch, String input, String alternative )
+    {
+        final j = input.indexOf( ch )
+        ( j > 0 ? input.substring( 0, j ) : alternative )
+    }
+
+
+    @Requires({ link })
+    boolean isInternalLink( String link )
+    {
+        link.startsWith( "http://${ ext().baseUrl }"  ) || link.startsWith( "https://${ ext().baseUrl }" )
     }
 
 
@@ -204,7 +204,8 @@ class CrawlerTask extends BaseTask
             message << ':\n\n'
             for ( brokenLink in linksStorage.brokenLinks())
             {
-                message << "- [$brokenLink] - ${ referredByMessage( linksStorage.brokenLinkReferrer( brokenLink ))}\n\n"
+                message << "- [$brokenLink] - referred to by \n" +
+                           "- [${ linksStorage.brokenLinkReferrers( brokenLink ).join( ']\n- [' )}]\n\n"
             }
         }
 
@@ -295,6 +296,8 @@ class CrawlerTask extends BaseTask
 
             final Set<String> pageLinks = readLinks( pageUrl, new String( bytes, 'UTF-8' ))
             final Set<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
+
+            linksStorage.updateBrokenLinkReferrers( pageUrl, pageLinks )
 
             if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
             if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
@@ -461,10 +464,9 @@ class CrawlerTask extends BaseTask
                 final message = "! [$pageUrl] - $error, status code [${ statusCodeError ? 'unknown' : statusCode }], " +
                                 ( isRetry && isHeadRequest ? 'will be retried as GET request, ' : '' ) +
                                 ( isAttempt                ? "attempt $attempt, "               : '' ) +
-                                ( ! isRetry                ? 'registered as broken link, '      : '' ) +
-                                referredByMessage( referrer )
+                                ( ! isRetry                ? 'registered as broken link, '      : '' )
 
-                logger.warn( message )
+                logger.warn( message.replaceFirst( /, $/, '' ))
             }
 
             if ( isRetry )
