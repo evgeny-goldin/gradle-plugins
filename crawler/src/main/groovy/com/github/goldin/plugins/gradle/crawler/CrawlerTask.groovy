@@ -501,13 +501,13 @@ class CrawlerTask extends BaseTask
     {
         request.with {
             final ext             = ext()
-            final statusCode      = statusCode ( connection )
+            final statusCode      = ( connection ? statusCode ( connection )       : null )
             final statusCodeError = ( statusCode instanceof Throwable ? statusCode : null )
             final isRetryMatch    = ( ext.retryStatusCodes?.any { it == statusCode } ||
-                                      ext.retryExceptions?. any { it.with { isInstance( error ) || isInstance( statusCodeError ) }} )
+                                      ext.retryExceptions?. any { it.isInstance( error ) || it.isInstance( statusCodeError ) })
             final isRetry         = ( isHeadRequest || ( isRetryMatch && ( attempt < ext.retries )))
             final isAttempt       = (( ! isHeadRequest ) && ( ext.retries > 1 ) && ( isRetryMatch ))
-            final logMessage      = "! [$pageUrl] - $error, status code [${ statusCodeError ? 'unknown' : statusCode }]"
+            final logMessage      = "! [$pageUrl] - $error, status code [${ (( statusCode == null ) || statusCodeError ) ? 'unknown' : statusCode }]"
 
             if ( isRetry )
             {
