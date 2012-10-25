@@ -1,9 +1,10 @@
 package com.github.goldin.plugins.gradle.crawler
-
 import com.github.goldin.plugins.gradle.common.BaseTask
+
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
+import org.gradle.api.logging.LogLevel
 
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
@@ -18,12 +19,12 @@ import java.util.zip.GZIPInputStream
  */
 class CrawlerTask extends BaseTask
 {
-    private       ThreadPoolExecutor threadPool
     private       String             extensionName   = CrawlerPlugin.EXTENSION_NAME
     private final LinksStorage       linksStorage    = new LinksStorage()
     private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
     private final AtomicLong         linksProcessed  = new AtomicLong( 0L )
+    private       ThreadPoolExecutor threadPool
 
     CrawlerExtension ext () { extension ( this.extensionName, CrawlerExtension ) }
 
@@ -42,8 +43,11 @@ class CrawlerTask extends BaseTask
     @Override
     void taskAction ()
     {
-        final ext  = verifyAndUpdateExtension()
-        threadPool = Executors.newFixedThreadPool( ext.threadPoolSize ) as ThreadPoolExecutor
+        final ext       = verifyAndUpdateExtension()
+        this.threadPool = Executors.newFixedThreadPool( ext.threadPoolSize ) as ThreadPoolExecutor
+
+        assert (( ! ext.log ) || ( ! ext.log.file ) || project.delete( ext.log )), \
+               "Failed to delete [${ ext.log.canonicalPath }]"
 
         printStartBanner()
         submitRootLinks()
@@ -74,6 +78,45 @@ class CrawlerTask extends BaseTask
     boolean isInternalLink( String link )
     {
         link.startsWith( "http://${ ext().baseUrl }"  ) || link.startsWith( "https://${ ext().baseUrl }" )
+    }
+
+
+    /**
+     * Logs message returned by the closure provided.
+     *
+     * @param logLevel   message log level
+     * @param error      error thrown
+     * @param logMessage closure returning message text
+     */
+    @Requires({ logLevel && logMessage })
+    void log( LogLevel logLevel = LogLevel.INFO, Throwable error = null, Closure logMessage )
+    {
+        final  ext     = ext()
+        String logText = null
+
+        if ( logger.isEnabled( logLevel ))
+        {
+            logText = logMessage()
+            assert logText
+
+            if ( error ) { logger.log( logLevel, logText, error )}
+            else         { logger.log( logLevel, logText )}
+        }
+
+        if ( ext.log )
+        {
+            logText = logText ?: logMessage()
+            assert logText
+
+            ext.log.append( logText + '\n' )
+
+            if ( error )
+            {
+                final os = new ByteArrayOutputStream()
+                error.printStackTrace( new PrintWriter( os, true ))
+                ext.log.append( os.toString() + '\n' )
+            }
+        }
     }
 
 
@@ -126,19 +169,22 @@ class CrawlerTask extends BaseTask
      */
     void printStartBanner ()
     {
-        if ( logger.infoEnabled )
-        {
+        log {
             final ext  = ext()
 
             final ipAddress     = (( ext.rootUrl ==~ /^\d+\.\d+\.\d+\.\d+$/ ) ? '' : " (${ InetAddress.getByName( ext.rootUrl ).hostAddress })" )
             final bannerMessage = "Checking [$ext.baseUrl]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }"
             final bannerLine    = "-" * ( bannerMessage.size() + 2 )
+            final os            = new ByteArrayOutputStream()
+            final writer        = new PrintWriter( os, true )
 
-            logger.info( bannerLine )
-            logger.info( " $bannerMessage" )
-            logger.info( " Root link${ s( ext.rootLinks )}:" )
-            ext.rootLinks.each { logger.info( " * [$it]" )}
-            logger.info( bannerLine )
+            writer.println( bannerLine )
+            writer.println( " $bannerMessage" )
+            writer.println( " Root link${ s( ext.rootLinks )}:" )
+            ext.rootLinks.each { writer.println( " * [$it]" )}
+            writer.println( bannerLine )
+
+            os.toString()
         }
     }
 
@@ -209,9 +255,10 @@ class CrawlerTask extends BaseTask
             }
         }
 
-        ( linksStorage.brokenLinksNumber() ? logger.&error :
-          ext.printSummary                 ? logger.&warn  :
-                                             logger.&info )( message.toString())
+        final logLevel = ( linksStorage.brokenLinksNumber() ? LogLevel.ERROR :
+                           ext.printSummary                 ? LogLevel.WARN  :
+                                                              LogLevel.INFO )
+        log( logLevel ){ message.toString() }
     }
 
 
@@ -233,9 +280,8 @@ class CrawlerTask extends BaseTask
             file.write( linksMapReport, 'UTF-8' )
             if ( linksMap ){ assert file.size()}
 
-            if ( logger.infoEnabled )
-            {
-                logger.info( "$title is written to [${ file.canonicalPath }], [${ linksMap.size() }] entr${ linksMap.size() == 1 ? 'y' : 'ies' }" )
+            log {
+                "$title is written to [${ file.canonicalPath }], [${ linksMap.size() }] entr${ linksMap.size() == 1 ? 'y' : 'ies' }"
             }
         }
 
@@ -304,13 +350,12 @@ class CrawlerTask extends BaseTask
             if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
             if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
 
-            if ( logger.infoEnabled )
-            {
+            log {
                 final linksMessage    = pageLinks ? ", ${ newLinks.size() } new"     : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}" : ''
 
-                logger.info( "[$pageUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
-                             "$linksProcessed processed, ${ threadPool.queue.size() } queued$newLinksMessage" )
+                "[$pageUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
+                "$linksProcessed processed, ${ threadPool.queue.size() } queued$newLinksMessage"
             }
 
             for ( link in newLinks )
@@ -321,7 +366,7 @@ class CrawlerTask extends BaseTask
         }
         catch( Throwable error )
         {
-            logger.error( "Interanl error while reading [$pageUrl], referrer [$referrerUrl]", error )
+            log( LogLevel.ERROR, error ){ "Interanl error while reading [$pageUrl], referrer [$referrerUrl]" }
         }
     }
 
@@ -418,7 +463,7 @@ class CrawlerTask extends BaseTask
 
         try
         {
-            if ( logger.infoEnabled ){ logger.info( "[$pageUrl] - sending $requestMethod request .." )}
+            log{ "[$pageUrl] - sending $requestMethod request .." }
 
             final t            = System.currentTimeMillis()
             final connection   = request.connection( openConnection( pageUrl, requestMethod ))
@@ -430,11 +475,10 @@ class CrawlerTask extends BaseTask
             if ( isHeadRequest ) { assert bytes.length == 0  }
             else { bytesDownloaded.addAndGet( bytes.length ) }
 
-            if ( logger.infoEnabled )
-            {
-                logger.info( "[$pageUrl] - " +
-                             ( readFullContent ? "[${ bytes.size()}] byte${ s( bytes.size())}" : 'can be read' ) +
-                             ", [${ System.currentTimeMillis() - t }] ms" )
+            log {
+                "[$pageUrl] - " +
+                ( readFullContent ? "[${ bytes.size()}] byte${ s( bytes.size())}" : 'can be read' ) +
+                ", [${ System.currentTimeMillis() - t }] ms"
             }
 
             ( readFullContent && bytes ) ? decodeBytes( bytes, request ) : null
@@ -462,14 +506,12 @@ class CrawlerTask extends BaseTask
             final isRetry         = ( isHeadRequest || ( isRetryMatch && ( attempt < ext.retries )))
             final isAttempt       = (( ! isHeadRequest ) && ( ext.retries > 1 ) && ( isRetryMatch ))
 
-            if ( logger.infoEnabled )
-            {
-                final message = "! [$pageUrl] - $error, status code [${ statusCodeError ? 'unknown' : statusCode }], " +
-                                ( isRetry && isHeadRequest ? 'will be retried as GET request, ' : '' ) +
-                                ( isAttempt                ? "attempt $attempt, "               : '' ) +
-                                ( ! isRetry                ? 'registered as broken link, '      : '' )
-
-                logger.warn( message.replaceFirst( /, $/, '' ))
+            log {
+                ( "! [$pageUrl] - $error, status code [${ statusCodeError ? 'unknown' : statusCode }], " +
+                  ( isRetry && isHeadRequest ? 'will be retried as GET request, ' : '' ) +
+                  ( isAttempt                ? "attempt $attempt, "               : '' ) +
+                  ( ! isRetry                ? 'registered as broken link, '      : '' )).
+                replaceFirst( /, $/, '' )
             }
 
             if ( isRetry )
