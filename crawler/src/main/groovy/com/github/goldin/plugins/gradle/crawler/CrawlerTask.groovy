@@ -251,7 +251,7 @@ class CrawlerTask extends BaseTask
             for ( brokenLink in linksStorage.brokenLinks())
             {
                 message << "- [$brokenLink] - referred to by \n" +
-                           "- [${ linksStorage.brokenLinkReferrers( brokenLink ).join( ']\n- [' )}]\n\n"
+                           "  [${ linksStorage.brokenLinkReferrers( brokenLink ).join( '],\n  [' )}]\n\n"
             }
         }
 
@@ -446,7 +446,7 @@ class CrawlerTask extends BaseTask
      * @param pageUrl         URL of a link to read
      * @param referrer        URL of link referrer
      * @param referrerContent Referrer page content
-     * @param forceGetRequest whether a link should be GET-requested in any case
+     * @param forceGetRequest whether a link should be GET-requested regardless of its type
      * @param attempt         Number of the current attempt, starts from 1
      *
      * @return binary content of link specified or null if link shouldn't be read
@@ -456,20 +456,19 @@ class CrawlerTask extends BaseTask
     {
         final        ext             = ext()
         InputStream  inputStream     = null
-        RequestData  request         = null
         final        htmlLink        = ( ! pageUrl.toLowerCase().with{ ext.nonHtmlExtensions.any{ endsWith( ".$it" ) || contains( ".$it?" ) }} ) &&
                                        ( ! ext.nonHtmlLinks.any{ Closure c -> c( pageUrl )})
         final        readFullContent = ( htmlLink && isInternalLink ( pageUrl ))
         final        isHeadRequest   = (( ! forceGetRequest ) && ( ! readFullContent ))
         final        requestMethod   = ( isHeadRequest ? 'HEAD' : 'GET' )
+        final        request         = new RequestData( pageUrl, referrer, referrerContent, linksStorage, attempt, forceGetRequest, isHeadRequest )
 
         try
         {
             log{ "[$pageUrl] - sending $requestMethod request .." }
 
             final t            = System.currentTimeMillis()
-            final connection   = openConnection( pageUrl, requestMethod )
-            request            = new RequestData( pageUrl, referrer, referrerContent, linksStorage, connection, attempt, forceGetRequest, isHeadRequest )
+            final connection   = request.connection( openConnection( pageUrl, requestMethod ))
             inputStream        = connection.inputStream
             final byte[] bytes = ( byte[] )( isHeadRequest || readFullContent ) ?
                                     inputStream.bytes :
