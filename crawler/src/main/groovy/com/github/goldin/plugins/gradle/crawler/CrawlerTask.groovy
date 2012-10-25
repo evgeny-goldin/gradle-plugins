@@ -344,6 +344,8 @@ class CrawlerTask extends BaseTask
             final pageContent           = new String( bytes, 'UTF-8' )
             final Set<String> pageLinks = readLinks( pageUrl, pageContent )
             final Set<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
+            final processed             = linksProcessed.get()
+            final queued                = threadPool.queue.size()
 
             linksStorage.updateBrokenLinkReferrers( pageUrl, pageLinks )
 
@@ -352,8 +354,6 @@ class CrawlerTask extends BaseTask
 
             log {
                 final linksMessage    = pageLinks ? ", ${ newLinks.size() } new"     : ''
-                final processed       = linksProcessed.get()
-                final queued          = threadPool.queue.size()
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}" : ''
 
                 "[$pageUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
