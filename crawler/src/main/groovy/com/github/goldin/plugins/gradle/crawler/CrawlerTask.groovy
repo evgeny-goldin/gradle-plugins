@@ -352,10 +352,12 @@ class CrawlerTask extends BaseTask
 
             log {
                 final linksMessage    = pageLinks ? ", ${ newLinks.size() } new"     : ''
+                final processed       = linksProcessed.get()
+                final queued          = threadPool.queue.size()
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}" : ''
 
                 "[$pageUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
-                "$linksProcessed processed, ${ threadPool.queue.size() } queued$newLinksMessage"
+                "$processed processed, $queued queued$newLinksMessage"
             }
 
             for ( link in newLinks )
@@ -505,23 +507,22 @@ class CrawlerTask extends BaseTask
                                       ext.retryExceptions?. any { it.with { isInstance( error ) || isInstance( statusCodeError ) }} )
             final isRetry         = ( isHeadRequest || ( isRetryMatch && ( attempt < ext.retries )))
             final isAttempt       = (( ! isHeadRequest ) && ( ext.retries > 1 ) && ( isRetryMatch ))
-
-            log {
-                ( "! [$pageUrl] - $error, status code [${ statusCodeError ? 'unknown' : statusCode }], " +
-                  ( isRetry && isHeadRequest ? 'will be retried as GET request, ' : '' ) +
-                  ( isAttempt                ? "attempt $attempt, "               : '' ) +
-                  ( ! isRetry                ? 'registered as broken link, '      : '' )).
-                replaceFirst( /, $/, '' )
-            }
+            final logMessage      = "! [$pageUrl] - $error, status code [${ statusCodeError ? 'unknown' : statusCode }]"
 
             if ( isRetry )
             {
+                assert ( isHeadRequest || isAttempt )
+                log { "$logMessage, ${ isHeadRequest ? 'will be retried as GET request' : 'attempt ' + attempt }" }
+
                 delay( ext.retryDelay )
                 return readBytes( pageUrl, referrer, referrerContent, true, isHeadRequest ? 1 : attempt + 1 )
             }
 
+            logMessage = "$logMessage${ isAttempt ? ', attempt ' + attempt : '' }"
+
             if ( ext.brokenLinkCallbacks.every{ it( pageUrl, referrer, referrerContent )})
             {
+                log{ "$logMessage, registered as broken link" }
                 linksStorage.addBrokenLink( pageUrl, referrer )
             }
 
