@@ -525,6 +525,10 @@ class CrawlerTask extends BaseTask
                 log{ "$logMessage, registered as broken link" }
                 linksStorage.addBrokenLink( pageUrl, referrer )
             }
+            else
+            {
+                log{ "$logMessage, not registered as broken link - filtered out by brokenLinkCallbacks" }
+            }
 
             null
         }
