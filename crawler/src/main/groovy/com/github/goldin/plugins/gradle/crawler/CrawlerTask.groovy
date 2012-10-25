@@ -248,7 +248,7 @@ class CrawlerTask extends BaseTask
         if ( linksStorage.brokenLinksNumber())
         {
             message << ':\n\n'
-            for ( brokenLink in linksStorage.brokenLinks())
+            for ( brokenLink in linksStorage.brokenLinks().sort())
             {
                 message << "- [$brokenLink] - referred to by \n" +
                            "  [${ linksStorage.brokenLinkReferrers( brokenLink ).join( '],\n  [' )}]\n\n"
