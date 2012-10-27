@@ -371,7 +371,7 @@ class CrawlerTask extends BaseTask
         }
         catch( Throwable error )
         {
-            log( LogLevel.ERROR, error ){ "Interanl error while reading [$pageUrl], referrer [$referrerUrl]" }
+            log( LogLevel.ERROR, error ){ "Internal error while reading [$pageUrl], referrer [$referrerUrl]" }
         }
     }
 
