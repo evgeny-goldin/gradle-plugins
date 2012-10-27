@@ -236,7 +236,7 @@ class CrawlerTask extends BaseTask
         final downloaded     = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
 
         final message = new StringBuilder().
-              append( "\n\n[$processedLinks] link${ s( processedLinks ) } checked in ".toString()).
+              append( "\n\n[$processedLinks] link${ s( processedLinks ) } processed in ".toString()).
               append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
               append( downloaded.toString())
 
