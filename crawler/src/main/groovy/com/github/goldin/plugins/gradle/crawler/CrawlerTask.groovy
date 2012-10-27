@@ -20,11 +20,12 @@ import java.util.zip.GZIPInputStream
 class CrawlerTask extends BaseTask
 {
     private       String             extensionName   = CrawlerPlugin.EXTENSION_NAME
-    private final LinksStorage       linksStorage    = new LinksStorage()
     private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
     private final AtomicLong         linksProcessed  = new AtomicLong( 0L )
+
     private       ThreadPoolExecutor threadPool
+    private       LinksStorage       linksStorage
 
     CrawlerExtension ext () { extension ( this.extensionName, CrawlerExtension ) }
 
@@ -43,8 +44,9 @@ class CrawlerTask extends BaseTask
     @Override
     void taskAction ()
     {
-        final ext       = verifyAndUpdateExtension()
-        this.threadPool = Executors.newFixedThreadPool( ext.threadPoolSize ) as ThreadPoolExecutor
+        final ext         = verifyAndUpdateExtension()
+        this.threadPool   = Executors.newFixedThreadPool( ext.threadPoolSize ) as ThreadPoolExecutor
+        this.linksStorage = new LinksStorage( ext )
 
         assert (( ! ext.log ) || ( ! ext.log.file ) || project.delete( ext.log )), \
                "Failed to delete [${ ext.log.canonicalPath }]"
@@ -226,20 +228,20 @@ class CrawlerTask extends BaseTask
      */
     void printReport ()
     {
-        final processedLinks = linksStorage.processedLinks()
+        final processedLinks = linksProcessed.get()
         final ext            = ext()
         final mbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 * 1024 ))
         final kbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 ))
         final downloaded     = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
 
         final message = new StringBuilder().
-              append( "\n\n[${ processedLinks.size()}] link${ s( processedLinks.size()) } checked in ".toString()).
+              append( "\n\n[$processedLinks] link${ s( processedLinks ) } checked in ".toString()).
               append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
               append( downloaded.toString())
 
         if ( ext.displayLinks )
         {
-            message.append( ':\n' ).append( toMultiLines( processedLinks ))
+            message.append( ':\n' ).append( toMultiLines( linksStorage.processedLinks()))
         }
 
         message.append( "\n[${ linksStorage.brokenLinksNumber()}] broken link${ s( linksStorage.brokenLinksNumber()) } found".toString()).
