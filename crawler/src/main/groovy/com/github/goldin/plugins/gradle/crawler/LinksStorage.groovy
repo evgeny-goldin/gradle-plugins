@@ -141,7 +141,8 @@ class LinksStorage
                 if ( result )
                 {
                     assert (( nextChecksum + (( long ) result.size())) <= Integer.MAX_VALUE )
-                    linksArray = ensureLinksArrayCapacity( result.size())
+                    ensureLinksArrayCapacity( result.size())
+
                     result.each {
                         final checksum               = checksums[ it ]
                         linksArray[ nextChecksum++ ] = checksum
@@ -176,14 +177,14 @@ class LinksStorage
 
 
     @Requires({ newElements > 0 })
-    @Ensures({ ( nextChecksum + newElements ) <= result.length })
-    private long[] ensureLinksArrayCapacity ( int newElements )
+    @Ensures({ ( nextChecksum + newElements ) <= linksArray.length })
+    private void ensureLinksArrayCapacity ( int newElements )
     {
-        if (( nextChecksum + newElements ) <= linksArray.length ) { return linksArray }
+        if (( nextChecksum + newElements ) <= linksArray.length ) { return }
 
-        final newArray = new long[ linksArray.length + max( ext.checksumsChunkSize, newElements ) ]
+        final newArray  = new long[ linksArray.length + max( ext.checksumsChunkSize, newElements ) ]
         System.arraycopy( linksArray, 0, newArray, 0, nextChecksum )
-        newArray
+        this.linksArray = newArray
     }
 
 
