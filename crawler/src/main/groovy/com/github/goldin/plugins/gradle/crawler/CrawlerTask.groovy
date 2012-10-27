@@ -144,14 +144,15 @@ class CrawlerTask extends BaseTask
         assert ext.baseUrl, "'baseUrl' should be defined in $extensionDescription"
         assert ext.rootUrl && ( ! ext.rootUrl.endsWith( '/' )) && ext.internalLinkPattern
 
-        assert ext.userAgent,           "'userAgent' should be defined in $extensionDescription"
-        assert ext.threadPoolSize     >  0, "'threadPoolSize' [${ ext.threadPoolSize }] in $extensionDescription should be positive"
-        assert ext.connectTimeout     >  0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
-        assert ext.readTimeout        >  0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
-        assert ext.checksumsChunkSize >  0, "'checksumsChunkSize' [${ ext.checksumsChunkSize }] in $extensionDescription should be positive"
-        assert ext.retries            > -1, "'retries' [${ ext.retries }] in $extensionDescription should not be negative"
-        assert ext.retryDelay         > -1, "'retryDelay' [${ ext.retryDelay }] in $extensionDescription should not be negative"
-        assert ext.requestDelay       > -1, "'requestDelay' [${ ext.requestDelay }] in $extensionDescription should not be negative"
+        assert ext.userAgent,                 "'userAgent' should be defined in $extensionDescription"
+        assert ext.threadPoolSize       >  0, "'threadPoolSize' [${ ext.threadPoolSize }] in $extensionDescription should be positive"
+        assert ext.connectTimeout       >  0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
+        assert ext.readTimeout          >  0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
+        assert ext.checksumsChunkSize   >  0, "'checksumsChunkSize' [${ ext.checksumsChunkSize }] in $extensionDescription should be positive"
+        assert ext.futuresPollingPeriod >  0, "'futuresPollingPeriod' [${ ext.futuresPollingPeriod }] in $extensionDescription should be positive"
+        assert ext.retries              > -1, "'retries' [${ ext.retries }] in $extensionDescription should not be negative"
+        assert ext.retryDelay           > -1, "'retryDelay' [${ ext.retryDelay }] in $extensionDescription should not be negative"
+        assert ext.requestDelay         > -1, "'requestDelay' [${ ext.requestDelay }] in $extensionDescription should not be negative"
 
         assert ext.retryStatusCodes.every { it }, "'retryStatusCodes' should not contain nulls in $extensionDescription"
         assert ext.retryExceptions. every { it }, "'retryExceptions' should not contain nulls in $extensionDescription"
@@ -213,9 +214,12 @@ class CrawlerTask extends BaseTask
      */
     void waitForIdle ()
     {
+        final ext = ext()
+
         while ( futures.any{ ! it.done })
         {
-            sleep( 5000 )
+            sleep( ext.futuresPollingPeriod )
+            futures.removeAll { it.done }
         }
 
         linksStorage.lock()
