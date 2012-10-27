@@ -40,7 +40,7 @@ class LinksStorage
         }
         else
         {
-            this.linksArray   = new long[ 1024 ]
+            this.linksArray   = new long[ ext.checksumsChunkSize ]
             this.nextChecksum = 0
             this.minChecksum  = Long.MAX_VALUE
             this.maxChecksum  = Long.MIN_VALUE
@@ -180,7 +180,7 @@ class LinksStorage
     {
         if ( size <= source.length ) { return source }
 
-        final newArray = new long[ source.length + max( 1024, ( size - source.length )) ]
+        final newArray = new long[ source.length + max( ext.checksumsChunkSize, ( size - source.length )) ]
         System.arraycopy( source, 0, newArray, 0, source.length )
         newArray
     }

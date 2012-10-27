@@ -37,6 +37,7 @@ class CrawlerExtension
     int           minimumLinks        = -1
     long          minimumBytes        = -1
     int           retries             = 3
+    int           checksumsChunkSize  = 1024
     long          retryDelay          = 5000
     long          requestDelay        = 0
     File          log                 = null
