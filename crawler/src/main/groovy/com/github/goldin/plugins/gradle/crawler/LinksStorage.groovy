@@ -3,6 +3,8 @@ package com.github.goldin.plugins.gradle.crawler
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
+import static java.lang.Math.min
+import static java.lang.Math.max
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.zip.Adler32
@@ -22,7 +24,9 @@ class LinksStorage
     private final Map<String, Set<String>> newLinksMap
     private final Set<String>              processedLinksS
     private       long[]                   processedLinksL
-    private       int                      nextLong
+    private       int                      nextChecksum
+    private       long                     minChecksum
+    private       long                     maxChecksum
 
 
     @Requires({ ext })
@@ -33,14 +37,13 @@ class LinksStorage
         if ( ext.displayLinks )
         {
             this.processedLinksS = new HashSet<>()
-            this.processedLinksL = null
-            this.nextLong        = -1
         }
         else
         {
-            this.processedLinksS = null
             this.processedLinksL = new long[ 1024 ]
-            this.nextLong        = 0
+            this.nextChecksum    = 0
+            this.minChecksum     = Long.MAX_VALUE
+            this.maxChecksum     = Long.MIN_VALUE
         }
 
         this.linksMap    = ext.linksMapFile    ? new ConcurrentHashMap<>() : null
@@ -130,15 +133,20 @@ class LinksStorage
                 final Map<String, Long> checksums = links.inject([:]){ Map m, String link -> m[ link ] = checksum( link ); m }
                 result                            = links.findAll {
                     final checksum = checksums[ it ]
-                    for( int j = 0; j < nextLong; j++ ){ if ( processedLinksL[ j ] == checksum ) { return false }}
+                    if (( checksum >= minChecksum ) && ( checksum <= maxChecksum ))
+                    {
+                        for( int j = 0; j < nextChecksum; j++ ){ if ( processedLinksL[ j ] == checksum ) { return false }}
+                    }
+                    minChecksum = min ( minChecksum, checksum )
+                    maxChecksum = max ( maxChecksum, checksum )
                     true
                 }.toSet()
 
                 if ( result )
                 {
-                    assert (( nextLong + result.size()) < Integer.MAX_VALUE )
-                    processedLinksL = ensureCapacity( processedLinksL, nextLong + result.size())
-                    result.each { processedLinksL[ nextLong++ ] = checksums[ it ] }
+                    assert (( nextChecksum + result.size()) < Integer.MAX_VALUE )
+                    processedLinksL = ensureCapacity( processedLinksL, nextChecksum + result.size())
+                    result.each { processedLinksL[ nextChecksum++ ] = checksums[ it ] }
                 }
             }
         }
@@ -162,7 +170,7 @@ class LinksStorage
     {
         if ( size <= source.length ) { return source }
 
-        final newArray = new long[ source.length + Math.max( 1024, ( size - source.length )) ]
+        final newArray = new long[ source.length + max( 1024, ( size - source.length )) ]
         System.arraycopy( source, 0, newArray, 0, source.length )
         newArray
     }
