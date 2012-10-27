@@ -1,13 +1,14 @@
 package com.github.goldin.plugins.gradle.crawler
+
+import static java.lang.Math.max
+import static java.lang.Math.min
+
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.zip.Adler32
-
-import static java.lang.Math.max
-import static java.lang.Math.min
 
 
 /**
@@ -140,7 +141,7 @@ class LinksStorage
                 if ( result )
                 {
                     assert (( nextChecksum + (( long ) result.size())) <= Integer.MAX_VALUE )
-                    linksArray = ensureCapacity( linksArray, nextChecksum + result.size())
+                    linksArray = ensureLinksArrayCapacity( result.size())
                     result.each {
                         final checksum               = checksums[ it ]
                         linksArray[ nextChecksum++ ] = checksum
@@ -174,14 +175,14 @@ class LinksStorage
     }
 
 
-    @Requires({ source && ( size > 0 ) })
-    @Ensures({ result.length >= size })
-    private long[] ensureCapacity( long[] source, int size )
+    @Requires({ newElements > 0 })
+    @Ensures({ ( nextChecksum + newElements ) <= result.length })
+    private long[] ensureLinksArrayCapacity ( int newElements )
     {
-        if ( size <= source.length ) { return source }
+        if (( nextChecksum + newElements ) <= linksArray.length ) { return linksArray }
 
-        final newArray = new long[ source.length + max( ext.checksumsChunkSize, ( size - source.length )) ]
-        System.arraycopy( source, 0, newArray, 0, source.length )
+        final newArray = new long[ linksArray.length + max( ext.checksumsChunkSize, newElements ) ]
+        System.arraycopy( linksArray, 0, newArray, 0, nextChecksum )
         newArray
     }
 
