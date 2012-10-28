@@ -389,30 +389,42 @@ class CrawlerTask extends BaseTask
     @Ensures({ result != null })
     List<String> readLinks ( String pageUrl, String pageContent )
     {
-        final ext   = ext()
-        // noinspection GroovyAssignmentToMethodParameter
-        pageContent =
-            (( String ) ext.pageTransformers.inject( pageContent ){ String content, Closure transformer -> transformer( content ) }).
-            replace( '\\',        '/' ).
-            replace( '%3A',       ':' ).
-            replace( '%2F',       '/' ).
-            replace( '&lt;',      '<' ).
-            replace( '&gt;',      '>' ).
-            replace( '&quot;',    '"' ).
-            replace( '&amp;amp;', '&' ).
-            replace( '&amp;',     '&' )
+        final  ext          = ext()
+        String cleanContent = pageContent
 
-        final links = findAll( pageContent, ext.internalLinkPattern )
+        if ( ext.pageTransformers )
+        {
+            cleanContent = ext.pageTransformers.inject( cleanContent ){ String content, Closure transformer -> transformer( content ) }
+        }
+
+        if ( ext.replaceSpecialCharacters )
+        {
+            cleanContent = cleanContent.replace( '\\',        '/' ).
+                                        replace( '%3A',       ':' ).
+                                        replace( '%2F',       '/' ).
+                                        replace( '&lt;',      '<' ).
+                                        replace( '&gt;',      '>' ).
+                                        replace( '&quot;',    '"' ).
+                                        replace( '&amp;amp;', '&' ).
+                                        replace( '&amp;',     '&' )
+        }
+
+        if ( ext.removeHtmlComments )
+        {
+            cleanContent = cleanContent.replaceAll( /(?s)<!--(.*?)-->/, '' )
+        }
+
+        final links = findAll( cleanContent, ext.internalLinkPattern )
 
         if ( ext.checkExternalLinks ) {
-            final  externalLinks = findAll ( pageContent, ext.externalLinkPattern )
+            final  externalLinks = findAll ( cleanContent, ext.externalLinkPattern )
             assert externalLinks.every { it.startsWith( 'http://' ) || it.startsWith( 'https://' ) }
 
             links.addAll( externalLinks )
         }
 
         if ( ext.checkAbsoluteLinks ) {
-            final  absoluteLinks = findAll ( pageContent, ext.absoluteLinkPattern )
+            final  absoluteLinks = findAll ( cleanContent, ext.absoluteLinkPattern )
             assert absoluteLinks.every{ it.startsWith( '/' ) }
 
             links.addAll( absoluteLinks.collect{ "http://$ext.rootUrl$it".toString() })
@@ -422,7 +434,7 @@ class CrawlerTask extends BaseTask
 
             final pageBaseUrl    = pageUrl.replaceFirst( ext.relativeLinkReminderPattern, '' )
             final requestBaseUrl = removeAllAfter( '?', pageUrl, pageBaseUrl )
-            final relativeLinks  = findAll ( pageContent, ext.relativeLinkPattern )
+            final relativeLinks  = findAll ( cleanContent, ext.relativeLinkPattern )
             assert ( ! pageBaseUrl.endsWith( '/' )) && ( ! requestBaseUrl.endsWith( '?' )) && relativeLinks.every { ! it.startsWith( '/' )}
 
             links.addAll( relativeLinks.collect{( it.startsWith( '?' ) ? "$requestBaseUrl$it" : "$pageBaseUrl/$it" ).toString() })
