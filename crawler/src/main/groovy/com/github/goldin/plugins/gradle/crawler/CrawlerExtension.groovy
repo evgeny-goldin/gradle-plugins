@@ -17,6 +17,9 @@ class CrawlerExtension
     // "http://path/reminder" => matches "/reminder"
     final Pattern relativeLinkReminderPattern = Pattern.compile( '(?<!(:|:/))/+[^/]*$' )
 
+    // "<!-- .. -->"
+    final Pattern htmlCommentPattern          = Pattern.compile( '(?s)<!--(.*?)-->' )
+
     /**
      * Internal properties, set in {@link CrawlerTask#verifyAndUpdateExtension()}
      */

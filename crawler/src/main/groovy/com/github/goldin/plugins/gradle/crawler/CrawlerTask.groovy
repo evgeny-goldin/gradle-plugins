@@ -132,7 +132,11 @@ class CrawlerTask extends BaseTask
         final ext                  = ext()
         final extensionDescription = "${ this.extensionName } { .. }"
 
-        assert ext.externalLinkPattern && ext.absoluteLinkPattern && ext.relativeLinkPattern
+        assert ext.externalLinkPattern &&
+               ext.absoluteLinkPattern &&
+               ext.relativeLinkPattern &&
+               ext.relativeLinkReminderPattern &&
+               ext.htmlCommentPattern
 
         assert ( ! ext.rootUrl             ), "'rootUrl' should not be used in $extensionDescription - private area"
         assert ( ! ext.internalLinkPattern ), "'internalLinkPattern' should not be used in $extensionDescription - private area"
@@ -411,7 +415,7 @@ class CrawlerTask extends BaseTask
 
         if ( ext.removeHtmlComments )
         {
-            cleanContent = cleanContent.replaceAll( /(?s)<!--(.*?)-->/, '' )
+            cleanContent = cleanContent.replaceAll( ext.htmlCommentPattern, '' )
         }
 
         final links = findAll( cleanContent, ext.internalLinkPattern )
