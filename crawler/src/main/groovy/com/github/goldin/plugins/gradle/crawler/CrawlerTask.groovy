@@ -243,26 +243,27 @@ class CrawlerTask extends BaseTask
         final kbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 ))
         final downloaded     = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
 
-        final message = new StringBuilder().
-              append( "\n\n[$processedLinks] link${ s( processedLinks ) } processed in ".toString()).
-              append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
-              append( downloaded.toString())
+        final message = new StringBuilder().append( "\n\n[$processedLinks] link${ s( processedLinks ) } processed in ".toString()).
+                                            append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
+                                            append( downloaded.toString())
 
         if ( ext.displayLinks )
         {
-            message.append( ':\n' ).append( toMultiLines( linksStorage.processedLinks()))
+            message.append( ':\n' ).
+                    append( toMultiLines( linksStorage.processedLinks()))
         }
 
         message.append( "\n[${ linksStorage.brokenLinksNumber()}] broken link${ s( linksStorage.brokenLinksNumber()) } found".toString()).
-                append( linksStorage.brokenLinksNumber() ? '' : ' - congratulations :)' )
+                append( linksStorage.brokenLinksNumber() ? '' : ' - thumbs up!' )
 
         if ( linksStorage.brokenLinksNumber())
         {
-            message << ':\n\n'
+            message.append( ':\n\n' )
             for ( brokenLink in linksStorage.brokenLinks().sort())
             {
-                message << "- [$brokenLink] - referred to by \n" +
-                           "  [${ linksStorage.brokenLinkReferrers( brokenLink ).join( '],\n  [' )}]\n\n"
+                message.append( "- [$brokenLink] - referred to by".toString()).
+                        append( toMultiLines( linksStorage.brokenLinkReferrers( brokenLink ), ' ' )).
+                        append( '\n' )
             }
         }
 
@@ -354,7 +355,7 @@ class CrawlerTask extends BaseTask
 
             final pageContent = new String( bytes, 'UTF-8' )
 
-            if ( ! ( ext.contentCallbacks ?: [] ).every { it( pageUrl, pageContent ) }) { return }
+            if (( ext.ignoredContent ?: [] ).any { it( pageUrl, pageContent ) }) { return }
 
             final Set<String> pageLinks = readLinks( pageUrl, pageContent )
             final Set<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
@@ -451,7 +452,7 @@ class CrawlerTask extends BaseTask
         final foundLinks = links.
                            collect { normalizeUrl( removeAllAfter( '#', it, it )) }.
                            toSet().
-                           findAll { String link -> ( ! ( ext.ignoredLinks ?: [] ).any { Closure c -> c( link ) }) }.
+                           findAll { String link -> ( ! ( ext.ignoredLinks ?: [] ).any { it( link ) }) }.
                            sort()
         foundLinks
     }
@@ -483,7 +484,7 @@ class CrawlerTask extends BaseTask
         final        ext             = ext()
         InputStream  inputStream     = null
         final        htmlLink        = ( ! pageUrl.toLowerCase().with{ ( ext.nonHtmlExtensions - ext.htmlExtensions ).any{ endsWith( ".$it" ) || contains( ".$it?" ) }} ) &&
-                                       ( ! ( ext.nonHtmlLinks ?: [] ).any{ Closure c -> c( pageUrl )})
+                                       ( ! ( ext.nonHtmlLinks ?: [] ).any{ it( pageUrl )})
         final        readFullContent = ( htmlLink && isInternalLink ( pageUrl ))
         final        isHeadRequest   = (( ! forceGetRequest ) && ( ! readFullContent ))
         final        requestMethod   = ( isHeadRequest ? 'HEAD' : 'GET' )
@@ -546,14 +547,14 @@ class CrawlerTask extends BaseTask
 
             logMessage = "$logMessage${ isAttempt ? ', attempt ' + attempt : '' }"
 
-            if (( ext.brokenLinkCallbacks ?: [] ).every{ it( pageUrl, referrer, referrerContent )})
+            if (( ext.ignoredBrokenLinks ?: [] ).any{ it( pageUrl, referrer, referrerContent )})
             {
-                log{ "$logMessage, registered as broken link" }
-                linksStorage.addBrokenLink( pageUrl, referrer )
+                log{ "$logMessage, not registered as broken link - filtered out by ignoredBrokenLinks" }
             }
             else
             {
-                log{ "$logMessage, not registered as broken link - filtered out by brokenLinkCallbacks" }
+                log{ "$logMessage, registered as broken link" }
+                linksStorage.addBrokenLink( pageUrl, referrer )
             }
 
             null
@@ -620,8 +621,11 @@ class CrawlerTask extends BaseTask
      * Converts collection specified to multi-line String.
      * @param c Collection to convert.
      * @param delimiter Delimiter to use on every line.
+     *
      * @return collection specified converted to multi-line String
      */
+    @Requires({ c != null })
+    @Ensures({ result })
     String toMultiLines( Collection c, String delimiter = '*' )
     {
         "\n$delimiter [${ c.sort().join( "]\n$delimiter [" ) }]\n"
