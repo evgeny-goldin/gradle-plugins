@@ -352,7 +352,10 @@ class CrawlerTask extends BaseTask
 
             if ( ! bytes ) { return }
 
-            final pageContent           = new String( bytes, 'UTF-8' )
+            final pageContent = new String( bytes, 'UTF-8' )
+
+            if ( ! ( ext.contentCallbacks ?: [] ).every { it( pageUrl, pageContent ) }) { return }
+
             final Set<String> pageLinks = readLinks( pageUrl, pageContent )
             final Set<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
             final processed             = linksProcessed.get()
@@ -448,7 +451,7 @@ class CrawlerTask extends BaseTask
         final foundLinks = links.
                            collect { normalizeUrl( removeAllAfter( '#', it, it )) }.
                            toSet().
-                           findAll { String link -> ( ! ext.ignoredLinks.any { Closure c -> c( link ) }) }.
+                           findAll { String link -> ( ! ( ext.ignoredLinks ?: [] ).any { Closure c -> c( link ) }) }.
                            sort()
         foundLinks
     }
@@ -480,7 +483,7 @@ class CrawlerTask extends BaseTask
         final        ext             = ext()
         InputStream  inputStream     = null
         final        htmlLink        = ( ! pageUrl.toLowerCase().with{ ( ext.nonHtmlExtensions - ext.htmlExtensions ).any{ endsWith( ".$it" ) || contains( ".$it?" ) }} ) &&
-                                       ( ! ext.nonHtmlLinks.any{ Closure c -> c( pageUrl )})
+                                       ( ! ( ext.nonHtmlLinks ?: [] ).any{ Closure c -> c( pageUrl )})
         final        readFullContent = ( htmlLink && isInternalLink ( pageUrl ))
         final        isHeadRequest   = (( ! forceGetRequest ) && ( ! readFullContent ))
         final        requestMethod   = ( isHeadRequest ? 'HEAD' : 'GET' )
@@ -543,7 +546,7 @@ class CrawlerTask extends BaseTask
 
             logMessage = "$logMessage${ isAttempt ? ', attempt ' + attempt : '' }"
 
-            if ( ext.brokenLinkCallbacks.every{ it( pageUrl, referrer, referrerContent )})
+            if (( ext.brokenLinkCallbacks ?: [] ).every{ it( pageUrl, referrer, referrerContent )})
             {
                 log{ "$logMessage, registered as broken link" }
                 linksStorage.addBrokenLink( pageUrl, referrer )

@@ -53,6 +53,7 @@ class CrawlerExtension
     List<Closure> pageTransformers         = []
     List<Closure> nonHtmlLinks             = []
     List<Closure> ignoredLinks             = []
+    List<Closure> contentCallbacks         = []
     List<Closure> brokenLinkCallbacks      = []
     boolean       replaceSpecialCharacters = true
     boolean       removeHtmlComments       = true
