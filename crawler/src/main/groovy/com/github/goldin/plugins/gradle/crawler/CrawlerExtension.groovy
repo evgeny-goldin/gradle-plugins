@@ -55,6 +55,7 @@ class CrawlerExtension
     List<Closure> ignoredLinks             = []
     List<Closure> ignoredContent           = []
     List<Closure> ignoredBrokenLinks       = []
+    boolean       zipLogFiles              = true
     boolean       replaceSpecialCharacters = true
     boolean       removeHtmlComments       = true
     boolean       printSummary             = true

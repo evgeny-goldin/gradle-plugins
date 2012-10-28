@@ -142,10 +142,10 @@ class TeamCityTask extends BaseTask
 
         if ( agentJars )
         {
-            archive( agentArchive ) { addFilesToArchive( agentArchive, agentJars, "${ ext.name }/lib" )}
+            zip( agentArchive ) { addFilesToArchive( agentArchive, agentJars, "${ ext.name }/lib" )}
         }
 
-        archive( pluginArchive ) {
+        zip( pluginArchive ) {
 
             ant.zipfileset( file: pluginXmlFile, fullpath: 'teamcity-plugin.xml' )
 
@@ -199,7 +199,7 @@ class TeamCityTask extends BaseTask
         assert project.fileTree( serverResourcesDir ).files.any { it.name.endsWith( '.jsp' )}, \
                "No '*.jsp' files found in [$path]"
 
-        archive( resourcesArchive ){ addFileToArchive( resourcesArchive, serverResourcesDir, BSR ) }
+        zip( resourcesArchive ){ addFileToArchive( resourcesArchive, serverResourcesDir, BSR ) }
         resourcesArchive.deleteOnExit()
         resourcesArchive
     }

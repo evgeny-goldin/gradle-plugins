@@ -56,6 +56,7 @@ class CrawlerTask extends BaseTask
         waitForIdle()
         printReport()
         writeLinksMapFiles()
+        archiveLogFiles()
         checkIfBuildShouldFail()
     }
 
@@ -299,6 +300,21 @@ class CrawlerTask extends BaseTask
 
         if ( ext.linksMapFile    ) { print( ext.linksMapFile,    linksStorage.linksMap(),    'Links map'     )}
         if ( ext.newLinksMapFile ) { print( ext.newLinksMapFile, linksStorage.newLinksMap(), 'New links map' )}
+    }
+
+
+    /**
+     * Archives log files if needed.
+     */
+    void archiveLogFiles()
+    {
+        final ext = ext()
+
+        if ( ext.zipLogFiles && ( ext.log || ext.linksMapFile || ext.newLinksMapFile ))
+        {
+            zip           ( ext.log, ext.linksMapFile, ext.newLinksMapFile )
+            project.delete( ext.log, ext.linksMapFile, ext.newLinksMapFile )
+        }
     }
 
 

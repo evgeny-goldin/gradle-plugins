@@ -86,8 +86,8 @@ class AboutTask extends BaseTask
             def aboutPath = "$file.canonicalPath/$prefix${ prefix ? '/' : '' }$fileName"
             log.info( "Adding \"about\" to [$aboutPath] .." )
 
-            project.ant.zip( destfile : file.canonicalPath,
-                             update   : true ){
+            ant.zip( destfile : file.canonicalPath,
+                     update   : true ){
                 zipfileset( file   : tempFile.canonicalPath,
                             prefix : prefix )
             }

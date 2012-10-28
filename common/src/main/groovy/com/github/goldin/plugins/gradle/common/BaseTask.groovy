@@ -198,6 +198,25 @@ abstract class BaseTask extends DefaultTask
 
 
     /**
+     * Archives files specified.
+     *
+     * @param files files to archive
+     * @return first file specified
+     */
+    @Requires({ files })
+    @Ensures({ result })
+    final File zip ( File ... files )
+    {
+        for ( file in files.grep().findAll{ it.file })
+        {
+            zip( project.file( "${ file.canonicalPath }.zip" )){ ant.zipfileset( file: file.canonicalPath )}
+        }
+
+        files.first()
+    }
+
+
+    /**
      * Creates an archive specified.
      *
      * @param archive     archive to create
@@ -206,7 +225,7 @@ abstract class BaseTask extends DefaultTask
      */
     @Requires({ archive && zipClosure })
     @Ensures ({ result.file })
-    final File archive ( File archive, Closure zipClosure )
+    final File zip ( File archive, Closure zipClosure )
     {
         delete( archive )
         ant.zip( destfile: archive, duplicate: 'fail', whenempty: 'fail', level: 9 ){ zipClosure() }
