@@ -369,11 +369,9 @@ class CrawlerTask extends BaseTask
 
             if ( ! response.data ) { return }
 
-            final actualUrl   = response.url // May be different from the original URL if request was redirected
+            final actualUrl   = response.actualUrl // May be different from the original URL if request was redirected
             final pageContent = new String( response.data, 'UTF-8' )
-            final pageIgnored = ( ext.ignoredContent ?: [] ).any {
-                it( pageUrl, pageContent ) || (( pageUrl == actualUrl ) ? true : it ( actualUrl, pageContent ))
-            }
+            final pageIgnored = ( ext.ignoredContent ?: [] ).any { it ( actualUrl, pageContent )}
 
             if ( pageIgnored ) { return }
 
@@ -384,8 +382,8 @@ class CrawlerTask extends BaseTask
 
             linksStorage.updateBrokenLinkReferrers( actualUrl, pageLinks )
 
-            if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( actualUrl, pageLinks )}
-            if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( actualUrl, newLinks  )}
+            if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
+            if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
 
             log {
                 final linksMessage    = pageLinks ? ", ${ newLinks.size() } new"     : ''
@@ -523,7 +521,7 @@ class CrawlerTask extends BaseTask
             response.connection = openConnection( pageUrl , requestMethod )
             inputStream         = response.connection.inputStream
             // If request was redirected,  connection.getURL() gets us a new URL
-            response.url        = response.connection.getURL().toString()
+            response.actualUrl  = response.connection.getURL().toString()
             response.data       = ( byte[] )( isHeadRequest || readFullContent ) ?
                                     inputStream.bytes : inputStream.read().with{ ( delegate == -1 ) ? [] : [ delegate ] }
             final nBytes        = response.data.length
@@ -533,7 +531,7 @@ class CrawlerTask extends BaseTask
 
             log {
                 "[$pageUrl] - " +
-                ( response.url == pageUrl ? '' : "redirected to [$response.url], " ) +
+                ( response.actualUrl == pageUrl ? '' : "redirected to [$response.actualUrl], " ) +
                 ( readFullContent ? "[$nBytes] byte${ s( nBytes )}, " : 'can be read, ' ) +
                 "[${ System.currentTimeMillis() - t }] ms"
             }
@@ -571,7 +569,7 @@ class CrawlerTask extends BaseTask
                                       ext.retryExceptions?. any { it.isInstance( error ) || it.isInstance( statusCodeError ) })
             final isRetry         = ( isHeadRequest || ( isRetryMatch && ( attempt < ext.retries )))
             final isAttempt       = (( ! isHeadRequest ) && ( ext.retries > 1 ) && ( isRetryMatch ))
-            final logMessage      = "! [$url] - $error, status code [${ (( statusCode == null ) || statusCodeError ) ? 'unknown' : statusCode }]"
+            final logMessage      = "! [$actualUrl] - $error, status code [${ (( statusCode == null ) || statusCodeError ) ? 'unknown' : statusCode }]"
 
             if ( isRetry )
             {
@@ -579,20 +577,20 @@ class CrawlerTask extends BaseTask
                 log { "$logMessage, ${ isHeadRequest ? 'will be retried as GET request' : 'attempt ' + attempt }" }
 
                 delay( ext.retryDelay )
-                readResponse( url, referrer, referrerContent, true, isHeadRequest ? 1 : attempt + 1 )
+                readResponse( actualUrl, referrer, referrerContent, true, isHeadRequest ? 1 : attempt + 1 )
             }
             else
             {
                 logMessage = "$logMessage${ isAttempt ? ', attempt ' + attempt : '' }"
 
-                if (( ext.ignoredBrokenLinks ?: [] ).any{ it( url, referrer, referrerContent )})
+                if (( ext.ignoredBrokenLinks ?: [] ).any{ it ( actualUrl, referrer, referrerContent )})
                 {
                     log{ "$logMessage, not registered as broken link - filtered out by ignoredBrokenLinks" }
                 }
                 else
                 {
                     log{ "$logMessage, registered as broken link" }
-                    linksStorage.addBrokenLink( url, referrer )
+                    linksStorage.addBrokenLink( originalUrl, referrer )
                 }
 
                 response

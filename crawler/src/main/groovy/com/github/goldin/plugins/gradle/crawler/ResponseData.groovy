@@ -7,9 +7,10 @@ import org.gcontracts.annotations.Requires
 /**
  * Request/Response data container
  */
-@Invariant({ url && referrer && referrerContent && linksStorage && ( attempt > 0 )})
+@Invariant({ originalUrl && referrer && referrerContent && linksStorage && ( attempt > 0 )})
 class ResponseData
 {
+    final String       originalUrl
     final String       referrer
     final String       referrerContent
     final LinksStorage linksStorage
@@ -18,12 +19,12 @@ class ResponseData
     final boolean      isHeadRequest
 
     HttpURLConnection connection
-    String            url
+    String            actualUrl
     byte[]            data
 
 
     @SuppressWarnings([ 'GroovyMethodParameterCount' ])
-    ResponseData ( String       url,
+    ResponseData ( String       originalUrl,
                    String       referrer,
                    String       referrerContent,
                    LinksStorage linksStorage,
@@ -31,7 +32,7 @@ class ResponseData
                    boolean      forceGetRequest,
                    boolean      headRequest )
     {
-        this.url             = url
+        this.originalUrl     = originalUrl
         this.referrer        = referrer
         this.referrerContent = referrerContent
         this.linksStorage    = linksStorage
@@ -43,8 +44,8 @@ class ResponseData
     @Requires({ connection })
     void setConnection ( HttpURLConnection connection ) { this.connection = connection }
 
-    @Requires({ url })
-    void setUrl ( String url ) { this.url = url }
+    @Requires({ actualUrl })
+    void setActualUrl ( String actualUrl ) { this.actualUrl = actualUrl }
 
     @Requires({ data != null })
     void setData ( byte[] data ) { this.data = data }
