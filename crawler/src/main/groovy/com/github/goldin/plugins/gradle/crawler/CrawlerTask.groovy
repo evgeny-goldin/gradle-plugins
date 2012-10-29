@@ -620,7 +620,8 @@ class CrawlerTask extends BaseTask
     HttpURLConnection openConnection ( String pageUrl, String requestMethod )
     {
         final ext                 = ext()
-        final connection          = pageUrl.toURL().openConnection() as HttpURLConnection
+        final url                 = new URL( pageUrl ).with { new URI( protocol, userInfo, host, port, path, query, ref ).toURL()}
+        final connection          = url.openConnection() as HttpURLConnection
         connection.connectTimeout = ext.connectTimeout
         connection.readTimeout    = ext.readTimeout
         connection.requestMethod  = requestMethod
