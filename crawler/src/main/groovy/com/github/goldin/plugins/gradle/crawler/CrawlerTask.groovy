@@ -364,42 +364,46 @@ class CrawlerTask extends BaseTask
 
         try
         {
-            final byte[] bytes = readBytes( pageUrl, referrerUrl, referrerContent, isRootLink )
+            final response = readResponse( pageUrl, referrerUrl, referrerContent, isRootLink )
             linksProcessed.incrementAndGet()
 
-            if ( ! bytes ) { return }
+            if ( ! response.data ) { return }
 
-            final pageContent = new String( bytes, 'UTF-8' )
+            final actualUrl   = response.url // Different from the original URL if the original one was redirected
+            final pageContent = new String( response.data, 'UTF-8' )
+            final pageIgnored = ( ext.ignoredContent ?: [] ).any {
+                it( pageUrl, pageContent ) || (( pageUrl == actualUrl ) ? true : it ( actualUrl, pageContent ))
+            }
 
-            if (( ext.ignoredContent ?: [] ).any { it( pageUrl, pageContent ) }) { return }
+            if ( pageIgnored ) { return }
 
-            final Set<String> pageLinks = readLinks( pageUrl, pageContent )
+            final Set<String> pageLinks = readLinks( actualUrl, pageContent )
             final Set<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
             final processed             = linksProcessed.get()
             final queued                = threadPool.queue.size()
 
-            linksStorage.updateBrokenLinkReferrers( pageUrl, pageLinks )
+            linksStorage.updateBrokenLinkReferrers( actualUrl, pageLinks )
 
-            if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
-            if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
+            if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( actualUrl, pageLinks )}
+            if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( actualUrl, newLinks  )}
 
             log {
                 final linksMessage    = pageLinks ? ", ${ newLinks.size() } new"     : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}" : ''
 
-                "[$pageUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
+                "[$actualUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
                 "$processed processed, $queued queued$newLinksMessage"
             }
 
             for ( link in newLinks )
             {
                 final String linkUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl, pageContent, false )} as Runnable )
+                futures << threadPool.submit({ checkLinks( linkUrl, actualUrl, pageContent, false )} as Runnable )
             }
         }
         catch( Throwable error )
         {
-            log( LogLevel.ERROR, error ){ "Internal error while reading [$pageUrl], referrer [$referrerUrl]" }
+            log( LogLevel.ERROR, error ){ "Unexpected error while reading [$pageUrl], referrer [$referrerUrl]" }
         }
     }
 
@@ -492,10 +496,15 @@ class CrawlerTask extends BaseTask
      * @param forceGetRequest whether a link should be GET-requested regardless of its type
      * @param attempt         Number of the current attempt, starts from 1
      *
-     * @return binary content of link specified or null if link shouldn't be read
+     * @return response data container
      */
     @Requires({ pageUrl && referrer && referrerContent && linksStorage && ( attempt > 0 ) })
-    byte[] readBytes ( final String pageUrl, final String referrer, String referrerContent, final boolean forceGetRequest, final int attempt = 1 )
+    @Ensures({ result })
+    ResponseData readResponse ( final String  pageUrl,
+                                final String  referrer,
+                                final String  referrerContent,
+                                final boolean forceGetRequest,
+                                final int     attempt = 1 )
     {
         final        ext             = ext()
         InputStream  inputStream     = null
@@ -504,33 +513,39 @@ class CrawlerTask extends BaseTask
         final        readFullContent = ( htmlLink && isInternalLink ( pageUrl ))
         final        isHeadRequest   = (( ! forceGetRequest ) && ( ! readFullContent ))
         final        requestMethod   = ( isHeadRequest ? 'HEAD' : 'GET' )
-        final        request         = new RequestData( pageUrl, referrer, referrerContent, linksStorage, attempt, forceGetRequest, isHeadRequest )
+        final        response        = new ResponseData( pageUrl, referrer, referrerContent, linksStorage, attempt, forceGetRequest, isHeadRequest )
 
         try
         {
             log{ "[$pageUrl] - sending $requestMethod request .." }
 
-            final t            = System.currentTimeMillis()
-            final connection   = request.connection( openConnection( pageUrl, requestMethod ))
-            inputStream        = connection.inputStream
-            final byte[] bytes = ( byte[] )( isHeadRequest || readFullContent ) ?
+            final t             = System.currentTimeMillis()
+            response.connection = openConnection( pageUrl , requestMethod )
+            inputStream         = response.connection.inputStream
+
+            // If redirected, connection.getURL() gets us a new URL
+            // noinspection GroovyGetterCallCanBePropertyAccess
+            response.url     = response.connection.getURL().toString()
+            response.data    = ( byte[] )( isHeadRequest || readFullContent ) ?
                                     inputStream.bytes :
                                     inputStream.read().with{ ( delegate == -1 ) ? [] : [ delegate ] }
 
-            if ( isHeadRequest ) { assert bytes.length == 0  }
-            else { bytesDownloaded.addAndGet( bytes.length ) }
+            final nBytes     = response.data.length
+            if ( isHeadRequest ) { assert nBytes == 0  }
+            else { bytesDownloaded.addAndGet( nBytes ) }
 
             log {
                 "[$pageUrl] - " +
-                ( readFullContent ? "[${ bytes.size()}] byte${ s( bytes.size())}" : 'can be read' ) +
+                ( readFullContent ? "[$nBytes] byte${ s( nBytes )}" : 'can be read' ) +
                 ", [${ System.currentTimeMillis() - t }] ms"
             }
 
-            ( readFullContent && bytes ) ? decodeBytes( bytes, request ) : null
+            if ( readFullContent && nBytes ){ decodeData( response )}
+            response
         }
         catch ( Throwable error )
         {
-            return handleError( request, error )
+            handleError( response, error )
         }
         finally
         {
@@ -539,10 +554,18 @@ class CrawlerTask extends BaseTask
     }
 
 
-    @Requires({ request && error })
-    byte[] handleError ( RequestData request, Throwable error )
+    /**
+     * Handles the error thrown while reading the response.
+     *
+     * @param response response data container
+     * @param error error thrown
+     * @return new response data (if request was retried) or the same one
+     */
+    @Requires({ response && error })
+    @Ensures({ result })
+    ResponseData handleError ( ResponseData response, Throwable error )
     {
-        request.with {
+        response.with {
             final ext             = ext()
             final statusCode      = ( connection ? statusCode ( connection )       : null )
             final statusCodeError = ( statusCode instanceof Throwable ? statusCode : null )
@@ -550,7 +573,7 @@ class CrawlerTask extends BaseTask
                                       ext.retryExceptions?. any { it.isInstance( error ) || it.isInstance( statusCodeError ) })
             final isRetry         = ( isHeadRequest || ( isRetryMatch && ( attempt < ext.retries )))
             final isAttempt       = (( ! isHeadRequest ) && ( ext.retries > 1 ) && ( isRetryMatch ))
-            final logMessage      = "! [$pageUrl] - $error, status code [${ (( statusCode == null ) || statusCodeError ) ? 'unknown' : statusCode }]"
+            final logMessage      = "! [$url] - $error, status code [${ (( statusCode == null ) || statusCodeError ) ? 'unknown' : statusCode }]"
 
             if ( isRetry )
             {
@@ -558,22 +581,24 @@ class CrawlerTask extends BaseTask
                 log { "$logMessage, ${ isHeadRequest ? 'will be retried as GET request' : 'attempt ' + attempt }" }
 
                 delay( ext.retryDelay )
-                return readBytes( pageUrl, referrer, referrerContent, true, isHeadRequest ? 1 : attempt + 1 )
-            }
-
-            logMessage = "$logMessage${ isAttempt ? ', attempt ' + attempt : '' }"
-
-            if (( ext.ignoredBrokenLinks ?: [] ).any{ it( pageUrl, referrer, referrerContent )})
-            {
-                log{ "$logMessage, not registered as broken link - filtered out by ignoredBrokenLinks" }
+                readResponse( url, referrer, referrerContent, true, isHeadRequest ? 1 : attempt + 1 )
             }
             else
             {
-                log{ "$logMessage, registered as broken link" }
-                linksStorage.addBrokenLink( pageUrl, referrer )
-            }
+                logMessage = "$logMessage${ isAttempt ? ', attempt ' + attempt : '' }"
 
-            null
+                if (( ext.ignoredBrokenLinks ?: [] ).any{ it( url, referrer, referrerContent )})
+                {
+                    log{ "$logMessage, not registered as broken link - filtered out by ignoredBrokenLinks" }
+                }
+                else
+                {
+                    log{ "$logMessage, registered as broken link" }
+                    linksStorage.addBrokenLink( url, referrer )
+                }
+
+                response
+            }
         }
     }
 
@@ -610,18 +635,17 @@ class CrawlerTask extends BaseTask
     }
 
 
-    @Requires({ bytes && request && request.connection })
-    @Ensures ({ result && ( result.length <= bytes.length ) })
-    byte[] decodeBytes( byte[] bytes, RequestData request )
+    @Requires({ response && response.connection && response.data })
+    @Ensures({ response.data })
+    void decodeData ( ResponseData response )
     {
-        final responseEncoding = request.connection.getHeaderField( 'Content-Encoding' )
+        final responseEncoding = response.connection.getHeaderField( 'Content-Encoding' )
 
-        if ( ! responseEncoding ) { return bytes }
+        if ( ! responseEncoding ) { return }
 
-        final responseSize = Integer.valueOf( request.connection.getHeaderField( 'Content-Length' ) ?: '-1' )
-
-        final bufferSize  = ((( responseSize > 0 ) && ( responseSize < 10 * 1024 * 1024 )) ? responseSize : 10 * 1024 )
-        final inputStream = new ByteArrayInputStream( bytes ).with {
+        final responseSize = Integer.valueOf( response.connection.getHeaderField( 'Content-Length' ) ?: '-1' )
+        final bufferSize   = ((( responseSize > 0 ) && ( responseSize < ( 100 * 1024 ))) ? responseSize : 10 * 1024 )
+        final inputStream  = new ByteArrayInputStream( response.data ).with {
             InputStream is ->
             ( 'gzip'    == responseEncoding ) ? new GZIPInputStream( is, bufferSize ) :
             ( 'deflate' == responseEncoding ) ? new DeflaterInputStream( is, new Deflater(), bufferSize ) :
@@ -629,7 +653,7 @@ class CrawlerTask extends BaseTask
         }
 
         assert inputStream, "Unknown content encoding [$responseEncoding]"
-        inputStream.bytes
+        response.data = inputStream.bytes
     }
 
 
