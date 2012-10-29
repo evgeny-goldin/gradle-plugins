@@ -422,7 +422,7 @@ class CrawlerTask extends BaseTask
 
         if ( ext.pageTransformers )
         {
-            cleanContent = ext.pageTransformers.inject( cleanContent ){ String content, Closure transformer -> transformer( content ) }
+            cleanContent = ext.pageTransformers.inject( cleanContent ){ String content, Closure transformer -> transformer( pageUrl, content ) }
         }
 
         if ( ext.replaceSpecialCharacters )
