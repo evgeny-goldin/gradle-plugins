@@ -207,11 +207,8 @@ abstract class BaseTask extends DefaultTask
     @Ensures({ result })
     final File zip ( File ... files )
     {
-        for ( file in files.grep().findAll{ it.file })
-        {
-            zip( project.file( "${ file.canonicalPath }.zip" )){ ant.zipfileset( file: file.canonicalPath )}
-        }
-
+        assert files.every { it && it.file }
+        files.each { File f -> zip( project.file( "${ f.canonicalPath }.zip" )){ ant.zipfileset( file: f.canonicalPath ) }}
         files.first()
     }
 

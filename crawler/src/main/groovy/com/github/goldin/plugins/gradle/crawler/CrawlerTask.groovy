@@ -308,12 +308,12 @@ class CrawlerTask extends BaseTask
      */
     void archiveLogFiles()
     {
-        final ext = ext()
+        final ext      = ext()
+        final logFiles = [ ext.log, ext.linksMapFile, ext.newLinksMapFile ].grep()
 
-        if ( ext.zipLogFiles && ( ext.log || ext.linksMapFile || ext.newLinksMapFile ))
+        if ( ext.zipLogFiles && logFiles )
         {
-            zip           ( ext.log, ext.linksMapFile, ext.newLinksMapFile )
-            project.delete( ext.log, ext.linksMapFile, ext.newLinksMapFile )
+            logFiles.each { zip( it ); project.delete( it )}
         }
     }
 
