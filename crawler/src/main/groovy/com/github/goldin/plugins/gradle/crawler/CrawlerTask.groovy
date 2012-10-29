@@ -369,7 +369,7 @@ class CrawlerTask extends BaseTask
 
             if ( ! response.data ) { return }
 
-            final actualUrl   = response.url // Different from the original URL if the original one was redirected
+            final actualUrl   = response.url // May be different from the original URL if request was redirected
             final pageContent = new String( response.data, 'UTF-8' )
             final pageIgnored = ( ext.ignoredContent ?: [] ).any {
                 it( pageUrl, pageContent ) || (( pageUrl == actualUrl ) ? true : it ( actualUrl, pageContent ))
@@ -522,22 +522,20 @@ class CrawlerTask extends BaseTask
             final t             = System.currentTimeMillis()
             response.connection = openConnection( pageUrl , requestMethod )
             inputStream         = response.connection.inputStream
+            // If request was redirected,  connection.getURL() gets us a new URL
+            response.url        = response.connection.getURL().toString()
+            response.data       = ( byte[] )( isHeadRequest || readFullContent ) ?
+                                    inputStream.bytes : inputStream.read().with{ ( delegate == -1 ) ? [] : [ delegate ] }
+            final nBytes        = response.data.length
 
-            // If redirected, connection.getURL() gets us a new URL
-            // noinspection GroovyGetterCallCanBePropertyAccess
-            response.url     = response.connection.getURL().toString()
-            response.data    = ( byte[] )( isHeadRequest || readFullContent ) ?
-                                    inputStream.bytes :
-                                    inputStream.read().with{ ( delegate == -1 ) ? [] : [ delegate ] }
-
-            final nBytes     = response.data.length
             if ( isHeadRequest ) { assert nBytes == 0  }
             else { bytesDownloaded.addAndGet( nBytes ) }
 
             log {
                 "[$pageUrl] - " +
-                ( readFullContent ? "[$nBytes] byte${ s( nBytes )}" : 'can be read' ) +
-                ", [${ System.currentTimeMillis() - t }] ms"
+                ( response.url == pageUrl ? '' : "redirected to [$response.url], " ) +
+                ( readFullContent ? "[$nBytes] byte${ s( nBytes )}, " : 'can be read, ' ) +
+                "[${ System.currentTimeMillis() - t }] ms"
             }
 
             if ( readFullContent && nBytes ){ decodeData( response )}
@@ -559,7 +557,7 @@ class CrawlerTask extends BaseTask
      *
      * @param response response data container
      * @param error error thrown
-     * @return new response data (if request was retried) or the same one
+     * @return new response data (if request was retried) or the same instance that was specified
      */
     @Requires({ response && error })
     @Ensures({ result })
