@@ -531,7 +531,7 @@ class CrawlerTask extends BaseTask
             }
             else
             {
-                response.data = null
+                response.data = []
                 bytesDownloaded.addAndGet(( inputStream.read() == -1 ) ? 0 : 1 )
             }
 
