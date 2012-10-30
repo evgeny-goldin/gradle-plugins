@@ -33,6 +33,7 @@ class ResponseData
                    boolean      headRequest )
     {
         this.originalUrl     = originalUrl
+        this.actualUrl       = originalUrl
         this.referrer        = referrer
         this.referrerContent = referrerContent
         this.linksStorage    = linksStorage
