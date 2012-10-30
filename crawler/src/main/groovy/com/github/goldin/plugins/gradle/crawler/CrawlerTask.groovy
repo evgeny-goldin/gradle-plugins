@@ -382,8 +382,8 @@ class CrawlerTask extends BaseTask
 
             linksStorage.updateBrokenLinkReferrers( actualUrl, pageLinks )
 
-            if ( ext.linksMapFile                ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
-            if ( ext.newLinksMapFile && newLinks ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
+            if ( ext.linksMapFile    && pageLinks ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
+            if ( ext.newLinksMapFile && newLinks  ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
 
             log {
                 final linksMessage    = pageLinks ? ", ${ newLinks.size() } new"     : ''
