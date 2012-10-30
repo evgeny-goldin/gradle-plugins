@@ -617,9 +617,12 @@ class CrawlerTask extends BaseTask
     @Ensures({ result })
     HttpURLConnection openConnection ( String pageUrl, String requestMethod )
     {
+        /**
+         * Full-blown URL encoding: new URL( pageUrl ).with { new URI( protocol, userInfo, host, port, path, query, ref ).toURL()}
+         * It doesn't work with URLs that are already encoded and is slow, so we simply replace ' ' to '+'.
+         */
         final ext                 = ext()
-        final url                 = new URL( pageUrl ).with { new URI( protocol, userInfo, host, port, path, query, ref ).toURL()}
-        final connection          = url.openConnection() as HttpURLConnection
+        final connection          = pageUrl.replace( ' ', '+' ).toURL().openConnection() as HttpURLConnection
         connection.connectTimeout = ext.connectTimeout
         connection.readTimeout    = ext.readTimeout
         connection.requestMethod  = requestMethod
