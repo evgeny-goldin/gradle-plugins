@@ -23,8 +23,8 @@ class LinksStorage
     private final CrawlerExtension         ext
     private final Map<String, Set<String>> linksMap
     private final Map<String, Set<String>> newLinksMap
-    private final Set<String>              linksSet
-    private       long[]                   linksArray
+    private final Set<String>              linksSet   // Stores links processed if ext.displayLinks
+    private       long[]                   linksArray // Stores checksums of links processed otherwise
     private       int                      nextChecksum
     private       long                     minChecksum
     private       long                     maxChecksum

@@ -50,6 +50,7 @@ class CrawlerExtension
     List<String>  nonHtmlExtensions        = 'css js ico logo gif jpg jpeg png ps eps doc pdf zip jar war ear hpi rar gz xml xsd xsl svg flv swf mp4 mp3 avi mkv'.tokenize()
     List<String>  htmlExtensions           = []
     List<String>  rootLinks                = []
+    List<Closure> linkTransformers         = []
     List<Closure> pageTransformers         = []
     List<Closure> nonHtmlLinks             = []
     List<Closure> ignoredLinks             = []

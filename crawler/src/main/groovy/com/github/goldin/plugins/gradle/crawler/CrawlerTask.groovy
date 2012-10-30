@@ -365,12 +365,18 @@ class CrawlerTask extends BaseTask
 
         try
         {
-            final response = readResponse( pageUrl, referrerUrl, referrerContent, isRootLink )
+            final response  = readResponse( pageUrl, referrerUrl, referrerContent, isRootLink )
+            final actualUrl = response.actualUrl // May be different from the original URL if request was redirected
+
             linksProcessed.incrementAndGet()
 
+            /**
+             * No data received (external link or empty response) or
+             * redirected to a page that is processed already
+             */
             if ( ! response.data ) { return }
+            if (( pageUrl != actualUrl ) && ( ! linksStorage.addLinksToProcess([ actualUrl ]))) { return }
 
-            final actualUrl   = response.actualUrl // May be different from the original URL if request was redirected
             final pageContent = new String( response.data, 'UTF-8' )
             final pageIgnored = ( ext.ignoredContent ?: [] ).any { it ( actualUrl, pageContent )}
 
@@ -408,7 +414,8 @@ class CrawlerTask extends BaseTask
 
 
     /**
-     * Reads all hyperlinks in the content specified.ß
+     * Reads all hyperlinks in the content specified.
+     *
      * @param pageContent content of the page downloaded previously
      * @return all links found in the page content
      */
@@ -417,11 +424,8 @@ class CrawlerTask extends BaseTask
     List<String> readLinks ( String pageUrl, String pageContent )
     {
         final  ext          = ext()
-        String cleanContent = pageContent
-
-        if ( ext.pageTransformers )
-        {
-            cleanContent = ext.pageTransformers.inject( cleanContent ){ String content, Closure transformer -> transformer( pageUrl, content ) }
+        String cleanContent = ( ext.pageTransformers ?: [] ).inject( pageContent ){
+            String content, Closure transformer -> transformer( pageUrl, content )
         }
 
         if ( ext.replaceSpecialCharacters )
@@ -472,6 +476,7 @@ class CrawlerTask extends BaseTask
                            collect { normalizeUrl( removeAllAfter( '#', it, it )) }.
                            toSet().
                            findAll { String link -> ( ! ( ext.ignoredLinks ?: [] ).any { it( link ) }) }.
+                           collect { String link -> ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure t -> t( l ) }}.
                            sort()
         foundLinks
     }
@@ -498,7 +503,7 @@ class CrawlerTask extends BaseTask
      * @return response data container
      */
     @Requires({ pageUrl && referrer && referrerContent && linksStorage && ( attempt > 0 ) })
-    @Ensures({ result })
+    @Ensures({ result.actualUrl })
     ResponseData readResponse ( final String  pageUrl,
                                 final String  referrer,
                                 final String  referrerContent,
