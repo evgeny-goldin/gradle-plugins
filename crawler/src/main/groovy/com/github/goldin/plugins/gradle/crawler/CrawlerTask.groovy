@@ -54,7 +54,8 @@ class CrawlerTask extends BaseTask
         printStartBanner()
         submitRootLinks()
         waitForIdle()
-        printReport()
+
+        printFinishReport()
         writeLinksMapFiles()
         archiveLogFiles()
         checkIfBuildShouldFail()
@@ -206,7 +207,7 @@ class CrawlerTask extends BaseTask
     void submitRootLinks ()
     {
         final ext = ext()
-        for ( link in linksStorage.addLinksToProcess( ext.rootLinks ))
+        for ( link in linksStorage.addLinksToProcess( ext.rootLinks ).sort())
         {
             final pageUrl = link // Otherwise, various invocations share the same "link" instance when invoked
             futures << threadPool.submit({ checkLinks( pageUrl, 'Root link', 'Root link', true )} as Runnable )
@@ -234,9 +235,9 @@ class CrawlerTask extends BaseTask
 
 
     /**
-     * Prints final report after all links are checked.
+     * Prints finish report after all links are checked.
      */
-    void printReport ()
+    void printFinishReport ()
     {
         final processedLinks = linksProcessed.get()
         final ext            = ext()
