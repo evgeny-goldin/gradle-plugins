@@ -622,7 +622,7 @@ class CrawlerTask extends BaseTask
          * It doesn't work with URLs that are already encoded and is slow, so we simply replace ' ' to '+'.
          */
         final ext                 = ext()
-        final connection          = pageUrl.replace( ' ', '+' ).toURL().openConnection() as HttpURLConnection
+        final connection          = pageUrl.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection
         connection.connectTimeout = ext.connectTimeout
         connection.readTimeout    = ext.readTimeout
         connection.requestMethod  = requestMethod
