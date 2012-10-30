@@ -78,13 +78,6 @@ class CrawlerTask extends BaseTask
     }
 
 
-    @Requires({ link })
-    boolean isInternalLink( String link )
-    {
-        link.startsWith( "http://${ ext().baseUrl }"  ) || link.startsWith( "https://${ ext().baseUrl }" )
-    }
-
-
     /**
      * Logs message returned by the closure provided.
      *
@@ -513,8 +506,9 @@ class CrawlerTask extends BaseTask
         final        ext             = ext()
         InputStream  inputStream     = null
         final        htmlLink        = ( ! pageUrl.toLowerCase().with{ ( ext.nonHtmlExtensions - ext.htmlExtensions ).any{ endsWith( ".$it" ) || contains( ".$it?" ) }} ) &&
-                                       ( ! ( ext.nonHtmlLinks ?: [] ).any{ it( pageUrl )})
-        final        readFullContent = ( htmlLink && isInternalLink ( pageUrl ))
+                                       ( ! ( ext.nonHtmlLinks ?: [] ).any{ it( pageUrl ) })
+        final        readFullContent = ( htmlLink && pageUrl.with { startsWith( "http://${ ext.baseUrl  }" ) ||
+                                                                    startsWith( "https://${ ext.baseUrl }" ) })
         final        isHeadRequest   = (( ! forceGetRequest ) && ( ! readFullContent ))
         final        requestMethod   = ( isHeadRequest ? 'HEAD' : 'GET' )
         final        response        = new ResponseData( pageUrl, referrer, referrerContent, linksStorage, attempt, forceGetRequest, isHeadRequest )
@@ -526,23 +520,29 @@ class CrawlerTask extends BaseTask
             final t             = System.currentTimeMillis()
             response.connection = openConnection( pageUrl , requestMethod )
             inputStream         = response.connection.inputStream
-            // If request was redirected,  connection.getURL() gets us a new URL
-            response.actualUrl  = response.connection.getURL().toString()
-            response.data       = ( byte[] )( isHeadRequest || readFullContent ) ?
-                                    inputStream.bytes : inputStream.read().with{ ( delegate == -1 ) ? [] : [ delegate ] }
-            final nBytes        = response.data.length
 
-            if ( isHeadRequest ) { assert nBytes == 0  }
-            else { bytesDownloaded.addAndGet( nBytes ) }
+            // If request was redirected,  connection.getURL() gives us a new URL
+            response.actualUrl  = response.connection.getURL().toString()
+
+            if ( readFullContent )
+            {
+                response.data = inputStream.bytes
+                bytesDownloaded.addAndGet( response.data.length )
+            }
+            else
+            {
+                response.data = null
+                bytesDownloaded.addAndGet(( inputStream.read() == -1 ) ? 0 : 1 )
+            }
 
             log {
                 "[$pageUrl] - " +
                 ( response.actualUrl == pageUrl ? '' : "redirected to [$response.actualUrl], " ) +
-                ( readFullContent ? "[$nBytes] byte${ s( nBytes )}, " : 'can be read, ' ) +
+                ( readFullContent ? "[${ response.data.length }] byte${ s( response.data.length )}, " : 'can be read, ' ) +
                 "[${ System.currentTimeMillis() - t }] ms"
             }
 
-            if ( readFullContent && nBytes ){ decodeData( response )}
+            if ( readFullContent && response.data ){ decodeData( response )}
             response
         }
         catch ( Throwable error )
