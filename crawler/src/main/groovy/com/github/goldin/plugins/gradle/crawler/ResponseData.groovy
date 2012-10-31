@@ -7,7 +7,7 @@ import org.gcontracts.annotations.Requires
 /**
  * Request/Response data container
  */
-@Invariant({ originalUrl && referrer && referrerContent && linksStorage && ( attempt > 0 )})
+@Invariant({ originalUrl && actualUrl && referrer && referrerContent && linksStorage && ( attempt > 0 )})
 class ResponseData
 {
     final String       originalUrl

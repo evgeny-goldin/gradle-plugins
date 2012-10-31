@@ -202,7 +202,7 @@ class CrawlerTask extends BaseTask
         final ext = ext()
         for ( link in linksStorage.addLinksToProcess( ext.rootLinks ).sort())
         {
-            final pageUrl = link // Otherwise, various invocations share the same "link" instance when invoked
+            final String pageUrl = ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure c -> c( l )}
             futures << threadPool.submit({ checkLinks( pageUrl, 'Root link', 'Root link', true )} as Runnable )
         }
     }
@@ -358,29 +358,36 @@ class CrawlerTask extends BaseTask
 
         try
         {
-            final response  = readResponse( pageUrl, referrerUrl, referrerContent, isRootLink )
-            final actualUrl = response.actualUrl // May be different from the original URL if request was redirected
+            final response   = readResponse( pageUrl, referrerUrl, referrerContent, isRootLink )
+            String actualUrl = response.actualUrl
 
+            if ( pageUrl != actualUrl )
+            {
+                actualUrl = ( ext.linkTransformers ?: [] ).inject( actualUrl ){ String l, Closure c -> c( l )}
+                if ( linksStorage.addLinksToProcess([ actualUrl ]))
+                {
+                    checkLinks( actualUrl, referrerUrl, referrerContent, isRootLink )
+                }
+
+                return
+            }
+
+            if ( ! response.data ) { return }
+
+            assert pageUrl == actualUrl
             linksProcessed.incrementAndGet()
 
-            /**
-             * No data received (external link or empty response) or
-             * redirected to a page that is processed already
-             */
-            if ( ! response.data ) { return }
-            if (( pageUrl != actualUrl ) && ( ! linksStorage.addLinksToProcess([ actualUrl ]))) { return }
-
             final pageContent = new String( response.data, 'UTF-8' )
-            final pageIgnored = ( ext.ignoredContent ?: [] ).any { it ( actualUrl, pageContent )}
+            final pageIgnored = ( ext.ignoredContent ?: [] ).any { it ( pageUrl, pageContent )}
 
             if ( pageIgnored ) { return }
 
-            final Set<String> pageLinks = readLinks( actualUrl, pageContent )
+            final Set<String> pageLinks = readLinks( pageUrl, pageContent )
             final Set<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
             final processed             = linksProcessed.get()
             final queued                = threadPool.queue.size()
 
-            linksStorage.updateBrokenLinkReferrers( actualUrl, pageLinks )
+            linksStorage.updateBrokenLinkReferrers( pageUrl, pageLinks )
 
             if ( ext.linksMapFile    && pageLinks ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
             if ( ext.newLinksMapFile && newLinks  ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
@@ -389,14 +396,14 @@ class CrawlerTask extends BaseTask
                 final linksMessage    = pageLinks ? ", ${ newLinks.size() } new"     : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}" : ''
 
-                "[$actualUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
+                "[$pageUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
                 "$processed processed, $queued queued$newLinksMessage"
             }
 
             for ( link in newLinks )
             {
                 final String linkUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-                futures << threadPool.submit({ checkLinks( linkUrl, actualUrl, pageContent, false )} as Runnable )
+                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl, pageContent, false )} as Runnable )
             }
         }
         catch( Throwable error )
@@ -469,7 +476,7 @@ class CrawlerTask extends BaseTask
                            collect { normalizeUrl( removeAllAfter( '#', it, it )) }.
                            toSet().
                            findAll { String link -> ( ! ( ext.ignoredLinks ?: [] ).any { it( link ) }) }.
-                           collect { String link -> ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure t -> t( l ) }}.
+                           collect { String link -> ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure c -> c( l ) }}.
                            sort()
         foundLinks
     }
@@ -507,7 +514,7 @@ class CrawlerTask extends BaseTask
         InputStream  inputStream     = null
         final        htmlLink        = ( ! pageUrl.toLowerCase().with{ ( ext.nonHtmlExtensions - ext.htmlExtensions ).any{ endsWith( ".$it" ) || contains( ".$it?" ) }} ) &&
                                        ( ! ( ext.nonHtmlLinks ?: [] ).any{ it( pageUrl ) })
-        final        readFullContent = ( htmlLink && pageUrl.with { startsWith( "http://${ ext.baseUrl  }" ) ||
+        boolean      readFullContent = ( htmlLink && pageUrl.with { startsWith( "http://${ ext.baseUrl  }" ) ||
                                                                     startsWith( "https://${ ext.baseUrl }" ) })
         final        isHeadRequest   = (( ! forceGetRequest ) && ( ! readFullContent ))
         final        requestMethod   = ( isHeadRequest ? 'HEAD' : 'GET' )
@@ -520,29 +527,36 @@ class CrawlerTask extends BaseTask
             final t             = System.currentTimeMillis()
             response.connection = openConnection( pageUrl , requestMethod )
             inputStream         = response.connection.inputStream
-
-            // If request was redirected,  connection.getURL() gives us a new URL
             response.actualUrl  = response.connection.getURL().toString()
+            final isRedirect    = ( pageUrl != response.actualUrl )
 
-            if ( readFullContent )
+            if ( readFullContent && ( ! isRedirect ))
             {
-                response.data = inputStream.bytes
-                bytesDownloaded.addAndGet( response.data.length )
+                response.data      = inputStream.bytes
+                final responseSize = response.data.length
+
+                response.data      = decodeResponseData( response )
+                final contentSize  = response.data.length
+
+                bytesDownloaded.addAndGet( responseSize )
+
+                log {
+                    "[$pageUrl] - [$responseSize${ ( responseSize != contentSize ) ? '->' + contentSize : '' }] " +
+                    "byte${ s( Math.max( responseSize, contentSize )) }, [${ System.currentTimeMillis() - t }] ms"
+                }
             }
             else
             {
                 response.data = []
-                bytesDownloaded.addAndGet(( inputStream.read() == -1 ) ? 0 : 1 )
+                bytesDownloaded.addAndGet(( isRedirect || ( inputStream.read() == -1 )) ? 0 : 1 )
+
+                log {
+                    "[$pageUrl] - " +
+                    ( isRedirect ? "redirected to [$response.actualUrl], " : 'can be read, ' ) +
+                    "[${ System.currentTimeMillis() - t }] ms"
+                }
             }
 
-            log {
-                "[$pageUrl] - " +
-                ( response.actualUrl == pageUrl ? '' : "redirected to [$response.actualUrl], " ) +
-                ( readFullContent ? "[${ response.data.length }] byte${ s( response.data.length )}, " : 'can be read, ' ) +
-                "[${ System.currentTimeMillis() - t }] ms"
-            }
-
-            if ( readFullContent && response.data ){ decodeData( response )}
             response
         }
         catch ( Throwable error )
@@ -641,25 +655,25 @@ class CrawlerTask extends BaseTask
     }
 
 
-    @Requires({ response && response.connection && response.data })
-    @Ensures({ response.data })
-    void decodeData ( ResponseData response )
+    @Requires({ response?.connection && ( response?.data != null ) })
+    @Ensures({ result != null })
+    byte[] decodeResponseData ( ResponseData response )
     {
-        final responseEncoding = response.connection.getHeaderField( 'Content-Encoding' )
+        final contentEncoding = response.connection.getHeaderField( 'Content-Encoding' )
 
-        if ( ! responseEncoding ) { return }
+        if ( ! ( contentEncoding && response.data )) { return response.data }
 
-        final responseSize = Integer.valueOf( response.connection.getHeaderField( 'Content-Length' ) ?: '-1' )
-        final bufferSize   = ((( responseSize > 0 ) && ( responseSize < ( 100 * 1024 ))) ? responseSize : 10 * 1024 )
-        final inputStream  = new ByteArrayInputStream( response.data ).with {
+        final contentLength = Integer.valueOf( response.connection.getHeaderField( 'Content-Length' ) ?: '-1' )
+        final bufferSize    = ((( contentLength > 0 ) && ( contentLength < ( 100 * 1024 ))) ? contentLength : 10 * 1024 )
+        final inputStream   = new ByteArrayInputStream( response.data ).with {
             InputStream is ->
-            ( 'gzip'    == responseEncoding ) ? new GZIPInputStream( is, bufferSize ) :
-            ( 'deflate' == responseEncoding ) ? new DeflaterInputStream( is, new Deflater(), bufferSize ) :
-                                                null
+            ( 'gzip'    == contentEncoding ) ? new GZIPInputStream( is, bufferSize ) :
+            ( 'deflate' == contentEncoding ) ? new DeflaterInputStream( is, new Deflater(), bufferSize ) :
+                                               null
         }
 
-        assert inputStream, "Unknown content encoding [$responseEncoding]"
-        response.data = inputStream.bytes
+        assert inputStream, "Unknown response content encoding [$contentEncoding]"
+        inputStream.bytes
     }
 
 
