@@ -129,11 +129,12 @@ class CrawlerTask extends BaseTask
         final ext                  = ext()
         final extensionDescription = "${ this.extensionName } { .. }"
 
-        assert ext.externalLinkPattern &&
-               ext.absoluteLinkPattern &&
-               ext.relativeLinkPattern &&
+        assert ext.externalLinkPattern         &&
+               ext.absoluteLinkPattern         &&
+               ext.relativeLinkPattern         &&
                ext.relativeLinkReminderPattern &&
-               ext.htmlCommentPattern
+               ext.htmlCommentPattern          &&
+               ext.slashesPattern
 
         assert ( ! ext.rootUrl             ), "'rootUrl' should not be used in $extensionDescription - private area"
         assert ( ! ext.internalLinkPattern ), "'internalLinkPattern' should not be used in $extensionDescription - private area"
@@ -427,14 +428,13 @@ class CrawlerTask extends BaseTask
     List<String> readLinks ( String pageUrl, String pageContent )
     {
         final  ext          = ext()
-        String cleanContent = ( ext.pageTransformers ?: [] ).inject( pageContent ){
+        String cleanContent = (( String )( ext.pageTransformers ?: [] ).inject( pageContent ){
             String content, Closure transformer -> transformer( pageUrl, content )
-        }
+        }).replace( '\\', '/' )
 
         if ( ext.replaceSpecialCharacters )
         {
-            cleanContent = cleanContent.replace( '\\',        '/' ).
-                                        replace( '%3A',       ':' ).
+            cleanContent = cleanContent.replace( '%3A',       ':' ).
                                         replace( '%2F',       '/' ).
                                         replace( '&lt;',      '<' ).
                                         replace( '&gt;',      '>' ).
@@ -461,7 +461,8 @@ class CrawlerTask extends BaseTask
             final  absoluteLinks = findAll ( cleanContent, ext.absoluteLinkPattern )
             assert absoluteLinks.every{ it.startsWith( '/' ) }
 
-            links.addAll( absoluteLinks.collect{ "http://$ext.rootUrl$it".toString() })
+            links.addAll( absoluteLinks.collect{( it.startsWith( '//' ) ? "http://${ it.replaceAll( ext.slashesPattern, '' )}" :
+                                                                          "http://$ext.rootUrl$it" ).toString() })
         }
 
         if ( ext.checkRelativeLinks ) {

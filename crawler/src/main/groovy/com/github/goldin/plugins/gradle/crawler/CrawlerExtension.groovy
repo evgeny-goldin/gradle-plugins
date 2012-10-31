@@ -20,6 +20,9 @@ class CrawlerExtension
     // "<!-- .. -->"
     final Pattern htmlCommentPattern          = Pattern.compile( '(?s)<!--(.*?)-->' )
 
+    // "///link"
+    final Pattern slashesPattern              = Pattern.compile( '^/+' )
+
     /**
      * Internal properties, set in {@link CrawlerTask#verifyAndUpdateExtension()}
      */
