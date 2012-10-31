@@ -37,7 +37,7 @@ class CrawlerTask extends BaseTask
     void config( Closure c ){
         this.extensionName = this.name
         new CrawlerExtension().with {
-            project.extensions.add( extensionName, delegate )
+            project.extensions.add( this.extensionName, delegate )
             c( delegate )
         }
     }
