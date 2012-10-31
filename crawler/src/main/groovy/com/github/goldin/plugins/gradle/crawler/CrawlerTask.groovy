@@ -541,7 +541,7 @@ class CrawlerTask extends BaseTask
                 bytesDownloaded.addAndGet( responseSize )
 
                 log {
-                    "[$pageUrl] - [$responseSize${ ( responseSize != contentSize ) ? '->' + contentSize : '' }] " +
+                    "[$pageUrl] - [$responseSize${ ( responseSize != contentSize ) ? ' => ' + contentSize : '' }] " +
                     "byte${ s( Math.max( responseSize, contentSize )) }, [${ System.currentTimeMillis() - t }] ms"
                 }
             }
