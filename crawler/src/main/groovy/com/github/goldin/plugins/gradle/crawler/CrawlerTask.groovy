@@ -34,12 +34,12 @@ class CrawlerTask extends BaseTask
      * Passes a new extensions object to the closure specified.
      * Registers new extension under task's name.
      */
+    @Requires({ c })
     void config( Closure c ){
         this.extensionName = this.name
-        new CrawlerExtension().with {
-            project.extensions.add( this.extensionName, delegate )
-            c( delegate )
-        }
+        final ext = new CrawlerExtension()
+        project.extensions.add( this.extensionName, ext )
+        c( ext )
     }
 
 
