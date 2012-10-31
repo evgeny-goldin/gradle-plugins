@@ -479,7 +479,7 @@ class CrawlerTask extends BaseTask
     }
 
 
-    @Requires({ links })
+    @Requires({ links != null })
     @Ensures({ result != null })
     List<String> filterTransformLinks ( Collection<String> links )
     {
