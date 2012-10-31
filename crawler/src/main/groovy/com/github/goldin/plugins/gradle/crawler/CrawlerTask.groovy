@@ -372,10 +372,10 @@ class CrawlerTask extends BaseTask
                 return
             }
 
-            if ( ! response.data ) { return }
-
             assert pageUrl == actualUrl
             linksProcessed.incrementAndGet()
+
+            if ( ! response.data ) { return }
 
             final pageContent = new String( response.data, 'UTF-8' )
             final pageIgnored = ( ext.ignoredContent ?: [] ).any { it ( pageUrl, pageContent )}
