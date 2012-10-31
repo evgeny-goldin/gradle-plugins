@@ -31,13 +31,15 @@ class CrawlerTask extends BaseTask
 
 
     /**
-     * Passes a new extensions object to the closure specified (to use it later).
+     * Passes a new extensions object to the closure specified.
+     * Registers new extension under task's name.
      */
     void config( Closure c ){
         this.extensionName = this.name
-        final extension    = new CrawlerExtension()
-        project.extensions.add( extensionName, extension )
-        c( extension )
+        new CrawlerExtension().with {
+            project.extensions.add( extensionName, delegate )
+            c( delegate )
+        }
     }
 
 
@@ -156,7 +158,7 @@ class CrawlerTask extends BaseTask
         assert ext.retryStatusCodes.every { it }, "'retryStatusCodes' should not contain nulls in $extensionDescription"
         assert ext.retryExceptions. every { it }, "'retryExceptions' should not contain nulls in $extensionDescription"
 
-        ext.rootLinks = ( ext.rootLinks?.grep()?.toSet()?.sort() ?: [ "http://$ext.baseUrl" ]).collect {
+        ext.rootLinks = ( ext.rootLinks?.grep()?.toSet() ?: [ "http://$ext.baseUrl" ]).collect {
             String rootLink ->
             final isGoodEnough = rootLink && rootLink.with { startsWith( 'http://' ) || startsWith( 'https://' )}
             final noSlash      = (( ! rootLink ) || ext.baseUrl.endsWith( '/' ) || rootLink.startsWith( '/' ))
@@ -184,7 +186,7 @@ class CrawlerTask extends BaseTask
             writer.println( bannerLine )
             writer.println( " $bannerMessage" )
             writer.println( " Root link${ s( ext.rootLinks )}:" )
-            ext.rootLinks.each { writer.println( " * [$it]" )}
+            ext.rootLinks.sort().each { writer.println( " * [$it]" )}
             writer.println( bannerLine )
 
             os.toString()
@@ -241,7 +243,6 @@ class CrawlerTask extends BaseTask
         final message = new StringBuilder().append( "\n\n[$processedLinks] link${ s( processedLinks ) } processed in ".toString()).
                                             append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
                                             append( downloaded.toString())
-
         if ( ext.displayLinks )
         {
             message.append( ':\n' ).
@@ -276,12 +277,12 @@ class CrawlerTask extends BaseTask
     {
         final ext   = ext()
         final print = {
-            File file, Map<String, Set<String>> linksMap, String title ->
+            File file, Map<String, List<String>> linksMap, String title ->
 
             assert file && ( linksMap != null ) && title
 
-            final linksMapReport = linksMap.keySet().sort().
-                                   collect { String pageUrl -> "[$pageUrl]:\n${ toMultiLines( linksMap[ pageUrl ]) }" }.
+            final linksMapReport = linksMap.keySet().
+                                   collect { String pageUrl -> "[$pageUrl]:\n${ toMultiLines( linksMap[ pageUrl ] ) }" }.
                                    join( '\n' )
 
             file.write( linksMapReport, 'UTF-8' )
@@ -350,6 +351,7 @@ class CrawlerTask extends BaseTask
      * @param referrerContent Referrer page content
      * @param isRootLink      whether url submitted is a root link
      */
+    @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
     @Requires({ pageUrl && referrerUrl && referrerContent && linksStorage && threadPool })
     void checkLinks ( String pageUrl, String referrerUrl, String referrerContent, boolean isRootLink )
     {
@@ -363,10 +365,11 @@ class CrawlerTask extends BaseTask
 
             if ( pageUrl != actualUrl )
             {
-                actualUrl = ( ext.linkTransformers ?: [] ).inject( actualUrl ){ String l, Closure c -> c( l )}
-                if ( linksStorage.addLinksToProcess([ actualUrl ]))
+                final  actualUrlList = filterTransformLinks([ actualUrl ]) // List of one element, transformed link
+                assert actualUrlList.size().with {( delegate == 0 ) || ( delegate == 1 )}
+                if (   actualUrlList && linksStorage.addLinksToProcess( actualUrlList ))
                 {
-                    checkLinks( actualUrl, referrerUrl, referrerContent, isRootLink )
+                    checkLinks( actualUrlList.first(), referrerUrl, referrerContent, isRootLink )
                 }
 
                 return
@@ -472,13 +475,19 @@ class CrawlerTask extends BaseTask
         }
 
         assert links.every{ it }
-        final foundLinks = links.
-                           collect { normalizeUrl( removeAllAfter( '#', it, it )) }.
-                           toSet().
-                           findAll { String link -> ( ! ( ext.ignoredLinks ?: [] ).any { it( link ) }) }.
-                           collect { String link -> ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure c -> c( l ) }}.
-                           sort()
-        foundLinks
+        filterTransformLinks( links )
+    }
+
+
+    @Requires({ links })
+    @Ensures({ result != null })
+    List<String> filterTransformLinks ( Collection<String> links )
+    {
+        final ext = ext()
+        links.collect { normalizeUrl( removeAllAfter( '#', it, it )) }.
+              toSet().
+              findAll { String link -> ( ! ( ext.ignoredLinks ?: [] ).any { it( link ) }) }.
+              collect { String link -> ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure c -> c( l ) }}
     }
 
 
@@ -686,8 +695,5 @@ class CrawlerTask extends BaseTask
      */
     @Requires({ c != null })
     @Ensures({ result })
-    String toMultiLines( Collection c, String delimiter = '*' )
-    {
-        "\n$delimiter [${ c.sort().join( "]\n$delimiter [" ) }]\n"
-    }
+    String toMultiLines( Collection c, String delimiter = '*' ){ "\n$delimiter [${ c.sort().join( "]\n$delimiter [" ) }]\n" }
 }

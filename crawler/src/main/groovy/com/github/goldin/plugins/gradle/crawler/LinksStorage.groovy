@@ -92,7 +92,7 @@ class LinksStorage
 
 
     @Ensures({ result != null })
-    Map<String, Set<String>> linksMap()
+    Map<String, List<String>> linksMap()
     {
         assert ( locked && ext.linksMapFile )
         linksMap.asImmutable()
@@ -100,7 +100,7 @@ class LinksStorage
 
 
     @Ensures({ result != null })
-    Map<String, Set<String>> newLinksMap()
+    Map<String, List<String>> newLinksMap()
     {
         assert ( locked && ext.newLinksMapFile )
         newLinksMap.asImmutable()
@@ -135,10 +135,9 @@ class LinksStorage
                 result = links.findAll { linksSet.add( it.toString())}
             }
             else
-            {
+            {   // Finding new links with new checksums
                 result = links.findAll {
                     final long checksum = linksChecksums[ it ]
-                    // Finding new links with new checksums
                     ! (( checksum == minChecksum ) || ( checksum == maxChecksum ) ||
                        (( checksum > minChecksum ) && ( checksum  < maxChecksum ) && contains( linksArray, checksum, nextChecksum )))
                 }

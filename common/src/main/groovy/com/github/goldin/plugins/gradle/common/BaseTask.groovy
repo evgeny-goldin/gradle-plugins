@@ -23,6 +23,7 @@ abstract class BaseTask extends DefaultTask
     File   rootDir
     String version
     long   startTime
+    Object extension
     final  DateFormat dateFormatter = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
 
 
@@ -119,15 +120,18 @@ abstract class BaseTask extends DefaultTask
      * @return extension of the type specified
      */
     @Requires({ extensionName && extensionType })
-    @Ensures ({ extensionType.isInstance( result ) })
+    @Ensures ({ result })
     final public <T> T extension( String extensionName, Class<T> extensionType )
     {
-        final  extension = project[ extensionName ]
-        assert extensionType.isInstance( extension ), \
-               "Project object (extension?) [$extensionName] is of type [${ extension.getClass().name }], " +
-               "not assignment-compatible with type [${ extensionType.name }]"
+        if ( ! this.extension )
+        {
+            this.extension = project[ extensionName ]
+            assert extensionType.isInstance( this.extension ), \
+                   "Project extension [$extensionName] is of type [${ extension.getClass().name }], " +
+                   "should be of type [${ extensionType.name }]"
+        }
 
-        (( T ) extension )
+        (( T ) this.extension )
     }
 
 
