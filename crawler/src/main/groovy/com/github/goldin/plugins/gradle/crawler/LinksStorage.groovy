@@ -9,6 +9,7 @@ import org.gcontracts.annotations.Requires
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.zip.Adler32
+import java.util.zip.Checksum
 
 
 /**
@@ -20,14 +21,14 @@ class LinksStorage
     private final    Map<String, Collection<String>> brokenLinks = new ConcurrentHashMap<>()
     private final    Object                          linksLock   = new Object()
 
-    private final CrawlerExtension         ext
-    private final Map<String, Set<String>> linksMap
-    private final Map<String, Set<String>> newLinksMap
-    private final Set<String>              linksSet   // Stores links processed if ext.displayLinks
-    private       long[]                   linksArray // Stores checksums of links processed otherwise
-    private       int                      nextChecksum
-    private       long                     minChecksum
-    private       long                     maxChecksum
+    private final CrawlerExtension          ext
+    private final Map<String, List<String>> linksMap
+    private final Map<String, List<String>> newLinksMap
+    private final Set<String>               linksSet   // Stores links processed if ext.displayLinks
+    private       long[]                    linksArray // Stores checksums of links processed otherwise
+    private       int                       nextChecksum
+    private       long                      minChecksum
+    private       long                      maxChecksum
 
 
     @Requires({ ext })
@@ -117,26 +118,30 @@ class LinksStorage
 
     @Requires({ links })
     @Ensures({ result != null })
-    Set<String> addLinksToProcess ( Collection<String> links )
+    List<String> addLinksToProcess ( Collection<String> links )
     {
         assert ( ! locked )
 
-        Set<String> result
+        Collection<String> result
+
+        final Checksum         ch             = new Adler32()
+        final Map<String,Long> linksChecksums = ( Map<String,Long> )( ext.displayLinks ) ?
+            null : links.inject([:]){ Map m, String link -> m[ link ] = checksum( ch, link ); m }
 
         synchronized ( linksLock )
         {
             if ( ext.displayLinks )
-            {
-                result = links.findAll { linksSet.add( it.toString())}.toSet()
+            {   // Finding new links
+                result = links.findAll { linksSet.add( it.toString())}
             }
             else
             {
-                final Map<String, Long> checksums = links.inject([:]){ Map m, String link -> m[ link ] = checksum( link ); m }
-                result                            = links.findAll {
-                    final checksum = checksums[ it ]
+                result = links.findAll {
+                    final long checksum = linksChecksums[ it ]
+                    // Finding new links with new checksums
                     ! (( checksum == minChecksum ) || ( checksum == maxChecksum ) ||
                        (( checksum > minChecksum ) && ( checksum  < maxChecksum ) && contains( linksArray, checksum, nextChecksum )))
-                }.toSet()
+                }
 
                 if ( result )
                 {
@@ -144,7 +149,7 @@ class LinksStorage
                     ensureLinksArrayCapacity( result.size())
 
                     result.each {
-                        final checksum               = checksums[ it ]
+                        final long checksum          = linksChecksums[ it ]
                         linksArray[ nextChecksum++ ] = checksum
                         minChecksum                  = min ( minChecksum, checksum )
                         maxChecksum                  = max ( maxChecksum, checksum )
@@ -155,15 +160,17 @@ class LinksStorage
             }
         }
 
-        result
+        result.toList()
     }
 
 
-    @Requires({ s })
-    private long checksum( String s )
+    @Requires({ checksum && s })
+    @Ensures({ result > 0 })
+    private long checksum( Checksum checksum, String s )
     {
-        final checksum = new Adler32()
-        checksum.update( s.getBytes( 'UTF-8' ))
+        final bytes = s.getBytes( 'UTF-8' )
+        checksum.reset()
+        checksum.update( bytes, 0, bytes.length )
         checksum.value
     }
 
@@ -189,7 +196,7 @@ class LinksStorage
 
 
     @Requires({ pageUrl && ( links != null ) })
-    void updateLinksMap ( String pageUrl, Set<String> links )
+    void updateLinksMap ( String pageUrl, List<String> links )
     {
         assert ext.linksMapFile
         updateMap( linksMap, pageUrl, links )
@@ -197,7 +204,7 @@ class LinksStorage
 
 
     @Requires({ pageUrl && newLinks })
-    void updateNewLinksMap ( String pageUrl, Set<String> newLinks )
+    void updateNewLinksMap ( String pageUrl, List<String> newLinks )
     {
         assert ext.newLinksMapFile
         updateMap( newLinksMap, pageUrl, newLinks )

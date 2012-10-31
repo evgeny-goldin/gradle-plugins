@@ -382,10 +382,10 @@ class CrawlerTask extends BaseTask
 
             if ( pageIgnored ) { return }
 
-            final Set<String> pageLinks = readLinks( pageUrl, pageContent )
-            final Set<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
-            final processed             = linksProcessed.get()
-            final queued                = threadPool.queue.size()
+            final List<String> pageLinks = readLinks( pageUrl, pageContent )
+            final List<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
+            final              processed = linksProcessed.get()
+            final              queued    = threadPool.queue.size()
 
             linksStorage.updateBrokenLinkReferrers( pageUrl, pageLinks )
 
@@ -445,7 +445,7 @@ class CrawlerTask extends BaseTask
             cleanContent = cleanContent.replaceAll( ext.htmlCommentPattern, '' )
         }
 
-        final links = findAll( cleanContent, ext.internalLinkPattern )
+        final List<String> links = findAll( cleanContent, ext.internalLinkPattern )
 
         if ( ext.checkExternalLinks ) {
             final  externalLinks = findAll ( cleanContent, ext.externalLinkPattern )
