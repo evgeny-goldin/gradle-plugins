@@ -222,6 +222,11 @@ class CrawlerTask extends BaseTask
         {
             sleep( ext.futuresPollingPeriod )
             futures.removeAll { it.done }
+
+            if ( ext.teamcityMessages )
+            {
+                logger.warn( "##teamcity[progressMessage '$linksProcessed processed, ${ threadPool.queue.size()} queued']" )
+            }
         }
 
         linksStorage.lock()
@@ -389,11 +394,6 @@ class CrawlerTask extends BaseTask
 
             assert pageUrl == actualUrl
             final processed = linksProcessed.incrementAndGet()
-
-            if ( ext.teamcityMessages && (( processed % 25 ) == 0 ))
-            {
-                logger.warn( "##teamcity[progressMessage '$processed processed, ${ threadPool.queue.size()} queued']" )
-            }
 
             if ( ! response.data ) { return }
 
