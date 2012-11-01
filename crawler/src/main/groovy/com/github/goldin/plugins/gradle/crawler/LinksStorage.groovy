@@ -155,6 +155,11 @@ class LinksStorage
                     }
                 }
 
+                if (( nextChecksum > 10000 ) && ( ext.checksumsChunkSize < 10000 ))
+                {
+                    ext.checksumsChunkSize = 10 * 1024
+                }
+
                 assert ( nextChecksum <= linksArray.size()) && ( minChecksum <= maxChecksum )
             }
         }
