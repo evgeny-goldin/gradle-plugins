@@ -122,7 +122,7 @@ class LinksStorage
     {
         assert ( ! locked )
 
-        List<String> result
+        List<String> newLinks
 
         final Checksum         ch             = new Adler32()
         final Map<String,Long> linksChecksums = ( Map<String,Long> )( ext.displayLinks ) ?
@@ -131,23 +131,23 @@ class LinksStorage
         synchronized ( linksLock )
         {
             if ( ext.displayLinks )
-            {   // Finding new links
-                result = links.findAll { linksSet.add( it.toString())}
+            {
+                newLinks = links.findAll { linksSet.add( it.toString())}
             }
             else
-            {   // Finding new links with new checksums
-                result = links.findAll {
+            {   // New links have new checksums
+                newLinks = links.findAll {
                     final long checksum = linksChecksums[ it ]
                     ! (( checksum == minChecksum ) || ( checksum == maxChecksum ) ||
                        (( checksum > minChecksum ) && ( checksum  < maxChecksum ) && contains( linksArray, checksum, nextChecksum )))
                 }
 
-                if ( result )
+                if ( newLinks )
                 {
-                    assert (( nextChecksum + (( long ) result.size())) <= Integer.MAX_VALUE )
-                    ensureLinksArrayCapacity( result.size())
+                    assert (( nextChecksum + (( long ) newLinks.size())) <= Integer.MAX_VALUE )
+                    ensureLinksArrayCapacity( newLinks.size())
 
-                    result.each {
+                    newLinks.each {
                         final long checksum          = linksChecksums[ it ]
                         linksArray[ nextChecksum++ ] = checksum
                         minChecksum                  = min ( minChecksum, checksum )
@@ -159,7 +159,7 @@ class LinksStorage
             }
         }
 
-        result
+        newLinks
     }
 
 
