@@ -235,25 +235,26 @@ class CrawlerTask extends BaseTask
      */
     void printFinishReport ()
     {
-        final processedLinks = linksProcessed.get()
         final ext            = ext()
+        final processedLinks = linksProcessed.get()
+        final brokenLinks    = linksStorage.brokenLinksNumber()
         final mbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 * 1024 ))
         final kbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 ))
         final downloaded     = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
+        final message        = new StringBuilder().
+                               append( "\n\n[$processedLinks] link${ s( processedLinks ) } processed in ".toString()).
+                               append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
+                               append( downloaded.toString())
 
-        final message = new StringBuilder().append( "\n\n[$processedLinks] link${ s( processedLinks ) } processed in ".toString()).
-                                            append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
-                                            append( downloaded.toString())
         if ( ext.displayLinks )
         {
             message.append( ':\n' ).
                     append( toMultiLines( linksStorage.processedLinks()))
         }
 
-        message.append( "\n[${ linksStorage.brokenLinksNumber()}] broken link${ s( linksStorage.brokenLinksNumber()) } found".toString()).
-                append( linksStorage.brokenLinksNumber() ? '' : ' - thumbs up!' )
+        message.append( "\n[$brokenLinks] broken link${ s( brokenLinks ) } found".toString())
 
-        if ( linksStorage.brokenLinksNumber())
+        if ( brokenLinks )
         {
             message.append( ':\n\n' )
             for ( brokenLink in linksStorage.brokenLinks().sort())
@@ -263,11 +264,21 @@ class CrawlerTask extends BaseTask
                         append( '\n' )
             }
         }
+        else
+        {
+            message.append( ' - thumbs up!' )
+        }
 
-        final logLevel = ( linksStorage.brokenLinksNumber() ? LogLevel.ERROR :
-                           ext.printSummary                 ? LogLevel.WARN  :
-                                                              LogLevel.INFO )
+        final logLevel = ( brokenLinks ? LogLevel.ERROR : ext.printSummary ? LogLevel.WARN : LogLevel.INFO )
         log( logLevel ){ message.toString() }
+
+        if ( ext.teamcityMessages )
+        {
+
+            final status = (( ext.failOnBrokenLinks && brokenLinks ) ? 'FAILURE' : 'SUCCESS' )
+            final text   = "$processedLinks link${ s( processedLinks )}, $brokenLinks broken"
+            logger.warn( "##teamcity[buildStatus status='$status' text='$text']" )
+        }
     }
 
 
@@ -319,13 +330,13 @@ class CrawlerTask extends BaseTask
      */
     void checkIfBuildShouldFail()
     {
-        final ext = ext()
+        final ext         = ext()
+        final brokenLinks = linksStorage.brokenLinksNumber()
 
-        if ( linksStorage.brokenLinksNumber() && ext.failOnBrokenLinks )
+        if ( ext.failOnBrokenLinks && brokenLinks )
         {
             throw new GradleException(
-                "[${ linksStorage.brokenLinksNumber() }] broken link${ s( linksStorage.brokenLinksNumber() )} found, " +
-                'see above for more details' )
+                "[$brokenLinks] broken link${ s( brokenLinks )} found, see above for more details" )
         }
 
         if ( linksProcessed.get() < ext.minimumLinks )
@@ -402,6 +413,11 @@ class CrawlerTask extends BaseTask
 
                 "[$pageUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
                 "$processed processed, $queued queued$newLinksMessage"
+            }
+
+            if ( ext.teamcityMessages && (( processed % 25 ) == 0 ))
+            {
+                logger.warn( "##teamcity[progressMessage '$processed processed, $queued queued']")
             }
 
             for ( link in newLinks )

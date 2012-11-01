@@ -45,8 +45,11 @@ abstract class BaseTask extends DefaultTask
     }
 
 
+    @Requires({ c != null })
     final String s( Collection c ){ s( c.size()) }
-    final String s( Number     j ){ j == 1 ? '' : 's' }
+
+    @Requires({ j > -1 })
+    final String s( Number j ){ j == 1 ? '' : 's' }
 
 
     /**

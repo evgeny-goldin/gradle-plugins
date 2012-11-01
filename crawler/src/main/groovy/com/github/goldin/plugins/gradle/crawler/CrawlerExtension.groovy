@@ -46,7 +46,7 @@ class CrawlerExtension
     int           checksumsChunkSize       = 1024
     int           futuresPollingPeriod     = 5000
     long          retryDelay               = 5000
-    long          requestDelay             = 0
+    long          requestDelay             = 1000
     File          log                      = null
     File          linksMapFile             = null
     File          newLinksMapFile          = null
@@ -68,6 +68,7 @@ class CrawlerExtension
     boolean       checkExternalLinks       = false
     boolean       displayLinks             = false
     boolean       failOnBrokenLinks        = false
+    boolean       teamcityMessages         = false
 
     List<Integer>                    retryStatusCodes = [ -1, 500 ]
     List<Class<? extends Exception>> retryExceptions  = [ SocketTimeoutException ]
