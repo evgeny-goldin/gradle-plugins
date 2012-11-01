@@ -628,7 +628,7 @@ class CrawlerTask extends BaseTask
             {
                 logMessage = "$logMessage${ isAttempt ? ', attempt ' + attempt : '' }"
 
-                if (( ext.ignoredBrokenLinks ?: [] ).any{ it ( actualUrl, referrer, referrerContent )})
+                if (( ext.ignoredBrokenLinks ?: [] ).any{ it ( actualUrl )})
                 {
                     log{ "$logMessage, not registered as broken link - filtered out by ignoredBrokenLinks" }
                 }
