@@ -118,11 +118,11 @@ class LinksStorage
 
     @Requires({ links })
     @Ensures({ result != null })
-    List<String> addLinksToProcess ( Collection<String> links )
+    List<String> addLinksToProcess ( List<String> links )
     {
         assert ( ! locked )
 
-        Collection<String> result
+        List<String> result
 
         final Checksum         ch             = new Adler32()
         final Map<String,Long> linksChecksums = ( Map<String,Long> )( ext.displayLinks ) ?
@@ -159,7 +159,7 @@ class LinksStorage
             }
         }
 
-        result.toList()
+        result
     }
 
 
