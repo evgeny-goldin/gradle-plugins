@@ -388,7 +388,12 @@ class CrawlerTask extends BaseTask
             }
 
             assert pageUrl == actualUrl
-            linksProcessed.incrementAndGet()
+            final processed = linksProcessed.incrementAndGet()
+
+            if ( ext.teamcityMessages && (( processed % 25 ) == 0 ))
+            {
+                logger.warn( "##teamcity[progressMessage '$processed processed, ${ threadPool.queue.size()} queued']" )
+            }
 
             if ( ! response.data ) { return }
 
@@ -399,8 +404,7 @@ class CrawlerTask extends BaseTask
 
             final List<String> pageLinks = readLinks( pageUrl, pageContent )
             final List<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
-            final              processed = linksProcessed.get()
-            final              queued    = threadPool.queue.size()
+            final queued                 = threadPool.queue.size()
 
             linksStorage.updateBrokenLinkReferrers( pageUrl, pageLinks )
 
@@ -413,11 +417,6 @@ class CrawlerTask extends BaseTask
 
                 "[$pageUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
                 "$processed processed, $queued queued$newLinksMessage"
-            }
-
-            if ( ext.teamcityMessages && (( processed % 25 ) == 0 ))
-            {
-                logger.warn( "##teamcity[progressMessage '$processed processed, $queued queued']")
             }
 
             for ( link in newLinks )
