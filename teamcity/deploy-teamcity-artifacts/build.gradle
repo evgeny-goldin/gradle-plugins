@@ -9,7 +9,8 @@ apply plugin: 'java'
 
 
 /**
- * Gradle script deploying TeamCity artifacts downloading releases and unpacking them.
+ * Gradle script deploying TeamCity artifacts to Artifactory repository 
+ * by downloading releases and unpacking them.
  * http://confluence.jetbrains.net/display/TW/Previous+Releases+Downloads
  */
 
