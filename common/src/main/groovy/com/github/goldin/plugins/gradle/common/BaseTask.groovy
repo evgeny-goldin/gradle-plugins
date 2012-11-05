@@ -60,6 +60,8 @@ abstract class BaseTask extends DefaultTask
      * @param directory process working directory
      * @return process standard and error output
      */
+    @Requires({ command && arguments })
+    @Ensures({ result != null })
     final String exec( String command, String arguments, File directory = null )
     {
         exec( command, arguments.tokenize(), directory )
@@ -76,9 +78,9 @@ abstract class BaseTask extends DefaultTask
      */
     @Requires({ command && ( arguments != null ) })
     @Ensures({ result != null })
-    final String exec( String command, List<String> arguments, File directory = null )
+    final String exec( String command, List<String> arguments = [], File directory = null )
     {
-        final commandDescription = "[$command] with arguments $arguments${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
+        final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
         if ( logger.infoEnabled )
         {
             logger.info( "Running $commandDescription" )
@@ -92,7 +94,7 @@ abstract class BaseTask extends DefaultTask
                 ExecSpec spec ->
                 spec.with {
                     executable( command )
-                    args( arguments )
+                    if ( arguments ) { args( arguments ) }
                     standardOutput = outputStream
                     errorOutput    = outputStream
                     if ( directory ) { workingDir = directory }

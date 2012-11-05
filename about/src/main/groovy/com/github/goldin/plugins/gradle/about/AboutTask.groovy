@@ -9,6 +9,7 @@ import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer
 
 import java.text.SimpleDateFormat
 
+
 /**
  * {@link AboutPlugin} task
  */
@@ -40,13 +41,6 @@ class AboutTask extends BaseTask
         ( lines ? ( lines[ 0 ] + (( lines.size() > 1 ) ? '\n' + lines[ 1 .. -1 ].collect { '|' + ( ' ' * padWidth ) + it }.join( '\n' ) :
                                                          '' )) :
                   '' )
-    }
-
-
-    private String exec ( String command, File directory = null )
-    {
-        final process = command.execute(( List ) null, directory )
-        ( process.text + process.err.text ).trim()
     }
 
 
@@ -230,7 +224,7 @@ class AboutTask extends BaseTask
          * Trying SVN
          */
 
-        if ( svnDir.isDirectory())
+        if ( svnDir.directory )
         {
             svnVersion = exec( 'svn --version' )
             if ( svnVersion.toLowerCase().contains( 'svn, version' ))
@@ -268,7 +262,7 @@ class AboutTask extends BaseTask
         | Unsupported SCM system: either project is not managed by SVN/Git or corresponding command-line clients are not available.
         | Tried SVN:
         | ~~~~~~~~~~
-        | [$svnDir.canonicalPath] - ${ svnDir.isDirectory() ? 'found' : 'not found' }
+        | [$svnDir.canonicalPath] - ${ svnDir.directory ? 'found' : 'not found' }
         | ${ svnVersion ? '"svn --version" returned [' + svnVersion + ']'                           : '' }
         | ${ svnStatus  ? '"svn status ' + rootDir.canonicalPath + '" returned [' + svnStatus + ']' : '' }
         | Tried Git:
