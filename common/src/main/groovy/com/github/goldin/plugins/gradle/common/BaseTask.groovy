@@ -121,7 +121,7 @@ abstract class BaseTask extends DefaultTask
             if ( output ) { logger.debug( '>> ' + output.readLines().join( '\n>> ' )) }
         }
 
-        outputStream.toString()
+        outputStream.toString().trim()
     }
 
 

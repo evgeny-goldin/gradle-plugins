@@ -154,7 +154,7 @@ class AboutTask extends BaseTask
         |===============================================================================
         | Build Info
         |===============================================================================
-        | Host          : [${ ( env[ 'COMPUTERNAME' ] ?: env[ 'HOSTNAME' ] ?: exec( 'hostname' ) ?: '' ).trim() }]/[${ InetAddress.localHost.hostAddress }]
+        | Host          : [${ env[ 'COMPUTERNAME' ] ?: env[ 'HOSTNAME' ] ?: exec( 'hostname' ) ?: '' }]/[${ InetAddress.localHost.hostAddress }]
         | Time          : [${ dateFormatter.format( new Date()) }]
         | User          : [${ properties[ 'user.name' ] }]
         | ${ ext.includePaths ? 'Directory     : [' + properties[ 'user.dir' ] + ']': '' }
@@ -318,13 +318,13 @@ class AboutTask extends BaseTask
     String gitContent( String gitStatus )
     {
         final ext    = ext()
-        final gitLog = gitExec( 'log -1' ).readLines()
+        final gitLog = gitExec( 'log -1', rootDir ).readLines()
 
         """
         |===============================================================================
         | Git Info
         |===============================================================================
-        | Repositories  : [${ padLines( gitExec( 'remote -v' )) }]
+        | Repositories  : [${ padLines( gitExec( 'remote -v', rootDir )) }]
         | Branch        : [${ find( '# On branch', gitStatus.readLines()) }]
         | ${ ext.gitStatusProject ? 'Project' : 'Basedir' } Status: [${ padLines( gitStatus ) }]
         | Last Commit   : [${ find( 'commit',      gitLog )}]
