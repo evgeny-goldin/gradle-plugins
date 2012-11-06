@@ -14,6 +14,6 @@ class AboutExtension
 
     String  fileName
     File    directory
-    String  include             = '*.jar *.war *.ear *.zip'
+    String  include             = '*.jar, *.war, *.ear, *.zip'
     String  exclude
 }

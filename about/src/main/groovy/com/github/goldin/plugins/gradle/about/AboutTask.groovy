@@ -169,13 +169,13 @@ class AboutTask extends BaseTask
         |===============================================================================
         | Gradle Info
         |===============================================================================
-        | ${ ext.includePaths ? 'Home          : [' + project.gradle.gradleHomeDir.canonicalPath + ']' : '' }
-        | ${ ext.includePaths ? 'Basedir       : [' + rootDir.canonicalPath + ']': '' }
-        | ${ ext.includePaths ? 'Build file    : [' + project.buildFile.canonicalPath + ']' : '' }
+        | ${ ext.includePaths ? 'Home          : [' + gradle.gradleHomeDir.canonicalPath + ']' : '' }
+        | ${ ext.includePaths ? 'Project dir   : [' + project.projectDir.canonicalPath + ']': '' }
+        | ${ ext.includePaths ? 'Build file    : [' + ( project.buildFile ?: project.rootProject.buildFile ).canonicalPath + ']' : '' }
         | GRADLE_OPTS   : [${ env[ 'GRADLE_OPTS' ] ?: '' }]
-        | Version       : [${ project.gradle.gradleVersion }]
+        | Version       : [${ gradle.gradleVersion }]
         | Project       : [${ ext.includePaths ? project.toString() : project.toString().replaceAll( /\s+@.+/, '' )}]
-        | Tasks         : ${ project.gradle.startParameter.taskNames }
+        | Tasks         : ${ gradle.startParameter.taskNames }
         | Coordinates   : [$project.group:$project.name:$project.version]
         | ${ ext.includeDependencies ? 'Dependencies  : [' + padLines( dependenciesContent()) + ']' : '' }""" +
 

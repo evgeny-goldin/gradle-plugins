@@ -4,6 +4,7 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecSpec
 
@@ -20,11 +21,12 @@ import java.util.regex.Pattern
  */
 abstract class BaseTask extends DefaultTask
 {
-    File   rootDir
-    String version
-    long   startTime
-    Object extension
-    final  DateFormat dateFormatter = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
+    Gradle  gradle
+    File    rootDir
+    String  version
+    long    startTime
+    Object  extension
+    final   DateFormat dateFormatter = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
 
 
     /**
@@ -35,14 +37,17 @@ abstract class BaseTask extends DefaultTask
 
 
     @TaskAction
-    @Requires({ project && project.rootDir && project.version })
+    @Requires({ project })
+    @Ensures({ gradle && rootDir.directory && version && ( startTime > 1352215376393 )})
     final void doTask()
     {
+        this.gradle    = project.gradle
         this.rootDir   = project.rootDir
         this.version   = project.version
         this.startTime = System.currentTimeMillis()
         taskAction()
     }
+
 
     @Requires({ c != null })
     @Ensures({ result != null })
