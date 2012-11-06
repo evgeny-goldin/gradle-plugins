@@ -62,7 +62,7 @@ abstract class BaseTask extends DefaultTask
 
     @Requires({ command && directory.directory })
     @Ensures({ result != null })
-    final gitExec( String command, File directory, boolean failOnError = true )
+    final String gitExec( String command, File directory, boolean failOnError = true )
     {
         exec( 'git', command.tokenize(), directory, failOnError )
     }
@@ -197,24 +197,6 @@ abstract class BaseTask extends DefaultTask
 
 
     /**
-     * Deletes files specified.
-     *
-     * @param files files to delete, may be {@code null} or non-existing.
-     */
-    final File delete ( File ... files )
-    {
-        for ( file in files.grep())
-        {
-            if      ( file.file      ){ assert file.delete(),    "Failed to delete file [$file.canonicalPath]"      }
-            else if ( file.directory ){ assert file.deleteDir(), "Failed to delete directory [$file.canonicalPath]" }
-            assert  ( ! file.exists())
-        }
-
-        (( files.size() > 0 ) ? files[ 0 ] : null )
-    }
-
-
-    /**
      * Archives files specified.
      *
      * @param files files to archive
@@ -241,7 +223,7 @@ abstract class BaseTask extends DefaultTask
     @Ensures ({ result.file })
     final File zip ( File archive, Closure zipClosure )
     {
-        delete( archive )
+        project.delete( archive )
         ant.zip( destfile: archive, duplicate: 'fail', whenempty: 'fail', level: 9 ){ zipClosure() }
         assert archive.file, "Failed to create [$archive.canonicalPath] using 'ant.zip( .. ){ .. }'"
         archive

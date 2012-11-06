@@ -172,7 +172,7 @@ class TeamCityTask extends BaseTask
             }
         }
 
-        delete( agentArchive, pluginXmlFile )
+        assert project.delete([ agentArchive, pluginXmlFile ].grep() as File[] )
         assert pluginArchive.file
         pluginArchive
     }
