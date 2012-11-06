@@ -45,11 +45,10 @@ class AboutTask extends BaseTask
 
     @Requires({ map })
     @Ensures({ result })
-    private String sort ( Map<String,String> map )
+    private String sort ( Map<String,?> map )
     {
         def maxKey = map.keySet()*.size().max() + 3
-        map.sort().collect { String key, String value ->
-                             "[$key]".padRight( maxKey ) + ":[$value]" }.
+        map.sort().collect { String key, Object value -> "[$key]".padRight( maxKey ) + ":[$value]" }.
                    join( '\n' )
     }
 
@@ -178,6 +177,14 @@ class AboutTask extends BaseTask
         | Tasks         : ${ gradle.startParameter.taskNames }
         | Coordinates   : [$project.group:$project.name:$project.version]
         | ${ ext.includeDependencies ? 'Dependencies  : [' + padLines( dependenciesContent()) + ']' : '' }""" +
+
+        ( ext.includeProperties ?
+
+        """
+        |===============================================================================
+        | Gradle Properties
+        |===============================================================================
+        |${ sort( project.properties ) }""" : '' ) +
 
         ( ext.includeSystem ?
 

@@ -7,6 +7,7 @@ class AboutExtension
     boolean includeSCM          = true
     boolean includeEnv          = false
     boolean includeSystem       = false
+    boolean includeProperties   = false
     boolean includePaths        = false
     boolean includeDependencies = false
     boolean gitStatusProject    = true
