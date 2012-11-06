@@ -263,12 +263,12 @@ class AboutTask extends BaseTask
          * Trying Git
          */
 
-        gitVersion = gitExec( '--version' )
+        gitVersion = gitExec( '--version', rootDir, false )
 
         if ( gitVersion.contains( 'git version' ))
         {
             gitStatusCommand = 'status' + ( ext.gitStatusProject ? '' : ' ' + rootDir.canonicalPath )
-            gitStatus        = gitExec( gitStatusCommand )
+            gitStatus        = gitExec( gitStatusCommand, rootDir, false )
 
             if ( ! gitStatus.contains( 'fatal: Not a git repository' ))
             {

@@ -59,26 +59,31 @@ abstract class BaseTask extends DefaultTask
     @Ensures({ result != null })
     final String s( Number j ){ j == 1 ? '' : 's' }
 
-    @Requires({ commands })
-    @Ensures({ result != null })
-    final gitExec( List<String> commands, File directory = null ){ exec( 'git', commands, directory )}
 
-    @Requires({ command })
+    @Requires({ command && directory.directory })
     @Ensures({ result != null })
-    final gitExec( String command, File directory = null ){ exec( 'git', command.tokenize(), directory )}
+    final gitExec( String command, File directory, boolean failOnError = true )
+    {
+        exec( 'git', command.tokenize(), directory, failOnError )
+    }
 
 
     /**
      * Executes the command specified.
      *
-     * @param command   command to execute
-     * @param arguments command arguments
-     * @param directory process working directory
+     * @param command     command to execute
+     * @param arguments   command arguments
+     * @param directory   process working directory
+     * @param failOnError whether execution should fail in case of an error
+     *
      * @return process standard and error output
      */
     @Requires({ command && ( ! command.contains( ' ' )) && ( arguments != null ) })
     @Ensures({ result != null })
-    final String exec( String command, List<String> arguments = [], File directory = null )
+    final String exec( String       command,
+                       List<String> arguments   = [],
+                       File         directory   = null,
+                       boolean      failOnError = true )
     {
         final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
         if ( logger.infoEnabled )
@@ -103,8 +108,11 @@ abstract class BaseTask extends DefaultTask
         }
         catch ( Throwable error )
         {
-            throw new GradleException( "Failed to execute $commandDescription, output is [${ outputStream.toString().trim()}]",
-                                       error )
+            if ( failOnError )
+            {
+                throw new GradleException( "Failed to execute $commandDescription, output is [${ outputStream.toString().trim()}]",
+                                           error )
+            }
         }
 
         if ( logger.debugEnabled )
