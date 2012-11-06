@@ -44,28 +44,21 @@ abstract class BaseTask extends DefaultTask
         taskAction()
     }
 
-
     @Requires({ c != null })
+    @Ensures({ result != null })
     final String s( Collection c ){ s( c.size()) }
 
     @Requires({ j > -1 })
+    @Ensures({ result != null })
     final String s( Number j ){ j == 1 ? '' : 's' }
 
-
-    /**
-     * Executes the command specified.
-     *
-     * @param command   command to execute
-     * @param arguments command arguments, will be tokenized
-     * @param directory process working directory
-     * @return process standard and error output
-     */
-    @Requires({ command && arguments })
+    @Requires({ commands })
     @Ensures({ result != null })
-    final String exec( String command, String arguments, File directory = null )
-    {
-        exec( command, arguments.tokenize(), directory )
-    }
+    final gitExec( List<String> commands, File directory = null ){ exec( 'git', commands, directory )}
+
+    @Requires({ command })
+    @Ensures({ result != null })
+    final gitExec( String command, File directory = null ){ exec( 'git', command.tokenize(), directory )}
 
 
     /**
@@ -76,7 +69,7 @@ abstract class BaseTask extends DefaultTask
      * @param directory process working directory
      * @return process standard and error output
      */
-    @Requires({ command && ( arguments != null ) })
+    @Requires({ command && ( ! command.contains( ' ' )) && ( arguments != null ) })
     @Ensures({ result != null })
     final String exec( String command, List<String> arguments = [], File directory = null )
     {

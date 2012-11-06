@@ -11,8 +11,6 @@ import org.gcontracts.annotations.Requires
 class GitDumpTask extends BaseTask
 {
     private GitDumpExtension ext () { extension ( GitDumpPlugin.EXTENSION_NAME, GitDumpExtension ) }
-    private gitExec( List<String> commands, File directory = null ){ exec( 'git', commands, directory )}
-    private gitExec( String command,        File directory = null ){ exec( 'git', command,  directory )}
     private getLastCommit( File projectDirectory ){ gitExec( 'log -1 --format=format:%H', projectDirectory ) }
 
     @Override
