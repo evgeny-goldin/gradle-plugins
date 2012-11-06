@@ -3,16 +3,17 @@ package com.github.goldin.plugins.gradle.about
 
 class AboutExtension
 {
+    String  prefix              = 'META-INF'
+    boolean includeSCM          = true
+    boolean includeEnv          = false
+    boolean includeSystem       = false
+    boolean includePaths        = false
+    boolean includeDependencies = false
+    boolean gitStatusProject    = true
+    String  endOfLine           = 'windows'
+
     String  fileName
-    String  prefix           = 'META-INF'
-    boolean dumpSCM          = true
-    boolean dumpEnv          = false
-    boolean dumpSystem       = false
-    boolean dumpPaths        = false
-    boolean dumpDependencies = false
-    boolean gitStatusProject = true
-    String  endOfLine        = 'windows'
     File    directory
-    String  include          = '*.jar'
+    String  include             = '*.jar *.war *.ear *.zip'
     String  exclude
 }

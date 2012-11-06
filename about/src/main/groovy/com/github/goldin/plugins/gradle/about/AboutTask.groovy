@@ -163,23 +163,23 @@ class AboutTask extends BaseTask
         | Host          : [${ ( env[ 'COMPUTERNAME' ] ?: env[ 'HOSTNAME' ] ?: exec( 'hostname' ) ?: '' ).trim() }]
         | Build Time    : [${ format.format( new Date()) }]
         | User          : [${ props[ 'user.name' ] }]
-        | ${ ext.dumpPaths ? 'Directory     : [' + props[ 'user.dir' ] + ']': '' }
-        | Java          : [${ props[ 'java.version' ] }][${ props[ 'java.vm.vendor' ] }]${ ext.dumpPaths ? '[' + props[ 'java.home' ] + ']' : '' }[${ props[ 'java.vm.name' ] }]
+        | ${ ext.includePaths ? 'Directory     : [' + props[ 'user.dir' ] + ']': '' }
+        | Java          : [${ props[ 'java.version' ] }][${ props[ 'java.vm.vendor' ] }]${ ext.includePaths ? '[' + props[ 'java.home' ] + ']' : '' }[${ props[ 'java.vm.name' ] }]
         | OS            : [${ props[ 'os.name' ] }][${ props[ 'os.arch' ] }][${ props[ 'os.version' ] }]
         |===============================================================================
         | Gradle Info
         |===============================================================================
-        | ${ ext.dumpPaths ? 'Home          : [' + project.gradle.gradleHomeDir.canonicalPath + ']' : '' }
-        | ${ ext.dumpPaths ? 'Basedir       : [' + rootDir.canonicalPath + ']': '' }
-        | ${ ext.dumpPaths ? 'Build file    : [' + project.buildFile.canonicalPath + ']' : '' }
+        | ${ ext.includePaths ? 'Home          : [' + project.gradle.gradleHomeDir.canonicalPath + ']' : '' }
+        | ${ ext.includePaths ? 'Basedir       : [' + rootDir.canonicalPath + ']': '' }
+        | ${ ext.includePaths ? 'Build file    : [' + project.buildFile.canonicalPath + ']' : '' }
         | GRADLE_OPTS   : [${ env[ 'GRADLE_OPTS' ] ?: '' }]
         | Version       : [${ project.gradle.gradleVersion }]
-        | Project       : [${ ext.dumpPaths ? project.toString() : project.toString().replaceAll( /\s+@.+/, '' )}]
+        | Project       : [${ ext.includePaths ? project.toString() : project.toString().replaceAll( /\s+@.+/, '' )}]
         | Tasks         : ${ project.gradle.startParameter.taskNames }
         | Coordinates   : [$project.group:$project.name:$project.version]
-        | ${ ext.dumpDependencies ? 'Dependencies  : [' + padLines( dependenciesContent()) + ']' : '' }""" +
+        | ${ ext.includeDependencies ? 'Dependencies  : [' + padLines( dependenciesContent()) + ']' : '' }""" +
 
-        ( ext.dumpSystem ?
+        ( ext.includeSystem ?
 
         """
         |===============================================================================
@@ -187,7 +187,7 @@ class AboutTask extends BaseTask
         |===============================================================================
         |${ sort( props ) }""" : '' ) +
 
-        ( ext.dumpEnv ?
+        ( ext.includeEnv ?
 
         """
         |===============================================================================
@@ -220,7 +220,7 @@ class AboutTask extends BaseTask
     String scmContent()
     {
         final ext = ext()
-        if ( ! ext.dumpSCM ) { return '' }
+        if ( ! ext.includeSCM ) { return '' }
 
         File   svnDir           = new File( project.rootDir, '.svn' )
         String svnVersion       = null
