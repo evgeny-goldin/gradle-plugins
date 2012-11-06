@@ -95,8 +95,9 @@ class GitDumpTask extends BaseTask
             bareClone = false
         }
 
-        gitExec([ 'clone', *ext.cloneFlags, ( bareClone ? '--bare' : '' ), "'$repoUrl'", "'$targetDirectory.canonicalPath'" ].
-                grep().join( ' ' ), rootDir )
+        exec( 'git',
+              (( List<String> ) [ 'clone', *ext.cloneFlags, ( bareClone ? '--bare' : '' ), repoUrl, targetDirectory.canonicalPath ].grep()),
+              rootDir )
 
         if ( ! bareClone ){ assert dotGit.directory }
 
