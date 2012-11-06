@@ -113,6 +113,8 @@ abstract class BaseTask extends DefaultTask
                 throw new GradleException( "Failed to execute $commandDescription, output is [${ outputStream.toString().trim()}]",
                                            error )
             }
+
+            if ( ! outputStream.toString()) { error.printStackTrace( new PrintStream( outputStream, true )) }
         }
 
         if ( logger.debugEnabled )

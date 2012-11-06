@@ -13,6 +13,8 @@ class AboutExtension
     boolean includeProperties   = false
     boolean includePaths        = false
     Object  includeDependencies = false
+    boolean failIfNotFound      = true
+    boolean failOnError         = true
 
     String  fileName
     File    directory
