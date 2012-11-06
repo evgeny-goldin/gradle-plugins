@@ -26,7 +26,9 @@ abstract class BaseTask extends DefaultTask
     String  version
     long    startTime
     Object  extension
-    final   DateFormat dateFormatter = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
+    final   DateFormat dateFormatter        = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
+    final   Map<String, String>  env        = System.getenv().asImmutable()
+    final   Map<String, String>  properties = ( Map<String , String> ) System.properties.asImmutable()
 
 
     /**
@@ -344,4 +346,11 @@ abstract class BaseTask extends DefaultTask
     @Requires({ s && p })
     @Ensures({ result != null })
     final List<String> findAll( String s, Pattern p ){ s.findAll ( p ) { it[ 1 ] }}
+
+
+    /**
+     * Retrieves first appearance of the first capturing group of the pattern specified in a String.
+     */
+    @Requires({ s && p })
+    final String find( String s, Pattern p ){ s.find ( p ) { it[ 1 ] }}
 }

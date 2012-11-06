@@ -1,5 +1,4 @@
 package com.github.goldin.plugins.gradle.about
-
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -8,15 +7,12 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
 import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer
 
-import java.text.SimpleDateFormat
-
 
 /**
  * {@link AboutPlugin} task
  */
 class AboutTask extends BaseTask
 {
-    private final Map<String, String> env = System.getenv().asImmutable()
     private AboutExtension ext () { extension ( AboutPlugin.EXTENSION_NAME, AboutExtension ) }
 
 
@@ -151,32 +147,31 @@ class AboutTask extends BaseTask
     @Ensures({ result })
     String buildContent ()
     {
-        final ext       = ext()
-        final Map props = System.properties
-        final format    = new SimpleDateFormat( "dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:'GMT'ZZZZZZ)", Locale.ENGLISH )
+        final ext                 = ext()
+        final includeDependencies = ( ext.includeDependencies != false ) && ( ext.includeDependencies != 'false' )
 
         """
         |===============================================================================
         | Build Info
         |===============================================================================
-        | Host          : [${ ( env[ 'COMPUTERNAME' ] ?: env[ 'HOSTNAME' ] ?: exec( 'hostname' ) ?: '' ).trim() }]
-        | Build Time    : [${ format.format( new Date()) }]
-        | User          : [${ props[ 'user.name' ] }]
-        | ${ ext.includePaths ? 'Directory     : [' + props[ 'user.dir' ] + ']': '' }
-        | Java          : [${ props[ 'java.version' ] }][${ props[ 'java.vm.vendor' ] }]${ ext.includePaths ? '[' + props[ 'java.home' ] + ']' : '' }[${ props[ 'java.vm.name' ] }]
-        | OS            : [${ props[ 'os.name' ] }][${ props[ 'os.arch' ] }][${ props[ 'os.version' ] }]
+        | Host          : [${ ( env[ 'COMPUTERNAME' ] ?: env[ 'HOSTNAME' ] ?: exec( 'hostname' ) ?: '' ).trim() }]/[${ InetAddress.localHost.hostAddress }]
+        | Time          : [${ dateFormatter.format( new Date()) }]
+        | User          : [${ properties[ 'user.name' ] }]
+        | ${ ext.includePaths ? 'Directory     : [' + properties[ 'user.dir' ] + ']': '' }
+        | Java          : [${ properties[ 'java.version' ] }][${ properties[ 'java.vm.vendor' ] }]${ ext.includePaths ? '[' + properties[ 'java.home' ] + ']' : '' }[${ properties[ 'java.vm.name' ] }]
+        | OS            : [${ properties[ 'os.name' ] }][${ properties[ 'os.arch' ] }][${ properties[ 'os.version' ] }]
         |===============================================================================
         | Gradle Info
         |===============================================================================
+        | Version       : [${ gradle.gradleVersion }]
         | ${ ext.includePaths ? 'Home          : [' + gradle.gradleHomeDir.canonicalPath + ']' : '' }
         | ${ ext.includePaths ? 'Project dir   : [' + project.projectDir.canonicalPath + ']': '' }
         | ${ ext.includePaths ? 'Build file    : [' + ( project.buildFile ?: project.rootProject.buildFile ).canonicalPath + ']' : '' }
         | GRADLE_OPTS   : [${ env[ 'GRADLE_OPTS' ] ?: '' }]
-        | Version       : [${ gradle.gradleVersion }]
         | Project       : [${ ext.includePaths ? project.toString() : project.toString().replaceAll( /\s+@.+/, '' )}]
         | Tasks         : ${ gradle.startParameter.taskNames }
         | Coordinates   : [$project.group:$project.name:$project.version]
-        | ${ ext.includeDependencies ? 'Dependencies  : [' + padLines( dependenciesContent()) + ']' : '' }""" +
+        | ${ includeDependencies ? 'Dependencies  : [' + padLines( dependenciesContent()) + ']' : '' }""" +
 
         ( ext.includeProperties ?
 
@@ -192,7 +187,7 @@ class AboutTask extends BaseTask
         |===============================================================================
         | System Properties
         |===============================================================================
-        |${ sort( props ) }""" : '' ) +
+        |${ sort( properties ) }""" : '' ) +
 
         ( ext.includeEnv ?
 
@@ -207,19 +202,29 @@ class AboutTask extends BaseTask
     @Ensures({ result })
     String dependenciesContent ()
     {
+        final ext = ext()
+        assert ( ext.includeDependencies != false ) && ( ext.includeDependencies != 'false' )
+
         project.plugins.apply( ProjectReportsPlugin )
 
         final task          = ( DependencyReportTask ) project.tasks[ ProjectReportsPlugin.DEPENDENCY_REPORT ]
         final renderer      = new AsciiReportRenderer()
-        final file          = delete( new File( project.buildDir, 'dependencies.txt' ))
+        final file          = new File( project.buildDir, "${ this.class.name }-dependencies.txt" )
         final line          = '-' * 80
+        assert (( ! file.file ) || project.delete( file )), "Unable to delete [$file.canonicalPath]"
+
         renderer.outputFile = file
         task.renderer       = renderer
         task.generate( project )
 
         assert file.file, "File [$file.canonicalPath] was not created by dependency report"
+        final String report = ( ext.includeDependencies instanceof List ) ?
+            file.text.split( '\n\n' ).findAll { find( it, ext.configurationNamePattern ) in ext.includeDependencies }.join( '\n\n' ) :
+            file.text
 
-        "$line\n" + file.text.replaceAll( /(?m)^\s*$/, line ) // Empty lines are replaced by LINE
+        report = "$line\n" + report.replaceAll( /(?m)^\s*$/, line ) // Empty lines replaced by $line
+        assert project.delete( file ), "Unable to delete [$file.canonicalPath]"
+        report
     }
 
 
