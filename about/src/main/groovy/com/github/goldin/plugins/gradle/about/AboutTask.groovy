@@ -114,10 +114,11 @@ class AboutTask extends BaseTask
     {
         // http://confluence.jetbrains.net/display/TCD7/Predefined+Build+Parameters
 
+        final  teamcityProperties = properties[ 'teamcity' ]
+        assert teamcityProperties
+
         final urlMessage     = 'Define \'TEAMCITY_URL\' environment variable'
-        final buildIdMessage = "Make sure '-D$TEAM_CITY_BUILD_INFO' is defined when the Gradle job starts"
-        final buildInfo      = teamcityBuildInfo()
-        final buildId        = buildInfo[ 'buildInfo.env.teamcity.build.id' ]
+        final buildId        = teamcityProperties[ 'teamcity.build.id' ]
         final teamCityUrl    = ( env[ 'TEAMCITY_URL' ]?.replaceAll( /(?<!\\|\/)(\\|\/)*$/, '/' )       ?: '' )
         final buildUrl       = ( teamCityUrl && buildId ? "${teamCityUrl}viewLog.html?buildId=$buildId" : '' )
         final logUrl         = ( buildUrl               ? "$buildUrl&tab=buildLog"                      : '' )
@@ -129,29 +130,13 @@ class AboutTask extends BaseTask
         | TeamCity Info
         $SEPARATOR
         | Server         : [${ teamCityUrl ?: urlMessage }]
-        | Job            : [${ buildUrl    ?: buildIdMessage }]
-        | Log            : [${ logUrl      ?: buildIdMessage }]
-        | Server Version : [${ buildInfo[ 'buildInfo.env.teamcity.version' ]       ?: '' }]
-        | Project        : [${ buildInfo[ 'buildInfo.env.teamcity.projectName' ]   ?: '' }]
-        | Configuration  : [${ buildInfo[ 'buildInfo.env.teamcity.buildConfName' ] ?: '' }]
-        | Build Number   : [${ buildInfo[ 'buildInfo.env.build.number' ]           ?: '' }]
-        | Personal Build : [${ buildInfo[ 'buildInfo.env.build.is.personal' ]      ?: 'false' }]"""
-    }
-
-
-    @Ensures({ result != null })
-    private Map<String, String> teamcityBuildInfo()
-    {
-        final buildInfoProperties = properties[ TEAM_CITY_BUILD_INFO ]
-
-        if ( buildInfoProperties )
-        {
-            final p = new Properties()
-            new File( buildInfoProperties ).withReader { Reader r -> p.load( r ) }
-            p
-        }
-
-        [:]
+        | Job            : [${ buildUrl    ?: urlMessage }]
+        | Log            : [${ logUrl      ?: urlMessage }]
+        | Server Version : [${ teamcityProperties[ 'teamcity.version' ]       ?: '' }]
+        | Project        : [${ teamcityProperties[ 'teamcity.projectName' ]   ?: '' }]
+        | Configuration  : [${ teamcityProperties[ 'teamcity.buildConfName' ] ?: '' }]
+        | Build Number   : [${ teamcityProperties[ 'build.number' ]           ?: '' }]
+        | Personal Build : [${ teamcityProperties[ 'build.is.personal' ]      ?: 'false' }]"""
     }
 
 
@@ -160,7 +145,7 @@ class AboutTask extends BaseTask
     {
         ( env[ 'JENKINS_URL'      ] ? jenkinsContent () :
           env[ 'HUDSON_URL'       ] ? hudsonContent  () :
-          env[ 'TEAMCITY_VERSION' ] ? teamcityContent() :
+          properties[ 'teamcity' ]  ? teamcityContent() :
                                       '' )
     }
 
