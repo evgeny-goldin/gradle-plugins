@@ -4,6 +4,7 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.plugins.ProjectReportsPlugin
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
 import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer
 
@@ -51,10 +52,7 @@ class AboutTask extends BaseTask
     void taskAction()
     {
         final ext       = ext()
-        final directory = ext.directory ?: project.buildDir
         final fileName  = ext.fileName  ?: 'about.txt'
-        final split     = { String s -> s ? s.split( ',' )*.trim().grep() : null }
-        final files     = files( directory, split( ext.include ), split( ext.exclude ))
         final tempFile  = new File( temporaryDir, fileName )
         final prefix    = (( ext.prefix == '/' ) ? '' : ext.prefix )
 
@@ -67,7 +65,7 @@ class AboutTask extends BaseTask
 
         logger.info( "Generated  \"about\" in [$tempFile.canonicalPath]" )
 
-        for ( file in files )
+        for ( file in filesToUpdate())
         {
             final aboutPath = "$file.canonicalPath!$prefix${ ( prefix && ( ! prefix.endsWith( '/' ))) ? '/' : '' }$fileName"
             logger.info( "Adding \"about\" to [$aboutPath] .." )
@@ -76,6 +74,21 @@ class AboutTask extends BaseTask
         }
 
         assert project.delete( tempFile )
+    }
+
+
+    @Ensures({ result != null })
+    List<File> filesToUpdate()
+    {
+        final ext             = ext()
+        final split           = { String s -> s ? s.split( ',' )*.trim().grep() : null }
+        final allArchiveTasks = ext.gradleTasks ? gradle.taskGraph.allTasks.findAll { it instanceof AbstractArchiveTask }               : []
+        final tasksFiles      = ext.gradleTasks ? (( List<AbstractArchiveTask> )( ext.archiveTasks ?: allArchiveTasks ))*.archivePath   : []
+        final patternsFiles   = ext.patterns    ? files( ext.directory ?: project.buildDir, split( ext.include ), split( ext.exclude )) : []
+        final files           = ( tasksFiles + patternsFiles ).toSet().findAll { it.file }.sort()
+
+        assert ( files || ( ! ext.failIfNotFound )), "Failed to find files to update"
+        files
     }
 
 
