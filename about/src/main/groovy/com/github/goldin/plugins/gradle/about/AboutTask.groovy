@@ -302,8 +302,8 @@ class AboutTask extends BaseTask
             | Unsupported SCM system: either project is not managed by Git or command-line client is not available.
             | Tried Git:
             | ~~~~~~~~~~
-            | "git --version" returned [${ padLines( gitVersion, ' "git --version" returned [' ) }]
-            | ${ gitStatus ? '"git status" returned [' + padLines( gitStatus, ' "git status" returned [' ) + ']' : '' }"""
+            | 'git --version' returned [${ padLines( gitVersion, ' "git --version" returned [' ) }]
+            | ${ gitStatus ? '\'git status\' returned [' + padLines( gitStatus, ' "git status" returned [' ) + ']' : '' }"""
         }
     }
 }
