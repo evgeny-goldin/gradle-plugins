@@ -14,7 +14,8 @@ import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer
 class AboutTask extends BaseTask
 {
     private AboutExtension ext () { extension ( AboutPlugin.EXTENSION_NAME, AboutExtension ) }
-    private static final String SEPARATOR = '|==============================================================================='
+    private static final String SEPARATOR            = '|==============================================================================='
+    private static final String TEAM_CITY_BUILD_INFO = 'buildInfoConfig.propertiesFile'
 
 
     @Requires({ ( s != null ) && prefix })
@@ -111,27 +112,46 @@ class AboutTask extends BaseTask
     @Ensures({ result })
     String teamcityContent()
     {
-        // http://confluence.jetbrains.net/display/TCD65/Predefined+Build+Parameters
         // http://confluence.jetbrains.net/display/TCD7/Predefined+Build+Parameters
 
-        final urlMessage  = 'Define \'TEAMCITY_URL\' environment variable and make sure \'-Dteamcity.build.id\' specified when job starts'
-        final buildId     = properties[ 'teamcity.build.id' ]
-        final teamCityUrl = ( env[ 'TEAMCITY_URL' ]?.replaceAll( /(?<!\\|\/)(\\|\/)*$/, '/' )       ?: '' )
-        final buildUrl    = ( buildId && teamCityUrl ? "${teamCityUrl}viewLog.html?buildId=$buildId" : '' )
-        final logUrl      = ( buildUrl               ? "$buildUrl&tab=buildLog"                      : '' )
+        final urlMessage     = 'Define \'TEAMCITY_URL\' environment variable'
+        final buildIdMessage = "Make sure '-D$TEAM_CITY_BUILD_INFO' is defined when the Gradle job starts"
+        final buildInfo      = teamcityBuildInfo()
+        final buildId        = buildInfo[ 'buildInfo.env.teamcity.build.id' ]
+        final teamCityUrl    = ( env[ 'TEAMCITY_URL' ]?.replaceAll( /(?<!\\|\/)(\\|\/)*$/, '/' )       ?: '' )
+        final buildUrl       = ( teamCityUrl && buildId ? "${teamCityUrl}viewLog.html?buildId=$buildId" : '' )
+        final logUrl         = ( buildUrl               ? "$buildUrl&tab=buildLog"                      : '' )
+
+        if ( teamCityUrl ) { assert teamCityUrl.endsWith( '/' )}
 
         """
         $SEPARATOR
         | TeamCity Info
         $SEPARATOR
         | Server         : [${ teamCityUrl ?: urlMessage }]
-        | Job            : [${ buildUrl    ?: urlMessage }]
-        | Log            : [${ logUrl      ?: urlMessage }]
-        | Server Version : [${ env[ 'TEAMCITY_VERSION' ] }]
-        | Project        : [${ env[ 'TEAMCITY_PROJECT_NAME' ] }]
-        | Configuration  : [${ env[ 'TEAMCITY_BUILDCONF_NAME' ] }]
-        | Build Number   : [${ env[ 'BUILD_NUMBER' ] }]
-        | Personal Build : [${ env[ 'BUILD_IS_PERSONAL' ] ?: 'false' }]"""
+        | Job            : [${ buildUrl    ?: buildIdMessage }]
+        | Log            : [${ logUrl      ?: buildIdMessage }]
+        | Server Version : [${ buildInfo[ 'buildInfo.env.teamcity.version' ] }]
+        | Project        : [${ buildInfo[ 'buildInfo.env.teamcity.projectName' ] }]
+        | Configuration  : [${ buildInfo[ 'buildInfo.env.teamcity.buildConfName' ] }]
+        | Build Number   : [${ buildInfo[ 'buildInfo.env.build.number' ] }]
+        | Personal Build : [${ buildInfo[ 'buildInfo.env.build.is.personal' ] ?: 'false' }]"""
+    }
+
+
+    @Ensures({ result != null })
+    private Map<String, String> teamcityBuildInfo()
+    {
+        final buildInfoProperties = properties[ TEAM_CITY_BUILD_INFO ]
+
+        if ( buildInfoProperties )
+        {
+            final p = new Properties()
+            new File( buildInfoProperties ).withReader { Reader r -> p.load( r ) }
+            p
+        }
+
+        [:]
     }
 
 
