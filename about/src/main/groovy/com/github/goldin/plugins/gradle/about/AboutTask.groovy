@@ -131,11 +131,11 @@ class AboutTask extends BaseTask
         | Server         : [${ teamCityUrl ?: urlMessage }]
         | Job            : [${ buildUrl    ?: buildIdMessage }]
         | Log            : [${ logUrl      ?: buildIdMessage }]
-        | Server Version : [${ buildInfo[ 'buildInfo.env.teamcity.version' ] }]
-        | Project        : [${ buildInfo[ 'buildInfo.env.teamcity.projectName' ] }]
-        | Configuration  : [${ buildInfo[ 'buildInfo.env.teamcity.buildConfName' ] }]
-        | Build Number   : [${ buildInfo[ 'buildInfo.env.build.number' ] }]
-        | Personal Build : [${ buildInfo[ 'buildInfo.env.build.is.personal' ] ?: 'false' }]"""
+        | Server Version : [${ buildInfo[ 'buildInfo.env.teamcity.version' ]       ?: '' }]
+        | Project        : [${ buildInfo[ 'buildInfo.env.teamcity.projectName' ]   ?: '' }]
+        | Configuration  : [${ buildInfo[ 'buildInfo.env.teamcity.buildConfName' ] ?: '' }]
+        | Build Number   : [${ buildInfo[ 'buildInfo.env.build.number' ]           ?: '' }]
+        | Personal Build : [${ buildInfo[ 'buildInfo.env.build.is.personal' ]      ?: 'false' }]"""
     }
 
 
@@ -286,10 +286,10 @@ class AboutTask extends BaseTask
             $SEPARATOR
             | Git Info
             $SEPARATOR
-            | Git Version    : [${ gitVersion.replace( 'git version', '' ).trim() }]
+            | Version        : [${ gitVersion.replace( 'git version', '' ).trim() }]
             | Repositories   : [${ padLines( gitExec( 'remote -v', rootDir ), ' Repositories   : [' ) }]
             | Branch         : [${ find( '# On branch', gitStatus.readLines()) }]
-            | Git Status     : [${ padLines( gitStatus, ' Git Status     : [' ) }]
+            | Status         : [${ padLines( gitStatus, ' Git Status     : [' ) }]
             | Commit         : [${ gitLog[ 0 ] }][${ gitLog[ 1 ] }]
             | Commit Date    : [${ gitLog[ 2 ] }]
             | Commit Author  : [${ gitLog[ 3 ] } <${ gitLog[ 4 ] }>]
