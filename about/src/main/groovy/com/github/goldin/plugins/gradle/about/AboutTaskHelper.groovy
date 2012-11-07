@@ -236,10 +236,10 @@ class AboutTaskHelper
          * Trying Git
          */
 
-        final gitVersion = task.gitExec( '--version', task.rootDir, false )
-        final gitStatus  = gitVersion.contains( 'git version' ) ? task.gitExec( 'status', task.rootDir, false ) : ''
+        final String gitVersion = task.gitExec( '--version', task.rootDir, false )
+        final String gitStatus  = gitVersion.contains( 'git version' ) ? task.gitExec( 'status', task.rootDir, false ) : ''
 
-        if ( gitStatus && ( ! gitStatus.contains( 'fatal: Not a git repository' )))
+        if ( gitStatus && ( ! gitStatus.with { startsWith( 'fatal:' ) || startsWith( 'error:' ) }))
         {
             /**
              * d7d53c1
