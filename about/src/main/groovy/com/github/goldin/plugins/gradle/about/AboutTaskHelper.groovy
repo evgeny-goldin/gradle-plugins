@@ -274,7 +274,7 @@ class AboutTaskHelper
             | Tried Git:
             | ~~~~~~~~~~
             | 'git --version' returned [${ padLines( gitVersion, ' "git --version" returned [' ) }]
-            | ${ gitStatus ? '\'git status\'    returned [' + padLines( gitStatus, ' "git status" returned [' ) + ']' : '' }"""
+            | ${ gitStatus ? '\'git status\'    returned [' + padLines( gitStatus, ' \'git status\'    returned [' ) + ']' : '' }"""
         }
     }
 }
