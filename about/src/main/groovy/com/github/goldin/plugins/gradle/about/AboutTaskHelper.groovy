@@ -116,10 +116,10 @@ class AboutTaskHelper
         $SEPARATOR
         | TeamCity Info
         $SEPARATOR
+        | Version        : [${ teamcityProperties[ 'teamcity.version' ]       ?: '' }]
         | Server         : [${ teamCityUrl ?: urlMessage }]
         | Job            : [${ buildUrl    ?: urlMessage }]
         | Log            : [${ logUrl      ?: urlMessage }]
-        | Server Version : [${ teamcityProperties[ 'teamcity.version' ]       ?: '' }]
         | Project        : [${ teamcityProperties[ 'teamcity.projectName' ]   ?: '' }]
         | Configuration  : [${ teamcityProperties[ 'teamcity.buildConfName' ] ?: '' }]
         | Build Number   : [${ teamcityProperties[ 'build.number' ]           ?: '' }]
