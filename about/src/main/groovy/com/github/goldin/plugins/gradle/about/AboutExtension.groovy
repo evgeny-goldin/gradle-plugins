@@ -18,7 +18,7 @@ class AboutExtension
     boolean                   failIfNotFound      = true
     boolean                   failOnError         = true
     boolean                   gradleTasks         = true
-    boolean                   patterns            = false
+    boolean                   patterns            = true
     List<AbstractArchiveTask> archiveTasks        = []
 
     String  fileName
