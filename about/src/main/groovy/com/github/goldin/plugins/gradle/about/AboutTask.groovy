@@ -114,7 +114,7 @@ class AboutTask extends BaseTask
     {
         // http://confluence.jetbrains.net/display/TCD7/Predefined+Build+Parameters
 
-        final  teamcityProperties = properties[ 'teamcity' ]
+        final  teamcityProperties = project.properties[ 'teamcity' ]
         assert teamcityProperties
 
         final urlMessage     = 'Define \'TEAMCITY_URL\' environment variable'
@@ -143,10 +143,10 @@ class AboutTask extends BaseTask
     @Ensures({ result != null })
     String serverContent()
     {
-        ( env[ 'JENKINS_URL'      ] ? jenkinsContent () :
-          env[ 'HUDSON_URL'       ] ? hudsonContent  () :
-          properties[ 'teamcity' ]  ? teamcityContent() :
-                                      '' )
+        ( project.hasProperty( 'teamcity' ) ? teamcityContent() :
+          env[ 'JENKINS_URL' ]              ? jenkinsContent () :
+          env[ 'HUDSON_URL'  ]              ? hudsonContent  () :
+                                              '' )
     }
 
 
