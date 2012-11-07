@@ -164,6 +164,7 @@ abstract class BaseTask extends DefaultTask
      * @return files under base directory specified passing an inclusion/exclusion patterns
      */
     @Requires({ baseDirectory.directory })
+    @Ensures({ result != null })
     final List<File> files ( File         baseDirectory,
                              List<String> includePatterns    = null,
                              List<String> excludePatterns    = null,
@@ -171,7 +172,7 @@ abstract class BaseTask extends DefaultTask
                              boolean      includeDirectories = false,
                              boolean      failIfNotFound     = true )
     {
-        def scanner = new DirectoryScanner()
+        final scanner = new DirectoryScanner()
 
         scanner.with {
             basedir           = baseDirectory
@@ -183,17 +184,15 @@ abstract class BaseTask extends DefaultTask
             scan()
         }
 
-        def files = []
-        scanner.includedFiles.each { String filePath -> files << new File( baseDirectory, filePath ) }
-
-        if ( includeDirectories )
-        {
-            scanner.includedDirectories.findAll { it }.each { String dirPath -> files << new File( baseDirectory, dirPath ) }
-        }
+        List<File> files = scanner.includedFiles.collect { new File( baseDirectory, it ) } +
+                           ( includeDirectories ? scanner.includedDirectories.collect { new File( baseDirectory, it ) } :
+                                                  [] )
 
         assert ( files || ( ! failIfNotFound )), \
-               "No files are included by parent dir [$baseDirectory] and include/exclude patterns ${ includePatterns ?: [] }/${ excludePatterns ?: [] }"
+               "No files are included by parent dir [$baseDirectory] and " +
+               "include/exclude patterns ${ includePatterns ?: [] }/${ excludePatterns ?: [] }"
 
+        assert files.every { it.file || it.directory }
         files
     }
 
