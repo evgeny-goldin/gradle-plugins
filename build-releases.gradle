@@ -1,0 +1,68 @@
+
+/**
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Demonstration of various release techniques
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+apply plugin: 'idea'
+
+defaultTasks 'clean', 'build', 'install'
+
+subprojects {
+
+    apply plugin: 'groovy'
+    apply plugin: 'maven'
+    apply plugin: 'idea'
+    apply plugin: 'about'
+    apply plugin: 'duplicates'
+
+
+    sourceCompatibility = 1.6
+    group               = 'com.github.goldin.plugins.gradle-demo'
+
+    repositories {
+        mavenRepo url: 'http://repository.jetbrains.com/kotlin/'
+        mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
+    }
+
+    dependencies {
+        groovy      localGroovy()
+        compile     gradleApi(),
+                    'org.gcontracts:gcontracts-core:1.2.10'
+        testCompile 'junit:junit:4.10'
+    }
+
+    task sourcesJar( type: Jar, dependsOn: classes ) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+        from files( "${ project.rootProject.projectDir }/license.txt" )
+    }
+
+    task groovydocJar( type: Jar, dependsOn: groovydoc ) {
+        classifier = 'javadoc'
+        from groovydoc.destinationDir
+        from files( "${ project.rootProject.projectDir }/license.txt" )
+    }
+
+    artifacts {
+         archives sourcesJar
+         archives groovydocJar
+    }
+}
+
+
+subprojects.findAll{ it.name != 'common' }.each {
+    it.dependencies { compile project( ':common' ) }
+}
+
+
+project( ':kotlin' ) {
+    dependencies {
+        compile 'org.jetbrains.kotlin:kotlin-compiler:0.4.68',
+                'org.jetbrains.kotlin:kdoc:0.4.68'
+    }
+}
+
+
+task wrapper( type: Wrapper ) { gradleVersion = '1.2' }
