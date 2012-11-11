@@ -173,7 +173,7 @@ class AboutTaskHelper
         | Project       : [${ ext.includePaths ? project.toString() : project.toString().replaceAll( /\s+@.+/, '' )}]
         | Tasks         : ${ gradle.startParameter.taskNames }
         | Coordinates   : [$project.group:$project.name:$project.version]
-        | ${ includeDependencies ? 'Dependencies  : [' + padLines( dependenciesContent(), 'Dependencies  : [' ) + ']' : '' }""" +
+        |${ includeDependencies ? ' Dependencies  : [' + padLines( dependenciesContent(), ' Dependencies  : [' ) + ']' : '' }""" +
 
         ( ext.includeProperties ?
 
@@ -260,7 +260,7 @@ class AboutTaskHelper
             | Version        : [${ gitVersion.replace( 'git version', '' ).trim() }]
             | Repositories   : [${ padLines( task.gitExec( 'remote -v', rootDir ), ' Repositories   : [' ) }]
             | Branch         : [${ find( '# On branch', gitStatus.readLines()) }]
-            | Status         : [${ padLines( gitStatus, ' Git Status     : [' ) }]
+            | Status         : [${ padLines( gitStatus, ' Status         : [' ) }]
             | Commit         : [${ gitLog[ 0 ] }][${ gitLog[ 1 ] }]
             | Commit Date    : [${ gitLog[ 2 ] }]
             | Commit Author  : [${ gitLog[ 3 ] } <${ gitLog[ 4 ] }>]
@@ -276,7 +276,7 @@ class AboutTaskHelper
             | Tried Git:
             | ~~~~~~~~~~
             | 'git --version' returned [${ padLines( gitVersion, ' \'git --version\' returned [' ) }]
-            | ${ gitStatus ? '\'git status\'    returned [' + padLines( gitStatus, ' \'git status\'    returned [' ) + ']' : '' }"""
+            |${ gitStatus ? ' \'git status\'    returned [' + padLines( gitStatus, ' \'git status\'    returned [' ) + ']' : '' }"""
         }
     }
 }
