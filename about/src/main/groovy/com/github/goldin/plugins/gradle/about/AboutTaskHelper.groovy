@@ -18,21 +18,21 @@ class AboutTaskHelper
     private final AboutTask           task
     private final Project             project
     private final Gradle              gradle
+    private final File                rootDir
     private final AboutExtension      ext
-    private final Map<String, String> env
-    private final Map<String, String> properties
+    private final Map<String, String> env        = System.getenv().asImmutable()
+    private final Map<String, String> properties = ( Map<String , String> ) System.properties.asImmutable()
 
 
     @Requires({ task })
-    @Ensures({ this.task && this.project && this.gradle && this.ext && this.env && this.properties })
+    @Ensures({ this.task && this.project && this.gradle && this.rootDir.directory && this.ext })
     AboutTaskHelper ( AboutTask task )
     {
-        this.task       = task
-        this.project    = task.project
-        this.gradle     = this.project.gradle
-        this.ext        = task.ext()
-        this.env        = task.env
-        this.properties = task.properties
+        this.task    = task
+        this.project = task.project
+        this.gradle  = this.project.gradle
+        this.rootDir = this.project.rootDir
+        this.ext     = task.ext()
     }
 
 
@@ -60,9 +60,11 @@ class AboutTaskHelper
     @Ensures({ result })
     private String sort ( Map<String,?> map )
     {
-        def maxKey = map.keySet()*.size().max() + 3
-        map.sort().collect { String key, Object value -> "[$key]".padRight( maxKey ) + ":[$value]" }.
-                   join( '\n' )
+        final keys       = map.keySet()
+        final keyPadSize = keys*.size().max() + 3
+        keys.sort().
+             collect { String key -> "[$key]".padRight( keyPadSize ) + ":[${ map[ key ].toString() }]" }.
+             join( '\n' )
     }
 
 
@@ -155,7 +157,7 @@ class AboutTaskHelper
         | Build Info
         $SEPARATOR
         | Host          : [${ hostname() }]/[${ InetAddress.localHost.hostAddress }]
-        | Time          : [${ task.dateFormatter.format( new Date()) }]
+        | Time          : [$task.startTimeFormatted]
         | User          : [${ properties[ 'user.name' ] }]
         | ${ ext.includePaths ? 'Directory     : [' + properties[ 'user.dir' ] + ']': '' }
         | Java          : [${ properties[ 'java.version' ] }][${ properties[ 'java.vm.vendor' ] }]${ ext.includePaths ? '[' + properties[ 'java.home' ] + ']' : '' }[${ properties[ 'java.vm.name' ] }]
@@ -236,8 +238,8 @@ class AboutTaskHelper
          * Trying Git
          */
 
-        final String gitVersion = task.gitExec( '--version', task.rootDir, false )
-        final String gitStatus  = gitVersion.contains( 'git version' ) ? task.gitExec( 'status', task.rootDir, false ) : ''
+        final String gitVersion = task.gitExec( '--version', rootDir, false )
+        final String gitStatus  = gitVersion.contains( 'git version' ) ? task.gitExec( 'status', rootDir, false ) : ''
 
         if ( gitStatus && ( ! gitStatus.with { startsWith( 'fatal:' ) || startsWith( 'error:' ) }))
         {
@@ -249,14 +251,14 @@ class AboutTaskHelper
              * evgenyg@gmail.com
              * CodeNarc fix
              */
-            final gitLog = task.gitExec( 'log -1 --format=format:%h%n%H%n%cD%n%cN%n%ce%n%B', task.rootDir ).readLines()*.trim()
+            final gitLog = task.gitExec( 'log -1 --format=format:%h%n%H%n%cD%n%cN%n%ce%n%B', rootDir ).readLines()*.trim()
 
             """
             $SEPARATOR
             | Git Info
             $SEPARATOR
             | Version        : [${ gitVersion.replace( 'git version', '' ).trim() }]
-            | Repositories   : [${ padLines( task.gitExec( 'remote -v', task.rootDir ), ' Repositories   : [' ) }]
+            | Repositories   : [${ padLines( task.gitExec( 'remote -v', rootDir ), ' Repositories   : [' ) }]
             | Branch         : [${ find( '# On branch', gitStatus.readLines()) }]
             | Status         : [${ padLines( gitStatus, ' Git Status     : [' ) }]
             | Commit         : [${ gitLog[ 0 ] }][${ gitLog[ 1 ] }]

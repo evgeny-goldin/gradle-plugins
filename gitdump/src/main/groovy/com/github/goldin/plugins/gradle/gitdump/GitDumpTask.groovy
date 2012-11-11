@@ -70,7 +70,7 @@ class GitDumpTask extends BaseTask
 
     void verifyGitIsAvailable ( )
     {
-        final  gitVersion = gitExec( '--version', rootDir, false )
+        final  gitVersion = gitExec( '--version', project.rootDir, false )
         assert gitVersion.contains( 'git version' ), \
                "'git' client is not available - 'git --version' returned [$gitVersion]"
     }
@@ -97,7 +97,7 @@ class GitDumpTask extends BaseTask
 
         exec( 'git',
               (( List<String> ) [ 'clone', *ext.cloneFlags, ( bareClone ? '--bare' : '' ), repoUrl, targetDirectory.canonicalPath ].grep()),
-              rootDir )
+              project.rootDir )
 
         if ( ! bareClone ){ assert dotGit.directory }
 
@@ -142,9 +142,8 @@ class GitDumpTask extends BaseTask
         final ext = ext()
         if ( ext.aboutFile )
         {
-            final date = dateFormatter.format( startTime )
-            final line = ( '-' * ( date.length() + 2 ))
-            ext.aboutFile.write( "$line\n $date\n$line" )
+            final line = ( '-' * ( startTimeFormatted.length() + 2 ))
+            ext.aboutFile.write( "$line\n $startTimeFormatted\n$line" )
         }
     }
 

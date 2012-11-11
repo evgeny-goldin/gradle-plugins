@@ -4,14 +4,12 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecSpec
 
 import javax.xml.XMLConstants
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.regex.Pattern
 
@@ -21,14 +19,11 @@ import java.util.regex.Pattern
  */
 abstract class BaseTask extends DefaultTask
 {
-    Gradle  gradle
-    File    rootDir
-    String  version
-    long    startTime
-    Object  extension
-    final   DateFormat dateFormatter        = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
-    final   Map<String, String>  env        = System.getenv().asImmutable()
-    final   Map<String, String>  properties = ( Map<String , String> ) System.properties.asImmutable()
+    Object extension
+
+    final dateFormatter      = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
+    final startTime          = System.currentTimeMillis()
+    final startTimeFormatted = this.dateFormatter.format( new Date( this.startTime ))
 
 
     /**
@@ -40,13 +35,8 @@ abstract class BaseTask extends DefaultTask
 
     @TaskAction
     @Requires({ project })
-    @Ensures({ gradle && rootDir.directory && version && ( startTime > 1352215376393 )})
     final void doTask()
     {
-        this.gradle    = project.gradle
-        this.rootDir   = project.rootDir
-        this.version   = project.version
-        this.startTime = System.currentTimeMillis()
         taskAction()
     }
 
@@ -58,6 +48,29 @@ abstract class BaseTask extends DefaultTask
     @Requires({ j > -1 })
     @Ensures({ result != null })
     final String s( Number j ){ j == 1 ? '' : 's' }
+
+
+    /**
+     * Retrieves extension of the type specified.
+     *
+     * @param extensionName name of extension
+     * @param extensionType type of extension
+     * @return extension of the type specified
+     */
+    @Requires({ extensionName && extensionType })
+    @Ensures ({ result })
+    final public <T> T extension( String extensionName, Class<T> extensionType )
+    {
+        if ( ! this.extension )
+        {
+            this.extension = project[ extensionName ]
+            assert extensionType.isInstance( this.extension ), \
+                   "Project extension [$extensionName] is of type [${ extension.getClass().name }], " +
+                   "should be of type [${ extensionType.name }]"
+        }
+
+        (( T ) this.extension )
+    }
 
 
     @Requires({ command && directory.directory })
@@ -124,29 +137,6 @@ abstract class BaseTask extends DefaultTask
         }
 
         outputStream.toString().trim()
-    }
-
-
-    /**
-     * Retrieves extension of the type specified.
-     *
-     * @param extensionName name of extension
-     * @param extensionType type of extension
-     * @return extension of the type specified
-     */
-    @Requires({ extensionName && extensionType })
-    @Ensures ({ result })
-    final public <T> T extension( String extensionName, Class<T> extensionType )
-    {
-        if ( ! this.extension )
-        {
-            this.extension = project[ extensionName ]
-            assert extensionType.isInstance( this.extension ), \
-                   "Project extension [$extensionName] is of type [${ extension.getClass().name }], " +
-                   "should be of type [${ extensionType.name }]"
-        }
-
-        (( T ) this.extension )
     }
 
 
