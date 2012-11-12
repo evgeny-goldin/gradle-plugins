@@ -19,6 +19,7 @@ import java.util.regex.Pattern
  */
 abstract class BaseTask extends DefaultTask
 {
+    String extensionName
     Object extension
 
     final dateFormatter      = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
@@ -53,21 +54,16 @@ abstract class BaseTask extends DefaultTask
     /**
      * Retrieves extension of the type specified.
      *
-     * @param extensionName name of extension
      * @param extensionType type of extension
      * @return extension of the type specified
      */
-    @Requires({ extensionName && extensionType })
+    @Requires({ extensionType })
     @Ensures ({ result })
-    final public <T> T extension( String extensionName, Class<T> extensionType )
+    final public <T> T extension( Class<T> extensionType )
     {
-        if ( ! this.extension )
-        {
-            this.extension = project[ extensionName ]
-            assert extensionType.isInstance( this.extension ), \
-                   "Project extension [$extensionName] is of type [${ extension.getClass().name }], " +
-                   "should be of type [${ extensionType.name }]"
-        }
+        assert this.extension && extensionType.isInstance( this.extension ), \
+               "Task extension is of type [${ extension.getClass().name }], " +
+               "should be of type [${ extensionType.name }]"
 
         (( T ) this.extension )
     }

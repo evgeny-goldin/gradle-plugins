@@ -19,7 +19,6 @@ import java.util.zip.GZIPInputStream
  */
 class CrawlerTask extends BaseTask
 {
-    private       String             extensionName   = CrawlerPlugin.EXTENSION_NAME
     private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
     private final AtomicLong         linksProcessed  = new AtomicLong( 0L )
@@ -27,7 +26,7 @@ class CrawlerTask extends BaseTask
     private       ThreadPoolExecutor threadPool
     private       LinksStorage       linksStorage
 
-    CrawlerExtension ext () { extension ( this.extensionName, CrawlerExtension ) }
+    CrawlerExtension ext () { extension ( CrawlerExtension ) }
 
 
     /**

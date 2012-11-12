@@ -1,25 +1,23 @@
 package com.github.goldin.plugins.gradle.gitdump
 
-import org.gcontracts.annotations.Requires
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import com.github.goldin.plugins.gradle.common.BasePlugin
+import com.github.goldin.plugins.gradle.common.BaseTask
 
 
 /**
  * Gradle plugin for Git repositories backup.
  */
-class GitDumpPlugin implements Plugin<Project>
+class GitDumpPlugin extends BasePlugin
 {
-
-    static final String TASK_NAME      = 'gitdump'
-    static final String EXTENSION_NAME = 'gitdump'
-
-
-    @Requires({ project })
     @Override
-    void apply ( Project project )
-    {
-        project.tasks.add        ( TASK_NAME,      GitDumpTask      )
-        project.extensions.create( EXTENSION_NAME, GitDumpExtension )
-    }
+    String extensionName() { 'gitdump' }
+
+    @Override
+    Class extensionClass (){ GitDumpExtension }
+
+    @Override
+    String taskName() { 'gitdump' }
+
+    @Override
+    Class<? extends BaseTask> taskClass() { GitDumpTask }
 }

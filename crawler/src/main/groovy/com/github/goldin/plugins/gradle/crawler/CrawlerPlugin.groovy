@@ -1,25 +1,23 @@
 package com.github.goldin.plugins.gradle.crawler
 
-import org.gcontracts.annotations.Requires
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import com.github.goldin.plugins.gradle.common.BasePlugin
+import com.github.goldin.plugins.gradle.common.BaseTask
 
 
 /**
  * Gradle links crawler plugin.
  */
-class CrawlerPlugin implements Plugin<Project>
+class CrawlerPlugin extends BasePlugin
 {
-
-    static final String TASK_NAME      = 'crawler'
-    static final String EXTENSION_NAME = 'crawler'
-
-
-    @Requires({ project })
     @Override
-    void apply ( Project project )
-    {
-        project.tasks.add        ( TASK_NAME,      CrawlerTask      )
-        project.extensions.create( EXTENSION_NAME, CrawlerExtension )
-    }
+    String extensionName() { 'crawler' }
+
+    @Override
+    Class extensionClass (){ CrawlerExtension }
+
+    @Override
+    String taskName() { 'crawler' }
+
+    @Override
+    Class<? extends BaseTask> taskClass() { CrawlerTask }
 }

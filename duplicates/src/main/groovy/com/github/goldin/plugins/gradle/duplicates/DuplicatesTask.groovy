@@ -1,4 +1,5 @@
 package com.github.goldin.plugins.gradle.duplicates
+
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -18,7 +19,7 @@ class DuplicatesTask extends BaseTask
      * Retrieves current plugin extension object.
      * @return current plugin extension object
      */
-    DuplicatesExtension ext() { extension( DuplicatesPlugin.EXTENSION_NAME, DuplicatesExtension ) }
+    DuplicatesExtension ext() { extension( DuplicatesExtension ) }
 
 
     /**

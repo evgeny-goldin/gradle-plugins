@@ -1,4 +1,5 @@
 package com.github.goldin.plugins.gradle.teamcity
+
 import com.github.goldin.plugins.gradle.common.BaseTask
 import groovy.xml.MarkupBuilder
 import org.gcontracts.annotations.Ensures
@@ -6,6 +7,7 @@ import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
 
@@ -24,7 +26,7 @@ class TeamCityTask extends BaseTask
     File archive
 
 
-    private TeamCityExtension ext() { extension( TeamCityPlugin.EXTENSION_NAME, TeamCityExtension )}
+    private TeamCityExtension ext() { extension( TeamCityExtension )}
     private buildFile( String name, String extension = 'zip' ) { new File( project.buildDir, "teamcity/$name.$extension" )}
 
 
@@ -45,14 +47,14 @@ class TeamCityTask extends BaseTask
         final serverJars = jars( ext.serverProjects, ext.serverConfigurations, ext.serverJarTasks )
 
         assert ( agentJars || serverJars ), \
-               "Neither of agent or server-related properties specified in ${ TeamCityPlugin.EXTENSION_NAME }{ .. }"
+               "Neither of agent or server-related properties specified in ${ this.extensionName }{ .. }"
 
         archive = archivePlugin( agentJars, serverJars )
         logger.info( "Plugin archive created at [${ archive.canonicalPath }]" )
 
         ext.artifactConfigurations.each {
             Configuration configuration ->
-            project.artifacts.pushArtifact( configuration, archive, null )
+            (( DefaultArtifactHandler ) project.artifacts ).pushArtifact( configuration, archive, null )
             logger.info( "Plugin archive added as $configuration artifact" )
         }
     }
@@ -69,11 +71,11 @@ class TeamCityTask extends BaseTask
         ext.name   ( ext.name    ?: project.name )
         ext.version( ext.version ?: project.version.toString())
 
-        assert ext.name,        "$project - ${ TeamCityPlugin.EXTENSION_NAME }{ name        '..' } is not specified"
-        assert ext.displayName, "$project - ${ TeamCityPlugin.EXTENSION_NAME }{ displayName '..' } is not specified"
-        assert ext.version,     "$project - ${ TeamCityPlugin.EXTENSION_NAME }{ version     '..' } is not specified"
-        assert ext.vendorName,  "$project - ${ TeamCityPlugin.EXTENSION_NAME }{ vendorName  '..' } is not specified"
-        assert ext.description, "$project - ${ TeamCityPlugin.EXTENSION_NAME }{ description '..' } is not specified"
+        assert ext.name,        "$project - ${ this.extensionName }{ name        '..' } is not specified"
+        assert ext.displayName, "$project - ${ this.extensionName }{ displayName '..' } is not specified"
+        assert ext.version,     "$project - ${ this.extensionName }{ version     '..' } is not specified"
+        assert ext.vendorName,  "$project - ${ this.extensionName }{ vendorName  '..' } is not specified"
+        assert ext.description, "$project - ${ this.extensionName }{ description '..' } is not specified"
 
         ext
     }
@@ -97,7 +99,7 @@ class TeamCityTask extends BaseTask
         Collection<Configuration> dependencies = projects ? projects*.configurations[ 'compile' ] : configurations
         assert dependencies
 
-        Collection<Jar> tasks = projects ? projects*.tasks[ 'jar' ] : jarTasks
+        Collection<Jar>           tasks        = projects ? projects*.tasks[ 'jar' ] : jarTasks
         assert tasks
 
         Collection<File> pluginJars       = tasks*.archivePath

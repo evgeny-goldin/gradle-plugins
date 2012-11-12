@@ -1,24 +1,23 @@
 package com.github.goldin.plugins.gradle.about
 
-import org.gcontracts.annotations.Requires
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import com.github.goldin.plugins.gradle.common.BasePlugin
+import com.github.goldin.plugins.gradle.common.BaseTask
 
 
 /**
  * Plugin that adds "about" build metadata to build artifacts.
  */
-class AboutPlugin implements Plugin<Project>
+class AboutPlugin extends BasePlugin
 {
-    static final String TASK_NAME      = 'about'
-    static final String EXTENSION_NAME = 'about'
-
-
-    @Requires({ project })
     @Override
-    void apply ( Project project )
-    {
-        project.tasks.add        ( TASK_NAME,      AboutTask )
-        project.extensions.create( EXTENSION_NAME, AboutExtension )
-    }
+    String extensionName() { 'about' }
+
+    @Override
+    Class extensionClass (){ AboutExtension }
+
+    @Override
+    String taskName() { 'about' }
+
+    @Override
+    Class<? extends BaseTask> taskClass() { AboutTask }
 }

@@ -1,26 +1,36 @@
 package com.github.goldin.plugins.gradle.teamcity
 
+import com.github.goldin.plugins.gradle.common.BasePlugin
+import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Requires
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 
 /**
  * Plugin for building and packaging TeamCity plugins.
  */
-class TeamCityPlugin implements Plugin<Project>
+class TeamCityPlugin extends BasePlugin
 {
-    static final String TASK_NAME      = 'assembleTeamcityPlugin'
-    static final String EXTENSION_NAME = 'assembleTeamcityPluginConfig'
+    @Override
+    String extensionName() { 'assembleTeamcityPluginConfig' }
+
+    @Override
+    Class extensionClass (){ TeamCityExtension }
+
+    @Override
+    String taskName() { 'assembleTeamcityPlugin' }
+
+    @Override
+    Class<? extends BaseTask> taskClass() { TeamCityTask }
 
 
     @Requires({ project })
     @Override
     void apply ( Project project )
     {
-        project.extensions.create ( EXTENSION_NAME, TeamCityExtension )
+        super.apply( project )
 
-        final assemblePluginTask = project.tasks.add ( TASK_NAME, TeamCityTask )
+        final assemblePluginTask = project.tasks.getByName( taskName())
         final tasks              = project.tasks.asMap
         final jarTask            = tasks[ 'jar'   ]
         final testTask           = tasks[ 'test'  ]

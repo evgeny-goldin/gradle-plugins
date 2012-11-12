@@ -10,7 +10,7 @@ import org.gcontracts.annotations.Requires
  */
 class GitDumpTask extends BaseTask
 {
-    private GitDumpExtension ext () { extension ( GitDumpPlugin.EXTENSION_NAME, GitDumpExtension ) }
+    private GitDumpExtension ext () { extension ( GitDumpExtension ) }
     private getLastCommit( File projectDirectory ){ gitExec( 'log -1 --format=format:%H', projectDirectory ) }
 
     @Override
@@ -45,7 +45,7 @@ class GitDumpTask extends BaseTask
     GitDumpExtension verifyAndUpdateExtension ()
     {
         final ext = ext()
-        final description = "${ GitDumpPlugin.EXTENSION_NAME } { .. }"
+        final description = "${ this.extensionName } { .. }"
 
         assert ext.singleArchiveName,       "'singleArchiveName' should be defined in $description"
         assert ext.gitProjectNamePattern,   "'gitProjectNamePattern' should be defined in $description"

@@ -1,24 +1,23 @@
 package com.github.goldin.plugins.gradle.duplicates
 
-import org.gcontracts.annotations.Requires
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import com.github.goldin.plugins.gradle.common.BasePlugin
+import com.github.goldin.plugins.gradle.common.BaseTask
 
 
 /**
  * Plugin that finds duplicate libraries in the scope specified.
  */
-class DuplicatesPlugin implements Plugin<Project>
+class DuplicatesPlugin extends BasePlugin
 {
-    static final String TASK_NAME      = 'duplicates'
-    static final String EXTENSION_NAME = 'duplicates'
-
-
-    @Requires({ project })
     @Override
-    void apply ( Project project )
-    {
-        project.tasks.add        ( TASK_NAME,      DuplicatesTask )
-        project.extensions.create( EXTENSION_NAME, DuplicatesExtension )
-    }
+    String extensionName() { 'duplicates' }
+
+    @Override
+    Class extensionClass (){ DuplicatesExtension }
+
+    @Override
+    String taskName() { 'duplicates' }
+
+    @Override
+    Class<? extends BaseTask> taskClass() { DuplicatesTask }
 }

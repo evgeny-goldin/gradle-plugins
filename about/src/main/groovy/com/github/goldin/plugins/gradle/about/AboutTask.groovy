@@ -12,7 +12,7 @@ import org.gradle.api.tasks.bundling.Zip
  */
 class AboutTask extends BaseTask
 {
-    AboutExtension ext () { extension ( AboutPlugin.EXTENSION_NAME, AboutExtension ) }
+    AboutExtension ext () { extension ( AboutExtension ) }
 
 
     void taskAction()

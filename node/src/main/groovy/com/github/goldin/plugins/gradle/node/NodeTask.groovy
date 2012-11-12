@@ -8,6 +8,8 @@ import com.github.goldin.plugins.gradle.common.BaseTask
  */
 class NodeTask extends BaseTask
 {
+    NodeExtension ext(){ extension( NodeExtension ) }
+
     @Override
     void taskAction ( )
     {
