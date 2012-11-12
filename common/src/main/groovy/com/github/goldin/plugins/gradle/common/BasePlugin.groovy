@@ -42,9 +42,9 @@ abstract class BasePlugin implements Plugin<Project>
 
         if ( project.logger.infoEnabled )
         {
-            project.logger.info( "Plugin ['${ pluginName() }']/[${ this.class.name }] applied, " +
-                                 "added task ['${ taskName() }']/[${ taskClass().name }], " +
-                                 "added extension [${ extensionName() }{ .. }]/[${ extensionClass().name }]" )
+            project.logger.info( "Plugin '${ pluginName() }' (${ this.class.name }) is now applied, " +
+                                 "added task '${ taskName() }' (${ taskClass().name }), " +
+                                 "added extension ${ extensionName() }{ .. } (${ extensionClass().name })" )
         }
     }
 }
