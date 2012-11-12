@@ -31,12 +31,12 @@ abstract class BasePlugin implements Plugin<Project>
     @Override
     void apply ( Project project )
     {
-        final properties = new Properties()
-        properties.load( this.class.classLoader.getResourceAsStream( "META-INF/gradle-plugins/${ pluginName() }.properties" ))
-        assert properties[ 'implementation-class' ] == this.class.name
+        verifyGradlePropertiesFile()
 
-        final extension    = project.extensions.create( extensionName(), extensionClass())
-        final task         = project.tasks.add        ( taskName(),      taskClass())
+        final extension = project.extensions.create( extensionName(), extensionClass())
+        final task      = project.tasks.add        ( taskName(),      taskClass())
+        assert extension && task
+
         task.extensionName = extensionName()
         task.extension     = extension
 
@@ -46,5 +46,17 @@ abstract class BasePlugin implements Plugin<Project>
                                  "added task '${ taskName() }' (${ taskClass().name }), " +
                                  "added extension ${ extensionName() }{ .. } (${ extensionClass().name })" )
         }
+    }
+
+
+    private void verifyGradlePropertiesFile ()
+    {
+        final  propertiesFile = "META-INF/gradle-plugins/${ pluginName() }.properties"
+        final  inputStream    = this.class.classLoader.getResourceAsStream( propertiesFile )
+        assert inputStream, "Unable to load [$propertiesFile]"
+
+        final properties = new Properties()
+        properties.load( inputStream )
+        assert properties[ 'implementation-class' ] == this.class.name
     }
 }
