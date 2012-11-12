@@ -1,4 +1,5 @@
 package com.github.goldin.plugins.gradle.crawler
+
 import com.github.goldin.plugins.gradle.common.BaseTask
 
 import org.gcontracts.annotations.Ensures
@@ -17,7 +18,7 @@ import java.util.zip.GZIPInputStream
 /**
  * {@link CrawlerPlugin} task.
  */
-class CrawlerTask extends BaseTask
+class CrawlerTask extends BaseTask<CrawlerExtension>
 {
     private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
@@ -25,8 +26,6 @@ class CrawlerTask extends BaseTask
 
     private       ThreadPoolExecutor threadPool
     private       LinksStorage       linksStorage
-
-    CrawlerExtension ext () { extension ( CrawlerExtension ) }
 
 
     /**

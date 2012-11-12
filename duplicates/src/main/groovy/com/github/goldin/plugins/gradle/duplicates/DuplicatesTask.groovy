@@ -13,15 +13,8 @@ import java.util.zip.ZipFile
 /**
  * Searches for duplicates in configurations provided
  */
-class DuplicatesTask extends BaseTask
+class DuplicatesTask extends BaseTask<DuplicatesExtension>
 {
-    /**
-     * Retrieves current plugin extension object.
-     * @return current plugin extension object
-     */
-    DuplicatesExtension ext() { extension( DuplicatesExtension ) }
-
-
     /**
      * Cache of file on the disk to classes it contains
      */

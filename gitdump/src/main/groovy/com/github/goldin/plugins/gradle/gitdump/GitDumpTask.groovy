@@ -8,9 +8,8 @@ import org.gcontracts.annotations.Requires
 /**
  * {@link GitDumpPlugin} task.
  */
-class GitDumpTask extends BaseTask
+class GitDumpTask extends BaseTask<GitDumpExtension>
 {
-    private GitDumpExtension ext () { extension ( GitDumpExtension ) }
     private getLastCommit( File projectDirectory ){ gitExec( 'log -1 --format=format:%H', projectDirectory ) }
 
     @Override

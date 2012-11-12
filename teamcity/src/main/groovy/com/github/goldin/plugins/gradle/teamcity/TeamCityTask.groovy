@@ -15,7 +15,7 @@ import org.gradle.api.tasks.bundling.Jar
 /**
  * Assembles TeamCity plugin archive.
  */
-class TeamCityTask extends BaseTask
+class TeamCityTask extends BaseTask<TeamCityExtension>
 {
     private static final String BSR = 'buildServerResources'
 
@@ -26,7 +26,6 @@ class TeamCityTask extends BaseTask
     File archive
 
 
-    private TeamCityExtension ext() { extension( TeamCityExtension )}
     private buildFile( String name, String extension = 'zip' ) { new File( project.buildDir, "teamcity/$name.$extension" )}
 
 

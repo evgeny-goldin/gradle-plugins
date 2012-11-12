@@ -1,7 +1,7 @@
 package com.github.goldin.plugins.gradle.node
 
 
-@SuppressWarnings([ 'GroovyInstanceVariableNamingConvention' ])
+@SuppressWarnings([ 'GroovyInstanceVariableNamingConvention', 'PropertyName' ])
 class NodeExtension
 {
     boolean cleanWorkspace   = true // git checkout -f + git clean -dff

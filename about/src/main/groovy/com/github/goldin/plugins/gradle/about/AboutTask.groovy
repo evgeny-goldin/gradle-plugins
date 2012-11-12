@@ -10,11 +10,8 @@ import org.gradle.api.tasks.bundling.Zip
 /**
  * {@link AboutPlugin} task
  */
-class AboutTask extends BaseTask
+class AboutTask extends BaseTask<AboutExtension>
 {
-    AboutExtension ext () { extension ( AboutExtension ) }
-
-
     void taskAction()
     {
         final archives = archivesToUpdate()

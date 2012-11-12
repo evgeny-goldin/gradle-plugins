@@ -1,4 +1,5 @@
 package com.github.goldin.plugins.gradle.common
+
 import org.apache.tools.ant.DirectoryScanner
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -17,10 +18,10 @@ import java.util.regex.Pattern
 /**
  * Base helper task class to be extended by other tasks
  */
-abstract class BaseTask extends DefaultTask
+abstract class BaseTask<T> extends DefaultTask
 {
     String extensionName
-    Object extension
+    T      extension
 
     final dateFormatter      = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
     final startTime          = System.currentTimeMillis()
@@ -36,11 +37,7 @@ abstract class BaseTask extends DefaultTask
 
     @TaskAction
     @Requires({ project })
-    final void doTask()
-    {
-        taskAction()
-    }
-
+    final void doTask() { taskAction() }
 
     @Requires({ c != null })
     @Ensures({ result != null })
@@ -50,23 +47,8 @@ abstract class BaseTask extends DefaultTask
     @Ensures({ result != null })
     final String s( Number j ){ j == 1 ? '' : 's' }
 
-
-    /**
-     * Retrieves extension of the type specified.
-     *
-     * @param extensionType type of extension
-     * @return extension of the type specified
-     */
-    @Requires({ extensionType })
     @Ensures ({ result })
-    final public <T> T extension( Class<T> extensionType )
-    {
-        assert this.extension && extensionType.isInstance( this.extension ), \
-               "Task extension is of type [${ extension.getClass().name }], " +
-               "should be of type [${ extensionType.name }]"
-
-        (( T ) this.extension )
-    }
+    final public T ext() { this.extension }
 
 
     @Requires({ command && directory.directory })

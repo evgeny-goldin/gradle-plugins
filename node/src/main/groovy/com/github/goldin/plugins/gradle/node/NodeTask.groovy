@@ -6,10 +6,8 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 /**
  * Executes Node.js commands.
  */
-class NodeTask extends BaseTask
+class NodeTask extends BaseTask<NodeExtension>
 {
-    NodeExtension ext(){ extension( NodeExtension ) }
-
     @Override
     void taskAction ( )
     {
