@@ -20,24 +20,30 @@ import java.util.regex.Pattern
  */
 abstract class BaseTask<T> extends DefaultTask
 {
-    String extensionName
-    T      extension
-
     final dateFormatter      = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
     final startTime          = System.currentTimeMillis()
     final startTimeFormatted = this.dateFormatter.format( new Date( this.startTime ))
 
 
     /**
-     * Should be implemented by task.
-     * Called after all fields are initialized.
+     * Extension name and instance are set by {@link BasePlugin#apply}
      */
-    abstract void taskAction()
-
+    String extensionName
+    T      extension
 
     @TaskAction
     @Requires({ project })
     final void doTask() { taskAction() }
+
+    /**
+     * Task action, should be implemented by every task.
+     */
+    @Requires({ this.extensionName && this.extension })
+    abstract void taskAction()
+
+    @Ensures ({ result })
+    final public T ext() { this.extension }
+
 
     @Requires({ c != null })
     @Ensures({ result != null })
@@ -47,10 +53,16 @@ abstract class BaseTask<T> extends DefaultTask
     @Ensures({ result != null })
     final String s( Number j ){ j == 1 ? '' : 's' }
 
-    @Ensures ({ result })
-    final public T ext() { this.extension }
 
-
+   /**
+    * Executes 'git' command specified.
+    *
+    * @param command     command to execute
+    * @param directory   directory to execute the command in
+    * @param failOnError whether execution should fail in case of an error
+    *
+    * @return command output
+    */
     @Requires({ command && directory.directory })
     @Ensures({ result != null })
     final String gitExec( String command, File directory, boolean failOnError = true )
