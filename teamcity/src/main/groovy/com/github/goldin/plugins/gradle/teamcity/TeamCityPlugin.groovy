@@ -12,6 +12,9 @@ import org.gradle.api.Project
 class TeamCityPlugin extends BasePlugin
 {
     @Override
+    String pluginName(){ 'teamcity' }
+
+    @Override
     String extensionName() { 'assembleTeamcityPluginConfig' }
 
     @Override
