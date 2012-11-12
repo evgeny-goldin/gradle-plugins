@@ -2,7 +2,6 @@ package com.github.goldin.plugins.gradle.common
 
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
-import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -12,6 +11,9 @@ import org.gradle.api.Project
  */
 abstract class BasePlugin implements Plugin<Project>
 {
+    @Ensures({ result })
+    String pluginName(){ taskName() }
+
     @Ensures({ result })
     abstract String extensionName()
 
@@ -29,6 +31,10 @@ abstract class BasePlugin implements Plugin<Project>
     @Override
     void apply ( Project project )
     {
+        final properties = new Properties()
+        properties.load( this.class.classLoader.getResourceAsStream( "META-INF/gradle-plugins/${ pluginName() }.properties" ))
+        assert properties[ 'implementation-class' ] == this.class.name
+
         final extension    = project.extensions.create( extensionName(), extensionClass())
         final task         = project.tasks.add        ( taskName(),      taskClass())
         task.extensionName = extensionName()
@@ -36,9 +42,9 @@ abstract class BasePlugin implements Plugin<Project>
 
         if ( project.logger.infoEnabled )
         {
-            project.logger.info( "Plugin [${ this.class.name }] applied, " +
-                                 "added task [${ taskName() }]/[${ taskClass().name }], " +
-                                 "added extension [${ extensionName() }]/[${ extensionClass().name }]" )
+            project.logger.info( "Plugin ['${ pluginName() }']/[${ this.class.name }] applied, " +
+                                 "added task ['${ taskName() }']/[${ taskClass().name }], " +
+                                 "added extension [${ extensionName() }{ .. }]/[${ extensionClass().name }]" )
         }
     }
 }
