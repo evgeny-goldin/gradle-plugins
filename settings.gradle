@@ -1,2 +1,2 @@
-include 'about', 'codenarc', 'common', 'crawler', 'duplicates', 'gitdump', 'kotlin', 'teamcity'
+include 'about', 'codenarc', 'common', 'crawler', 'duplicates', 'gitdump', 'kotlin', 'node', 'teamcity'
 rootProject.name = 'gradle-plugins'
