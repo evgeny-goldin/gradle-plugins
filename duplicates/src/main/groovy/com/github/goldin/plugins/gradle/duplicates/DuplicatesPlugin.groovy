@@ -10,14 +10,8 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 class DuplicatesPlugin extends BasePlugin
 {
     @Override
-    String extensionName() { 'duplicates' }
+    Map<String , Class<? extends BaseTask>> tasks () {[ 'duplicates' : DuplicatesTask ]}
 
     @Override
-    Class extensionClass (){ DuplicatesExtension }
-
-    @Override
-    String taskName() { 'duplicates' }
-
-    @Override
-    Class<? extends BaseTask> taskClass() { DuplicatesTask }
+    Map<String , Class> extensions() {[ 'duplicates' : DuplicatesExtension ]}
 }

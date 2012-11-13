@@ -10,14 +10,8 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 class CrawlerPlugin extends BasePlugin
 {
     @Override
-    String extensionName() { 'crawler' }
+    Map<String , Class<? extends BaseTask>> tasks () {[ 'crawler' : CrawlerTask ]}
 
     @Override
-    Class extensionClass (){ CrawlerExtension }
-
-    @Override
-    String taskName() { 'crawler' }
-
-    @Override
-    Class<? extends BaseTask> taskClass() { CrawlerTask }
+    Map<String , Class> extensions() {[ 'crawler' : CrawlerExtension ]}
 }

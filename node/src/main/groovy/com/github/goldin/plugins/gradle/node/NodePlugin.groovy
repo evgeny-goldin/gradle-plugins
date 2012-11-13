@@ -10,14 +10,8 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 class NodePlugin extends BasePlugin
 {
     @Override
-    String extensionName() { 'node' }
+    Map<String , Class<? extends BaseTask>> tasks () {[ 'nodeTest' : NodeTestTask ]}
 
     @Override
-    Class extensionClass (){ NodeExtension }
-
-    @Override
-    String taskName() { 'node' }
-
-    @Override
-    Class<? extends BaseTask> taskClass() { NodeTask }
+    Map<String , Class> extensions() {[ 'node' : NodeExtension ]}
 }

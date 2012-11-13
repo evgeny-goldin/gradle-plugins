@@ -10,14 +10,8 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 class GitDumpPlugin extends BasePlugin
 {
     @Override
-    String extensionName() { 'gitdump' }
+    Map<String , Class<? extends BaseTask>> tasks () {[ 'gitdump' : GitDumpTask ]}
 
     @Override
-    Class extensionClass (){ GitDumpExtension }
-
-    @Override
-    String taskName() { 'gitdump' }
-
-    @Override
-    Class<? extends BaseTask> taskClass() { GitDumpTask }
+    Map<String , Class> extensions() {[ 'gitdump' : GitDumpExtension ]}
 }

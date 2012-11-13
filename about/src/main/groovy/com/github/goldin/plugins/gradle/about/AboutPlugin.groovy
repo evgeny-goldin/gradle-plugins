@@ -10,14 +10,8 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 class AboutPlugin extends BasePlugin
 {
     @Override
-    String extensionName() { 'about' }
+    Map<String , Class<? extends BaseTask>> tasks () {[ 'about' : AboutTask ]}
 
     @Override
-    Class extensionClass (){ AboutExtension }
-
-    @Override
-    String taskName() { 'about' }
-
-    @Override
-    Class<? extends BaseTask> taskClass() { AboutTask }
+    Map<String , Class> extensions() {[ 'about' : AboutExtension ]}
 }

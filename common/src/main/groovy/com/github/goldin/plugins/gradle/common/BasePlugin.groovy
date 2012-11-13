@@ -12,51 +12,38 @@ import org.gradle.api.Project
 abstract class BasePlugin implements Plugin<Project>
 {
     @Ensures({ result })
-    String pluginName(){ taskName() }
+    abstract Map<String, Class<? extends BaseTask>> tasks()
 
-    @Ensures({ result })
-    abstract String extensionName()
-
-    @Ensures({ result })
-    abstract Class extensionClass()
-
-    @Ensures({ result })
-    abstract String taskName()
-
-    @Ensures({ result })
-    abstract Class<? extends BaseTask> taskClass()
-
+    @Ensures({ result.size() == 1 })
+    abstract Map<String, Class> extensions()
 
     @Requires({ project })
     @Override
     void apply ( Project project )
     {
-        verifyGradlePropertiesFile()
+        final extensions = extensions()
+        final tasks      = tasks()
 
-        final extension = project.extensions.create( extensionName(), extensionClass())
-        final task      = project.tasks.add        ( taskName(),      taskClass())
-        assert extension && task
+        final extensionName  = extensions.keySet().toList().first()
+        final extensionClass = extensions[ extensionName ]
+        final extension      = project.extensions.create( extensionName, extensionClass )
 
-        task.extensionName = extensionName()
-        task.extension     = extension
+        assert extensionName && extensionClass && extension
+
+        for ( String taskName in tasks.keySet())
+        {
+            final task         = project.tasks.add( taskName, tasks[ taskName ] )
+            task.extensionName = extensionName
+            task.extension     = extension
+
+            assert task && task.extensionName && task.extension
+        }
 
         if ( project.logger.infoEnabled )
         {
-            project.logger.info( "Plugin '${ pluginName() }' (${ this.class.name }) is now applied, " +
-                                 "added task '${ taskName() }' (${ taskClass().name }), " +
-                                 "added extension ${ extensionName() }{ .. } (${ extensionClass().name })" )
+            project.logger.info( "Plugin [${ this.class.name }] is applied, " +
+                                 "added task${ tasks.size() == 1 ? '' : 's' } '${ tasks.keySet().sort().join( '\', \'' )}', " +
+                                 "added extension ${ extensionName }{ .. }" )
         }
-    }
-
-
-    private void verifyGradlePropertiesFile ()
-    {
-        final  propertiesFile = "META-INF/gradle-plugins/${ pluginName() }.properties"
-        final  inputStream    = this.class.classLoader.getResourceAsStream( propertiesFile )
-        assert inputStream, "Unable to load [$propertiesFile]"
-
-        final properties = new Properties()
-        properties.load( inputStream )
-        assert properties[ 'implementation-class' ] == this.class.name
     }
 }

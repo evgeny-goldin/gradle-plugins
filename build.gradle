@@ -72,6 +72,11 @@ subprojects {
         testCompile "junit:junit:$junitVersion"
     }
 
+
+    compileGroovy << {
+
+    }
+
     jar { from files( "${ project.rootProject.projectDir }/license.txt" ) }
 
     idea.module {

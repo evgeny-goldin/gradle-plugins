@@ -12,19 +12,10 @@ import org.gradle.api.Project
 class TeamCityPlugin extends BasePlugin
 {
     @Override
-    String pluginName(){ 'teamcity' }
+    Map<String , Class<? extends BaseTask>> tasks () {[ 'assembleTeamcityPlugin' : TeamCityTask ]}
 
     @Override
-    String extensionName() { 'assembleTeamcityPluginConfig' }
-
-    @Override
-    Class extensionClass (){ TeamCityExtension }
-
-    @Override
-    String taskName() { 'assembleTeamcityPlugin' }
-
-    @Override
-    Class<? extends BaseTask> taskClass() { TeamCityTask }
+    Map<String , Class> extensions() {[ 'assembleTeamcityPluginConfig' : TeamCityExtension ]}
 
 
     @Requires({ project })
@@ -33,7 +24,7 @@ class TeamCityPlugin extends BasePlugin
     {
         super.apply( project )
 
-        final assemblePluginTask = project.tasks.getByName( taskName())
+        final assemblePluginTask = project.tasks.getByName( tasks().keySet().toList().first())
         final tasks              = project.tasks.asMap
         final jarTask            = tasks[ 'jar'   ]
         final testTask           = tasks[ 'test'  ]
