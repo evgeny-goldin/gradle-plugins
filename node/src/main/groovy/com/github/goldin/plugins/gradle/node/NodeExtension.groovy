@@ -8,4 +8,5 @@ class NodeExtension
     boolean cleanNodeModules = true  // rm -rf ./node_modules
     boolean echoCommands     = true  // Echo all commands executed
     String  NODE_ENV         = 'development'
+    String  nodeVersion      = 'latest'
 }
