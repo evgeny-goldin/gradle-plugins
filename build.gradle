@@ -18,8 +18,8 @@ apply from: 'file:codenarc/CodeNarc.gradle'
 
 buildscript {
     repositories { mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
-    dependencies { classpath      "com.github.goldin.plugins.gradle:about:0.2-beta-2",
-                                  "com.github.goldin.plugins.gradle:duplicates:0.2-beta-2" }
+    dependencies { classpath      "com.github.goldin.plugins.gradle:about:0.2-beta-3",
+                                  "com.github.goldin.plugins.gradle:duplicates:0.2-beta-3" }
 }
 
 
