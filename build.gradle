@@ -61,7 +61,8 @@ subprojects {
         mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
     }
 
-    about        { includeDependencies = [ 'compile', 'runtime' ] }
+    about        { includeDependencies = [ 'compile', 'runtime' ]
+                   prefix              = '/' }
     duplicates   { configurations      = [ 'compile', 'runtime' ]
                    verbose             = true }
 
@@ -70,11 +71,6 @@ subprojects {
         compile     gradleApi(),
                     "org.gcontracts:gcontracts-core:$gcontractsVersion"
         testCompile "junit:junit:$junitVersion"
-    }
-
-
-    compileGroovy << {
-
     }
 
     jar { from files( "${ project.rootProject.projectDir }/license.txt" ) }
@@ -108,7 +104,33 @@ subprojects {
 
 
 subprojects.findAll{ it.name != 'common' }.each {
-    it.dependencies { compile project( ':common' ) }
+    Project p ->
+    p.dependencies { compile project( ':common' ) }
+
+    /**
+     * Validates *.properties 'implementation-class' property and adds a new 'version' property.
+     */
+    p.processResources << {
+
+        final directory        = new File(( File ) it.destinationDir, 'META-INF/gradle-plugins' )
+        final gradleProperties = directory.listFiles().find { it.name.endsWith( '.properties' ) }
+        final properties       = new Properties()
+
+        assert directory.directory && gradleProperties
+
+        gradleProperties.withReader {
+            properties.load( it )
+            final String implementationClass = properties[ 'implementation-class' ]
+            final classFile = new File(( File ) p.compileGroovy.destinationDir,
+                                       implementationClass.replace( '.', '/' ) + '.class' )
+
+            assert implementationClass && classFile.file
+            println "[$gradleProperties.canonicalPath] => [$implementationClass] => [$classFile.canonicalPath]"
+        }
+
+        properties[ 'version' ] = p.version
+        gradleProperties.withWriter { properties.store( it, null )}
+    }
 }
 
 
