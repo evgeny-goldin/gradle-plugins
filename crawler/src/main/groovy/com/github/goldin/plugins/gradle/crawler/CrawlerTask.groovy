@@ -20,12 +20,13 @@ import java.util.zip.GZIPInputStream
  */
 class CrawlerTask extends BaseTask<CrawlerExtension>
 {
-    private final Queue<Future>      futures         = new ConcurrentLinkedQueue<Future>()
-    private final AtomicLong         bytesDownloaded = new AtomicLong( 0L )
-    private final AtomicLong         linksProcessed  = new AtomicLong( 0L )
+    private final Queue<Future> futures         = new ConcurrentLinkedQueue<Future>()
+    private final AtomicLong    bytesDownloaded = new AtomicLong( 0L )
+    private final AtomicLong    linksProcessed  = new AtomicLong( 0L )
 
-    private       ThreadPoolExecutor threadPool
-    private       LinksStorage       linksStorage
+    private volatile boolean            verificationFlag = true // If ever becomes false - crawling process is aborted immediately
+    private          ThreadPoolExecutor threadPool
+    private          LinksStorage       linksStorage
 
 
     /**
@@ -53,7 +54,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         printStartBanner()
         submitRootLinks()
-        waitForIdle()
+        waitForIdleOrVerificationFailure()
 
         printFinishReport()
         writeLinksMapFiles()
@@ -81,19 +82,19 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     /**
      * Logs message returned by the closure provided.
      *
-     * @param logLevel   message log level
-     * @param error      error thrown
-     * @param logMessage closure returning message text
+     * @param logLevel           message log level
+     * @param error              error thrown
+     * @param logMessageCallback closure returning message text
      */
-    @Requires({ logLevel && logMessage })
-    void log( LogLevel logLevel = LogLevel.INFO, Throwable error = null, Closure logMessage )
+    @Requires({ logLevel && logMessageCallback })
+    void log( LogLevel logLevel = LogLevel.INFO, Throwable error = null, Closure logMessageCallback )
     {
         final  ext     = ext()
         String logText = null
 
         if ( logger.isEnabled( logLevel ))
         {
-            logText = logMessage()
+            logText = logMessageCallback()
             assert logText
 
             if ( error ) { logger.log( logLevel, logText, error )}
@@ -102,7 +103,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         if ( ext.log )
         {
-            logText = logText ?: logMessage()
+            logText = logText ?: logMessageCallback()
             assert logText
 
             ext.log.append( logText + '\n' )
@@ -204,7 +205,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         for ( link in linksStorage.addLinksToProcess( ext.rootLinks ).sort())
         {
             final String pageUrl = ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure c -> c( l )}
-            futures << threadPool.submit({ checkLinks( pageUrl, 'Root link', 'Root link', true )} as Runnable )
+            futures << threadPool.submit({ checkLinks( pageUrl, 'Root link', 'Root link', true, 0 )} as Runnable )
         }
     }
 
@@ -212,11 +213,11 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     /**
      * Blocks until there is no more activity in a thread pool, meaning all links are checked.
      */
-    void waitForIdle ()
+    void waitForIdleOrVerificationFailure ()
     {
         final ext = ext()
 
-        while ( futures.any{ ! it.done })
+        while ( verificationFlag && futures.any{ ! it.done } )
         {
             sleep( ext.futuresPollingPeriod )
             futures.removeAll { it.done }
@@ -227,9 +228,11 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             }
         }
 
+        threadPool.queue.clear()
+        futures.clear()
         linksStorage.lock()
         threadPool.shutdown()
-        threadPool.awaitTermination( 1L, TimeUnit.SECONDS )
+        threadPool.awaitTermination( 30L, TimeUnit.SECONDS )
     }
 
 
@@ -267,7 +270,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                         append( '\n' )
             }
         }
-        else
+        else if ( verificationFlag )
         {
             message.append( ' - thumbs up!' )
         }
@@ -277,9 +280,8 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         if ( ext.teamcityMessages )
         {
-
-            final status = (( ext.failOnBrokenLinks && brokenLinks ) ? 'FAILURE' : 'SUCCESS' )
-            final text   = "$processedLinks link${ s( processedLinks )}, $brokenLinks broken"
+            final status = ((( ! verificationFlag ) || ( ext.failOnBrokenLinks && brokenLinks )) ? 'FAILURE' : 'SUCCESS' )
+            final text   = "$processedLinks link${ s( processedLinks )}, $brokenLinks broken${ verificationFlag ? '' : ', verification failure' }"
             logger.warn( "##teamcity[buildStatus status='$status' text='$text']" )
         }
     }
@@ -336,6 +338,12 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         final ext         = ext()
         final brokenLinks = linksStorage.brokenLinksNumber()
 
+        if ( ! verificationFlag )
+        {
+            throw new GradleException(
+                'Crawling process was aborted due to verification failure, see above for more details' )
+        }
+
         if ( ext.failOnBrokenLinks && brokenLinks )
         {
             throw new GradleException(
@@ -365,13 +373,17 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      * @param referrerUrl     URL of another page referring to the one being checked
      * @param referrerContent Referrer page content
      * @param isRootLink      whether url submitted is a root link
+     * @param pageDepth       current page depth
      */
     @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
-    @Requires({ pageUrl && referrerUrl && referrerContent && linksStorage && threadPool })
-    void checkLinks ( String pageUrl, String referrerUrl, String referrerContent, boolean isRootLink )
+    @Requires({ pageUrl && referrerUrl && referrerContent && ( pageDepth > -1 ) && linksStorage && threadPool })
+    void checkLinks ( String pageUrl, String referrerUrl, String referrerContent, boolean isRootLink, int pageDepth )
     {
+        if ( ! verificationFlag ) { return }
+
         final ext = ext()
-        delay( ext.requestDelay )
+        assert (( ext.maxDepth < 0 ) || ( pageDepth <= ext.maxDepth ))
+        delay  ( ext.requestDelay )
 
         try
         {
@@ -382,9 +394,9 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             {
                 final  actualUrlList = filterTransformLinks([ actualUrl ]) // List of one element, transformed link
                 assert actualUrlList.size().with {( delegate == 0 ) || ( delegate == 1 )}
-                if (   actualUrlList && linksStorage.addLinksToProcess( actualUrlList ))
+                if ( actualUrlList && linksStorage.addLinksToProcess( actualUrlList ))
                 {
-                    checkLinks( actualUrlList.first(), referrerUrl, referrerContent, isRootLink )
+                    checkLinks( actualUrlList.first(), referrerUrl, referrerContent, isRootLink, pageDepth )
                 }
 
                 return
@@ -393,12 +405,23 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             assert pageUrl == actualUrl
             final processed = linksProcessed.incrementAndGet()
 
-            if ( ! response.data ) { return }
+            if ( ! response.data ){ return }
 
-            final pageContent = new String( response.data, 'UTF-8' )
-            final pageIgnored = ( ext.ignoredContent ?: [] ).any { it ( pageUrl, pageContent )}
+            final pageContent        = new String( response.data, 'UTF-8' )
+            final pageIgnored        = ( ext.ignoredContent ?: [] ).any { it ( pageUrl, pageContent )}
+            final verificationPassed = ( ext.verifyContent  ? verificationPassed( pageUrl, pageContent, ext.verifyContent ) : true )
 
-            if ( pageIgnored ) { return }
+            if ( ! verificationPassed )
+            {
+                verificationFlag = false
+
+                logger.error( "! Verification of [$pageUrl] has failed, aborting the crawling process" )
+                threadPool.shutdownNow()
+                return
+            }
+
+            if ( pageIgnored ){ return }
+            if ( pageDepth == ext.maxDepth ){ return }
 
             final List<String> pageLinks = readLinks( pageUrl, pageContent )
             final List<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
@@ -413,19 +436,42 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                 final linksMessage    = pageLinks ? ", ${ newLinks.size() } new"     : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}" : ''
 
-                "[$pageUrl] - ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
+                "[$pageUrl] - depth [$pageDepth], ${ pageLinks.size() } link${ s( pageLinks ) } found$linksMessage, " +
                 "$processed processed, $queued queued$newLinksMessage"
             }
 
             for ( link in newLinks )
             {
                 final String linkUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl, pageContent, false )} as Runnable )
+                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl, pageContent, false, pageDepth + 1 )} as Runnable )
             }
         }
         catch( Throwable error )
         {
             log( LogLevel.ERROR, error ){ "Unexpected error while reading [$pageUrl], referrer [$referrerUrl]" }
+        }
+    }
+
+
+    /**
+     * Invoke verifiers for the page specified and determines if any of them return {@code false} or fails.
+     *
+     * @param pageUrl     url of the page being checked
+     * @param pageContent content of the page being checked
+     * @param verifiers   verifiers to invoke
+     * @return true if all verifiers returned true when invoked, false otherwise
+     */
+    @Requires({ pageUrl && pageContent && verifiers })
+    boolean verificationPassed( String pageUrl, String pageContent, List<Closure> verifiers )
+    {
+        try
+        {
+            verifiers.every { final Object result = it( pageUrl, pageContent ); (( result == null ) || ( result )) }
+        }
+        catch ( Throwable error )
+        {
+            logger.error( "Error thrown while verifying [$pageUrl]", error )
+            false
         }
     }
 

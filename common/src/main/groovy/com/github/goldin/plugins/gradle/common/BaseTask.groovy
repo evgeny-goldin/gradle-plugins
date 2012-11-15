@@ -44,7 +44,6 @@ abstract class BaseTask<T> extends DefaultTask
     @Ensures ({ result })
     final public T ext() { this.extension }
 
-
     @Requires({ c != null })
     @Ensures({ result != null })
     final String s( Collection c ){ s( c.size()) }

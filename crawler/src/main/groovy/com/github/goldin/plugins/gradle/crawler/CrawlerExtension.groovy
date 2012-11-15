@@ -43,6 +43,7 @@ class CrawlerExtension
     int           minimumLinks             = -1
     long          minimumBytes             = -1
     int           retries                  = 3
+    int           maxDepth                 = Integer.MAX_VALUE
     int           checksumsChunkSize       = 1024
     int           futuresPollingPeriod     = 5000
     long          retryDelay               = 5000
@@ -58,6 +59,7 @@ class CrawlerExtension
     List<Closure> nonHtmlLinks             = []
     List<Closure> ignoredLinks             = []
     List<Closure> ignoredContent           = []
+    List<Closure> verifyContent            = []
     List<Closure> ignoredBrokenLinks       = []
     boolean       zipLogFiles              = true
     boolean       replaceSpecialCharacters = true
