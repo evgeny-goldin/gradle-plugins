@@ -73,10 +73,6 @@ subprojects {
         compile     gradleApi(),
                     "org.gcontracts:gcontracts-core:$gcontractsVersion"
         testCompile "junit:junit:$junitVersion"
-        testCompile ( "org.spockframework:spock-core:$spockVersion" ) {
-            exclude group: 'org.codehaus.groovy'
-            exclude group: 'junit'
-        }
     }
 
     jar { from files( "${ project.rootProject.projectDir }/license.txt" ) }
@@ -108,14 +104,19 @@ subprojects {
     }
 }
 
+project( ':common' ) {
+    Project p ->
+    p.dependencies { compile ( "org.spockframework:spock-core:$spockVersion" ) {
+        exclude group: 'junit'
+        exclude group: 'org.codehaus.groovy'
+    }}
+}
 
-subprojects.findAll{ it.name != 'common' }.each {
+
+subprojects.findAll{ Project p -> p.name != 'common' }.each {
     Project p ->
 
-    p.dependencies {
-        compile     project( ':common' )
-        testCompile project( ':common' )
-    }
+    p.dependencies { compile project( ':common' )}
 
     p.processResources << {
         Copy processResourcesTask ->
@@ -128,10 +129,8 @@ subprojects.findAll{ it.name != 'common' }.each {
 
 project( ':kotlin' ) {
     duplicates   { fail = false; verbose = false }
-    dependencies {
-        compile "org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion",
-                "org.jetbrains.kotlin:kdoc:$kotlinVersion"
-    }
+    dependencies { compile "org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion",
+                           "org.jetbrains.kotlin:kdoc:$kotlinVersion" }
 }
 
 
@@ -150,7 +149,6 @@ project( ':teamcity' ) {
 
 
 task wrapper( type: Wrapper ) { gradleVersion = '1.3-rc-2' }
-
 
 
 private Properties validatePropertiesFile( Project p, File gradleProperties )
