@@ -12,6 +12,10 @@ import org.gradle.api.tasks.bundling.Zip
  */
 class AboutTask extends BaseTask<AboutExtension>
 {
+    @Override
+    AboutExtension verifyExtension ( AboutExtension ext, String description ) { ext }
+
+
     void taskAction()
     {
         final archives = archivesToUpdate()

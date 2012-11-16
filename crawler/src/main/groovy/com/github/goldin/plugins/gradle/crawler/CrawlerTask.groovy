@@ -45,7 +45,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     @Override
     void taskAction ()
     {
-        final ext         = verifyAndUpdateExtension()
+        final ext         = ext()
         this.threadPool   = Executors.newFixedThreadPool( ext.threadPoolSize ) as ThreadPoolExecutor
         this.linksStorage = new LinksStorage( ext )
 
@@ -117,17 +117,13 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         }
     }
 
-
     /**
      * Verifies {@link CrawlerExtension} contains proper settings and updates it with additional properties.
      * @return {@link CrawlerExtension} instance verified and updated.
      */
-    @Ensures({ result })
-    CrawlerExtension verifyAndUpdateExtension ()
+    @Override
+    CrawlerExtension verifyExtension( CrawlerExtension ext, String description )
     {
-        final ext                  = ext()
-        final extensionDescription = "${ this.extensionName } { .. }"
-
         assert ext.externalLinkPattern         &&
                ext.absoluteLinkPattern         &&
                ext.relativeLinkPattern         &&
@@ -135,28 +131,28 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                ext.htmlCommentPattern          &&
                ext.slashesPattern
 
-        assert ( ! ext.rootUrl             ), "'rootUrl' should not be used in $extensionDescription - private area"
-        assert ( ! ext.internalLinkPattern ), "'internalLinkPattern' should not be used in $extensionDescription - private area"
+        assert ( ! ext.rootUrl             ), "'rootUrl' should not be used in $description - private area"
+        assert ( ! ext.internalLinkPattern ), "'internalLinkPattern' should not be used in $description - private area"
 
         ext.baseUrl             = ext.baseUrl?.trim()?.replace( '\\', '/' )?.replaceAll( '^.+?:/+', '' ) // Protocol part removed
         ext.rootUrl             = ext.baseUrl?.replaceAll( '/.*', '' )                                   // Path part removed
         ext.internalLinkPattern = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
 
-        assert ext.baseUrl, "'baseUrl' should be defined in $extensionDescription"
+        assert ext.baseUrl, "'baseUrl' should be defined in $description"
         assert ext.rootUrl && ( ! ext.rootUrl.endsWith( '/' )) && ext.internalLinkPattern
 
-        assert ext.userAgent,                 "'userAgent' should be defined in $extensionDescription"
-        assert ext.threadPoolSize       >  0, "'threadPoolSize' [${ ext.threadPoolSize }] in $extensionDescription should be positive"
-        assert ext.connectTimeout       >  0, "'connectTimeout' [${ ext.connectTimeout }] in $extensionDescription should be positive"
-        assert ext.readTimeout          >  0, "'readTimeout' [${ ext.readTimeout }] in $extensionDescription should be positive"
-        assert ext.checksumsChunkSize   >  0, "'checksumsChunkSize' [${ ext.checksumsChunkSize }] in $extensionDescription should be positive"
-        assert ext.futuresPollingPeriod >  0, "'futuresPollingPeriod' [${ ext.futuresPollingPeriod }] in $extensionDescription should be positive"
-        assert ext.retries              > -1, "'retries' [${ ext.retries }] in $extensionDescription should not be negative"
-        assert ext.retryDelay           > -1, "'retryDelay' [${ ext.retryDelay }] in $extensionDescription should not be negative"
-        assert ext.requestDelay         > -1, "'requestDelay' [${ ext.requestDelay }] in $extensionDescription should not be negative"
+        assert ext.userAgent,                 "'userAgent' should be defined in $description"
+        assert ext.threadPoolSize       >  0, "'threadPoolSize' [${ ext.threadPoolSize }] in $description should be positive"
+        assert ext.connectTimeout       >  0, "'connectTimeout' [${ ext.connectTimeout }] in $description should be positive"
+        assert ext.readTimeout          >  0, "'readTimeout' [${ ext.readTimeout }] in $description should be positive"
+        assert ext.checksumsChunkSize   >  0, "'checksumsChunkSize' [${ ext.checksumsChunkSize }] in $description should be positive"
+        assert ext.futuresPollingPeriod >  0, "'futuresPollingPeriod' [${ ext.futuresPollingPeriod }] in $description should be positive"
+        assert ext.retries              > -1, "'retries' [${ ext.retries }] in $description should not be negative"
+        assert ext.retryDelay           > -1, "'retryDelay' [${ ext.retryDelay }] in $description should not be negative"
+        assert ext.requestDelay         > -1, "'requestDelay' [${ ext.requestDelay }] in $description should not be negative"
 
-        assert ext.retryStatusCodes.every { it }, "'retryStatusCodes' should not contain nulls in $extensionDescription"
-        assert ext.retryExceptions. every { it }, "'retryExceptions' should not contain nulls in $extensionDescription"
+        assert ext.retryStatusCodes.every { it }, "'retryStatusCodes' should not contain nulls in $description"
+        assert ext.retryExceptions. every { it }, "'retryExceptions' should not contain nulls in $description"
 
         ext.rootLinks = ( ext.rootLinks?.grep()?.toSet() ?: [ "http://$ext.baseUrl" ]).collect {
             String rootLink ->
@@ -164,6 +160,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             final noSlash      = (( ! rootLink ) || ext.baseUrl.endsWith( '/' ) || rootLink.startsWith( '/' ))
             isGoodEnough ? rootLink : "http://${ ext.baseUrl }${ noSlash ? '' : '/' }${ rootLink ?: '' }"
         }
+
         assert ext.rootLinks && ext.rootLinks.every{ it }
         ext
     }

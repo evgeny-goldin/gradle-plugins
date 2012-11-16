@@ -31,18 +31,24 @@ abstract class BaseTask<T> extends DefaultTask
     String extensionName
     T      extension
 
+    @Requires({ extension && this.extensionName })
+    @Ensures({ this.extension })
+    void setExtension ( T extension ){ this.extension = verifyExtension( extension, "${ this.extensionName } { .. }" )}
+
+    @Requires({ extension && description })
+    @Ensures({ result })
+    abstract T verifyExtension( T extension, String description )
+
+
     @TaskAction
-    @Requires({ project })
+    @Requires({ this.project })
     final void doTask() { taskAction() }
 
-    /**
-     * Task action, should be implemented by every task.
-     */
     @Requires({ this.extensionName && this.extension })
     abstract void taskAction()
 
     @Ensures ({ result })
-    final public T ext() { this.extension }
+    final T ext() { this.extension }
 
     @Requires({ c != null })
     @Ensures({ result != null })

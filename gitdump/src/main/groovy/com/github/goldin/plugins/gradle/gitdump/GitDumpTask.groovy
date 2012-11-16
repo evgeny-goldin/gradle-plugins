@@ -15,9 +15,10 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Override
     void taskAction ( )
     {
-        final ext = verifyAndUpdateExtension()
         verifyGitIsAvailable()
         initAboutFile()
+
+        final ext = ext()
 
         for ( repoUrl in ext.urls )
         {
@@ -40,12 +41,10 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     }
 
 
+    @Override
     @Ensures({ result })
-    GitDumpExtension verifyAndUpdateExtension ()
+    GitDumpExtension verifyExtension ( GitDumpExtension ext, String description )
     {
-        final ext = ext()
-        final description = "${ this.extensionName } { .. }"
-
         assert ext.singleArchiveName,       "'singleArchiveName' should be defined in $description"
         assert ext.gitProjectNamePattern,   "'gitProjectNamePattern' should be defined in $description"
         assert ext.gitUrlWithCommitPattern, "'gitUrlWithCommitPattern' should be defined in $description"
