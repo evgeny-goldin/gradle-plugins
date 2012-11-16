@@ -162,7 +162,7 @@ private Properties validatePropertiesFile( Project p, File gradleProperties )
     gradleProperties.withReader { properties.load( it )}
 
     final String implementationClass = properties[ 'implementation-class' ]
-    assert implementationClass, "Gradle properties [$gradleProperties.canonicalPath] contain no 'implementation-class'"
+    assert implementationClass, "Gradle properties [$gradleProperties.canonicalPath] contain no 'implementation-class' property"
 
     final classFile = new File(( File ) p.compileGroovy.destinationDir,
                                implementationClass.replace( '.', '/' ) + '.class' )
