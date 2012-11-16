@@ -147,8 +147,16 @@ class AboutTaskHelper
     }
 
 
+
     @Ensures({ result })
     String buildContent ()
+    {
+        buildContent0() + "\n$SEPARATOR"
+    }
+
+
+    @Ensures({ result })
+    String buildContent0 ()
     {
         final includeDependencies = ( ext.includeDependencies != false ) && ( ext.includeDependencies != 'false' )
 
