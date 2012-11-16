@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node
 
 import com.github.goldin.plugins.gradle.common.BaseTask
+import org.gcontracts.annotations.Requires
 
 
 /**
@@ -12,19 +13,31 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     @Override
-    NodeExtension verifyExtension( NodeExtension ext, String description )
+    void verifyExtension( NodeExtension ext, String description )
     {
         assert ext.nodeVersion, "'nodeVersion' should be defined in $description"
         assert ext.NODE_ENV,    "'NODE_ENV' should be defined in $description"
-        ext
     }
 
+
+    /**
+     * Passes a new extensions object to the closure specified.
+     * Registers new extension under task's name.
+     */
+    @Requires({ c })
+    void config( Closure c )
+    {
+        this.extensionName = this.name
+        this.ext           = project.extensions.create( this.extensionName, NodeExtension )
+        c( this.ext )
+    }
 
     abstract void nodeTaskAction()
 
     @Override
     final void taskAction()
     {
+        verifyGitAvailable()
         setupNode()
         nodeTaskAction()
     }
@@ -32,18 +45,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
     private void setupNode()
     {
-        final ext                 = ext()
-        final setupFile           = new File( project.buildDir, 'setup-node.sh' )
         final setupScriptTemplate = this.class.classLoader.getResourceAsStream( 'setup-node.sh' ).text
         final nodeVersion         = ( ext.nodeVersion == 'latest' ) ? helper.latestNodeVersion() : ext.nodeVersion
+        final setupScript         = setupScriptTemplate.replace( '${nodeVersion}', nodeVersion  ).
+                                                        replace( '${NODE_ENV}',    ext.NODE_ENV )
 
-        assert setupFile.parentFile.with { directory || mkdirs() }
-        setupFile.text = setupScriptTemplate.replace( '${nodeVersion}', nodeVersion  ).
-                                             replace( '${NODE_ENV}',    ext.NODE_ENV )
-        assert setupFile.with { file && size() }
-
-        log { "Running [$setupFile.canonicalPath] .." }
-        final output = exec( 'bash', [ setupFile.canonicalPath ] )
-        log { output }
+        bashExec( setupScript, "$project.buildDir/${ NodeConstants.SETUP_SCRIPT }" )
     }
 }

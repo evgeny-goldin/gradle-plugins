@@ -20,7 +20,7 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
     private static final String BSR = 'buildServerResources'
 
     @Override
-    TeamCityExtension verifyExtension ( TeamCityExtension ext, String description ){ ext }
+    void verifyExtension ( TeamCityExtension ext, String description ){}
 
     /**
      * Archive created
@@ -43,7 +43,6 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
         if ( project.hasProperty( this.class.name )) { return }
         project.ext."${ this.class.name }" = "Executed already"
 
-        final ext        = validateExtension()
         final agentJars  = jars( ext.agentProjects,  ext.agentConfigurations,  ext.agentJarTasks  )
         final serverJars = jars( ext.serverProjects, ext.serverConfigurations, ext.serverJarTasks )
 
@@ -51,12 +50,12 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
                "Neither of agent or server-related properties specified in ${ this.extensionName }{ .. }"
 
         archive = archivePlugin( agentJars, serverJars )
-        logger.info( "Plugin archive created at [${ archive.canonicalPath }]" )
+        log{ "Plugin archive created at [${ archive.canonicalPath }]" }
 
         ext.artifactConfigurations.each {
             Configuration configuration ->
             (( DefaultArtifactHandler ) project.artifacts ).pushArtifact( configuration, archive, null )
-            logger.info( "Plugin archive added as $configuration artifact" )
+            log{ "Plugin archive added as $configuration artifact" }
         }
     }
 
@@ -67,8 +66,6 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
      */
     private TeamCityExtension validateExtension()
     {
-        final ext = ext()
-
         ext.name   ( ext.name    ?: project.name )
         ext.version( ext.version ?: project.version.toString())
 
@@ -123,7 +120,6 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
     @Ensures ({ result.file })
     File archivePlugin( Collection<File> agentJars, Collection<File> serverJars )
     {
-        final ext           = ext()
         final pluginXmlFile = pluginXmlFile()
 
         assert ext.name && project.name && project.version && pluginXmlFile.file
@@ -188,7 +184,6 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
      */
     private File archiveServerResources ()
     {
-        final ext                = ext()
         final serverResourcesDir = ext.serverResources
         final path               = serverResourcesDir.canonicalPath
 
@@ -216,7 +211,6 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
     @Ensures({ result.file })
     File pluginXmlFile ()
     {
-        final ext     = ext()
         final writer  = new StringWriter()
         final builder = new MarkupBuilder( writer )
         final addTag  = {
@@ -269,7 +263,7 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
 
         final schema   = this.class.getResource( '/teamcity-plugin-descriptor.xsd' ).getText( 'UTF-8' )
         final xml      = validateXml( writer.toString(), schema )
-        final tempFile = File.createTempFile( project.name , null )
+        final tempFile = File.createTempFile( project.name, null )
         tempFile.write( xml, 'UTF-8' )
         tempFile.deleteOnExit()
         tempFile

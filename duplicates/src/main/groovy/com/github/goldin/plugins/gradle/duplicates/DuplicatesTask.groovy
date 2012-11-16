@@ -5,6 +5,7 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.logging.LogLevel
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
@@ -21,13 +22,11 @@ class DuplicatesTask extends BaseTask<DuplicatesExtension>
     private final Map<File, List<String>> classesCache = [:]
 
     @Override
-    DuplicatesExtension verifyExtension( DuplicatesExtension ext, String description ) { ext }
+    void verifyExtension( DuplicatesExtension ext, String description ) {}
 
     @Override
     void taskAction ()
     {
-        final ext = ext()
-
         Map<String, Map<String, List<String>>> violations =
         ( Map ) project.configurations.inject( [:] ) {
             Map m, Configuration c ->
@@ -140,9 +139,13 @@ class DuplicatesTask extends BaseTask<DuplicatesExtension>
         }
         catch ( e )
         {
-            logger.warn( "Unable to read Zip entries of [$file.canonicalPath]", e )
+            log( LogLevel.ERROR, e ){ "Unable to read Zip entries of [$file.canonicalPath]" }
+            []
         }
-        finally { if ( zip ) { zip.close()} }
+        finally
+        {
+            if ( zip ) { zip.close() }
+         }
     }
 
 
@@ -159,7 +162,6 @@ class DuplicatesTask extends BaseTask<DuplicatesExtension>
     @Requires({ violations })
     void reportViolations( Map<String, Map<String, List<String>>> violations )
     {
-        final ext     = ext()
         final message = violations.collect {
             String configurationName, Map<String, List<String>> configurationViolations ->
 
@@ -175,6 +177,6 @@ class DuplicatesTask extends BaseTask<DuplicatesExtension>
         join( '\n' )
 
         if ( ext.fail ) { throw new RuntimeException( message )}
-        else            { logger.error( message )}
+        else            { log( LogLevel.ERROR ){ message }}
     }
 }

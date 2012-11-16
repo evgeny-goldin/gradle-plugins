@@ -32,7 +32,7 @@ class AboutTaskHelper
         this.project = task.project
         this.gradle  = this.project.gradle
         this.rootDir = this.project.rootDir
-        this.ext     = task.ext()
+        this.ext     = task.ext
     }
 
 

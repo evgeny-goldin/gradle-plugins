@@ -34,7 +34,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      * @return {@link CrawlerExtension} instance verified and updated.
      */
     @Override
-    CrawlerExtension verifyExtension( CrawlerExtension ext, String description )
+    void verifyExtension( CrawlerExtension ext, String description )
     {
         assert ext.externalLinkPattern         &&
                ext.absoluteLinkPattern         &&
@@ -74,7 +74,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         }
 
         assert ext.rootLinks && ext.rootLinks.every{ it }
-        ext
     }
 
 
@@ -86,15 +85,14 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     void config( Closure c )
     {
         this.extensionName = this.name
-        this.extension     = project.extensions.create( this.extensionName, CrawlerExtension )
-        c( this.extension )
+        this.ext           = project.extensions.create( this.extensionName, CrawlerExtension )
+        c( this.ext )
     }
 
 
     @Override
     void taskAction ()
     {
-        final ext         = ext()
         this.threadPool   = Executors.newFixedThreadPool( ext.threadPoolSize ) as ThreadPoolExecutor
         this.linksStorage = new LinksStorage( ext )
 
@@ -138,7 +136,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     @Requires({ logLevel && logMessageCallback })
     void crawlerLog ( LogLevel logLevel = LogLevel.INFO, Throwable error = null, Closure logMessageCallback )
     {
-        final  ext     = ext()
         String logText = log( logLevel, error, logMessageCallback )
 
         if ( ext.log )
@@ -164,8 +161,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     void printStartBanner ()
     {
         crawlerLog {
-            final ext  = ext()
-
             final ipAddress     = (( ext.rootUrl ==~ /^\d+\.\d+\.\d+\.\d+$/ ) ? '' : " (${ InetAddress.getByName( ext.rootUrl ).hostAddress })" )
             final bannerMessage = "Checking [$ext.baseUrl]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }"
             final bannerLine    = "-" * ( bannerMessage.size() + 2 )
@@ -190,7 +185,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      */
     void submitRootLinks ()
     {
-        final ext = ext()
         for ( link in linksStorage.addLinksToProcess( ext.rootLinks ).sort())
         {
             final String pageUrl = ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure c -> c( l )}
@@ -204,8 +198,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      */
     void waitForIdleOrVerificationFailure ()
     {
-        final ext = ext()
-
         while ( verificationFlag && futures.any{ ! it.done } )
         {
             sleep( ext.futuresPollingPeriod )
@@ -213,7 +205,9 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
             if ( ext.teamcityMessages )
             {
-                logger.warn( "##teamcity[progressMessage '$linksProcessed link${ s( linksProcessed.get()) } processed, ${ threadPool.queue.size()} queued']" )
+                log( LogLevel.WARN ){
+                    "##teamcity[progressMessage '$linksProcessed link${ s( linksProcessed.get()) } processed, ${ threadPool.queue.size()} queued']"
+                }
             }
         }
 
@@ -230,7 +224,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      */
     void printFinishReport ()
     {
-        final ext            = ext()
         final processedLinks = linksProcessed.get()
         final brokenLinks    = linksStorage.brokenLinksNumber()
         final mbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 * 1024 ))
@@ -271,7 +264,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         {
             final status = ((( ! verificationFlag ) || ( ext.failOnBrokenLinks && brokenLinks )) ? 'FAILURE' : 'SUCCESS' )
             final text   = "$processedLinks link${ s( processedLinks )}, $brokenLinks broken${ verificationFlag ? '' : ', verification failure' }"
-            logger.warn( "##teamcity[buildStatus status='$status' text='$text']" )
+            log( LogLevel.WARN ){ "##teamcity[buildStatus status='$status' text='$text']" }
         }
     }
 
@@ -281,7 +274,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      */
     void writeLinksMapFiles ()
     {
-        final ext   = ext()
         final print = {
             File file, Map<String, List<String>> linksMap, String title ->
 
@@ -309,7 +301,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      */
     void archiveLogFiles()
     {
-        final ext      = ext()
         final logFiles = [ ext.log, ext.linksMapFile, ext.newLinksMapFile ].grep()
 
         if ( ext.zipLogFiles && logFiles )
@@ -324,7 +315,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      */
     void checkIfBuildShouldFail()
     {
-        final ext         = ext()
         final brokenLinks = linksStorage.brokenLinksNumber()
 
         if ( ! verificationFlag )
@@ -370,7 +360,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     {
         if ( ! verificationFlag ) { return }
 
-        final ext = ext()
         assert (( ext.maxDepth < 0 ) || ( pageDepth <= ext.maxDepth ))
         delay  ( ext.requestDelay )
 
@@ -404,7 +393,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             {
                 verificationFlag = false
 
-                logger.error( "! Verification of [$pageUrl] has failed, aborting the crawling process" )
+                log( LogLevel.ERROR ){ "! Verification of [$pageUrl] has failed, aborting the crawling process" }
                 threadPool.shutdownNow()
                 return
             }
@@ -459,7 +448,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         }
         catch ( Throwable error )
         {
-            logger.error( "Error thrown while verifying [$pageUrl]", error )
+            log( LogLevel.ERROR, error ){ "Error thrown while verifying [$pageUrl]" }
             false
         }
     }
@@ -475,7 +464,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     @Ensures({ result != null })
     List<String> readLinks ( String pageUrl, String pageContent )
     {
-        final  ext          = ext()
         String cleanContent = (( String )( ext.pageTransformers ?: [] ).inject( pageContent ){
             String content, Closure transformer -> transformer( pageUrl, content )
         }).replace( '\\', '/' )
@@ -532,7 +520,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     @Ensures({ result != null })
     List<String> filterTransformLinks ( Collection<String> links )
     {
-        final ext = ext()
         links.collect { normalizeUrl( removeAllAfter( '#', it, it )) }.
               toSet().
               findAll { String link -> ( ! ( ext.ignoredLinks ?: [] ).any { it( link ) }) }.
@@ -568,7 +555,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                                 final boolean forceGetRequest,
                                 final int     attempt = 1 )
     {
-        final        ext             = ext()
         InputStream  inputStream     = null
         final        htmlLink        = ( ! pageUrl.toLowerCase().with{ ( ext.nonHtmlExtensions - ext.htmlExtensions ).any{ endsWith( ".$it" ) || contains( ".$it?" ) }} ) &&
                                        ( ! ( ext.nonHtmlLinks ?: [] ).any{ it( pageUrl ) })
@@ -640,7 +626,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     ResponseData handleError ( ResponseData response, Throwable error )
     {
         response.with {
-            final ext             = ext()
             final statusCode      = ( connection ? statusCode ( connection )       : null )
             final statusCodeError = ( statusCode instanceof Throwable ? statusCode : null )
             final isRetryMatch    = ( ext.retryStatusCodes?.any { it == statusCode } ||
@@ -699,7 +684,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
          * Full-blown URL encoding: new URL( pageUrl ).with { new URI( protocol, userInfo, host, port, path, query, ref ).toURL()}
          * It doesn't work with URLs that are already encoded and is slow, so we simply replace ' ' to '+'.
          */
-        final ext                 = ext()
         final connection          = pageUrl.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection
         connection.connectTimeout = ext.connectTimeout
         connection.readTimeout    = ext.readTimeout

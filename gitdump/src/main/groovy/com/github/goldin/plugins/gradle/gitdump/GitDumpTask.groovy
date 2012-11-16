@@ -14,7 +14,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
     @Override
     @Ensures({ result })
-    GitDumpExtension verifyExtension ( GitDumpExtension ext, String description )
+    void verifyExtension ( GitDumpExtension ext, String description )
     {
         assert ext.singleArchiveName,       "'singleArchiveName' should be defined in $description"
         assert ext.gitProjectNamePattern,   "'gitProjectNamePattern' should be defined in $description"
@@ -28,23 +28,16 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
         ext.outputDirectory = makeEmptyDirectory( ext.outputDirectory?: new File( project.buildDir, 'gitdump' ))
         ext.aboutFile       = ( ext.addAbout ? new File( ext.outputDirectory, 'about.txt' ) : null )
-
-        if ( logger.infoEnabled )
-        {
-            logger.info( "Dumping Git repositories $ext.urls to [$ext.outputDirectory.canonicalPath]" )
-        }
-
-        ext
     }
 
 
     @Override
     void taskAction ( )
     {
-        verifyGitIsAvailable()
-        initAboutFile()
+        log { "Dumping Git repositories $ext.urls to [$ext.outputDirectory.canonicalPath]" }
 
-        final ext = ext()
+        verifyGitAvailable()
+        initAboutFile()
 
         for ( repoUrl in ext.urls )
         {
@@ -67,19 +60,10 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     }
 
 
-    void verifyGitIsAvailable ( )
-    {
-        final  gitVersion = gitExec( '--version', project.rootDir, false )
-        assert gitVersion.contains( 'git version' ), \
-               "'git' client is not available - 'git --version' returned [$gitVersion]"
-    }
-
-
     @Requires({ repoUrl && projectName })
     @Ensures({ result.directory })
     File cloneRepository ( String repoUrl, String projectName )
     {
-        final   ext             = ext()
         String  checkoutId      = null
         String  lastCommit      = null
         boolean bareClone       = ext.bareClone
@@ -126,10 +110,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
             assert targetDirectory.list(), "[$targetDirectory.canonicalPath] contains no files"
         }
 
-        if ( logger.infoEnabled )
-        {
-            logger.info( "[$repoUrl${ checkoutId ? ':' + checkoutId : '' }] cloned into [$targetDirectory.canonicalPath]" )
-        }
+        log{ "[$repoUrl${ checkoutId ? ':' + checkoutId : '' }] cloned into [$targetDirectory.canonicalPath]" }
 
         updateAboutFile( projectName, repoUrl, lastCommit )
         targetDirectory
@@ -138,7 +119,6 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
     void initAboutFile ()
     {
-        final ext = ext()
         if ( ext.aboutFile )
         {
             final line = ( '-' * ( startTimeFormatted.length() + 2 ))
@@ -150,7 +130,6 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Requires({ projectName && repoUrl && lastCommit })
     void updateAboutFile ( String projectName, String repoUrl, String lastCommit )
     {
-        final ext = ext()
         if ( ext.aboutFile )
         {
             ext.aboutFile.append( """\n
@@ -165,7 +144,6 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Ensures({ result.file })
     File archive( File directory, String archiveBaseName, boolean deleteDirectory, long maxSizeLimit )
     {
-        final ext     = ext()
         final archive = new File( ext.outputDirectory, "${ archiveBaseName }.${ ext.useZip ? 'zip' : 'tar.gz' }" )
 
         assert (( ! archive.file ) || ( project.delete( archive ) && ( ! archive.file )))
@@ -190,10 +168,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         assert ( size < maxSizeLimit ), \
                "[$archive.canonicalPath] size is [$size] byte${ s( size )}, it is larger than limit of [$maxSizeLimit] byte${ s( maxSizeLimit )}"
 
-        if ( logger.infoEnabled )
-        {
-            logger.info( "[$directory.canonicalPath] archived to [$archive.canonicalPath]" )
-        }
+        log{ "[$directory.canonicalPath] archived to [$archive.canonicalPath]" }
 
         if ( deleteDirectory )
         {

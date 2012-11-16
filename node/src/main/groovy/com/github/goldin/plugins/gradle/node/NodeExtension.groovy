@@ -9,4 +9,6 @@ class NodeExtension
     boolean echoCommands     = true  // Echo all commands executed
     String  NODE_ENV         = 'development'
     String  nodeVersion      = 'latest'
+    String  testCommand      = 'mocha'
+    String  startCommand     = 'forever server.js'
 }

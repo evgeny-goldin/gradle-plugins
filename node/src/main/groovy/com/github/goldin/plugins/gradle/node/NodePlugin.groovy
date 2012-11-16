@@ -10,10 +10,8 @@ import org.gradle.api.Project
  */
 class NodePlugin extends BasePlugin
 {
-    private static final String NODE_TEST_TASK = 'nodeTest'
-
     @Override
-    Map<String , Class<? extends BaseTask>> tasks () {[ (NODE_TEST_TASK) : NodeTestTask ]}
+    Map<String , Class<? extends BaseTask>> tasks () {[ ( NodeConstants.NODE_TEST_TASK ) : NodeTestTask ]}
 
     @Override
     Map<String , Class> extensions() {[ 'node' : NodeExtension ]}
@@ -28,7 +26,7 @@ class NodePlugin extends BasePlugin
 
         if ( tasks.containsKey( 'test' ))
         {
-            tasks[ 'test' ].dependsOn( tasks[ NODE_TEST_TASK ] )
+            tasks[ 'test' ].dependsOn( tasks[ NodeConstants.NODE_TEST_TASK ] )
         }
         else
         {

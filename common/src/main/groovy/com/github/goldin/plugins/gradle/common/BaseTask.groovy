@@ -27,30 +27,28 @@ abstract class BaseTask<T> extends DefaultTask
 
 
     /**
-     * Extension name and instance are set by {@link BasePlugin#apply}
+     * Extension instance and its name are set by {@link BasePlugin#addTask}
      */
-    T      extension
+    T      ext
     String extensionName
 
 
     @TaskAction
-    @Requires({ project && extension && extensionName })
-    @Ensures ({ extension })
+    @Requires({ this.project && this.ext && this.extensionName })
+    @Ensures ({ this.ext })
     final void doTask()
     {
-        this.extension = verifyExtension( extension, "${ extensionName } { .. }" )
+        verifyExtension( ext, "${ this.extensionName } { .. }" )
         taskAction()
     }
 
     @Requires({ extension && description })
     @Ensures({ result })
-    abstract T verifyExtension( T extension, String description )
+    abstract void verifyExtension( T extension, String description )
 
-    @Requires({ extension && extensionName })
+    @Requires({ ext && extensionName })
     abstract void taskAction()
 
-    @Ensures ({ result })
-    final T ext() { this.extension }
 
     @Requires({ c != null })
     @Ensures({ result != null })
@@ -59,6 +57,38 @@ abstract class BaseTask<T> extends DefaultTask
     @Requires({ j > -1 })
     @Ensures({ result != null })
     final String s( Number j ){ j == 1 ? '' : 's' }
+
+
+    /**
+     * Verifies 'git' client is available.
+     */
+    final void verifyGitAvailable ()
+    {
+        final  gitVersion = gitExec( '--version', project.rootDir, false )
+        assert gitVersion.contains( 'git version' ), \
+               "'git' client is not available - 'git --version' returned [$gitVersion]"
+    }
+
+    /**
+     * Exdcutes the script specified as bash command.
+     *
+     * @param bashScriptContent content to run as bash script
+     * @param bashScriptPath    bash script path, temp file is used if {@code null}
+     * @return bash output
+     */
+    @Requires({ bashScriptContent })
+    @Ensures({ result != null })
+    final String bashExec( String bashScriptContent, String bashScriptPath = null )
+    {
+        final bashFile = bashScriptPath ? new File( bashScriptPath ) :
+                                          File.createTempFile( this.class.name, null )
+        assert bashFile.parentFile.with { directory || mkdirs() }
+
+        bashFile.text = bashScriptContent.trim()
+        assert bashFile.with { file && size() }
+
+        exec( 'bash', [ bashFile.canonicalPath ] )
+    }
 
 
    /**
@@ -96,10 +126,7 @@ abstract class BaseTask<T> extends DefaultTask
                        boolean      failOnError = true )
     {
         final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
-        if ( logger.infoEnabled )
-        {
-            logger.info( "Running $commandDescription" )
-        }
+        log{ "Running $commandDescription" }
 
         final outputStream = new ByteArrayOutputStream()
 
@@ -127,13 +154,9 @@ abstract class BaseTask<T> extends DefaultTask
             if ( ! outputStream.toString()) { error.printStackTrace( new PrintStream( outputStream, true )) }
         }
 
-        if ( logger.debugEnabled )
-        {
-            final output = outputStream.toString().trim()
-            if ( output ) { logger.debug( '>> ' + output.readLines().join( '\n>> ' )) }
-        }
-
-        outputStream.toString().trim()
+        final output = outputStream.toString().trim()
+        if ( output ) { log( LogLevel.DEBUG ){ '>> ' + output.readLines().join( '\n>> ' ) }}
+        output
     }
 
 
@@ -341,7 +364,7 @@ abstract class BaseTask<T> extends DefaultTask
      * @param logMessageCallback closure returning message text
      */
     @Requires({ logger && logLevel && logMessageCallback })
-    String log( LogLevel logLevel = LogLevel.INFO, Throwable error = null, Closure logMessageCallback )
+    final String log( LogLevel logLevel = LogLevel.INFO, Throwable error = null, Closure logMessageCallback )
     {
         String logText = null
 
