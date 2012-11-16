@@ -6,7 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ProjectReportsPlugin
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
-import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer
+import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 
 
 /**
@@ -209,13 +209,13 @@ class AboutTaskHelper
         project.plugins.apply( ProjectReportsPlugin )
 
         final reportTask = ( DependencyReportTask ) project.tasks[ ProjectReportsPlugin.DEPENDENCY_REPORT ]
-        final renderer   = new AsciiReportRenderer()
+        final renderer   = asciiReportRenderer()
         final file       = new File( project.buildDir, "${ this.class.name }-dependencies.txt" )
         final line       = '-' * 80
         assert (( ! file.file ) || project.delete( file )), "Unable to delete [$file.canonicalPath]"
 
         renderer.outputFile = file
-        reportTask.renderer       = renderer
+        reportTask.renderer = renderer
         reportTask.generate( project )
 
         assert file.file, "File [$file.canonicalPath] was not created by dependency report"
@@ -226,6 +226,22 @@ class AboutTaskHelper
         report = "$line\n" + report.replaceAll( /(?m)^\s*$/, line ) // Empty lines replaced by $line
         assert project.delete( file ), "Unable to delete [$file.canonicalPath]"
         report
+    }
+
+
+    @Ensures({ result })
+    private DependencyReportRenderer asciiReportRenderer ()
+    {
+        try
+        {   // Gradle 1.2
+            ( DependencyReportRenderer ) this.class.classLoader.loadClass( 'org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer' ).
+            newInstance()
+        }
+        catch ( ClassNotFoundException ignored )
+        {   // Gradle 1.3
+            ( DependencyReportRenderer ) this.class.classLoader.loadClass( 'org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer' ).
+            newInstance()
+        }
     }
 
 
