@@ -15,6 +15,7 @@ ruleset {
         JavaIoPackageAccess      ( enabled : false )
         ThrowRuntimeException    ( enabled : false )
         FactoryMethodName        ( enabled : false )
+        MethodName               ( enabled : false )
 
         VariableName             ( finalRegex          : /\w+/ )
         AbcComplexity            ( maxMethodComplexity : 70  )
