@@ -26,7 +26,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         final ext                 = ext()
         final setupScriptTemplate = this.class.classLoader.getResourceAsStream( 'setup.sh' ).text
         final nodeVersion         = ( ext.nodeVersion == 'latest' ) ? helper.latestNodeVersion() : ext.nodeVersion
-        final setupScript         = setupScriptTemplate.replace( '', nodeVersion ).replace( '', ext.NODE_ENV )
+        final setupScript         = setupScriptTemplate.replace( '${nodeVersion}', nodeVersion  ).
+                                                        replace( '${NODE_ENV}',    ext.NODE_ENV )
+        int j = 5
     }
 
 
