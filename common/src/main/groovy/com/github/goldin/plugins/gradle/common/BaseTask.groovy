@@ -5,6 +5,7 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecSpec
 
@@ -330,4 +331,29 @@ abstract class BaseTask<T> extends DefaultTask
      */
     @Requires({ s && p })
     final String find( String s, Pattern p ){ s.find ( p ) { it[ 1 ] }}
+
+
+    /**
+     * Logs message returned by the closure provided.
+     *
+     * @param logLevel           message log level
+     * @param error              error thrown
+     * @param logMessageCallback closure returning message text
+     */
+    @Requires({ logger && logLevel && logMessageCallback })
+    String log( LogLevel logLevel = LogLevel.INFO, Throwable error = null, Closure logMessageCallback )
+    {
+        String logText = null
+
+        if ( logger.isEnabled( logLevel ))
+        {
+            logText = logMessageCallback()
+            assert logText
+
+            if ( error ) { logger.log( logLevel, logText, error )}
+            else         { logger.log( logLevel, logText )}
+        }
+
+        logText
+    }
 }

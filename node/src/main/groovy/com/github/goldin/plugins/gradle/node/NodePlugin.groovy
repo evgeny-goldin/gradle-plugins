@@ -32,7 +32,7 @@ class NodePlugin extends BasePlugin
         }
         else
         {
-            project.tasks.add( 'test', NodeTestTask )
+            addTask( project, 'test', NodeTestTask )
         }
     }
 }

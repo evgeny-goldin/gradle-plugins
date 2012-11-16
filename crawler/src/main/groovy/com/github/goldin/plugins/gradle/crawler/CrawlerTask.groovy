@@ -30,6 +30,55 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
 
     /**
+     * Verifies {@link CrawlerExtension} contains proper settings and updates it with additional properties.
+     * @return {@link CrawlerExtension} instance verified and updated.
+     */
+    @Override
+    CrawlerExtension verifyExtension( CrawlerExtension ext, String description )
+    {
+        assert ext.externalLinkPattern         &&
+               ext.absoluteLinkPattern         &&
+               ext.relativeLinkPattern         &&
+               ext.relativeLinkReminderPattern &&
+               ext.htmlCommentPattern          &&
+               ext.slashesPattern
+
+        assert ( ! ext.rootUrl             ), "'rootUrl' should not be used in $description - private area"
+        assert ( ! ext.internalLinkPattern ), "'internalLinkPattern' should not be used in $description - private area"
+
+        ext.baseUrl             = ext.baseUrl?.trim()?.replace( '\\', '/' )?.replaceAll( '^.+?:/+', '' ) // Protocol part removed
+        ext.rootUrl             = ext.baseUrl?.replaceAll( '/.*', '' )                                   // Path part removed
+        ext.internalLinkPattern = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
+
+        assert ext.baseUrl, "'baseUrl' should be defined in $description"
+        assert ext.rootUrl && ( ! ext.rootUrl.endsWith( '/' )) && ext.internalLinkPattern
+
+        assert ext.userAgent,                 "'userAgent' should be defined in $description"
+        assert ext.threadPoolSize       >  0, "'threadPoolSize' [${ ext.threadPoolSize }] in $description should be positive"
+        assert ext.connectTimeout       >  0, "'connectTimeout' [${ ext.connectTimeout }] in $description should be positive"
+        assert ext.readTimeout          >  0, "'readTimeout' [${ ext.readTimeout }] in $description should be positive"
+        assert ext.checksumsChunkSize   >  0, "'checksumsChunkSize' [${ ext.checksumsChunkSize }] in $description should be positive"
+        assert ext.futuresPollingPeriod >  0, "'futuresPollingPeriod' [${ ext.futuresPollingPeriod }] in $description should be positive"
+        assert ext.retries              > -1, "'retries' [${ ext.retries }] in $description should not be negative"
+        assert ext.retryDelay           > -1, "'retryDelay' [${ ext.retryDelay }] in $description should not be negative"
+        assert ext.requestDelay         > -1, "'requestDelay' [${ ext.requestDelay }] in $description should not be negative"
+
+        assert ext.retryStatusCodes.every { it }, "'retryStatusCodes' should not contain nulls in $description"
+        assert ext.retryExceptions. every { it }, "'retryExceptions' should not contain nulls in $description"
+
+        ext.rootLinks = ( ext.rootLinks?.grep()?.toSet() ?: [ "http://$ext.baseUrl" ]).collect {
+            String rootLink ->
+            final isGoodEnough = rootLink && rootLink.with { startsWith( 'http://' ) || startsWith( 'https://' )}
+            final noSlash      = (( ! rootLink ) || ext.baseUrl.endsWith( '/' ) || rootLink.startsWith( '/' ))
+            isGoodEnough ? rootLink : "http://${ ext.baseUrl }${ noSlash ? '' : '/' }${ rootLink ?: '' }"
+        }
+
+        assert ext.rootLinks && ext.rootLinks.every{ it }
+        ext
+    }
+
+
+    /**
      * Passes a new extensions object to the closure specified.
      * Registers new extension under task's name.
      */
@@ -87,19 +136,10 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      * @param logMessageCallback closure returning message text
      */
     @Requires({ logLevel && logMessageCallback })
-    void log( LogLevel logLevel = LogLevel.INFO, Throwable error = null, Closure logMessageCallback )
+    void crawlerLog ( LogLevel logLevel = LogLevel.INFO, Throwable error = null, Closure logMessageCallback )
     {
         final  ext     = ext()
-        String logText = null
-
-        if ( logger.isEnabled( logLevel ))
-        {
-            logText = logMessageCallback()
-            assert logText
-
-            if ( error ) { logger.log( logLevel, logText, error )}
-            else         { logger.log( logLevel, logText )}
-        }
+        String logText = log( logLevel, error, logMessageCallback )
 
         if ( ext.log )
         {
@@ -117,61 +157,13 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         }
     }
 
-    /**
-     * Verifies {@link CrawlerExtension} contains proper settings and updates it with additional properties.
-     * @return {@link CrawlerExtension} instance verified and updated.
-     */
-    @Override
-    CrawlerExtension verifyExtension( CrawlerExtension ext, String description )
-    {
-        assert ext.externalLinkPattern         &&
-               ext.absoluteLinkPattern         &&
-               ext.relativeLinkPattern         &&
-               ext.relativeLinkReminderPattern &&
-               ext.htmlCommentPattern          &&
-               ext.slashesPattern
-
-        assert ( ! ext.rootUrl             ), "'rootUrl' should not be used in $description - private area"
-        assert ( ! ext.internalLinkPattern ), "'internalLinkPattern' should not be used in $description - private area"
-
-        ext.baseUrl             = ext.baseUrl?.trim()?.replace( '\\', '/' )?.replaceAll( '^.+?:/+', '' ) // Protocol part removed
-        ext.rootUrl             = ext.baseUrl?.replaceAll( '/.*', '' )                                   // Path part removed
-        ext.internalLinkPattern = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
-
-        assert ext.baseUrl, "'baseUrl' should be defined in $description"
-        assert ext.rootUrl && ( ! ext.rootUrl.endsWith( '/' )) && ext.internalLinkPattern
-
-        assert ext.userAgent,                 "'userAgent' should be defined in $description"
-        assert ext.threadPoolSize       >  0, "'threadPoolSize' [${ ext.threadPoolSize }] in $description should be positive"
-        assert ext.connectTimeout       >  0, "'connectTimeout' [${ ext.connectTimeout }] in $description should be positive"
-        assert ext.readTimeout          >  0, "'readTimeout' [${ ext.readTimeout }] in $description should be positive"
-        assert ext.checksumsChunkSize   >  0, "'checksumsChunkSize' [${ ext.checksumsChunkSize }] in $description should be positive"
-        assert ext.futuresPollingPeriod >  0, "'futuresPollingPeriod' [${ ext.futuresPollingPeriod }] in $description should be positive"
-        assert ext.retries              > -1, "'retries' [${ ext.retries }] in $description should not be negative"
-        assert ext.retryDelay           > -1, "'retryDelay' [${ ext.retryDelay }] in $description should not be negative"
-        assert ext.requestDelay         > -1, "'requestDelay' [${ ext.requestDelay }] in $description should not be negative"
-
-        assert ext.retryStatusCodes.every { it }, "'retryStatusCodes' should not contain nulls in $description"
-        assert ext.retryExceptions. every { it }, "'retryExceptions' should not contain nulls in $description"
-
-        ext.rootLinks = ( ext.rootLinks?.grep()?.toSet() ?: [ "http://$ext.baseUrl" ]).collect {
-            String rootLink ->
-            final isGoodEnough = rootLink && rootLink.with { startsWith( 'http://' ) || startsWith( 'https://' )}
-            final noSlash      = (( ! rootLink ) || ext.baseUrl.endsWith( '/' ) || rootLink.startsWith( '/' ))
-            isGoodEnough ? rootLink : "http://${ ext.baseUrl }${ noSlash ? '' : '/' }${ rootLink ?: '' }"
-        }
-
-        assert ext.rootLinks && ext.rootLinks.every{ it }
-        ext
-    }
-
 
     /**
      * Prints startup banner.
      */
     void printStartBanner ()
     {
-        log {
+        crawlerLog {
             final ext  = ext()
 
             final ipAddress     = (( ext.rootUrl ==~ /^\d+\.\d+\.\d+\.\d+$/ ) ? '' : " (${ InetAddress.getByName( ext.rootUrl ).hostAddress })" )
@@ -273,7 +265,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         }
 
         final logLevel = ( brokenLinks ? LogLevel.ERROR : ext.printSummary ? LogLevel.WARN : LogLevel.INFO )
-        log( logLevel ){ message.toString() }
+        crawlerLog( logLevel ){ message.toString() }
 
         if ( ext.teamcityMessages )
         {
@@ -302,7 +294,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             file.write( linksMapReport, 'UTF-8' )
             if ( linksMap ){ assert file.size()}
 
-            log {
+            crawlerLog {
                 "$title is written to [${ file.canonicalPath }], [${ linksMap.size() }] entr${ linksMap.size() == 1 ? 'y' : 'ies' }"
             }
         }
@@ -429,7 +421,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             if ( ext.linksMapFile    && pageLinks ) { linksStorage.updateLinksMap   ( pageUrl, pageLinks )}
             if ( ext.newLinksMapFile && newLinks  ) { linksStorage.updateNewLinksMap( pageUrl, newLinks  )}
 
-            log {
+            crawlerLog {
                 final linksMessage    = pageLinks ? ", ${ newLinks.size() } new"     : ''
                 final newLinksMessage = newLinks  ? ": ${ toMultiLines( newLinks )}" : ''
 
@@ -445,7 +437,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         }
         catch( Throwable error )
         {
-            log( LogLevel.ERROR, error ){ "Unexpected error while reading [$pageUrl], referrer [$referrerUrl]" }
+            crawlerLog( LogLevel.ERROR, error ){ "Unexpected error while reading [$pageUrl], referrer [$referrerUrl]" }
         }
     }
 
@@ -588,7 +580,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         try
         {
-            log{ "[$pageUrl] - sending $requestMethod request .." }
+            crawlerLog{ "[$pageUrl] - sending $requestMethod request .." }
 
             final t             = System.currentTimeMillis()
             response.connection = openConnection( pageUrl , requestMethod )
@@ -606,7 +598,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
                 bytesDownloaded.addAndGet( responseSize )
 
-                log {
+                crawlerLog {
                     "[$pageUrl] - [$responseSize${ ( responseSize != contentSize ) ? ' => ' + contentSize : '' }] " +
                     "byte${ s( Math.max( responseSize, contentSize )) }, [${ System.currentTimeMillis() - t }] ms"
                 }
@@ -616,7 +608,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                 response.data = []
                 bytesDownloaded.addAndGet(( isRedirect || ( inputStream.read() == -1 )) ? 0 : 1 )
 
-                log {
+                crawlerLog {
                     "[$pageUrl] - " +
                     ( isRedirect ? "redirected to [$response.actualUrl], " : 'can be read, ' ) +
                     "[${ System.currentTimeMillis() - t }] ms"
@@ -660,7 +652,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             if ( isRetry )
             {
                 assert ( isHeadRequest || isAttempt )
-                log { "$logMessage, ${ isHeadRequest ? 'will be retried as GET request' : 'attempt ' + attempt }" }
+                crawlerLog { "$logMessage, ${ isHeadRequest ? 'will be retried as GET request' : 'attempt ' + attempt }" }
 
                 delay( ext.retryDelay )
                 readResponse( actualUrl, referrer, referrerContent, true, isHeadRequest ? 1 : attempt + 1 )
@@ -671,11 +663,11 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
                 if (( ext.ignoredBrokenLinks ?: [] ).any{ it ( actualUrl )})
                 {
-                    log{ "$logMessage, not registered as broken link - filtered out by ignoredBrokenLinks" }
+                    crawlerLog{ "$logMessage, not registered as broken link - filtered out by ignoredBrokenLinks" }
                 }
                 else
                 {
-                    log{ "$logMessage, registered as broken link" }
+                    crawlerLog{ "$logMessage, registered as broken link" }
                     linksStorage.addBrokenLink( originalUrl, referrer )
                 }
 

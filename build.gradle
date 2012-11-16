@@ -16,7 +16,7 @@ ext.codenarcSources      = project.subprojects.collect{[ "${ it.projectDir.name 
 apply from: 'file:codenarc/CodeNarc.gradle'
 
 
-println ">> Running Gradle [${ project.gradle.gradleVersion }], Groovy [${ GroovySystem.version }], Java [${ System.getProperty( 'java.version' ) }]"
+println "> Running Gradle [${ project.gradle.gradleVersion }], Groovy [${ GroovySystem.version }], Java [${ System.getProperty( 'java.version' ) }]"
 
 
 buildscript {

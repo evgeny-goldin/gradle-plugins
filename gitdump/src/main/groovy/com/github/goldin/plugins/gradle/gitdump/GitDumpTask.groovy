@@ -13,6 +13,32 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     private getLastCommit( File projectDirectory ){ gitExec( 'log -1 --format=format:%H', projectDirectory ) }
 
     @Override
+    @Ensures({ result })
+    GitDumpExtension verifyExtension ( GitDumpExtension ext, String description )
+    {
+        assert ext.singleArchiveName,       "'singleArchiveName' should be defined in $description"
+        assert ext.gitProjectNamePattern,   "'gitProjectNamePattern' should be defined in $description"
+        assert ext.gitUrlWithCommitPattern, "'gitUrlWithCommitPattern' should be defined in $description"
+        assert ext.singleBackupMaxSize > 0, "'singleBackupMaxSize' should be positive in $description"
+        assert ext.totalBackupMaxSize  > 0, "'totalBackupMaxSize' should be positive in $description"
+
+        ext.urls = ext.urls?.grep()?.toSet()?.sort()
+        assert ext.urls, "List of Git URLs should be specifed in $description"
+        ext.urls.each { assert ( it =~ ext.gitProjectNamePattern ), "[$it] is not a Git repository URL, doesn't match [$ext.gitProjectNamePattern]" }
+
+        ext.outputDirectory = makeEmptyDirectory( ext.outputDirectory?: new File( project.buildDir, 'gitdump' ))
+        ext.aboutFile       = ( ext.addAbout ? new File( ext.outputDirectory, 'about.txt' ) : null )
+
+        if ( logger.infoEnabled )
+        {
+            logger.info( "Dumping Git repositories $ext.urls to [$ext.outputDirectory.canonicalPath]" )
+        }
+
+        ext
+    }
+
+
+    @Override
     void taskAction ( )
     {
         verifyGitIsAvailable()
@@ -40,31 +66,6 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         }
     }
 
-
-    @Override
-    @Ensures({ result })
-    GitDumpExtension verifyExtension ( GitDumpExtension ext, String description )
-    {
-        assert ext.singleArchiveName,       "'singleArchiveName' should be defined in $description"
-        assert ext.gitProjectNamePattern,   "'gitProjectNamePattern' should be defined in $description"
-        assert ext.gitUrlWithCommitPattern, "'gitUrlWithCommitPattern' should be defined in $description"
-        assert ext.singleBackupMaxSize > 0, "'singleBackupMaxSize' should be positive in $description"
-        assert ext.totalBackupMaxSize  > 0, "'totalBackupMaxSize' should be positive in $description"
-
-        ext.urls = ext.urls?.grep()?.toSet()?.sort()
-        assert ext.urls, "List of Git URLs should be specifed in $description"
-        ext.urls.each { assert ( it =~ ext.gitProjectNamePattern ), "[$it] is not a Git repository URL, doesn't match [$ext.gitProjectNamePattern]" }
-
-        ext.outputDirectory = makeEmptyDirectory( ext.outputDirectory?: new File( project.buildDir, 'gitdump' ))
-        ext.aboutFile       = ( ext.addAbout ? new File( ext.outputDirectory, 'about.txt' ) : null )
-
-        if ( logger.infoEnabled )
-        {
-            logger.info( "Dumping Git repositories $ext.urls to [$ext.outputDirectory.canonicalPath]" )
-        }
-
-        ext
-    }
 
     void verifyGitIsAvailable ( )
     {

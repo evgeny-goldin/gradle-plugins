@@ -21,29 +21,36 @@ abstract class BasePlugin implements Plugin<Project>
     @Override
     void apply ( Project project )
     {
-        final extensions = extensions()
-        final tasks      = tasks()
-
-        final extensionName  = extensions.keySet().toList().first()
-        final extensionClass = extensions[ extensionName ]
-        final extension      = project.extensions.create( extensionName, extensionClass )
-
-        assert extensionName && extensionClass && extension
+        final tasks = tasks()
 
         for ( String taskName in tasks.keySet())
         {
-            final task         = project.tasks.add( taskName, tasks[ taskName ] )
-            task.extension     = extension
-            task.extensionName = extensionName
-
-            assert task && task.extension && task.extensionName
+            addTask( project, taskName, tasks[ taskName ] )
         }
 
         if ( project.logger.infoEnabled )
         {
-            project.logger.info( "Plugin [${ this.class.name }] is applied, " +
-                                 "added task${ tasks.size() == 1 ? '' : 's' } '${ tasks.keySet().sort().join( '\', \'' )}', " +
-                                 "added extension ${ extensionName }{ .. }" )
+            project.logger.info(
+                "Plugin [${ this.class.name }] is applied, " +
+                "added task${ tasks.size() == 1 ? '' : 's' } '${ tasks.keySet().sort().join( '\', \'' )}'." )
         }
+    }
+
+
+    @Requires({ project && taskName })
+    void addTask( Project project, String taskName, Class<? extends BaseTask> taskClass )
+    {
+        final  extensions     = extensions()
+        final  extensionName  = extensions.keySet().toList().first()
+        final  extensionClass = extensions[ extensionName ]
+        assert extensionName && extensionClass
+
+        final extension    = project.extensions.findByName( extensionName ) ?:
+                             project.extensions.create    ( extensionName, extensionClass )
+        final task         = project.tasks.add( taskName, taskClass )
+        task.extension     = extension
+        task.extensionName = extensionName
+
+        assert extension && task && task.extension && task.extensionName
     }
 }
