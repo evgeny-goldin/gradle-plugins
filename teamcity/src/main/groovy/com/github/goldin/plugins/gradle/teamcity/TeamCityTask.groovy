@@ -20,7 +20,7 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
     private static final String BSR = 'buildServerResources'
 
     @Override
-    void verifyExtension ( TeamCityExtension ext, String description ){}
+    void verifyExtension ( String description ){}
 
     /**
      * Archive created

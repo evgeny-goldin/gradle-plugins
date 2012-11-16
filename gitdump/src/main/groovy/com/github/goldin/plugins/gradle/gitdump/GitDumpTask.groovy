@@ -13,8 +13,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     private getLastCommit( File projectDirectory ){ gitExec( 'log -1 --format=format:%H', projectDirectory ) }
 
     @Override
-    @Ensures({ result })
-    void verifyExtension ( GitDumpExtension ext, String description )
+    void verifyExtension ( String description )
     {
         assert ext.singleArchiveName,       "'singleArchiveName' should be defined in $description"
         assert ext.gitProjectNamePattern,   "'gitProjectNamePattern' should be defined in $description"

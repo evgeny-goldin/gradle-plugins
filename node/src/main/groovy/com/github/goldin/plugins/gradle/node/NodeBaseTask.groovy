@@ -13,10 +13,12 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     @Override
-    void verifyExtension( NodeExtension ext, String description )
+    void verifyExtension( String description )
     {
-        assert ext.nodeVersion, "'nodeVersion' should be defined in $description"
-        assert ext.NODE_ENV,    "'NODE_ENV' should be defined in $description"
+        assert ext.nodeVersion,  "'nodeVersion' should be defined in $description"
+        assert ext.NODE_ENV,     "'NODE_ENV' should be defined in $description"
+        assert ext.testCommand,  "'testCommand' should be defined in $description"
+        assert ext.startCommand, "'startCommand' should be defined in $description"
     }
 
 
