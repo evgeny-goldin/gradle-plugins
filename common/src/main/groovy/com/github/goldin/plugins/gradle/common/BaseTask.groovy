@@ -28,23 +28,24 @@ abstract class BaseTask<T> extends DefaultTask
     /**
      * Extension name and instance are set by {@link BasePlugin#apply}
      */
-    String extensionName
     T      extension
+    String extensionName
 
-    @Requires({ extension && this.extensionName })
-    @Ensures({ this.extension })
-    void setExtension ( T extension ){ this.extension = verifyExtension( extension, "${ this.extensionName } { .. }" )}
+
+    @TaskAction
+    @Requires({ project && extension && extensionName })
+    @Ensures ({ extension })
+    final void doTask()
+    {
+        this.extension = verifyExtension( extension, "${ extensionName } { .. }" )
+        taskAction()
+    }
 
     @Requires({ extension && description })
     @Ensures({ result })
     abstract T verifyExtension( T extension, String description )
 
-
-    @TaskAction
-    @Requires({ this.project })
-    final void doTask() { taskAction() }
-
-    @Requires({ this.extensionName && this.extension })
+    @Requires({ extension && extensionName })
     abstract void taskAction()
 
     @Ensures ({ result })

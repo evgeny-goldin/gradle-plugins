@@ -33,10 +33,10 @@ abstract class BasePlugin implements Plugin<Project>
         for ( String taskName in tasks.keySet())
         {
             final task         = project.tasks.add( taskName, tasks[ taskName ] )
-            task.extensionName = extensionName
             task.extension     = extension
+            task.extensionName = extensionName
 
-            assert task && task.extensionName && task.extension
+            assert task && task.extension && task.extensionName
         }
 
         if ( project.logger.infoEnabled )
