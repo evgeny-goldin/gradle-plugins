@@ -24,11 +24,10 @@ class TeamCityPlugin extends BasePlugin
     {
         super.apply( project )
 
-        final assemblePluginTask = project.tasks.getByName( tasks().keySet().toList().first())
-        final tasks              = project.tasks.asMap
-        final jarTask            = tasks[ 'jar'   ]
-        final testTask           = tasks[ 'test'  ]
-        final buildTask          = tasks[ 'build' ]
+        final assemblePluginTask = project.tasks[ tasks().keySet().toList().first() ]
+        final jarTask            = project.tasks.findByName( 'jar' )
+        final testTask           = project.tasks.findByName( 'test' )
+        final buildTask          = project.tasks.findByName( 'build' )
 
         if ( jarTask   ) { assemblePluginTask.dependsOn( jarTask.name   )}
         if ( testTask  ) { assemblePluginTask.dependsOn( testTask.name  )}

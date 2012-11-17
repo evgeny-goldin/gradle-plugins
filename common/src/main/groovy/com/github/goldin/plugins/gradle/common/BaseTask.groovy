@@ -76,7 +76,9 @@ abstract class BaseTask<T> extends DefaultTask
      */
     @Requires({ bashScriptContent })
     @Ensures({ result != null })
-    final String bashExec( String bashScriptContent, String bashScriptPath = null )
+    final String bashExec( String  bashScriptContent,
+                           String  bashScriptPath = null,
+                           boolean failOnError    = true )
     {
         final bashFile = bashScriptPath ? new File( bashScriptPath ) :
                                           File.createTempFile( this.class.name, null )
@@ -85,7 +87,7 @@ abstract class BaseTask<T> extends DefaultTask
         bashFile.text = bashScriptContent.trim()
         assert bashFile.with { file && size() }
 
-        exec( 'bash', [ bashFile.canonicalPath ] )
+        exec( 'bash', [ bashFile.canonicalPath ], null, failOnError )
     }
 
 

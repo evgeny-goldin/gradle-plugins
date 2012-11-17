@@ -22,11 +22,11 @@ class NodePlugin extends BasePlugin
     {
         super.apply( project )
 
-        final tasks = project.tasks.asMap
+        final testTask = project.tasks.findByName( 'test' )
 
-        if ( tasks.containsKey( 'test' ))
+        if ( testTask )
         {
-            tasks[ 'test' ].dependsOn( tasks[ NodeConstants.NODE_TEST_TASK ] )
+            testTask.dependsOn( project.tasks[ NodeConstants.NODE_TEST_TASK ] )
         }
         else
         {

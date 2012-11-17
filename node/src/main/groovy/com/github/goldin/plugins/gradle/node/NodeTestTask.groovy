@@ -26,7 +26,7 @@ export PATH=$binFolder:\$PATH
 echo "Running '$ext.testCommand'"
 $ext.testCommand${ isMocha ? ' -R xunit' : '' }
 """
-        String testOutput = bashExec( testScript, "$project.buildDir/${ NodeConstants.TEST_SCRIPT }" )
+        String testOutput = bashExec( testScript, "$project.buildDir/${ NodeConstants.TEST_SCRIPT }", false )
 
         if ( isMocha )
         {
@@ -35,17 +35,16 @@ $ext.testCommand${ isMocha ? ' -R xunit' : '' }
             testOutput = testOutput.substring( testSuiteStart )
         }
 
-        new File( "${ testResultsDir().canonicalPath }/TEST-${ project.group }-${ project.name }.xml" )
-
-
+        new File( "${ testResultsDir().canonicalPath }/mocha-report.xml" ).
+        write( testOutput, 'UTF-8' )
     }
 
 
     @Ensures({ result.directory })
     File testResultsDir()
     {
-        final Test testTask       = ( Test ) project.tasks.asMap[ 'test' ]
-        final File testResultsDir = testTask?.testResultsDir ?: new File( 'build/test-results' )
+        final testTask            = project.tasks.findByName( 'test' )
+        final File testResultsDir = ( testTask instanceof Test ) ? (( Test ) testTask ).testResultsDir : new File( 'build/test-results' )
         assert testResultsDir.with { directory || mkdirs() }
         testResultsDir
     }
