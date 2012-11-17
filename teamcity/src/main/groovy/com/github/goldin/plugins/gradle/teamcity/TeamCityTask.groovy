@@ -20,7 +20,17 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
     private static final String BSR = 'buildServerResources'
 
     @Override
-    void verifyExtension ( String description ){}
+    void verifyExtension ( String description )
+    {
+        ext.name   ( ext.name    ?: project.name )
+        ext.version( ext.version ?: project.version.toString())
+
+        assert ext.name,        "$project - ${ this.extensionName }{ name        '..' } is not specified"
+        assert ext.displayName, "$project - ${ this.extensionName }{ displayName '..' } is not specified"
+        assert ext.version,     "$project - ${ this.extensionName }{ version     '..' } is not specified"
+        assert ext.vendorName,  "$project - ${ this.extensionName }{ vendorName  '..' } is not specified"
+        assert ext.description, "$project - ${ this.extensionName }{ description '..' } is not specified"
+    }
 
     /**
      * Archive created
@@ -57,25 +67,6 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
             (( DefaultArtifactHandler ) project.artifacts ).pushArtifact( configuration, archive, null )
             log{ "Plugin archive added as $configuration artifact" }
         }
-    }
-
-
-    /**
-     * Validates {@link TeamCityExtension} instance initiated by Gradle.
-     * @return {@link TeamCityExtension} instance initiated by Gradle.
-     */
-    private TeamCityExtension validateExtension()
-    {
-        ext.name   ( ext.name    ?: project.name )
-        ext.version( ext.version ?: project.version.toString())
-
-        assert ext.name,        "$project - ${ this.extensionName }{ name        '..' } is not specified"
-        assert ext.displayName, "$project - ${ this.extensionName }{ displayName '..' } is not specified"
-        assert ext.version,     "$project - ${ this.extensionName }{ version     '..' } is not specified"
-        assert ext.vendorName,  "$project - ${ this.extensionName }{ vendorName  '..' } is not specified"
-        assert ext.description, "$project - ${ this.extensionName }{ description '..' } is not specified"
-
-        ext
     }
 
 
