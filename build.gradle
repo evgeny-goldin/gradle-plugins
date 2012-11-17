@@ -20,9 +20,11 @@ println "> Running Gradle [${ project.gradle.gradleVersion }], Groovy [${ Groovy
 
 
 buildscript {
-    repositories { mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
-    dependencies { classpath      "com.github.goldin.plugins.gradle:about:0.2-beta-4",
-                                  "com.github.goldin.plugins.gradle:duplicates:0.2-beta-4" }
+    repositories { maven { url 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }}
+    dependencies {
+        classpath 'com.github.goldin.plugins.gradle:about:0.2-beta-4',
+                  'com.github.goldin.plugins.gradle:duplicates:0.2-beta-4'
+    }
 }
 
 

@@ -205,9 +205,9 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
             if ( ext.teamcityMessages )
             {
-                log( LogLevel.WARN ){
-                    "##teamcity[progressMessage '$linksProcessed link${ s( linksProcessed.get()) } processed, ${ threadPool.queue.size()} queued']"
-                }
+                final processed = linksProcessed.get()
+                final queued    = threadPool.queue.size()
+                logger.warn( "##teamcity[progressMessage '$processed link${ s( processed ) } processed, $queued queued']" )
             }
         }
 
