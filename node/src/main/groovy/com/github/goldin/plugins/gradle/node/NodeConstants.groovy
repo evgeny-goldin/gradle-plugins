@@ -6,6 +6,7 @@ import java.util.regex.Pattern
 /**
  * Various constants
  */
+@SuppressWarnings([ 'PropertyName' ])
 class NodeConstants
 {
     final static String SETUP_SCRIPT     = 'setup-node.sh'
