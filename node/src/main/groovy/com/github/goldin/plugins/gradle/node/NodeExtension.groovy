@@ -5,18 +5,18 @@ package com.github.goldin.plugins.gradle.node
 class NodeExtension
 {
     List<String> cleanWorkspaceCommands = [ 'git checkout -f', 'git clean -dff' ]
-    boolean      cleanWorkspace         = false // Whether to run cleanWorkspaceCommands before running other tasks
-    boolean      cleanNodeModules       = false // Whether to remove "./node_modules" before running other tasks
+    boolean      cleanWorkspace         = false // Whether to run cleanWorkspaceCommands before running tasks
+    boolean      cleanNodeModules       = false // Whether to remove "./node_modules" before running tasks
     boolean      failOnTestFailures     = true  // Whether to fail execution if tests fail
 
     boolean      echoCommands           = true  // Echo all commands executed
-    boolean      echoOutput             = false // Echo all bash output to the build log, Maven-like
-    boolean      teamCityTests          = false // Whether test results should be displayed using TeamCity service messages (when job is run by TeamCity)
+    boolean      echoOutput             = false // Echo all scripts output to the build log, Maven-like
+    boolean      teamCityTests          = false // Whether test results should be written to log as TeamCity service messages
 
     String  NODE_ENV     = 'development'
     String  nodeVersion  = 'latest'
     String  testCommand  = 'mocha'
-    String  startCommand = 'forever server.js'
+    String  startCommand = 'forever start server.js'
 
     Map<String, Map<String, Object>> configs             = [:]
     String                           configsKeyDelimiter = '.'

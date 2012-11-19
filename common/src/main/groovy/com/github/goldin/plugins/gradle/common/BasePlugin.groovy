@@ -37,7 +37,7 @@ abstract class BasePlugin implements Plugin<Project>
     }
 
 
-    @Requires({ project && taskName })
+    @Requires({ project && taskName && taskClass })
     void addTask( Project project, String taskName, Class<? extends BaseTask> taskClass )
     {
         final  extensions     = extensions()

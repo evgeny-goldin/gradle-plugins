@@ -11,8 +11,8 @@ import org.gradle.api.Project
 class NodePlugin extends BasePlugin
 {
     @Override
-    Map<String , Class<? extends BaseTask>> tasks () {[ ( NodeConstants.NODE_TEST_TASK ) : NodeTestTask ]}
-
+    Map<String , Class<? extends BaseTask>> tasks () {[ ( NodeConstants.NODE_TEST_TASK  ) : NodeTestTask,
+                                                        ( NodeConstants.NODE_START_TASK ) : NodeStartTask ]}
     @Override
     Map<String , Class> extensions() {[ 'node' : NodeExtension ]}
 

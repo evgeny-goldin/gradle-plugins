@@ -17,7 +17,7 @@ class NodeTestTask extends NodeBaseTask
     @Override
     void nodeTaskAction()
     {
-        final testReport     = bashExec( testScript(), "$project.buildDir/$TEST_SCRIPT", false )
+        final testReport     = bashExec( testScript(), scriptPath( TEST_SCRIPT ), false )
         final teamCityReport = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity' )}
 
         writeXUnitReport( teamCityReport, new File( "${ testResultsDir().canonicalPath }/TEST-node.xml" ))
@@ -27,16 +27,11 @@ class NodeTestTask extends NodeBaseTask
     @Ensures({ result })
     private String testScript()
     {
-        final binFolder = new File( NODE_MODULES_BIN )
-        assert binFolder.directory, "[$binFolder] not found"
-
         final  isMocha  = ext.testCommand.startsWith( 'mocha' )
         assert isMocha, "Only 'mocha' test runner is currently supported"
 
-        """#!/bin/bash
-
-        source \${0%/*}/$SETUP_SCRIPT
-        export PATH=$binFolder:\$PATH
+        """
+        ${ bashScript()}
 
         echo "Running '$ext.testCommand'"
         $ext.testCommand${ isMocha ? ' -R teamcity' : '' }""".stripIndent()

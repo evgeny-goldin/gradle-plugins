@@ -29,16 +29,28 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
-     * Passes a new extensions object to the closure specified.
-     * Registers new extension under task's name.
+     * Retrieves initial part of the bash script to be used by various tasks.
      */
-    @Requires({ c })
-    void config( Closure c )
+    final String bashScript()
     {
-        this.extensionName = this.name
-        this.ext           = project.extensions.create( this.extensionName, NodeExtension )
-        c( this.ext )
+        final setupScript = new File( scriptPath( SETUP_SCRIPT ))
+        assert setupScript.file, "[$setupScript] not found"
+
+        final binFolder = new File( NODE_MODULES_BIN )
+        assert binFolder.directory, "[$binFolder] not found"
+
+        """#!/bin/bash
+
+        source $setupScript.canonicalPath
+        export PATH=$binFolder:\$PATH
+
+        """.stripIndent()
     }
+
+
+    @Requires({ scriptName })
+    @Ensures ({ result })
+    final String scriptPath( String scriptName ) { "$project.buildDir/$scriptName" }
 
 
     abstract void nodeTaskAction()
@@ -52,6 +64,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         cleanNodeModules()
         updateConfigs()
         setupNode()
+
         nodeTaskAction()
     }
 
@@ -123,10 +136,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         }
 
         assert ( ! key.startsWith( delimiter )), \
-               "Config key [$key] should not start with delimiter [$delimiter]"
+               "Config key \"$key\" should not start with delimiter \"$delimiter\""
 
         assert ( ! key.endsWith( delimiter )), \
-               "Config key [$key] should not end with delimiter [$delimiter]"
+               "Config key \"$key\" should not end with delimiter \"$delimiter\""
 
         final  delimiterIndex = key.indexOf( delimiter )
         assert ( delimiterIndex > 0 ) && ( delimiterIndex < key.length() - delimiter.length())
@@ -157,6 +170,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         final setupScript         = setupScriptTemplate.replace( '${nodeVersion}', nodeVersion  ).
                                                         replace( '${NODE_ENV}',    ext.NODE_ENV )
 
-        bashExec( setupScript, "$project.buildDir/$SETUP_SCRIPT" )
+        bashExec( setupScript, scriptPath( SETUP_SCRIPT ))
     }
 }
