@@ -82,9 +82,10 @@ abstract class BaseTask<T> extends DefaultTask
     {
         final bashFile = bashScriptPath ? new File( bashScriptPath ) :
                                           File.createTempFile( this.class.name, null )
-        assert bashFile.parentFile.with { directory || mkdirs() }
+        assert bashFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$bashFile.parentFile.canonicalPath]"
+        assert bashFile.with            { ( ! file ) || project.delete( delegate ) }, "Failed to delete [$bashFile.canonicalPath]"
 
-        bashFile.text = bashScriptContent.trim()
+        bashFile.write( bashScriptContent.trim(), 'UTF-8' )
         assert bashFile.with { file && size() }
 
         exec( 'bash', [ bashFile.canonicalPath ], null, failOnError )
@@ -342,7 +343,7 @@ abstract class BaseTask<T> extends DefaultTask
 
 
     /**
-     * Retrieves all appearances of the first capturing group of the pattern specified in a String.
+     * Retrieves all appearances of the first capturing group of the pattern specified in a String or empty list if not found.
      */
     @Requires({ s && p })
     @Ensures({ result != null })
@@ -350,7 +351,7 @@ abstract class BaseTask<T> extends DefaultTask
 
 
     /**
-     * Retrieves first appearance of the first capturing group of the pattern specified in a String.
+     * Retrieves first appearance of the first capturing group of the pattern specified in a String or null if not found.
      */
     @Requires({ s && p })
     final String find( String s, Pattern p ){ s.find ( p ) { it[ 1 ] }}
