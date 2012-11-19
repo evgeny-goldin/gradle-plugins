@@ -1,8 +1,7 @@
-package com.github.goldin.plugins.gradle.node
-
-import org.gradle.api.GradleException
+package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import org.gradle.api.GradleException
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.tasks.testing.Test
@@ -15,9 +14,9 @@ class NodeTestTask extends NodeBaseTask
 {
 
     @Override
-    void nodeTaskAction()
+    void taskAction()
     {
-        final testReport     = bashExec( testScript(), scriptPath( TEST_SCRIPT ), false )
+        final testReport     = bashExec( testScript(), scriptPath( TEST_SCRIPT ), false, ext.generateOnly )
         final teamCityReport = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity' )}
 
         writeXUnitReport( teamCityReport, new File( "${ testResultsDir().canonicalPath }/TEST-node.xml" ))
@@ -33,7 +32,6 @@ class NodeTestTask extends NodeBaseTask
         """
         ${ bashScript()}
 
-        echo "Running '$ext.testCommand'"
         $ext.testCommand${ isMocha ? ' -R teamcity' : '' }""".stripIndent()
     }
 

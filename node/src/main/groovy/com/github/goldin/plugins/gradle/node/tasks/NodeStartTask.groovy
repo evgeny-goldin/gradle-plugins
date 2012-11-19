@@ -1,8 +1,7 @@
-package com.github.goldin.plugins.gradle.node
-
-import org.gcontracts.annotations.Ensures
+package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import org.gcontracts.annotations.Ensures
 
 
 /**
@@ -12,9 +11,9 @@ class NodeStartTask extends NodeBaseTask
 {
 
     @Override
-    void nodeTaskAction()
+    void taskAction()
     {
-        bashExec( startScript(), scriptPath( START_SCRIPT ))
+        bashExec( startScript(), scriptPath( START_SCRIPT ), true, ext.generateOnly )
     }
 
 
@@ -24,7 +23,6 @@ class NodeStartTask extends NodeBaseTask
         """
         ${ bashScript()}
 
-        echo "Running '$ext.startCommand'"
         $ext.startCommand""".stripIndent()
     }
 }

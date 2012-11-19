@@ -72,13 +72,17 @@ abstract class BaseTask<T> extends DefaultTask
      *
      * @param bashScriptContent content to run as bash script
      * @param bashScriptPath    bash script path, temp file is used if {@code null}
-     * @return bash output
+     * @param failOnError       whether execution should fail if bash execution returns non-zero value
+     * @param generateOnly      whether bash script should be generated but not executed
+     *
+     * @return bash output or empty String if bash was generated but not executed
      */
     @Requires({ bashScriptContent })
     @Ensures({ result != null })
     final String bashExec( String  bashScriptContent,
                            String  bashScriptPath = null,
-                           boolean failOnError    = true )
+                           boolean failOnError    = true,
+                           boolean generateOnly   = false )
     {
         final bashFile = bashScriptPath ? new File( bashScriptPath ) :
                                           File.createTempFile( this.class.name, null )
@@ -88,7 +92,16 @@ abstract class BaseTask<T> extends DefaultTask
         bashFile.write( bashScriptContent.trim(), 'UTF-8' )
         assert bashFile.with { file && size() }
 
-        exec( 'bash', [ bashFile.canonicalPath ], null, failOnError )
+        log( LogLevel.INFO ){ "Bash script created at [$bashFile.canonicalPath]" }
+
+        if ( generateOnly )
+        {
+            ''
+        }
+        else
+        {
+            exec( 'bash', [ bashFile.canonicalPath ], null, failOnError )
+        }
     }
 
 

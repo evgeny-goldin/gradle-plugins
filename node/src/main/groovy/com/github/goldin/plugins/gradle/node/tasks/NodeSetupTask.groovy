@@ -1,7 +1,6 @@
-package com.github.goldin.plugins.gradle.node
+package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
-import com.github.goldin.plugins.gradle.common.BaseTask
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.gcontracts.annotations.Ensures
@@ -10,63 +9,21 @@ import org.gradle.api.GradleException
 
 
 /**
- * Base class for all Node tasks.
+ * Setup Node.js environment.
  */
-abstract class NodeBaseTask extends BaseTask<NodeExtension>
+class NodeSetupTask extends NodeBaseTask
 {
-    final NodeHelper helper = new NodeHelper()
-
 
     @Override
-    void verifyExtension( String description )
-    {
-        assert ext.NODE_ENV,            "'NODE_ENV' should be defined in $description"
-        assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
-        assert ext.testCommand,         "'testCommand' should be defined in $description"
-        assert ext.startCommand,        "'startCommand' should be defined in $description"
-        assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
-    }
-
-
-    /**
-     * Retrieves initial part of the bash script to be used by various tasks.
-     */
-    final String bashScript()
-    {
-        final setupScript = new File( scriptPath( SETUP_SCRIPT ))
-        assert setupScript.file, "[$setupScript] not found"
-
-        final binFolder = new File( NODE_MODULES_BIN )
-        assert binFolder.directory, "[$binFolder] not found"
-
-        """#!/bin/bash
-
-        source $setupScript.canonicalPath
-        export PATH=$binFolder:\$PATH
-
-        """.stripIndent()
-    }
-
-
-    @Requires({ scriptName })
-    @Ensures ({ result })
-    final String scriptPath( String scriptName ) { "$project.buildDir/$scriptName" }
-
-
-    abstract void nodeTaskAction()
-
-
-    @Override
-    final void taskAction()
+    void taskAction()
     {
         verifyGitAvailable()
         cleanWorkspace()
         cleanNodeModules()
         updateConfigs()
-        setupNode()
-
-        nodeTaskAction()
+        runSetupScript()
     }
+
 
 
     private cleanWorkspace()
@@ -96,9 +53,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     {
         if ( ! ext.configs ) { return }
 
-        ext.configs.each {
-            String configPath, Map<String,?> configValue -> updateConfig( configPath, configValue )
-        }
+        ext.configs.each { String configPath, Map<String,?> configValue -> updateConfig( configPath, configValue )}
     }
 
 
@@ -110,9 +65,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         final Map<String, Object> configData =
             ( Map ) ( configFile.file ? new JsonSlurper().parseText( configFile.getText( 'UTF-8' )) : [:] )
 
-        newConfigData.each {
-            String key, Object value -> updateConfigMap( configData, key, value )
-        }
+        newConfigData.each { String key, Object value -> updateConfigMap( configData, key, value )}
 
         assert configData
         final  configDataStringified = JsonOutput.prettyPrint( JsonOutput.toJson( configData ))
@@ -163,13 +116,16 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     }
 
 
-    private void setupNode()
+    private void runSetupScript()
     {
-        final setupScriptTemplate = this.class.classLoader.getResourceAsStream( 'setup-node.sh' ).text
+        final  setupScriptStream  = this.class.classLoader.getResourceAsStream( SETUP_SCRIPT )
+        assert setupScriptStream, "Unable to load [$SETUP_SCRIPT] resource"
+
+        final setupScriptTemplate = setupScriptStream.text
         final nodeVersion         = ( ext.nodeVersion == 'latest' ) ? helper.latestNodeVersion() : ext.nodeVersion
         final setupScript         = setupScriptTemplate.replace( '${nodeVersion}', nodeVersion  ).
                                                         replace( '${NODE_ENV}',    ext.NODE_ENV )
 
-        bashExec( setupScript, scriptPath( SETUP_SCRIPT ))
+        bashExec( setupScript, scriptPath( SETUP_SCRIPT ), true, ext.generateOnly )
     }
 }
