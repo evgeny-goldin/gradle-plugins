@@ -1,9 +1,12 @@
 package com.github.goldin.plugins.gradle.node
 
+import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
+import org.gradle.api.GradleException
 
 
 /**
@@ -17,10 +20,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Override
     void verifyExtension( String description )
     {
-        assert ext.nodeVersion,  "'nodeVersion' should be defined in $description"
-        assert ext.NODE_ENV,     "'NODE_ENV' should be defined in $description"
-        assert ext.testCommand,  "'testCommand' should be defined in $description"
-        assert ext.startCommand, "'startCommand' should be defined in $description"
+        assert ext.NODE_ENV,            "'NODE_ENV' should be defined in $description"
+        assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
+        assert ext.testCommand,         "'testCommand' should be defined in $description"
+        assert ext.startCommand,        "'startCommand' should be defined in $description"
+        assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
     }
 
 
@@ -36,26 +40,42 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         c( this.ext )
     }
 
+
     abstract void nodeTaskAction()
+
 
     @Override
     final void taskAction()
     {
         verifyGitAvailable()
+        cleanWorkspace()
+        cleanNodeModules()
         updateConfigs()
         setupNode()
         nodeTaskAction()
     }
 
 
-    private void setupNode()
+    private cleanWorkspace()
     {
-        final setupScriptTemplate = this.class.classLoader.getResourceAsStream( 'setup-node.sh' ).text
-        final nodeVersion         = ( ext.nodeVersion == 'latest' ) ? helper.latestNodeVersion() : ext.nodeVersion
-        final setupScript         = setupScriptTemplate.replace( '${nodeVersion}', nodeVersion  ).
-                                                        replace( '${NODE_ENV}',    ext.NODE_ENV )
+        if ( ext.cleanWorkspace && ext.cleanWorkspaceCommands )
+        {
+            for ( command in ext.cleanWorkspaceCommands )
+            {
+                final commandSplit = command.trim().tokenize()
+                exec( commandSplit.head(), commandSplit.tail(), project.rootDir )
+            }
+        }
+    }
 
-        bashExec( setupScript, "$project.buildDir/${ NodeConstants.SETUP_SCRIPT }" )
+
+    private cleanNodeModules()
+    {
+        if ( ext.cleanNodeModules )
+        {
+            assert new File( project.rootDir, NODE_MODULES_DIR ).with { ( ! directory ) || project.delete( delegate ) }, \
+                   "Failed to delete [$NODE_MODULES_DIR]"
+        }
     }
 
 
@@ -63,31 +83,35 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     {
         if ( ! ext.configs ) { return }
 
-        for ( configPath in ext.configs.keySet())
-        {
-            updateConfig( configPath, ( Map ) ext.configs[ configPath ] )
+        ext.configs.each {
+            String configPath, Map<String,?> configValue -> updateConfig( configPath, configValue )
         }
     }
 
 
     @Requires({ configPath && newConfigData })
-    private void updateConfig( String configPath, Map<String, Object> newConfigData )
+    @Ensures ({ new File( configPath ).with{ file && length() }})
+    void updateConfig( String configPath, Map<String, ?> newConfigData )
     {
         final configFile                     = new File( configPath )
-        final Map<String, Object> configData = ( Map ) ( configFile.file ? new JsonSlurper().parseText( configFile.getText( 'UTF-8' )) : [:] )
+        final Map<String, Object> configData =
+            ( Map ) ( configFile.file ? new JsonSlurper().parseText( configFile.getText( 'UTF-8' )) : [:] )
 
-        for ( String configKey in newConfigData.keySet())
-        {
-            updateConfigMap( configData, configKey, newConfigData[ configKey ])
+        newConfigData.each {
+            String key, Object value -> updateConfigMap( configData, key, value )
         }
 
-        configFile.write( JsonOutput.prettyPrint( JsonOutput.toJson( configData )), 'UTF-8' )
+        assert configData
+        final  configDataStringified = JsonOutput.prettyPrint( JsonOutput.toJson( configData ))
+        assert configDataStringified
+
+        configFile.write( configDataStringified, 'UTF-8' )
     }
 
 
     @Requires({ ( map != null ) && key && ( value != null ) })
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
-    private void updateConfigMap( Map<String, Object> map, String key, Object value )
+    void updateConfigMap( Map<String, Object> map, String key, Object value )
     {
         key             = key.trim()
         final delimiter = ext.configsKeyDelimiter
@@ -110,10 +134,29 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         final subKey  = key.substring( 0, delimiterIndex )
         final nextKey = key.substring( delimiterIndex + delimiter.length())
 
-        if ( ! map.containsKey( subKey )){ map[ subKey ] = [:] }
-        final nextMap = map[ subKey ]
+        if ( map[ subKey ] == null ){ map[ subKey ] = [:] }
+        final  nextMap  = map[ subKey ]
+        assert nextMap != null
 
-        assert ( nextMap != null ) && ( nextMap instanceof Map )
+        if ( ! ( nextMap instanceof Map ))
+        {
+            throw new GradleException(
+                "Unable to update $map using key \"$subKey\" (subkey of \"$key\"), " +
+                "it already contains a non-Map value [$nextMap] of type [${ nextMap.getClass().name }] " +
+                "keyed by the same key" )
+        }
+
         updateConfigMap(( Map ) nextMap, nextKey, value )
+    }
+
+
+    private void setupNode()
+    {
+        final setupScriptTemplate = this.class.classLoader.getResourceAsStream( 'setup-node.sh' ).text
+        final nodeVersion         = ( ext.nodeVersion == 'latest' ) ? helper.latestNodeVersion() : ext.nodeVersion
+        final setupScript         = setupScriptTemplate.replace( '${nodeVersion}', nodeVersion  ).
+                                                        replace( '${NODE_ENV}',    ext.NODE_ENV )
+
+        bashExec( setupScript, "$project.buildDir/$SETUP_SCRIPT" )
     }
 }
