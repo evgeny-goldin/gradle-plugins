@@ -67,7 +67,7 @@ class NodeTestTask extends NodeBaseTask
 
         for ( line in teamCityReport[ 1 .. -2 ] )
         {
-            final testName = find( line, NameAttributePattern ).replace( '"', '\"' )
+            final testName = find( line, NameAttributePattern ).replace( '"', '\\"' )
 
             if ( line.startsWith( '##teamcity[testFinished ' ))
             {
@@ -77,7 +77,7 @@ class NodeTestTask extends NodeBaseTask
             else if ( line.startsWith( '##teamcity[testFailed ' ))
             {
                 failures++
-                report << """<testcase name="$testName"><failure message="${ find( line, MessageAttributePattern ).replace( '"', '\"' ) }"/></testcase>"""
+                report << """<testcase name="$testName"><failure message="${ find( line, MessageAttributePattern ).replace( '"', '\\"' ) }"/></testcase>"""
             }
             else if ( line.startsWith( '##teamcity[testIgnored ' ))
             {
