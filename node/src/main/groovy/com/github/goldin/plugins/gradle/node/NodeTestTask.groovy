@@ -1,5 +1,7 @@
 package com.github.goldin.plugins.gradle.node
 
+import org.gradle.api.GradleException
+
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -15,11 +17,10 @@ class NodeTestTask extends NodeBaseTask
     @Override
     void nodeTaskAction()
     {
-        String teamCityReport = bashExec( testScript(), "$project.buildDir/$TEST_SCRIPT", false )
-        String xunitReport    = teamCityReportToXUnit( teamCityReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity' )} )
+        final testReport     = bashExec( testScript(), "$project.buildDir/$TEST_SCRIPT", false )
+        final teamCityReport = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity' )}
 
-        new File( "${ testResultsDir().canonicalPath }/test-report.xml" ).
-        write( xunitReport, 'UTF-8' )
+        writeXUnitReport( teamCityReport, new File( "${ testResultsDir().canonicalPath }/TEST-node.xml" ))
     }
 
 
@@ -45,16 +46,15 @@ class NodeTestTask extends NodeBaseTask
     @Ensures({ result.directory })
     private File testResultsDir()
     {
-        final testTask            = project.tasks.findByName( 'test' )
-        final File testResultsDir = ( testTask instanceof Test ) ? (( Test ) testTask ).testResultsDir : new File( 'build/test-results' )
+        final testTask        = project.tasks.findByName( 'test' )
+        final  testResultsDir = ( testTask instanceof Test ) ? (( Test ) testTask ).testResultsDir : new File( 'build/test-results' )
         assert testResultsDir.with { directory || mkdirs() }
         testResultsDir
     }
 
 
-    @Requires({ teamCityReport })
-    @Ensures({ result })
-    private String teamCityReportToXUnit ( List<String> teamCityReport )
+    @Requires({ teamCityReport && reportFile })
+    private void writeXUnitReport ( List<String> teamCityReport, File reportFile )
     {
         assert teamCityReport.every { it.startsWith( '##teamcity[' )}
         assert teamCityReport[  0 ].startsWith     ( '##teamcity[testSuiteStarted name=\'' )
@@ -67,7 +67,7 @@ class NodeTestTask extends NodeBaseTask
 
         for ( line in teamCityReport[ 1 .. -2 ] )
         {
-            final testName = find( line, NameAttributePattern ).replace( '"', '\\"' )
+            final testName = find( line, NameAttributePattern ).replace( '"', '\'' )
 
             if ( line.startsWith( '##teamcity[testFinished ' ))
             {
@@ -77,7 +77,7 @@ class NodeTestTask extends NodeBaseTask
             else if ( line.startsWith( '##teamcity[testFailed ' ))
             {
                 failures++
-                report << """<testcase name="$testName"><failure message="${ find( line, MessageAttributePattern ).replace( '"', '\\"' ) }"/></testcase>"""
+                report << """<testcase name="$testName"><failure message="${ find( line, MessageAttributePattern ).replace( '"', '\'' ) }"/></testcase>"""
             }
             else if ( line.startsWith( '##teamcity[testIgnored ' ))
             {
@@ -86,10 +86,25 @@ class NodeTestTask extends NodeBaseTask
             }
         }
 
-        """
+        final String xUnitReport = """
 <testsuite name="${ find( teamCityReport[ 0 ], NameAttributePattern )}" tests="$tests" failures="$failures" skip="$skipped">
     ${ report.join( '\n    ' ) }
-</testsuite>
-""".trim()
+</testsuite>""".trim()
+
+        assert reportFile.with { ( ! file ) || ( project.delete( delegate )) }
+        reportFile.write( xUnitReport, 'UTF-8' )
+
+        if ( failures && ext.failOnTestFailures )
+        {
+            final message = "There were failing tests. See the report at: file:$reportFile.canonicalPath"
+            if ( ext.failOnTestFailures )
+            {
+                throw new GradleException( message )
+            }
+            else
+            {
+                logger.warn( message )
+            }
+        }
     }
 }

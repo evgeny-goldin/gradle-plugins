@@ -16,5 +16,4 @@ class NodeConstants
     final static Pattern NameAttributePattern     = Pattern.compile( /name='(.+?)'/ )
     final static Pattern MessageAttributePattern  = Pattern.compile( /message='(.+?)'/ )
     final static Pattern DurationAttributePattern = Pattern.compile( /duration='(\d+?)'/ )
-
 }
