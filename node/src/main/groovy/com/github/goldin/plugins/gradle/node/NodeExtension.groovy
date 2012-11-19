@@ -9,7 +9,7 @@ class NodeExtension
     boolean      cleanNodeModules       = false // Whether to remove "./node_modules" before running other tasks
     boolean      failOnTestFailures     = true  // Whether to fail execution if tests fail
 
-    boolean      echoCommands           = true  // Echo all commands executed in a bash script
+    boolean      echoCommands           = true  // Echo all commands executed
     boolean      echoOutput             = false // Echo all bash output to the build log, Maven-like
     boolean      teamCityTests          = false // Whether test results should be displayed using TeamCity service messages (when job is run by TeamCity)
 
