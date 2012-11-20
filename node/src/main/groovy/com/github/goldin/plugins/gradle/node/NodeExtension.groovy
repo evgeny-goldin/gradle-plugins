@@ -20,7 +20,9 @@ class NodeExtension
     String  startCommand = 'forever start server.js'
     String  listCommand  = 'forever list'
 
-    Map<String, Map<String, Object>> configs             = [:]
-    boolean                          configsUpdateOnly   = true
-    String                           configsKeyDelimiter = '.'
+    List <Map<String,?>> configs             = []   // List of config maps. Every map is:
+                                                    // Key   - path of destination JSON config file to update or generate
+                                                    // Value - existing JSON / .properties File to read or config data Map
+    boolean              configsUpdateOnly   = true
+    String               configsKeyDelimiter = '.'
 }

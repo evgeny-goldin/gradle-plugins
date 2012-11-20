@@ -39,14 +39,18 @@ class NodeSetupTask extends NodeBaseTask
         final configHelper = new ConfigHelper( ext )
 
         ext.configs.each {
-            String configPath, Object configValue ->
+            Map configMap ->
 
-            assert (( configValue instanceof File ) || ( configValue instanceof  Map )), \
-                   "Config value for [$configPath] is of type [${ configValue?.getClass()?.name}], " +
-                   "should be of type [$File.name] or [$Map.name]"
+            configMap.each {
+                String configPath, Object configValue ->
 
-            if ( configValue instanceof File ){ configHelper.updateConfigWithFile( configPath, ( File ) configValue )}
-            else                              { configHelper.updateConfigWithMap ( configPath, ( Map )  configValue )}
+                assert (( configValue instanceof File ) || ( configValue instanceof  Map )), \
+                       "Config value for [$configPath] is of type [${ configValue?.getClass()?.name}], " +
+                       "should be of type [$File.name] or [$Map.name]"
+
+                if ( configValue instanceof File ){ configHelper.updateConfigWithFile( configPath, ( File ) configValue )}
+                else                              { configHelper.updateConfigWithMap ( configPath, ( Map )  configValue )}
+            }
         }
     }
 
