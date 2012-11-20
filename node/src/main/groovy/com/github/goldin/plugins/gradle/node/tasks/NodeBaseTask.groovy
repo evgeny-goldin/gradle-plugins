@@ -25,8 +25,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.stopCommand,         "'stopCommand' should be defined in $description"
         assert ext.startCommand,        "'startCommand' should be defined in $description"
         assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
-
-        helper.ext = ext
     }
 
 

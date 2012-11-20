@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import com.github.goldin.plugins.gradle.node.ConfigHelper
 
 
 /**
@@ -8,7 +9,6 @@ import static com.github.goldin.plugins.gradle.node.NodeConstants.*
  */
 class NodeSetupTask extends NodeBaseTask
 {
-
     @Override
     void taskAction()
     {
@@ -36,6 +36,8 @@ class NodeSetupTask extends NodeBaseTask
     {
         if ( ! ext.configs ) { return }
 
+        final configHelper = new ConfigHelper( ext )
+
         ext.configs.each {
             String configPath, Object configValue ->
 
@@ -43,8 +45,8 @@ class NodeSetupTask extends NodeBaseTask
                    "Config value for [$configPath] is of type [${ configValue?.getClass()?.name}], " +
                    "should be of type [$File.name] or [$Map.name]"
 
-            if ( configValue instanceof File ){ helper.updateConfig( configPath, ( File ) configValue )}
-            else                              { helper.updateConfig( configPath, ( Map )  configValue )}
+            if ( configValue instanceof File ){ configHelper.updateConfigWithFile( configPath, ( File ) configValue )}
+            else                              { configHelper.updateConfigWithMap ( configPath, ( Map )  configValue )}
         }
     }
 

@@ -20,5 +20,6 @@ class NodeExtension
     String  startCommand = 'forever start server.js'
 
     Map<String, Map<String, Object>> configs             = [:]
+    boolean                          configsUpdateOnly   = true
     String                           configsKeyDelimiter = '.'
 }
