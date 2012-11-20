@@ -16,18 +16,18 @@ import org.gradle.api.Project
 class NodePlugin extends BasePlugin
 {
     @Override
-    Map<String , Class<? extends BaseTask>> tasks ( Project p )
+    Map<String , Class<? extends BaseTask>> tasks ( Project project )
     {
         [
-          ( p.tasks.findByName( CLEAN_TASK ) ? NODE_CLEAN_TASK : CLEAN_TASK ) : NodeCleanTask,
-          ( NODE_SETUP_TASK )                                                 : NodeSetupTask,
-          ( p.tasks.findByName( TEST_TASK  ) ? NODE_TEST_TASK  : TEST_TASK  ) : NodeTestTask,
-          ( NODE_START_TASK )                                                 : NodeStartTask
+          ( project.tasks.findByName( CLEAN_TASK ) ? NODE_CLEAN_TASK : CLEAN_TASK ) : NodeCleanTask,
+          ( NODE_SETUP_TASK )                                                       : NodeSetupTask,
+          ( project.tasks.findByName( TEST_TASK  ) ? NODE_TEST_TASK  : TEST_TASK  ) : NodeTestTask,
+          ( NODE_START_TASK )                                                       : NodeStartTask
         ]
     }
 
     @Override
-    Map<String , Class> extensions( Project p ) {[ ( NODE_EXTENSION ) : NodeExtension ]}
+    Map<String , Class> extensions( Project project ) {[ ( NODE_EXTENSION ) : NodeExtension ]}
 
 
     @Override

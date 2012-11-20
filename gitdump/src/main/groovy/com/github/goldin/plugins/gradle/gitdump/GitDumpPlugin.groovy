@@ -11,8 +11,8 @@ import org.gradle.api.Project
 class GitDumpPlugin extends BasePlugin
 {
     @Override
-    Map<String , Class<? extends BaseTask>> tasks ( Project p ) {[ 'gitdump' : GitDumpTask ]}
+    Map<String , Class<? extends BaseTask>> tasks ( Project project ) {[ 'gitdump' : GitDumpTask ]}
 
     @Override
-    Map<String , Class> extensions( Project p ) {[ 'gitdump' : GitDumpExtension ]}
+    Map<String , Class> extensions( Project project ) {[ 'gitdump' : GitDumpExtension ]}
 }

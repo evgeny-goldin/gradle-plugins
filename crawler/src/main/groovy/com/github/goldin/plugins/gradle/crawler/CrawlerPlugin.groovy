@@ -11,8 +11,8 @@ import org.gradle.api.Project
 class CrawlerPlugin extends BasePlugin
 {
     @Override
-    Map<String , Class<? extends BaseTask>> tasks ( Project p ) {[ 'crawler' : CrawlerTask ]}
+    Map<String , Class<? extends BaseTask>> tasks ( Project project ) {[ 'crawler' : CrawlerTask ]}
 
     @Override
-    Map<String , Class> extensions( Project p ) {[ 'crawler' : CrawlerExtension ]}
+    Map<String , Class> extensions( Project project ) {[ 'crawler' : CrawlerExtension ]}
 }

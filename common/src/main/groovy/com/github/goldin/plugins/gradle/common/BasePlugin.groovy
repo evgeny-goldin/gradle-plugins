@@ -11,13 +11,13 @@ import org.gradle.api.Project
  */
 abstract class BasePlugin implements Plugin<Project>
 {
-    @Requires({ p })
+    @Requires({ project })
     @Ensures({ result })
-    abstract Map<String, Class<? extends BaseTask>> tasks( Project p )
+    abstract Map<String, Class<? extends BaseTask>> tasks( Project project )
 
-    @Requires({ p })
+    @Requires({ project })
     @Ensures({ result.size() == 1 })
-    abstract Map<String, Class> extensions( Project p )
+    abstract Map<String, Class> extensions( Project project )
 
     @Requires({ project })
     @Override

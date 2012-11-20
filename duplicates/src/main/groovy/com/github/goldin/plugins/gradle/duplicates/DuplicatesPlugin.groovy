@@ -11,8 +11,8 @@ import org.gradle.api.Project
 class DuplicatesPlugin extends BasePlugin
 {
     @Override
-    Map<String , Class<? extends BaseTask>> tasks ( Project p ) {[ 'duplicates' : DuplicatesTask ]}
+    Map<String , Class<? extends BaseTask>> tasks ( Project project ) {[ 'duplicates' : DuplicatesTask ]}
 
     @Override
-    Map<String , Class> extensions( Project p ) {[ 'duplicates' : DuplicatesExtension ]}
+    Map<String , Class> extensions( Project project ) {[ 'duplicates' : DuplicatesExtension ]}
 }

@@ -12,10 +12,10 @@ import org.gradle.api.Project
 class TeamCityPlugin extends BasePlugin
 {
     @Override
-    Map<String , Class<? extends BaseTask>> tasks ( Project p ) {[ 'assembleTeamcityPlugin' : TeamCityTask ]}
+    Map<String , Class<? extends BaseTask>> tasks ( Project project ) {[ 'assembleTeamcityPlugin' : TeamCityTask ]}
 
     @Override
-    Map<String , Class> extensions( Project p ) {[ 'assembleTeamcityPluginConfig' : TeamCityExtension ]}
+    Map<String , Class> extensions( Project project ) {[ 'assembleTeamcityPluginConfig' : TeamCityExtension ]}
 
 
     @Requires({ project })

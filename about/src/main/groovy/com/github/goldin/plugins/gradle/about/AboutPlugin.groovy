@@ -11,8 +11,8 @@ import org.gradle.api.Project
 class AboutPlugin extends BasePlugin
 {
     @Override
-    Map<String , Class<? extends BaseTask>> tasks ( Project p ) {[ 'about' : AboutTask ]}
+    Map<String , Class<? extends BaseTask>> tasks ( Project project ) {[ 'about' : AboutTask ]}
 
     @Override
-    Map<String , Class> extensions( Project p ) {[ 'about' : AboutExtension ]}
+    Map<String , Class> extensions( Project project ) {[ 'about' : AboutExtension ]}
 }
