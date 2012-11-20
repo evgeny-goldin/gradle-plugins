@@ -11,9 +11,7 @@ NVM_HOME="$HOME/.nvm"
 nvm ls
 
 if [ $? -ne 0 ]; then
-    echo "Installing 'nvm'"
     git clone git://github.com/creationix/nvm.git "$NVM_HOME"
-    echo "Installing 'nvm' - done"
 fi
 
 if [ ! -f "$NVM_HOME/nvm.sh" ];
@@ -22,18 +20,14 @@ then
     exit 1
 fi
 
-npm --version
-
-if [ $? -ne 0 ]; then
-    echo "Installing 'npm'"
-    . "$NVM_HOME/nvm.sh"
-    nvm install ${nodeVersion}
-    nvm use     ${nodeVersion}
-    echo "Installing 'npm' - done"
-fi
 
 set -e
 set -o pipefail
+
+
+. "$NVM_HOME/nvm.sh"
+nvm install ${nodeVersion}
+nvm use     ${nodeVersion}
 
 export NODE_ENV=${NODE_ENV}
 
