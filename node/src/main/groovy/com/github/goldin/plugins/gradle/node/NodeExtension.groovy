@@ -6,7 +6,6 @@ class NodeExtension
 {
     List<String> cleanWorkspaceCommands = [ 'git checkout -f', 'git clean -dff' ]
     boolean      cleanWorkspace         = false // Whether to run cleanWorkspaceCommands before running tasks
-    boolean      cleanNodeModules       = false // Whether to remove "./node_modules" before running tasks
     boolean      failOnTestFailures     = true  // Whether to fail execution if tests fail
     boolean      generateOnly           = false // Whether bash scripts should be generated but not run
 

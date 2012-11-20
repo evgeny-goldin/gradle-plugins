@@ -36,7 +36,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert setupScript.file, "[$setupScript] not found"
 
         final  binFolder   = new File( project.rootDir, NODE_MODULES_BIN )
-        assert binFolder.directory, "[$binFolder] not found"
+        assert ( binFolder.directory || ext.generateOnly ), "[$binFolder] not found"
 
         """#!/bin/bash
 

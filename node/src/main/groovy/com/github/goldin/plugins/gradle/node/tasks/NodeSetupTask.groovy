@@ -19,7 +19,6 @@ class NodeSetupTask extends NodeBaseTask
     {
         verifyGitAvailable()
         cleanWorkspace()
-        cleanNodeModules()
         updateConfigs()
         runSetupScript()
     }
@@ -35,16 +34,6 @@ class NodeSetupTask extends NodeBaseTask
                 final commandSplit = command.trim().tokenize()
                 exec( commandSplit.head(), commandSplit.tail(), project.rootDir )
             }
-        }
-    }
-
-
-    private cleanNodeModules()
-    {
-        if ( ext.cleanNodeModules )
-        {
-            assert new File( project.rootDir, NODE_MODULES_DIR ).with { ( ! directory ) || project.delete( delegate ) }, \
-                   "Failed to delete [$NODE_MODULES_DIR]"
         }
     }
 

@@ -16,10 +16,13 @@ class NodeTestTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        final testReport     = bashExec( testScript(), scriptPath( TEST_SCRIPT ), false, ext.generateOnly )
-        final teamCityReport = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity' )}
+        final testReport = bashExec( testScript(), scriptPath( TEST_SCRIPT ), false, ext.generateOnly )
 
-        writeXUnitReport( teamCityReport, new File( "${ testResultsDir().canonicalPath }/TEST-node.xml" ))
+        if ( ! ext.generateOnly )
+        {
+            final teamCityReport = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity' )}
+            writeXUnitReport( teamCityReport, new File( "${ testResultsDir().canonicalPath }/TEST-node.xml" ))
+        }
     }
 
 
@@ -39,7 +42,7 @@ class NodeTestTask extends NodeBaseTask
     @Ensures({ result.directory })
     private File testResultsDir()
     {
-        final testTask        = project.tasks.findByName( 'test' )
+        final  testTask       = project.tasks.findByName( 'test' )
         final  testResultsDir = ( testTask instanceof Test ) ? (( Test ) testTask ).testResultsDir : new File( 'build/test-results' )
         assert testResultsDir.with { directory || mkdirs() }
         testResultsDir

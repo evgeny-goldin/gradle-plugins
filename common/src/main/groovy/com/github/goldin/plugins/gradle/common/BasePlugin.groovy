@@ -38,7 +38,7 @@ abstract class BasePlugin implements Plugin<Project>
 
 
     @Requires({ project && taskName && taskClass })
-    void addTask( Project project, String taskName, Class<? extends BaseTask> taskClass )
+    <T extends BaseTask> T addTask( Project project, String taskName, Class<T> taskClass )
     {
         final  extensions     = extensions()
         final  extensionName  = extensions.keySet().toList().first()
@@ -52,5 +52,6 @@ abstract class BasePlugin implements Plugin<Project>
         task.extensionName = extensionName
 
         assert extension && task && task.ext && task.extensionName
+        task
     }
 }
