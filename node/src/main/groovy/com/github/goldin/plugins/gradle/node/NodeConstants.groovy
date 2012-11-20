@@ -24,7 +24,7 @@ class NodeConstants
     final static String NODE_MODULES_DIR = 'node_modules'
     final static String NODE_MODULES_BIN = "$NODE_MODULES_DIR/.bin"
 
-    final static Pattern NameAttributePattern     = Pattern.compile( /name='(.+?)'/ )
-    final static Pattern MessageAttributePattern  = Pattern.compile( /message='(.+?)'/ )
-    final static Pattern DurationAttributePattern = Pattern.compile( /duration='(\d+?)'/ )
+    final static Pattern NameAttributePattern     = Pattern.compile( /name='(.+?[^|])'/    )
+    final static Pattern MessageAttributePattern  = Pattern.compile( /message='(.+?[^|])'/ )
+    final static Pattern DurationAttributePattern = Pattern.compile( /duration='(\d+?)'/   )
 }
