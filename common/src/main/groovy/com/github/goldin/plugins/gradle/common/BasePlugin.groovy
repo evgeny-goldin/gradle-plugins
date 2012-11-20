@@ -11,11 +11,9 @@ import org.gradle.api.Project
  */
 abstract class BasePlugin implements Plugin<Project>
 {
-    @Requires({ project })
     @Ensures({ result })
     abstract Map<String, Class<? extends BaseTask>> tasks( Project project )
 
-    @Requires({ project })
     @Ensures({ result.size() == 1 })
     abstract Map<String, Class> extensions( Project project )
 

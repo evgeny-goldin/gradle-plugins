@@ -7,6 +7,7 @@ import com.github.goldin.plugins.gradle.node.tasks.NodeCleanTask
 import com.github.goldin.plugins.gradle.node.tasks.NodeSetupTask
 import com.github.goldin.plugins.gradle.node.tasks.NodeStartTask
 import com.github.goldin.plugins.gradle.node.tasks.NodeTestTask
+import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
 
 
@@ -15,6 +16,7 @@ import org.gradle.api.Project
  */
 class NodePlugin extends BasePlugin
 {
+    @Requires({ project })
     @Override
     Map<String , Class<? extends BaseTask>> tasks ( Project project )
     {
