@@ -11,17 +11,19 @@ import org.gradle.api.Project
  */
 abstract class BasePlugin implements Plugin<Project>
 {
+    @Requires({ p })
     @Ensures({ result })
-    abstract Map<String, Class<? extends BaseTask>> tasks()
+    abstract Map<String, Class<? extends BaseTask>> tasks( Project p )
 
+    @Requires({ p })
     @Ensures({ result.size() == 1 })
-    abstract Map<String, Class> extensions()
+    abstract Map<String, Class> extensions( Project p )
 
     @Requires({ project })
     @Override
     void apply ( Project project )
     {
-        final tasks = tasks()
+        final tasks = tasks( project )
 
         for ( String taskName in tasks.keySet())
         {
@@ -40,7 +42,7 @@ abstract class BasePlugin implements Plugin<Project>
     @Requires({ project && taskName && taskClass })
     <T extends BaseTask> T addTask( Project project, String taskName, Class<T> taskClass )
     {
-        final  extensions     = extensions()
+        final  extensions     = extensions( project )
         final  extensionName  = extensions.keySet().toList().first()
         final  extensionClass = extensions[ extensionName ]
         assert extensionName && extensionClass

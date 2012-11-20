@@ -2,6 +2,7 @@ package com.github.goldin.plugins.gradle.crawler
 
 import com.github.goldin.plugins.gradle.common.BasePlugin
 import com.github.goldin.plugins.gradle.common.BaseTask
+import org.gradle.api.Project
 
 
 /**
@@ -10,8 +11,8 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 class CrawlerPlugin extends BasePlugin
 {
     @Override
-    Map<String , Class<? extends BaseTask>> tasks () {[ 'crawler' : CrawlerTask ]}
+    Map<String , Class<? extends BaseTask>> tasks ( Project p ) {[ 'crawler' : CrawlerTask ]}
 
     @Override
-    Map<String , Class> extensions() {[ 'crawler' : CrawlerExtension ]}
+    Map<String , Class> extensions( Project p ) {[ 'crawler' : CrawlerExtension ]}
 }

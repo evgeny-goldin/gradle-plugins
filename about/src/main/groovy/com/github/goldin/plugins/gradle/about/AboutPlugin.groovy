@@ -2,6 +2,7 @@ package com.github.goldin.plugins.gradle.about
 
 import com.github.goldin.plugins.gradle.common.BasePlugin
 import com.github.goldin.plugins.gradle.common.BaseTask
+import org.gradle.api.Project
 
 
 /**
@@ -10,8 +11,8 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 class AboutPlugin extends BasePlugin
 {
     @Override
-    Map<String , Class<? extends BaseTask>> tasks () {[ 'about' : AboutTask ]}
+    Map<String , Class<? extends BaseTask>> tasks ( Project p ) {[ 'about' : AboutTask ]}
 
     @Override
-    Map<String , Class> extensions() {[ 'about' : AboutExtension ]}
+    Map<String , Class> extensions( Project p ) {[ 'about' : AboutExtension ]}
 }

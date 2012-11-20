@@ -16,12 +16,18 @@ import org.gradle.api.Project
 class NodePlugin extends BasePlugin
 {
     @Override
-    Map<String , Class<? extends BaseTask>> tasks () {[ ( NODE_CLEAN_TASK ) : NodeCleanTask,
-                                                        ( NODE_SETUP_TASK ) : NodeSetupTask,
-                                                        ( NODE_TEST_TASK  ) : NodeTestTask,
-                                                        ( NODE_START_TASK ) : NodeStartTask ]}
+    Map<String , Class<? extends BaseTask>> tasks ( Project p )
+    {
+        [
+          ( p.tasks.findByName( CLEAN_TASK ) ? NODE_CLEAN_TASK : CLEAN_TASK ) : NodeCleanTask,
+          ( NODE_SETUP_TASK )                                                 : NodeSetupTask,
+          ( p.tasks.findByName( TEST_TASK  ) ? NODE_TEST_TASK  : TEST_TASK  ) : NodeTestTask,
+          ( NODE_START_TASK )                                                 : NodeStartTask
+        ]
+    }
+
     @Override
-    Map<String , Class> extensions() {[ 'node' : NodeExtension ]}
+    Map<String , Class> extensions( Project p ) {[ ( NODE_EXTENSION ) : NodeExtension ]}
 
 
     @Override
@@ -29,21 +35,18 @@ class NodePlugin extends BasePlugin
     {
         super.apply( project )
 
-        final nodeCleanTask = project.tasks.getByName( NODE_CLEAN_TASK ) // Should
+        final cleanTask     = project.tasks.getByName( CLEAN_TASK      ) // Should
         final nodeSetupTask = project.tasks.getByName( NODE_SETUP_TASK ) // be
-        final nodeTestTask  = project.tasks.getByName( NODE_TEST_TASK  ) // defined
-        final nodeStartTask = project.tasks.getByName( NODE_START_TASK ) // already
+        final testTask      = project.tasks.getByName( TEST_TASK       ) // defined
+        final nodeStartTask = project.tasks.getByName( NODE_START_TASK ) //
 
-        final cleanTask     = project.tasks.findByName( 'clean' )        // Could be defined by other plugins
-        final testTask      = project.tasks.findByName( 'test' )         // Could be defined by other plugins
+        final nodeCleanTask = project.tasks.findByName( NODE_CLEAN_TASK ) // Defined if 'clean' and 'test'
+        final nodeTestTask  = project.tasks.findByName( NODE_TEST_TASK  ) // were taken already
 
-        nodeTestTask.dependsOn  nodeSetupTask
+        ( nodeTestTask ?: testTask ).dependsOn nodeSetupTask
         nodeStartTask.dependsOn nodeSetupTask
 
-        if ( cleanTask ) { cleanTask.dependsOn nodeCleanTask }
-        else             { addTask( project, 'clean', NodeCleanTask )}
-
-        if ( testTask ) { testTask.dependsOn nodeTestTask }
-        else            { addTask( project, 'test', NodeTestTask ).dependsOn nodeSetupTask }
+        if ( nodeCleanTask ) { cleanTask.dependsOn nodeCleanTask }
+        if ( nodeTestTask  ) { testTask. dependsOn nodeTestTask  }
     }
 }
