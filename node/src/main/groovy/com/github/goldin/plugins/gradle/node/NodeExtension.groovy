@@ -18,6 +18,7 @@ class NodeExtension
     String  testCommand  = 'mocha'
     String  stopCommand  = 'forever stopall'
     String  startCommand = 'forever start server.js'
+    String  listCommand  = 'forever list'
 
     Map<String, Map<String, Object>> configs             = [:]
     boolean                          configsUpdateOnly   = true
