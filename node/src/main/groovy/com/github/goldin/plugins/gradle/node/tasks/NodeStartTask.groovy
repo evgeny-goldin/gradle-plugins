@@ -23,6 +23,7 @@ class NodeStartTask extends NodeBaseTask
         """
         ${ bashScript()}
 
+        $ext.stopCommand
         $ext.startCommand""".stripIndent()
     }
 }

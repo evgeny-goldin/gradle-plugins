@@ -16,6 +16,7 @@ class NodeExtension
     String  NODE_ENV     = 'development'
     String  nodeVersion  = 'latest'
     String  testCommand  = 'mocha'
+    String  stopCommand  = 'forever stopall'
     String  startCommand = 'forever start server.js'
 
     Map<String, Map<String, Object>> configs             = [:]
