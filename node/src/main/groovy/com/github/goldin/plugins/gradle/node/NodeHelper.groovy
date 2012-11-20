@@ -67,13 +67,16 @@ class NodeHelper
         if ( configText.with{ startsWith( '{' ) and endsWith( '}' ) })
         {
             final  json = new JsonSlurper().parseText( configText )
-            assert json instanceof Map
+            assert ( json instanceof Map ) && ( json ), "Failed to read JSON data from [$newConfigData.canonicalPath]"
+
             updateConfig( configPath, ( Map ) json )
         }
         else
         {
             final properties = new Properties()
             properties.load( new StringReader( configText ))
+            assert properties, "Failed to load Properties data from [$newConfigData.canonicalPath]"
+
             updateConfig( configPath, ( Map ) properties )
         }
     }
@@ -83,7 +86,9 @@ class NodeHelper
      * Updates JSON config file specified using the data provided.
      *
      * @param configPath    JSON config file to update or create if doesn't exist yet
-     * @param newConfigData config data to use for updating
+     * @param newConfigData config data to use for updating,
+     *                      keys may contain {@link NodeExtension#configsKeyDelimiter} to indicate configuration nesting,
+     *                      values may be real values or another configuration {@code Map} if read from JSON
      * @return              config file updated or created
      */
     @Requires({ configPath && newConfigData })
@@ -109,8 +114,8 @@ class NodeHelper
      * Updates configuration map using key and value provided.
      *
      * @param map   configuration map to update
-     * @param key   configuration key, can contain {@link NodeExtension#configsKeyDelimiter} to indicate configuration depth
-     * @param value configuration value, can be a real value or another configuration {@code Map} (if read from JSON)
+     * @param key   configuration key, may contain {@link NodeExtension#configsKeyDelimiter} to indicate configuration nesting
+     * @param value configuration value, may be a real value or another configuration {@code Map} if read from JSON
      */
     @Requires({ this.ext && ( map != null ) && key && ( value != null ) })
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
