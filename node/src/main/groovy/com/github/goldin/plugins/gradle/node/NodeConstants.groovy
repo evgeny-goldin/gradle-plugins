@@ -9,8 +9,8 @@ import java.util.regex.Pattern
 @SuppressWarnings([ 'PropertyName' ])
 class NodeConstants
 {
-    final static String SETUP_SCRIPT     = 'setup-node.sh'
-    final static String TEST_SCRIPT      = 'run-test.sh'
+    final static String SETUP_SCRIPT     = 'setup.sh'
+    final static String TEST_SCRIPT      = 'test.sh'
     final static String START_SCRIPT     = 'start.sh'
 
     final static String NODE_EXTENSION   = 'node'
