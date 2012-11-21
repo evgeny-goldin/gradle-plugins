@@ -11,7 +11,7 @@ NVM_HOME="$HOME/.nvm"
 nvm ls
 
 if [ $? -ne 0 ]; then
-    git clone git://github.com/creationix/nvm.git "$NVM_HOME"
+    git clone ${nvmRepo} "$NVM_HOME"
 fi
 
 if [ ! -f "$NVM_HOME/nvm.sh" ];
@@ -20,21 +20,15 @@ then
     exit 1
 fi
 
-
 set -e
 set -o pipefail
-
 
 . "$NVM_HOME/nvm.sh"
 nvm install ${nodeVersion}
 nvm use     ${nodeVersion}
 
-export NODE_ENV=${NODE_ENV}
+echo "Current 'npm'  : [`which npm`][`npm --version`]"
+echo "Current 'node' : [`which node`][`node --version`]"
 
-echo "Current 'npm'     : [`which npm`][`npm --version`]"
-echo "Current 'node'    : [`which node`][`node --version`]"
-echo "Current \$NODE_ENV : [$NODE_ENV]"
-echo
-
-echo "Running 'npm install'"
+echo "Running 'npm install ${globally}'"
 npm install ${globally}

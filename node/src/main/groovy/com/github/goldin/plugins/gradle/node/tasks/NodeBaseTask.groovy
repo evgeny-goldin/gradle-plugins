@@ -42,10 +42,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         """#!/bin/bash
 
-        source $setupScript.canonicalPath
-        export PATH=$binFolder:\$PATH
-
-        """.stripIndent()
+        source \${0%/*}/$SETUP_SCRIPT
+        PATH=$binFolder:\$PATH
+        NODE_ENV=$ext.NODE_ENV""".stripIndent()
     }
 
 

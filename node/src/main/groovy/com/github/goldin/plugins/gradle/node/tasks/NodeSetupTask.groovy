@@ -62,10 +62,11 @@ class NodeSetupTask extends NodeBaseTask
 
         final setupScriptTemplate = setupScriptStream.text
         final nodeVersion         = ( ext.nodeVersion == 'latest' ) ? helper.latestNodeVersion() : ext.nodeVersion
-        final setupScript         = setupScriptTemplate.replace( '${nodeVersion}', nodeVersion  ).
-                                                        replace( '${NODE_ENV}',    ext.NODE_ENV ).
+        final setupScript         = setupScriptTemplate.replace( '${nvmRepo}',     NVM_GIT_REPO ).
+                                                        replace( '${nodeVersion}', nodeVersion  ).
                                                         replace( '${globally}',    ext.installGlobally ? '--global' : '' )
 
-        bashExec( setupScript, scriptPath( SETUP_SCRIPT ), true, ext.generateOnly )
+        assert ( ! setupScript.contains( '${' ))
+        bashExec(  setupScript, scriptPath( SETUP_SCRIPT ), true, ext.generateOnly )
     }
 }

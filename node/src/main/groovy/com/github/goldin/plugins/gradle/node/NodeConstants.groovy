@@ -9,6 +9,8 @@ import java.util.regex.Pattern
 @SuppressWarnings([ 'PropertyName' ])
 class NodeConstants
 {
+    final static String NVM_GIT_REPO      = 'git://github.com/creationix/nvm.git'
+
     final static String SETUP_SCRIPT      = 'setup.sh'
     final static String TEST_SCRIPT       = 'test.sh'
     final static String START_SCRIPT      = 'start.sh'
