@@ -30,5 +30,4 @@ nvm use     ${nodeVersion}
 echo "Current 'npm'  : [`which npm`][`npm --version`]"
 echo "Current 'node' : [`which node`][`node --version`]"
 
-echo "Running 'npm install ${globally}'"
 npm install ${globally}
