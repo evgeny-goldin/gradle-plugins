@@ -59,7 +59,10 @@ class NodeTestTask extends NodeBaseTask
 
         // Example line:
         // ##teamcity[testFailed name='RTB - Campaign "before all" hook' message='ER_ACCESS_DENIED_ERROR: Access denied for user |'root|'@|'localhost|' (using password: NO)']
-        final attribute   = { String line, Pattern p -> find( line, p ).replace( "|'", "'" ).replace( '"', "'" ) }
+        final attribute   = { String line, Pattern p -> find( line, p ).replace( "|'", "'"    ).
+                                                                        replace( '"',  "'"    ).
+                                                                        replace( '<',  '&lt;' ).
+                                                                        replace( '>',  '&gt;' )}
         final reportLines = []
         int   tests       = 0
         int   failures    = 0
