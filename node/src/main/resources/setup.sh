@@ -27,7 +27,7 @@ set -o pipefail
 nvm install ${nodeVersion}
 nvm use     ${nodeVersion}
 
-echo "Current 'npm'  : [`which npm`][`npm --version`]"
-echo "Current 'node' : [`which node`][`node --version`]"
+echo "Using 'npm'  : [`which npm`][`npm --version`]"
+echo "Using 'node' : [`which node`][`node --version`]"
 
 npm install ${globally}
