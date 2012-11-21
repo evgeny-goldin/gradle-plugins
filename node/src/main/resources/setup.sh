@@ -37,4 +37,4 @@ echo "Current \$NODE_ENV : [$NODE_ENV]"
 echo
 
 echo "Running 'npm install'"
-npm install
+npm install ${globally}
