@@ -4,6 +4,7 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.bundling.Zip
 
 
@@ -18,13 +19,22 @@ class AboutTask extends BaseTask<AboutExtension>
 
     void taskAction()
     {
-        final archives = archivesToUpdate()
-        if ( ! archives ) { return }
+        try
+        {
+            final archives = archivesToUpdate()
+            if ( ! archives ) { return }
 
-        final aboutFile = createAboutFile()
+            final aboutFile = createAboutFile()
 
-        updateArchives( aboutFile, archives )
-        assert project.delete( aboutFile )
+            updateArchives( aboutFile, archives )
+            assert project.delete( aboutFile )
+        }
+        catch ( Throwable error )
+        {
+            final message = "Failed to run 'about'"
+            if ( ext.failOnError ) { throw new GradleException( message, error )}
+            else                   { log( LogLevel.ERROR, error ){ message }}
+        }
     }
 
 

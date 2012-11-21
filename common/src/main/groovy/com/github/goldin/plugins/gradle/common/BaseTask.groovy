@@ -169,7 +169,7 @@ abstract class BaseTask<T> extends DefaultTask
         }
 
         final output = outputStream.toString().trim()
-        if ( output ) { log( LogLevel.DEBUG ){ '>> ' + output.readLines().join( '\n>> ' ) }}
+        if ( output ) { log( LogLevel.INFO ){ '>> ' + output.readLines().join( '\n>> ' ) }}
         output
     }
 
