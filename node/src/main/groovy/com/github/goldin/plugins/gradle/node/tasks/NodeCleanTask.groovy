@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import org.gradle.api.logging.LogLevel
 
 
 /**
@@ -12,10 +13,10 @@ class NodeCleanTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        project.delete( project.buildDir,
-                        scriptPath( SETUP_SCRIPT ),
-                        scriptPath( TEST_SCRIPT ),
-                        scriptPath( START_SCRIPT ),
-                        new File( project.rootDir, NODE_MODULES_DIR ))
+        final deleteList = [ project.buildDir, scriptPath( SETUP_SCRIPT ), scriptPath( TEST_SCRIPT ), scriptPath( START_SCRIPT ),
+                             new File( project.rootDir, NODE_MODULES_DIR )]
+
+        log( LogLevel.INFO ){ "Deleting $deleteList" }
+        project.delete( deleteList as Object[] )
     }
 }
