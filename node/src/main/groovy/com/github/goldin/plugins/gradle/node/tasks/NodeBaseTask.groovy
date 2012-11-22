@@ -43,7 +43,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         """#!/bin/bash
         |
         |source \${0%/*}/$SETUP_SCRIPT
-        |export BUILD_ID=Jenkins-let-me-spawn
+        |
         |export PATH=$binFolder:\$PATH
         |export NODE_ENV=$ext.NODE_ENV""".stripMargin()
     }

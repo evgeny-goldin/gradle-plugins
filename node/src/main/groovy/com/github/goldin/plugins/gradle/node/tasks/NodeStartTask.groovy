@@ -24,6 +24,8 @@ class NodeStartTask extends NodeBaseTask
         """
         |${ bashScript() }
         |
+        |export BUILD_ID=Jenkins-let-me-spawn
+        |
         |${ stopCommands().join( '\n|' ) }
         |$ext.startCommand
         |$ext.listCommand""".stripMargin()
