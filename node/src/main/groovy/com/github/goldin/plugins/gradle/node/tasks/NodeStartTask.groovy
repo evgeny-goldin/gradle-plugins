@@ -34,11 +34,18 @@ class NodeStartTask extends NodeBaseTask
     @Ensures({ result })
     private List<String> stopCommands()
     {
-        final killAllProcesses = find( ext.stopCommand, KillPattern )
-        if ( killAllProcesses )
+        final killProcesses = find( ext.stopCommand, KillPattern )
+        if  ( killProcesses )
         {
-            killAllProcesses.tokenize( '|' )*.trim().grep().collect {
-                "ps -Af | grep '$it' | grep -v grep | awk '{print \$2}' | while read pid; do echo \"kill \$pid\"; kill \$pid; done"
+            killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
+                String process ->
+
+                """
+                processes=`ps -Af | grep '${ process.replace( "'", "'\\''" ) }' | grep -v 'grep'`
+                if [ "\$processes" != "" ];
+                then
+                    echo -n \$processes | awk '{print \$2}' | while read pid; do echo "kill \$pid"; kill \$pid; done
+                fi""".stripIndent()
             }
         }
         else
