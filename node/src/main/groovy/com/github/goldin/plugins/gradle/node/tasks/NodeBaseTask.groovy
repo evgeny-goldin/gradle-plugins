@@ -41,10 +41,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ( binFolder.directory || ext.generateOnly ), "[$binFolder] not found"
 
         """#!/bin/bash
-
-        source \${0%/*}/$SETUP_SCRIPT
-        PATH=$binFolder:\$PATH
-        NODE_ENV=$ext.NODE_ENV""".stripIndent()
+        |
+        |source \${0%/*}/$SETUP_SCRIPT
+        |PATH=$binFolder:\$PATH
+        |NODE_ENV=$ext.NODE_ENV""".stripMargin()
     }
 
 

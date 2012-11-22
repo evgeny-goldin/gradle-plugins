@@ -46,9 +46,9 @@ class NodeTestTask extends NodeBaseTask
         assert isMocha, "Only 'mocha' test runner is currently supported"
 
         """
-        ${ bashScript()}
-
-        $ext.testCommand${ isMocha ? ' -R teamcity' : '' }""".stripIndent()
+        |${ bashScript() }
+        |
+        |$ext.testCommand${ isMocha ? ' -R teamcity' : '' }""".stripMargin()
     }
 
 

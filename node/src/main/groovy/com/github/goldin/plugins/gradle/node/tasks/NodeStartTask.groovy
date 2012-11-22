@@ -22,11 +22,11 @@ class NodeStartTask extends NodeBaseTask
     private String startScript()
     {
         """
-        ${ bashScript()}
-
-        ${ stopCommands().join( '\n' + ( ' ' * 8 )) }
-        $ext.startCommand
-        $ext.listCommand""".stripIndent()
+        |${ bashScript() }
+        |
+        |${ stopCommands().join( '\n|' ) }
+        |$ext.startCommand
+        |$ext.listCommand""".stripMargin()
     }
 
 
@@ -37,16 +37,12 @@ class NodeStartTask extends NodeBaseTask
         final killProcesses = find( ext.stopCommand, KillPattern )
         if  ( killProcesses )
         {
+            [ 'set +e' ] +
             killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
                 String process ->
-
-                """
-                processes=`ps -Af | grep '${ process.replace( "'", "'\\''" ) }' | grep -v 'grep'`
-                if [ "\$processes" != "" ];
-                then
-                    echo -n \$processes | awk '{print \$2}' | while read pid; do echo "kill \$pid"; kill \$pid; done
-                fi""".stripIndent()
-            }
+                "ps -Af | grep '${ process.replace( "'", "'\\''" ) }' | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill \$pid\"; kill \$pid; done"
+            } +
+            [ 'set -e' ]
         }
         else
         {
