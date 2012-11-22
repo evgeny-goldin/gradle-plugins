@@ -3,7 +3,6 @@ package com.github.goldin.plugins.gradle.node.tasks
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
-import org.gradle.api.GradleException
 import org.gradle.api.tasks.testing.Test
 
 
@@ -20,21 +19,21 @@ class NodeTestTask extends NodeBaseTask
 
         if ( ext.generateOnly ) { return }
 
-        final teamCityReport  = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity[' )}
-        final xUnitReportFile = new File( testResultsDir(), 'TEST-node.xml' )
-        final failures        = writeXUnitReport( teamCityReport, xUnitReportFile )
+        final teamCityReportLines = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity[' )}
 
-        if ( failures )
+        if ( teamCityReportLines )
         {
-            final message = "There were failing tests. See the report at: file:$xUnitReportFile.canonicalPath"
-            if ( ext.failOnTestFailures )
+            final xUnitReportFile = new File( testResultsDir(), 'TEST-node.xml' )
+            final failures        = writeXUnitReport( teamCityReportLines, xUnitReportFile )
+
+            if ( failures )
             {
-                throw new GradleException( message )
+                failOrWarn( ext.failOnTestFailures, "There were failing tests. See the report at: file:${ xUnitReportFile.canonicalPath }" )
             }
-            else
-            {
-                logger.warn( message )
-            }
+        }
+        else
+        {
+            failOrWarn( ext.failOnTestFailures, "Running tests produced no reports:\n$testReport" )
         }
     }
 
@@ -66,23 +65,23 @@ class NodeTestTask extends NodeBaseTask
     /**
      * Converts TeamCity test report into xUnit report and writes into a file specified.
      *
-     * @param teamCityReport TeamCity test report lines
-     * @param reportFile     file to write xUnit report to
-     * @return               true if any failures were found, false otherwise
+     * @param teamCityReportLines TeamCity test report lines
+     * @param reportFile          file to write xUnit report to
+     * @return                    true if any failures were found, false otherwise
      */
-    @Requires({ teamCityReport && reportFile })
-    private boolean writeXUnitReport ( List<String> teamCityReport, File reportFile )
+    @Requires({ teamCityReportLines && reportFile })
+    private boolean writeXUnitReport ( List<String> teamCityReportLines, File reportFile )
     {
-        assert teamCityReport.every { it.startsWith( '##teamcity[' )}
-        assert teamCityReport[  0 ].startsWith     ( '##teamcity[testSuiteStarted name=\'' )
-        assert teamCityReport[ -1 ].startsWith     ( '##teamcity[testSuiteFinished name=\'' )
+        assert teamCityReportLines.every { it.startsWith( '##teamcity[' )}
+        assert teamCityReportLines[  0 ].startsWith     ( '##teamcity[testSuiteStarted name=\'' )
+        assert teamCityReportLines[ -1 ].startsWith     ( '##teamcity[testSuiteFinished name=\'' )
 
-        final reportLines = []
-        int   tests       = 0
-        int   failures    = 0
-        int   skipped     = 0
+        final xUnitReportLines = []
+        int   tests            = 0
+        int   failures         = 0
+        int   skipped          = 0
 
-        for ( line in teamCityReport[ 1 .. -2 ] )
+        for ( line in teamCityReportLines[ 1 .. -2 ] )
         {
             final attributes = lineToMap( line )
             final testName   = attribute( attributes, 'name', line )
@@ -91,24 +90,24 @@ class NodeTestTask extends NodeBaseTask
             {
                 tests++
                 final duration = attribute( attributes, 'duration', line, { String s -> ( s ==~ NumberPattern ? ( s as int ) / 1000 /* ms => sec */ : -1 )})
-                reportLines << """<testcase name="$testName" time="$duration"/>"""
+                xUnitReportLines << """<testcase name="$testName" time="$duration"/>"""
             }
             else if ( line.startsWith( '##teamcity[testFailed ' ))
             {
                 failures++
-                reportLines << """<testcase name="$testName"><failure message="${ attribute( attributes, 'message', line ) }"/></testcase>"""
+                xUnitReportLines << """<testcase name="$testName"><failure message="${ attribute( attributes, 'message', line ) }"/></testcase>"""
             }
             else if ( line.startsWith( '##teamcity[testIgnored ' ))
             {
                 skipped++
-                reportLines << """<testcase name="$testName"><skipped/></testcase>"""
+                xUnitReportLines << """<testcase name="$testName"><skipped/></testcase>"""
             }
         }
 
-        final testSuiteName      = attribute( lineToMap( teamCityReport[ 0 ] ), 'name', teamCityReport[ 0 ])
+        final testSuiteName      = attribute( lineToMap( teamCityReportLines[ 0 ] ), 'name', teamCityReportLines[ 0 ])
         final String xUnitReport = """
 <testsuite name="$testSuiteName" tests="$tests" failures="$failures" skip="$skipped">
-    ${ reportLines.join( '\n    ' ) }
+    ${ xUnitReportLines.join( '\n    ' ) }
 </testsuite>""".trim()
 
         assert reportFile.with { ( ! file ) || ( project.delete( delegate )) }

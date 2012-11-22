@@ -393,4 +393,19 @@ abstract class BaseTask<T> extends DefaultTask
 
         logText
     }
+
+
+    @Requires({ message })
+    final failOrWarn( boolean shouldFail, String message, Throwable error = null )
+    {
+        if ( shouldFail )
+        {
+            if ( error ) { throw new GradleException( message, error )}
+            else         { throw new GradleException( message )}
+        }
+        else
+        {
+            log( LogLevel.WARN, error ){ message }
+        }
+    }
 }

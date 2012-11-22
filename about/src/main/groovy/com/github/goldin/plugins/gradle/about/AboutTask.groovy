@@ -31,9 +31,7 @@ class AboutTask extends BaseTask<AboutExtension>
         }
         catch ( Throwable error )
         {
-            final message = "Failed to run 'about'"
-            if ( ext.failOnError ) { throw new GradleException( message, error )}
-            else                   { log( LogLevel.ERROR, error ){ message }}
+            failOrWarn( ext.failOnError, "Failed to run 'about'", error )
         }
     }
 
