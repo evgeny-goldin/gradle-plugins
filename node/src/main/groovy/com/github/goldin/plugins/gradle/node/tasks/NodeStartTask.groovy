@@ -23,8 +23,7 @@ class NodeStartTask extends NodeBaseTask
     {
         """
         |${ bashScript() }
-        |
-        |export BUILD_ID=Jenkins-let-me-spawn
+        |export BUILD_ID=JenkinsLetMeSpawn
         |
         |${ stopCommands().join( '\n|' ) }
         |$ext.startCommand
@@ -42,7 +41,8 @@ class NodeStartTask extends NodeBaseTask
             [ 'set +e' ] +
             killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
                 String process ->
-                "ps -Af | grep '${ process.replace( "'", "'\\''" ) }' | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill \$pid\"; kill \$pid; done"
+                final processGrep = process.tokenize( ',' )*.replace( "'", "'\\''" ).collect { "grep '$it'" }.join( ' | ' )
+                "ps -Af | $processGrep | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill \$pid\"; kill \$pid; done"
             } +
             [ 'set -e' ]
         }
