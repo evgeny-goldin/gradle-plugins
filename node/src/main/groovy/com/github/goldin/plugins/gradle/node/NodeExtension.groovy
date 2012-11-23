@@ -10,7 +10,6 @@ class NodeExtension
     boolean      generateOnly           = false // Whether bash scripts should be generated but not run
     boolean      installGlobally        = false // Whether Node.js modules should be installed globally
 
-    boolean       otherDaemons          = true  // Whether other forever daemons can be running after issuing the stopCommand
     boolean       echoScripts           = false // Echo all bash scripts generated to the build log
     boolean       echoCommands          = false // Echo all commands executed in bash scripts to the build log
     boolean       teamCityTests         = false // Whether test results should be written to log as TeamCity service messages
