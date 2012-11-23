@@ -34,25 +34,30 @@ class NodeStopTask extends NodeBaseTask
     {
         final stopCommands = ext.stopCommands.collect {
 
-            String command ->
-            assert command != null, "Undefined stop command [$command] in $ext.stopCommands"
+            String stopCommand ->
+            assert stopCommand != null, "Undefined stop command [$stopCommand] in $ext.stopCommands"
 
-            final killProcesses = ( command ? find( command, KillPattern ) : null /* Empty command*/ )
+            final killProcesses = ( stopCommand ? find( stopCommand, KillPattern ) : null /* Empty command*/ )
             if  ( killProcesses )
             {
                 killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
                     String process ->
-                    final processGrep = process.tokenize( ',' )*.replace( "'", "'\\''" ).collect { "grep '$it'" }.join( ' | ' )
 
-                    [ "ps -Af | $processGrep | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill \$pid\"; kill \$pid; done",
-                      'sleep 5',
-                      "ps -Af | $processGrep | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill -9 \$pid\"; kill -9 \$pid; done",
-                      '' ]
+                    final processGrepSteps = process.tokenize( ',' )*.replace( "'", "'\\''" ).collect { "grep '$it'" }.join( ' | ' )
+                    final listProcesses    = "ps -Af | $processGrepSteps | grep -v 'grep'"
+                    final pids             = "$listProcesses | awk '{print \$2}'"
+                    final killAll          = "$pids | while read pid; do echo \"kill \$pid\"; kill \$pid; done"
+                    final forceKillAll     = "$pids | while read pid; do echo \"kill -9 \$pid\"; kill -9 \$pid; done"
+                    final ifStillRunning   = "if [ \"`$pids`\" != \"\" ]; then"
+
+                    [ "$ifStillRunning $killAll; fi",
+                      "$ifStillRunning sleep 5; $forceKillAll; fi",
+                      "$ifStillRunning echo 'Failed to kill process [$process]:'; $listProcesses; exit 1; fi" ]
                 }.flatten()
             }
             else
             {
-                command
+                stopCommand
             }
         }.flatten()
 
