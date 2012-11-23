@@ -18,10 +18,12 @@ class NodeConstants
     final static String TEST_TASK         = 'test'
     final static String NODE_TEST_TASK    = 'nodeTest'
     final static String NODE_START_TASK   = 'start'
+    final static String NODE_STOP_TASK    = 'stop'
 
     final static String SETUP_SCRIPT      = "${ NODE_SETUP_TASK }.sh"
     final static String TEST_SCRIPT       = "${ TEST_TASK }.sh"
     final static String START_SCRIPT      = "${ NODE_START_TASK }.sh"
+    final static String STOP_SCRIPT       = "${ NODE_STOP_TASK }.sh"
 
     final static String NODE_MODULES_DIR  = 'node_modules'
     final static String NODE_MODULES_BIN  = "$NODE_MODULES_DIR/.bin"
