@@ -25,33 +25,40 @@ class NodeStartTask extends NodeBaseTask
         |${ bashScript() }
         |export BUILD_ID=JenkinsLetMeSpawn
         |
-        |${ stopCommands().join( '\n|' ) }
-        |$ext.startCommand""".stripMargin()
+        |${ stopCommands()*.trim().join( '\n|' ) }
+        |${ ext.startCommands*.trim().join( '\n|' )}""".stripMargin()
     }
 
 
-    @Requires({ ext.stopCommand })
+    @Requires({ ext.stopCommands })
     @Ensures({ result })
     private List<String> stopCommands()
     {
-        final killProcesses = find( ext.stopCommand, KillPattern )
-        if  ( killProcesses )
-        {
-            [ 'set +e', '' ] +
-            killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
-                String process ->
-                final processGrep = process.tokenize( ',' )*.replace( "'", "'\\''" ).collect { "grep '$it'" }.join( ' | ' )
+        final stopCommands = ext.stopCommands.collect {
 
-                [ "ps -Af | $processGrep | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill \$pid\"; kill \$pid; done",
-                  'sleep 5',
-                  "ps -Af | $processGrep | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill -9 \$pid\"; kill -9 \$pid; done",
-                  '' ]
-            }.flatten() +
-            [ 'set -e' ]
-        }
-        else
-        {
-            [ ext.stopCommand ]
-        }
+            String command ->
+            assert command != null, "Undefined stop command [$command] in $ext.stopCommands"
+
+            final killProcesses = ( command ? find( command, KillPattern ) : null /* Empty command*/ )
+            if  ( killProcesses )
+            {
+                killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
+                    String process ->
+                    final processGrep = process.tokenize( ',' )*.replace( "'", "'\\''" ).collect { "grep '$it'" }.join( ' | ' )
+
+                    [ "ps -Af | $processGrep | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill \$pid\"; kill \$pid; done",
+                      'sleep 5',
+                      "ps -Af | $processGrep | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill -9 \$pid\"; kill -9 \$pid; done",
+                      '' ]
+                }.flatten()
+            }
+            else
+            {
+                command
+            }
+        }.flatten()
+
+        assert stopCommands
+        [ 'set +e', '', *stopCommands, '', 'set -e', '' ] // Empty commands correspond to empty lines in a bash script
     }
 }
