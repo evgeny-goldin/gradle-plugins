@@ -67,6 +67,6 @@ class NodeSetupTask extends NodeBaseTask
                                                         replace( '${globally}',    ext.installGlobally ? '--global' : '' )
 
         assert ( ! setupScript.contains( '${' ))
-        bashExec(  setupScript, scriptPath( SETUP_SCRIPT ), true, ext.generateOnly )
+        bashExec(  setupScript, scriptFile( SETUP_SCRIPT ), true, ext.generateOnly )
     }
 }

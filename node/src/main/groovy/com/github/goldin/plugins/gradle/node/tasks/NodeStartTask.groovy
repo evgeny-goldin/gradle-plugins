@@ -14,7 +14,7 @@ class NodeStartTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        bashExec( startScript(), scriptPath( START_SCRIPT ), true, ext.generateOnly )
+        bashExec( startScript(), scriptFile( START_SCRIPT ), true, ext.generateOnly )
     }
 
 

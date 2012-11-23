@@ -68,40 +68,16 @@ abstract class BaseTask<T> extends DefaultTask
     }
 
     /**
-     * Exdcutes the script specified as bash command.
+     * Executes the bash script specified.
      *
-     * @param bashScriptContent content to run as bash script
-     * @param bashScriptPath    bash script path, temp file is used if {@code null}
-     * @param failOnError       whether execution should fail if bash execution returns non-zero value
-     * @param generateOnly      whether bash script should be generated but not executed
-     *
-     * @return bash output or empty String if bash was generated but not executed
+     * @param  bashScript bash script to execute
+     * @return bash output
      */
-    @Requires({ bashScriptContent })
+    @Requires({ bashScript.file })
     @Ensures({ result != null })
-    final String bashExec( String  bashScriptContent,
-                           String  bashScriptPath = null,
-                           boolean failOnError    = true,
-                           boolean generateOnly   = false )
+    final String bashExec( File bashScript, File directory = null, boolean failOnError = true )
     {
-        final bashFile = bashScriptPath ? new File( bashScriptPath ) :
-                                          File.createTempFile( this.class.name, null )
-        assert bashFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$bashFile.parentFile.canonicalPath]"
-        assert bashFile.with            { ( ! file ) || project.delete( delegate ) }, "Failed to delete [$bashFile.canonicalPath]"
-
-        bashFile.write( bashScriptContent.trim(), 'UTF-8' )
-        assert bashFile.with { file && size() }
-
-        log( LogLevel.INFO ){ "Bash script created at [$bashFile.canonicalPath]" }
-
-        if ( generateOnly )
-        {
-            ''
-        }
-        else
-        {
-            exec( 'bash', [ bashFile.canonicalPath ], null, failOnError )
-        }
+        exec( 'bash', [ bashScript.canonicalPath ], directory, failOnError )
     }
 
 

@@ -13,7 +13,10 @@ class NodeCleanTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        final deleteList = [ project.buildDir, scriptPath( SETUP_SCRIPT ), scriptPath( TEST_SCRIPT ), scriptPath( START_SCRIPT ),
+        final deleteList = [ project.buildDir,
+                             scriptFile( SETUP_SCRIPT ),
+                             scriptFile( TEST_SCRIPT  ),
+                             scriptFile( START_SCRIPT ),
                              new File( project.rootDir, NODE_MODULES_DIR )]
 
         log( LogLevel.INFO ){ "Deleting $deleteList" }

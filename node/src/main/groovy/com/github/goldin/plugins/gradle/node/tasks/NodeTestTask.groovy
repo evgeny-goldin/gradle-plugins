@@ -15,7 +15,7 @@ class NodeTestTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        final testReport = bashExec( testScript(), scriptPath( TEST_SCRIPT ), false, ext.generateOnly )
+        final testReport = bashExec( testScript(), scriptFile( TEST_SCRIPT ), false, ext.generateOnly )
 
         if ( ext.generateOnly ) { return }
 
