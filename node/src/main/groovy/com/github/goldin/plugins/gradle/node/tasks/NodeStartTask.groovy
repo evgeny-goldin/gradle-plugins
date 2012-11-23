@@ -42,8 +42,11 @@ class NodeStartTask extends NodeBaseTask
             killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
                 String process ->
                 final processGrep = process.tokenize( ',' )*.replace( "'", "'\\''" ).collect { "grep '$it'" }.join( ' | ' )
-                "ps -Af | $processGrep | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill \$pid\"; kill \$pid; done"
-            } +
+
+                [ "ps -Af | $processGrep | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill \$pid\"; kill \$pid; done",
+                  "sleep 5",
+                  "ps -Af | $processGrep | grep -v 'grep' | awk '{print \$2}' | while read pid; do echo \"kill -9 \$pid\"; kill -9 \$pid; done" ]
+            }.flatten() +
             [ 'set -e' ]
         }
         else

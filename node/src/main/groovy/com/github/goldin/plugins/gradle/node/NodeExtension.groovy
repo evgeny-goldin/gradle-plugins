@@ -14,14 +14,14 @@ class NodeExtension
     boolean       echoCommands          = false // Echo all commands executed in bash scripts to the build log
     boolean       echoOutput            = false // Echo all scripts output to the build log
     boolean       teamCityTests         = false // Whether test results should be written to log as TeamCity service messages
-    List<Closure> transformers          = []    // Callbacks to invoke when every bash script is generated
 
-    String  NODE_ENV     = 'development'
-    String  nodeVersion  = 'latest'
-    String  testCommand  = 'mocha'
-    String  stopCommand  = 'forever stopall'
-    String  startCommand = 'forever start server.js'
-    String  listCommand  = 'forever list'
+    List<Closure> transformers = []  // Callbacks to invoke when every bash script is generated
+    String        NODE_ENV     = 'development'
+    String        nodeVersion  = 'latest'
+    String        testCommand  = 'mocha'
+    String        stopCommand  = 'forever stopall'
+    String        startCommand = 'forever start server.js'
+    String        listCommand  = 'forever list'
 
     List <Map<String,?>> configs             = []   // List of config maps. Every map is:
                                                     // Key   - path of destination JSON config file to update or generate
