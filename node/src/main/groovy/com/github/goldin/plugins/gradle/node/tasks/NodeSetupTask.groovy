@@ -61,9 +61,9 @@ class NodeSetupTask extends NodeBaseTask
         assert setupScriptStream, "Unable to load [$SETUP_SCRIPT] resource"
 
         final setupScriptTemplate = setupScriptStream.text
-        final nodeVersion         = ( ext.nodeVersion == 'latest' ) ? helper.latestNodeVersion() : ext.nodeVersion
-        final setupScript         = setupScriptTemplate.replace( '${nvmRepo}',     NVM_GIT_REPO ).
-                                                        replace( '${nodeVersion}', nodeVersion  ).
+        ext.nodeVersion           = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
+        final setupScript         = setupScriptTemplate.replace( '${nvmRepo}',     NVM_GIT_REPO    ).
+                                                        replace( '${nodeVersion}', ext.nodeVersion ).
                                                         replace( '${globally}',    ext.installGlobally ? '--global' : '' )
 
         assert ( ! setupScript.contains( '${' ))

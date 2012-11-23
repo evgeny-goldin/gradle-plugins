@@ -21,7 +21,7 @@ class NodeStartTask extends NodeBaseTask
     private String startScript()
     {
         """
-        |${ bashScript() }
+        |${ baseBashScript() }
         |export BUILD_ID=JenkinsLetMeSpawn
         |
         |${ ext.startCommands*.trim().join( '\n|' )}""".stripMargin()

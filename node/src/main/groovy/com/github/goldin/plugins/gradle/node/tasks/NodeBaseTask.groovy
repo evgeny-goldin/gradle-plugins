@@ -14,7 +14,7 @@ import org.gradle.api.logging.LogLevel
  */
 abstract class NodeBaseTask extends BaseTask<NodeExtension>
 {
-    final NodeHelper helper = new NodeHelper()
+    final NodeHelper nodeHelper = new NodeHelper()
 
 
     @Override
@@ -35,22 +35,27 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
-     * Retrieves initial part of the bash script to be used by various tasks.
+     * Retrieves base part of the bash script to be used by various tasks.
      */
-    final String bashScript()
+    final String baseBashScript ()
     {
-        final  setupScript = scriptFile( SETUP_SCRIPT )
-        assert setupScript.file, "[$setupScript] not found"
-
-        final  binFolder   = new File( project.rootDir, NODE_MODULES_BIN )
-        assert ( binFolder.directory || ext.generateOnly ), "[$binFolder] not found"
+        final  binFolder = new File( project.rootDir, NODE_MODULES_BIN )
+        assert ( binFolder.directory || ext.generateOnly ), "[$binFolder] is not available"
 
         """#!/bin/bash
         |
-        |source \${0%/*}/$SETUP_SCRIPT
+        |set -e
+        |set -o pipefail
         |
         |export PATH=$binFolder:\$PATH
-        |export NODE_ENV=$ext.NODE_ENV""".stripMargin()
+        |export NODE_ENV=$ext.NODE_ENV
+        |
+        |. "\$HOME/.nvm/nvm.sh"
+        |
+        |echo "npm       : [`which npm`][`npm --version`]"
+        |echo "node      : [`which node`][`node --version`]"
+        |echo "\\\$NODE_ENV : [\$NODE_ENV]"
+        """.stripMargin()
     }
 
 

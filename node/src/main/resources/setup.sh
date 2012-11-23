@@ -24,10 +24,8 @@ set -e
 set -o pipefail
 
 . "$NVM_HOME/nvm.sh"
+
 nvm install ${nodeVersion}
-nvm use     ${nodeVersion}
-
-echo "Using 'npm'  : [`which npm`][`npm --version`]"
-echo "Using 'node' : [`which node`][`node --version`]"
-
+nvm use ${nodeVersion}
+nvm alias default ${nodeVersion}
 npm install ${globally}
