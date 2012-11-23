@@ -21,7 +21,6 @@ class NodeExtension
     String        testCommand  = 'mocha'
     String        stopCommand  = 'forever stopall'
     String        startCommand = 'forever start server.js'
-    String        listCommand  = 'forever list'
 
     List <Map<String,?>> configs             = []   // List of config maps. Every map is:
                                                     // Key   - path of destination JSON config file to update or generate

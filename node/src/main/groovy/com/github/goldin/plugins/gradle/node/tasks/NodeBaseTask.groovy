@@ -25,7 +25,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.testCommand,         "'testCommand' should be defined in $description"
         assert ext.stopCommand,         "'stopCommand' should be defined in $description"
         assert ext.startCommand,        "'startCommand' should be defined in $description"
-        assert ext.listCommand,         "'listCommand' should be defined in $description"
         assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
     }
 
@@ -76,7 +75,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
         assert scriptFile.with            { ( ! file ) || project.delete( delegate ) }, "Failed to delete [$scriptFile.canonicalPath]"
 
-        scriptContent = ( ext.transformers ?: [] ).inject( scriptContent ){
+        scriptContent = ( ext.transformers ?: [] ).inject( scriptContent.trim() + '\n' ){
             String script, Closure c -> c( script, scriptFile, this )
         }
 
