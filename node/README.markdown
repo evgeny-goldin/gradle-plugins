@@ -3,10 +3,10 @@ Node.js Gradle plugin
 
 Tasks provided by the plugin:
 
-* `clean`    - removes all locally installed Node.js modules and all bash scripts generated
+* `clean`    - removes all locally installed Node.js modules and bash scripts generated
 * `cleanAll` - removes all locally and globally installed Node.js modules and versions
-* `setup`    - sets up the environment and installs all required modules
-* `test`     - runs tests using Mocha
+* `setup`    - sets up the environment and installs Node.js modules required
+* `test`     - runs tests
 * `stop`     - stops an application
 * `start`    - starts an application
 
