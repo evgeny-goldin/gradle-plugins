@@ -18,11 +18,12 @@ class NodePlugin extends BasePlugin
     Map<String , Class<? extends BaseTask>> tasks ( Project project )
     {
         [
-          ( project.tasks.findByName( CLEAN_TASK ) ? NODE_CLEAN_TASK : CLEAN_TASK ) : NodeCleanTask,
-          ( NODE_SETUP_TASK )                                                       : NodeSetupTask,
-          ( project.tasks.findByName( TEST_TASK  ) ? NODE_TEST_TASK  : TEST_TASK  ) : NodeTestTask,
-          ( NODE_STOP_TASK  )                                                       : NodeStopTask,
-          ( NODE_START_TASK )                                                       : NodeStartTask
+          ( CLEAN_TASK      ) : NodeCleanTask,
+          ( CLEAN_ALL_TASK  ) : NodeCleanAllTask,
+          ( SETUP_TASK      ) : NodeSetupTask,
+          ( TEST_TASK       ) : NodeTestTask,
+          ( STOP_TASK       ) : NodeStopTask,
+          ( START_TASK      ) : NodeStartTask
         ]
     }
 
@@ -35,20 +36,16 @@ class NodePlugin extends BasePlugin
     {
         super.apply( project )
 
-        final cleanTask     = project.tasks.getByName( CLEAN_TASK      ) // Should
-        final nodeSetupTask = project.tasks.getByName( NODE_SETUP_TASK ) // be
-        final testTask      = project.tasks.getByName( TEST_TASK       ) // defined
-        final nodeStopTask  = project.tasks.getByName( NODE_STOP_TASK  ) // already
-        final nodeStartTask = project.tasks.getByName( NODE_START_TASK ) // by "super.apply( project )" call
+        final cleanTask    = project.tasks[ CLEAN_TASK     ] // All tasks
+        final cleanAllTask = project.tasks[ CLEAN_ALL_TASK ] // should
+        final setupTask    = project.tasks[ SETUP_TASK     ] // be
+        final testTask     = project.tasks[ TEST_TASK      ] // defined
+        final stopTask     = project.tasks[ STOP_TASK      ] // already
+        final startTask    = project.tasks[ START_TASK     ] // by "super.apply( project )" call
 
-        final nodeCleanTask = project.tasks.findByName( NODE_CLEAN_TASK ) // Defined if 'clean' and 'test'
-        final nodeTestTask  = project.tasks.findByName( NODE_TEST_TASK  ) // were taken already
-
-        ( nodeTestTask ?: testTask ).dependsOn nodeSetupTask
-        nodeStopTask.dependsOn  nodeSetupTask
-        nodeStartTask.dependsOn nodeStopTask
-
-        if ( nodeCleanTask ) { cleanTask.dependsOn nodeCleanTask }
-        if ( nodeTestTask  ) { testTask. dependsOn nodeTestTask  }
+        cleanAllTask.dependsOn cleanTask
+        testTask.    dependsOn setupTask
+        stopTask.    dependsOn setupTask
+        startTask.   dependsOn setupTask, stopTask
     }
 }
