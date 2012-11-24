@@ -115,6 +115,10 @@ abstract class BaseTask<T> extends DefaultTask
                        File         directory   = null,
                        boolean      failOnError = true )
     {
+        // 1 multiple threads - make thread safe
+        // 2 not always return is needed
+        // 3 create separate os for stdout and stderr, mark in logger
+
         final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
         log{ "Running $commandDescription" }
 
@@ -135,13 +139,14 @@ abstract class BaseTask<T> extends DefaultTask
         }
         catch ( Throwable error )
         {
+            final output = outputStream.toString().trim()
+
             if ( failOnError )
             {
-                throw new GradleException( "Failed to execute $commandDescription, output is [${ outputStream.toString().trim()}]",
-                                           error )
+                throw new GradleException( "Failed to execute $commandDescription, output is [$output]", error )
             }
 
-            if ( ! outputStream.toString()) { error.printStackTrace( new PrintStream( outputStream, true )) }
+            if ( ! output ) { error.printStackTrace( new PrintStream( outputStream, true )) }
         }
 
         outputStream.toString().trim()
