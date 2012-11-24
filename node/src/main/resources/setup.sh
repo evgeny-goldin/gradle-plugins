@@ -28,6 +28,7 @@ set -o pipefail
 echo "npm  : [`which npm`][`npm --version`]"
 echo "node : [`which node`][`node --version`]"
 
-nvm install       ${nodeVersion}
-nvm alias default ${nodeVersion}
-npm install       ${globally}
+nvm install ${nodeVersion}
+${nvmAlias}
+nvm use     ${nodeVersion}
+npm install ${globally}

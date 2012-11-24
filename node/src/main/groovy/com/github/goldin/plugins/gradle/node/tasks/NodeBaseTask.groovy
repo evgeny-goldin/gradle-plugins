@@ -51,6 +51,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |export PATH=$binFolder:\$PATH
         |
         |. "\$HOME/.nvm/nvm.sh"
+        |${ ext.global ? '' : 'nvm use ' + ext.nodeVersion }
+        |
         |echo ---------------------------------------------
         |echo \\\$NODE_ENV = [$ext.NODE_ENV]
         |echo ---------------------------------------------

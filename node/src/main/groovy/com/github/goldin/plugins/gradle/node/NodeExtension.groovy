@@ -8,7 +8,7 @@ class NodeExtension
     boolean      cleanWorkspace         = false // Whether to run cleanWorkspaceCommands before running tasks
     boolean      failOnTestFailures     = true  // Whether to fail execution if tests fail
     boolean      generateOnly           = false // Whether bash scripts should be generated but not run
-    boolean      installGlobally        = false // Whether Node.js modules should be installed globally
+    boolean      global                 = false // Whether Node.js settings are applied globally
 
     boolean      startDependsOnStop     = true  // Whether 'start' task should depend on the 'stop' task
     boolean      echoScripts            = false // Echo all bash scripts generated to the build log
