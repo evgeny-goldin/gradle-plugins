@@ -23,9 +23,12 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.NODE_ENV,            "'NODE_ENV' should be defined in $description"
         assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
         assert ext.testCommand,         "'testCommand' should be defined in $description"
-        assert ext.stopCommands,        "'stopCommands' should be defined in $description"
-        assert ext.startCommands,       "'startCommands' should be defined in $description"
         assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
+
+        assert ext.stopCommands  || ext.scriptName, "'stopCommands' or 'scriptName' should be defined in $description"
+        assert ext.startCommands || ext.scriptName, "'startCommands' or 'scriptName' should be defined in $description"
+
+        ext.isCoffee = ext.scriptName?.toLowerCase()?.endsWith( '.coffee' )
     }
 
 
@@ -39,7 +42,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      */
     final String baseBashScript ()
     {
-        final  binFolder = new File( project.rootDir, NODE_MODULES_BIN )
+        final  binFolder = new File( project.rootDir, NODE_BIN_DIR )
         assert ( binFolder.directory || ext.generateOnly ), "[$binFolder] is not available"
 
         """#!/bin/bash

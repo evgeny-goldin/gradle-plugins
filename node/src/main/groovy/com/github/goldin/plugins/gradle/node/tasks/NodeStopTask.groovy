@@ -28,11 +28,17 @@ class NodeStopTask extends NodeBaseTask
     }
 
 
-    @Requires({ ext.stopCommands })
+    @Requires({ ext.stopCommands || ext.scriptName })
     @Ensures({ result })
     private List<String> stopCommands()
     {
-        final stopCommands = ext.stopCommands.collect {
+        final List<String> stopCommands =
+            ext.stopCommands ?:
+            [ "forever stop --pidFile \"${ project.name }.pid\"${ ext.isCoffee ? " \"$NODE_COFFEE_BIN\"" : '' }",
+              '',
+              "<kill forever,${ project.name }|${ ext.scriptName }>" ]
+
+        final stopCommandsExpanded = stopCommands.collect {
 
             String stopCommand ->
             assert stopCommand != null, "Undefined stop command [$stopCommand] in $ext.stopCommands"
@@ -61,7 +67,7 @@ class NodeStopTask extends NodeBaseTask
             }
         }.flatten()
 
-        assert stopCommands
-        [ 'set +e', '', *stopCommands, '', 'set -e' ] // Empty commands correspond to empty lines in a bash script
+        assert stopCommandsExpanded
+        [ 'set +e', '', *stopCommandsExpanded, '', 'set -e' ] // Empty commands correspond to empty lines in a bash script
     }
 }

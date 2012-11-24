@@ -2,6 +2,7 @@ package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import org.gcontracts.annotations.Ensures
+import org.gcontracts.annotations.Requires
 
 
 /**
@@ -17,13 +18,18 @@ class NodeStartTask extends NodeBaseTask
     }
 
 
+    @Requires({ ext.startCommands || ext.scriptName })
     @Ensures({ result })
     private String startScript()
     {
+        final List<String> startCommands =
+            ext.startCommands ?:
+            [ "forever start --pidFile \"${ project.name }.pid\"${ ext.isCoffee ? " \"$NODE_COFFEE_BIN\"" : '' } \"$ext.scriptName\"" ]
+
         """
         |${ baseBashScript() }
         |export BUILD_ID=JenkinsLetMeSpawn
         |
-        |${ ext.startCommands*.trim().join( '\n|' )}""".stripMargin()
+        |${ startCommands*.trim().join( '\n|' )}""".stripMargin()
     }
 }

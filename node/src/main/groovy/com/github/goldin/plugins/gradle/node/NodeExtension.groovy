@@ -19,8 +19,11 @@ class NodeExtension
     String        NODE_ENV      = 'development'
     String        nodeVersion   = 'latest'
     String        testCommand   = 'mocha'
-    List<String>  stopCommands  = [ 'forever stopall' ]
-    List<String>  startCommands = [ 'forever start server.js' ]
+
+    String        scriptName    = 'server.js'
+    boolean       isCoffee
+    List<String>  stopCommands
+    List<String>  startCommands
 
     List <Map<String,?>> configs             = []   // List of config maps. Every map is:
                                                     // Key   - path of destination JSON config file to update or generate

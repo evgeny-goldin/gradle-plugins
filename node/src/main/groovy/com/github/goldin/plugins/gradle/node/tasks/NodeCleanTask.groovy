@@ -16,8 +16,7 @@ class NodeCleanTask extends NodeBaseTask
         final deleteList = [ project.buildDir,
                              scriptFile( SETUP_SCRIPT ),
                              scriptFile( TEST_SCRIPT  ),
-                             scriptFile( START_SCRIPT ),
-                             new File( project.rootDir, NODE_MODULES_DIR )]
+                             scriptFile( START_SCRIPT )]
 
         log( LogLevel.INFO ){ "Deleting $deleteList" }
         project.delete( deleteList as Object[] )

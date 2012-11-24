@@ -25,7 +25,8 @@ class NodeConstants
     final static String START_SCRIPT      = "${ START_TASK }.sh"
 
     final static String NODE_MODULES_DIR  = 'node_modules'
-    final static String NODE_MODULES_BIN  = "$NODE_MODULES_DIR/.bin"
+    final static String NODE_BIN_DIR      = "$NODE_MODULES_DIR/.bin"
+    final static String NODE_COFFEE_BIN   = "$NODE_BIN_DIR/coffee"
 
     final static Pattern AttributePattern = Pattern.compile( /(\w+)='(.*?[^|])'/ )
     final static Pattern NumberPattern    = Pattern.compile( /^\d+$/ )
