@@ -47,14 +47,14 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |set -e
         |set -o pipefail
         |
-        |export PATH=$binFolder:\$PATH
         |export NODE_ENV=$ext.NODE_ENV
+        |export PATH=$binFolder:\$PATH
         |
         |. "\$HOME/.nvm/nvm.sh"
+        |echo ---------------------------------------------
+        |echo \\\$NODE_ENV = [$ext.NODE_ENV]
+        |echo ---------------------------------------------
         |
-        |echo "npm       : [`which npm`][`npm --version`]"
-        |echo "node      : [`which node`][`node --version`]"
-        |echo "\\\$NODE_ENV : [\$NODE_ENV]"
         """.stripMargin()
     }
 

@@ -62,6 +62,6 @@ class NodeStopTask extends NodeBaseTask
         }.flatten()
 
         assert stopCommands
-        [ 'set +e', '', *stopCommands, 'set -e', '' ] // Empty commands correspond to empty lines in a bash script
+        [ 'set +e', '', *stopCommands, '', 'set -e' ] // Empty commands correspond to empty lines in a bash script
     }
 }
