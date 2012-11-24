@@ -120,7 +120,9 @@ abstract class BaseTask<T> extends DefaultTask
 
         log{ "Running $commandDescription" }
 
-        final outputStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
+        final stdoutStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
+                                                  new ByteArrayOutputStream()
+        final stderrStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
                                                   new ByteArrayOutputStream()
         try
         {
@@ -130,24 +132,26 @@ abstract class BaseTask<T> extends DefaultTask
                     executable( command )
                     if ( arguments ) { args( arguments )      }
                     if ( directory ) { workingDir = directory }
-                    standardOutput = outputStream
-                    errorOutput    = outputStream
+                    standardOutput = stdoutStream
+                    errorOutput    = stderrStream
                 }
             }
         }
         catch ( Throwable error )
         {
-            final output = outputStream.toString().trim()
+            final stdout = stdoutStream.toString().trim()
+            final stderr = stderrStream.toString().trim()
 
             if ( failOnError )
             {
-                throw new GradleException( "Failed to execute $commandDescription, output is [$output]", error )
+                throw new GradleException( "Failed to execute $commandDescription, stdout is [$stdout], stderr is [$stderr]",
+                                           error )
             }
 
-            if ( ! output ) { error.printStackTrace( new PrintStream( outputStream, true )) }
+            if ( ! ( stdout || stderr )) { error.printStackTrace( new PrintStream( stderrStream, true )) }
         }
 
-        outputStream.toString().trim()
+        stdoutStream.toString().trim() + stderrStream.toString().trim()
     }
 
 
