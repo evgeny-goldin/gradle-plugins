@@ -111,15 +111,13 @@ abstract class BaseTask<T> extends DefaultTask
     @Requires({ command && ( ! command.contains( ' ' )) && ( arguments != null ) })
     @Ensures({ result != null })
     final String exec( String       command,
-                       List<String> arguments   = [],
-                       File         directory   = null,
-                       boolean      failOnError = true )
+                       List<String> arguments    = [],
+                       File         directory    = null,
+                       boolean      failOnError  = true )
     {
-        // 1 multiple threads - make thread safe
-        // 2 not always return is needed
-        // 3 create separate os for stdout and stderr, mark in logger
+        final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }" +
+                                   "${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
 
-        final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
         log{ "Running $commandDescription" }
 
         final outputStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
@@ -130,10 +128,10 @@ abstract class BaseTask<T> extends DefaultTask
                 ExecSpec spec ->
                 spec.with {
                     executable( command )
-                    if ( arguments ) { args( arguments ) }
+                    if ( arguments ) { args( arguments )      }
+                    if ( directory ) { workingDir = directory }
                     standardOutput = outputStream
                     errorOutput    = outputStream
-                    if ( directory ) { workingDir = directory }
                 }
             }
         }

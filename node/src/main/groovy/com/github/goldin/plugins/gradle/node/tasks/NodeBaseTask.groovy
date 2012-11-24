@@ -76,8 +76,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
     final String bashExec( String  scriptContent,
                            File    scriptFile,
-                           boolean failOnError    = true,
-                           boolean generateOnly   = false )
+                           boolean failOnError  = true,
+                           boolean generateOnly = false )
     {
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
         assert scriptFile.with            { ( ! file ) || project.delete( delegate ) }, "Failed to delete [$scriptFile.canonicalPath]"

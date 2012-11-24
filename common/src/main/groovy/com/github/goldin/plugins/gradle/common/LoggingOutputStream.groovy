@@ -7,7 +7,7 @@ import org.gradle.api.logging.Logger
 
 
 /**
- * {@link OutputStream} implementation logging the data sent to it to Gradle logger.
+ * {@link OutputStream} implementation logging the data sent to the Gradle logger.
  */
 class LoggingOutputStream extends OutputStream
 {
@@ -38,6 +38,7 @@ class LoggingOutputStream extends OutputStream
             bytes[ pointer++ ] = b
         }
 
+        @SuppressWarnings([ 'GroovySynchronizedMethod' ])
         synchronized void reset(){ pointer = 0 }
 
         boolean isEmpty(){ pointer < 1 }
@@ -47,31 +48,33 @@ class LoggingOutputStream extends OutputStream
     }
 
 
+    private static final byte END_OF_LINE     = (( '\n' as char ) as byte )
+    private static final byte CARRIAGE_RETURN = (( '\r' as char ) as byte )
+
     private final String   logPrefix
     private final Logger   logger
     private final LogLevel logLevel
-    private final byte     endOfLine      = (( '\n' as char ) as byte )
-    private final byte     carriageReturn = (( '\r' as char ) as byte )
-    private final Bytes    wholeContent   = new Bytes( 1024 )
-    private final Bytes    content        = new Bytes( 128 )
+    private final Bytes    wholeContent
+    private final Bytes    content
 
 
     @Requires({ ( logPrefix != null ) && logger && logLevel })
     LoggingOutputStream ( String logPrefix = '', Logger logger, LogLevel logLevel )
     {
-        this.logPrefix = logPrefix
-        this.logger    = logger
-        this.logLevel  = logLevel
+        this.logPrefix    = logPrefix
+        this.logger       = logger
+        this.logLevel     = logLevel
+        this.wholeContent = new Bytes( 1024 )
+        this.content      = new Bytes( 128 )
     }
-
 
 
     @Override
     void write ( int b )
     {
         wholeContent.append(( byte ) b )
-        content.  append(( byte ) b )
-        if (( b == endOfLine ) || ( b == carriageReturn )){ printContent() }
+        content.     append(( byte ) b )
+        if (( b == END_OF_LINE ) || ( b == CARRIAGE_RETURN )){ printContent() }
     }
 
 
