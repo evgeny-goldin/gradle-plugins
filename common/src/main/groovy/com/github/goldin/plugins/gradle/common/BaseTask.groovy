@@ -118,8 +118,8 @@ abstract class BaseTask<T> extends DefaultTask
         final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
         log{ "Running $commandDescription" }
 
-        final outputStream = new ByteArrayOutputStream()
-
+        final outputStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
+                                                  new ByteArrayOutputStream()
         try
         {
             project.exec {
@@ -144,9 +144,7 @@ abstract class BaseTask<T> extends DefaultTask
             if ( ! outputStream.toString()) { error.printStackTrace( new PrintStream( outputStream, true )) }
         }
 
-        final output = outputStream.toString().trim()
-        if ( output ) { log( LogLevel.INFO ){ '>> ' + output.readLines().join( '\n>> ' ) }}
-        output
+        outputStream.toString().trim()
     }
 
 
