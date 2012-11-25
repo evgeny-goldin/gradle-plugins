@@ -19,8 +19,9 @@ class NodeExtension
     String        NODE_ENV      = 'development'
     String        nodeVersion   = 'latest'
     String        testCommand   = 'mocha'
+    String        testInput     = 'test'
 
-    String        scriptName    = 'server.js'
+    String        scriptPath    = 'server.js'
     boolean       isCoffee
     List<String>  stopCommands
     List<String>  startCommands

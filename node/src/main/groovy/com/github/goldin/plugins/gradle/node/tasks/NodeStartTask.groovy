@@ -18,13 +18,13 @@ class NodeStartTask extends NodeBaseTask
     }
 
 
-    @Requires({ ext.startCommands || ext.scriptName })
+    @Requires({ ext.startCommands || ext.scriptPath })
     @Ensures({ result })
     private String startScript()
     {
         final List<String> startCommands =
             ext.startCommands ?:
-            [ "forever start --pidFile \"${ project.name }.pid\"${ ext.isCoffee ? " \"$NODE_COFFEE_BIN\"" : '' } \"$ext.scriptName\"" ]
+            [ "forever start --pidFile \"${ project.name }.pid\"${ ext.isCoffee ? " \"$NODE_COFFEE_BIN\"" : '' } \"$ext.scriptPath\"" ]
 
         """
         |${ baseBashScript() }

@@ -25,10 +25,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.testCommand,         "'testCommand' should be defined in $description"
         assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
 
-        assert ext.stopCommands  || ext.scriptName, "'stopCommands' or 'scriptName' should be defined in $description"
-        assert ext.startCommands || ext.scriptName, "'startCommands' or 'scriptName' should be defined in $description"
+        assert ext.stopCommands  || ext.scriptPath, "'stopCommands' or 'scriptPath' should be defined in $description"
+        assert ext.startCommands || ext.scriptPath, "'startCommands' or 'scriptPath' should be defined in $description"
 
-        ext.isCoffee = ext.scriptName?.toLowerCase()?.endsWith( '.coffee' )
+        ext.isCoffee = ext.scriptPath?.toLowerCase()?.endsWith( '.coffee' )
     }
 
 

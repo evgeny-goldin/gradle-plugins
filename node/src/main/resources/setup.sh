@@ -28,6 +28,8 @@ set -o pipefail
 nvm install ${nodeVersion}
 ${nvmAlias}
 nvm use     ${nodeVersion}
+
+echo npm install ${globally}
 npm install ${globally}
 
 echo "npm  : [`which npm`][`npm --version`]"

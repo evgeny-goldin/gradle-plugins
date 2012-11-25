@@ -28,7 +28,7 @@ class NodeStopTask extends NodeBaseTask
     }
 
 
-    @Requires({ ext.stopCommands || ext.scriptName })
+    @Requires({ ext.stopCommands || ext.scriptPath })
     @Ensures({ result })
     private List<String> stopCommands()
     {
@@ -36,7 +36,7 @@ class NodeStopTask extends NodeBaseTask
             ext.stopCommands ?:
             [ "forever stop --pidFile \"${ project.name }.pid\"${ ext.isCoffee ? " \"$NODE_COFFEE_BIN\"" : '' }",
               '',
-              "<kill forever,${ project.name }|${ ext.scriptName }>" ]
+              "<kill forever,${ project.name }|${ ext.scriptPath }>" ]
 
         final stopCommandsExpanded = stopCommands.collect {
 
