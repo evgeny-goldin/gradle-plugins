@@ -18,7 +18,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     @Override
-    void verifyExtension( String description )
+    void verifyUpdateExtension ( String description )
     {
         assert ext.NODE_ENV,            "'NODE_ENV' should be defined in $description"
         assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
@@ -29,7 +29,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.startCommands || ext.scriptPath, "'startCommands' or 'scriptPath' should be defined in $description"
 
         ext.nodeVersion = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
-        ext.isCoffee    = ext.scriptPath?.toLowerCase()?.endsWith( '.coffee' )
+        ext.isCoffee    = ext.scriptPath?.endsWith( '.coffee' )
+
+        assert ( ext.isCoffee || ext.scriptPath?.endsWith( '.js' )), \
+               "Unknown [$ext.scriptPath] - I only know '.coffee' and '.js' extensions"
     }
 
 
@@ -39,11 +42,24 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
+     * Retrieves 'forever' command to use
+     * @return 'forever' command to use to start the application script ('coffee' executable full path or empty string)
+     */
+    final String foreverCommand()
+    {
+        final  coffee = project.file( NODE_COFFEE_BIN )
+        assert coffee.file, "[$coffee] - doesn't exist"
+
+        ext.isCoffee ? "\"${ coffee.canonicalPath }\"" : ''
+    }
+
+
+    /**
      * Retrieves base part of the bash script to be used by various tasks.
      */
     final String baseBashScript ()
     {
-        final  binFolder = new File( project.rootDir, NODE_BIN_DIR )
+        final  binFolder = project.file( NODE_BIN_DIR )
         assert ( binFolder.directory || ext.generateOnly ), "[$binFolder] is not available"
 
         """#!/bin/bash

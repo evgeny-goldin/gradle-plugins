@@ -34,7 +34,7 @@ class NodeStopTask extends NodeBaseTask
     {
         final List<String> stopCommands =
             ext.stopCommands ?:
-            [ "forever stop --pidFile \"${ project.name }.pid\"${ ext.isCoffee ? " \"$NODE_COFFEE_BIN\"" : '' }",
+            [ "forever stop --pidFile \"${ project.name }.pid\" ${ foreverCommand() }",
               '',
               "<kill forever,${ project.name }|${ ext.scriptPath },${ project.name }>" ]
 

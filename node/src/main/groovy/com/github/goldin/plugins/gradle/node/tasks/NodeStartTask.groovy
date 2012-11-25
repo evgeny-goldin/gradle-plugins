@@ -24,7 +24,7 @@ class NodeStartTask extends NodeBaseTask
     {
         final List<String> startCommands =
             ext.startCommands ?:
-            [ "forever start --pidFile \"${ project.name }.pid\"${ ext.isCoffee ? " \"$NODE_COFFEE_BIN\"" : '' } \"$ext.scriptPath\"" ]
+            [ "forever start --pidFile \"${ project.name }.pid\" ${ foreverCommand() } \"$ext.scriptPath\"" ]
 
         """
         |${ baseBashScript() }

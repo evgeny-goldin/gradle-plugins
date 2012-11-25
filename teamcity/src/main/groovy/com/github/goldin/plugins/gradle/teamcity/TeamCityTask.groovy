@@ -20,16 +20,16 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
     private static final String BSR = 'buildServerResources'
 
     @Override
-    void verifyExtension ( String description )
+    void verifyUpdateExtension ( String description )
     {
         ext.name   ( ext.name    ?: project.name )
         ext.version( ext.version ?: project.version.toString())
 
-        assert ext.name,        "$project - ${ this.extensionName }{ name        '..' } is not specified"
-        assert ext.displayName, "$project - ${ this.extensionName }{ displayName '..' } is not specified"
-        assert ext.version,     "$project - ${ this.extensionName }{ version     '..' } is not specified"
-        assert ext.vendorName,  "$project - ${ this.extensionName }{ vendorName  '..' } is not specified"
-        assert ext.description, "$project - ${ this.extensionName }{ description '..' } is not specified"
+        assert ext.name,        "'name' hould be defined in $description"
+        assert ext.displayName, "'displayName' hould be defined in $description"
+        assert ext.version,     "'version' hould be defined in $description"
+        assert ext.vendorName,  "'vendorName' hould be defined in $description"
+        assert ext.description, "'description' hould be defined in $description"
     }
 
     /**

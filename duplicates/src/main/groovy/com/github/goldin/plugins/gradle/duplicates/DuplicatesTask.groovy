@@ -22,7 +22,7 @@ class DuplicatesTask extends BaseTask<DuplicatesExtension>
     private final Map<File, List<String>> classesCache = [:]
 
     @Override
-    void verifyExtension( String description ) {}
+    void verifyUpdateExtension ( String description ) {}
 
     @Override
     void taskAction ()

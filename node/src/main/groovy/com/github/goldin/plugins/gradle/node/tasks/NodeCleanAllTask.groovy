@@ -15,7 +15,7 @@ class NodeCleanAllTask extends NodeBaseTask
     {
         final userHome   = new File( System.getProperty( 'user.home' ))
         final deleteList = '.forever .npm .nvm'.tokenize().collect{ new File( userHome, it )} +
-                           new File( project.rootDir, NODE_MODULES_DIR )
+                           project.file( NODE_MODULES_DIR )
 
         log( LogLevel.INFO ){ "Deleting $deleteList" }
         project.delete( deleteList as Object[] )

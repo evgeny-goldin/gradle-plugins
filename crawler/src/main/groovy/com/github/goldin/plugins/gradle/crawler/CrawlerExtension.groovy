@@ -24,14 +24,14 @@ class CrawlerExtension
     final Pattern slashesPattern              = Pattern.compile( '^/+' )
 
     /**
-     * Internal properties, set in {@link CrawlerTask#verifyExtension(java.lang.String)}
+     * Internal properties, set in {@link CrawlerTask#verifyUpdateExtension(java.lang.String)}
      */
 
     String  rootUrl
     Pattern internalLinkPattern
 
     /**
-     * Other properties, verified in {@link CrawlerTask#verifyExtension(java.lang.String)}
+     * Other properties, verified in {@link CrawlerTask#verifyUpdateExtension(java.lang.String)}
      */
 
     String        baseUrl

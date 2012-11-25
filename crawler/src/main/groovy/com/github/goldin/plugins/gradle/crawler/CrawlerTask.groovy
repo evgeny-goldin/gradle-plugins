@@ -34,7 +34,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      * @return {@link CrawlerExtension} instance verified and updated.
      */
     @Override
-    void verifyExtension( String description )
+    void verifyUpdateExtension ( String description )
     {
         assert ext.externalLinkPattern         &&
                ext.absoluteLinkPattern         &&

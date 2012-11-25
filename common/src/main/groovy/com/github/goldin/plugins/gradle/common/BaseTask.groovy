@@ -37,12 +37,12 @@ abstract class BaseTask<T> extends DefaultTask
     @Requires({ this.project && this.ext && this.extensionName })
     final void doTask()
     {
-        verifyExtension( "${ this.extensionName } { .. }" )
+        verifyUpdateExtension( "$project => ${ this.extensionName } { .. }" )
         taskAction()
     }
 
     @Requires({ this.ext && description })
-    abstract void verifyExtension( String description )
+    abstract void verifyUpdateExtension ( String description )
 
     @Requires({ ext && extensionName })
     abstract void taskAction()
