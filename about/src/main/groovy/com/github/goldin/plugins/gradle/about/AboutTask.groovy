@@ -89,13 +89,9 @@ class AboutTask extends BaseTask<AboutExtension>
     @Ensures({ result })
     private String readVersion()
     {
-        final  propertiesFile = 'META-INF/gradle-plugins/about.properties'
-        final  inputStream    = this.class.classLoader.getResourceAsStream( propertiesFile )
-        assert inputStream, "Unable to load [$propertiesFile]"
-
         final properties = new Properties()
-        properties.load( inputStream )
-        properties[ 'version' ]
+        properties.load( getResource( 'META-INF/gradle-plugins/about.properties' ))
+        properties[ 'version' ] ?: 'unknown'
     }
 
 

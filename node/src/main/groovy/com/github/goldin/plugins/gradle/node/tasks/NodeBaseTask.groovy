@@ -28,7 +28,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.stopCommands  || ext.scriptPath, "'stopCommands' or 'scriptPath' should be defined in $description"
         assert ext.startCommands || ext.scriptPath, "'startCommands' or 'scriptPath' should be defined in $description"
 
-        ext.isCoffee = ext.scriptPath?.toLowerCase()?.endsWith( '.coffee' )
+        ext.nodeVersion = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
+        ext.isCoffee    = ext.scriptPath?.toLowerCase()?.endsWith( '.coffee' )
     }
 
 
@@ -54,7 +55,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |export PATH=$binFolder:\$PATH
         |
         |. "\$HOME/.nvm/nvm.sh"
-        |${ ext.global ? '' : 'nvm use ' + ext.nodeVersion }
+        |nvm use $ext.nodeVersion
         |
         |echo ---------------------------------------------
         |echo \\\$NODE_ENV = [$ext.NODE_ENV]

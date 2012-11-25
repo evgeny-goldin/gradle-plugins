@@ -142,13 +142,13 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
             if ( agentJars  )
             {
                 addFileToArchive( pluginArchive, agentArchive, 'agent' )
-                checkResources( agentJars, "META-INF/build-agent-plugin-${ ext.name }.xml" )
+                checkResourcesAreAvailable( agentJars, "META-INF/build-agent-plugin-${ ext.name }.xml" )
             }
 
             if ( serverJars )
             {
                 addFilesToArchive( pluginArchive, serverJars, 'server' )
-                checkResources( serverJars, BSR, "META-INF/build-server-plugin-${ ext.name }.xml" )
+                checkResourcesAreAvailable( serverJars, BSR, "META-INF/build-server-plugin-${ ext.name }.xml" )
             }
 
             ext.resources.each {
@@ -252,8 +252,7 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
             }
         }
 
-        final schema   = this.class.getResource( '/teamcity-plugin-descriptor.xsd' ).getText( 'UTF-8' )
-        final xml      = validateXml( writer.toString(), schema )
+        final xml      = validateXml( writer.toString(), getResourceText( '/teamcity-plugin-descriptor.xsd' ))
         final tempFile = File.createTempFile( project.name, null )
         tempFile.write( xml, 'UTF-8' )
         tempFile.deleteOnExit()

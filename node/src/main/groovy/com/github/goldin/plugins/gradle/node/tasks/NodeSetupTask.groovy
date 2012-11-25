@@ -57,15 +57,8 @@ class NodeSetupTask extends NodeBaseTask
 
     private void runSetupScript()
     {
-        final  setupScriptStream  = this.class.classLoader.getResourceAsStream( SETUP_SCRIPT )
-        assert setupScriptStream, "Unable to load [$SETUP_SCRIPT] resource"
-
-        final setupScriptTemplate = setupScriptStream.text
-        ext.nodeVersion           = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
-        final setupScript         = setupScriptTemplate.replace( '${nvmRepo}',     NVM_GIT_REPO    ).
-                                                        replace( '${nodeVersion}', ext.nodeVersion ).
-                                                        replace( '${nvmAlias}',    ext.global ? "nvm alias default ${ ext.nodeVersion }" : '' ).
-                                                        replace( '${globally}',    ext.global ? '--global' : '' )
+        final setupScript = getResourceText( SETUP_SCRIPT ).replace( '${nvmRepo}',     NVM_GIT_REPO    ).
+                                                            replace( '${nodeVersion}', ext.nodeVersion )
         assert ( ! setupScript.contains( '${' ))
         bashExec(  setupScript, scriptFile( SETUP_SCRIPT ), true, ext.generateOnly )
     }

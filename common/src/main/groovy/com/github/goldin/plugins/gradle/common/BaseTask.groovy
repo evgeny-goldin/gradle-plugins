@@ -293,7 +293,7 @@ abstract class BaseTask<T> extends DefaultTask
      * @param resources resources to locate in the files provided
      */
     @Requires({ files && resources })
-    final void checkResources( Collection<File> files, String ... resources )
+    final void checkResourcesAreAvailable ( Collection<File> files, String ... resources )
     {
         final cl = new URLClassLoader( files*.toURI()*.toURL() as URL[] )
         resources.each { assert cl.getResource( it ), "No '$it' resource found in $files" }
@@ -352,6 +352,37 @@ abstract class BaseTask<T> extends DefaultTask
 
 
     /**
+     * {@code this.class.classLoader.getResourceAsStream} wrapper.
+     *
+     * @param resourcePath resource to load
+     * @return resource {@code InputStream}
+     */
+    @Requires({ resourcePath })
+    @Ensures ({ result })
+    final InputStream getResource ( String resourcePath )
+    {
+        final  inputStream = this.class.classLoader.getResourceAsStream( resourcePath.startsWith( '/' ) ? resourcePath.substring( 1 ) : resourcePath )
+        assert inputStream, "Unable to load resource [$resourcePath]"
+        inputStream
+    }
+
+
+    /**
+     * {@code this.class.classLoader.getResourceAsStream.getText} wrapper.
+     *
+     * @param resourcePath resource to load
+     * @param charset to use when reading resource text content
+     * @return resource text
+     */
+    @Requires({ resourcePath && charset })
+    @Ensures ({ result != null })
+    final String getResourceText( String resourcePath, String charset = 'UTF-8' )
+    {
+        getResource( resourcePath ).getText( charset )
+    }
+
+
+    /**
      * Logs message returned by the closure provided.
      *
      * @param logLevel           message log level
@@ -376,8 +407,15 @@ abstract class BaseTask<T> extends DefaultTask
     }
 
 
+    /**
+     * Throws a {@link GradleException} or logs a warning message according to {@code shouldFail}.
+     *
+     * @param shouldFail whether execution should throw an exception
+     * @param message    error message to throw or log
+     * @param error      execution error, optional
+     */
     @Requires({ message })
-    final failOrWarn( boolean shouldFail, String message, Throwable error = null )
+    final void failOrWarn( boolean shouldFail, String message, Throwable error = null )
     {
         if ( shouldFail )
         {
