@@ -7,12 +7,12 @@ import org.gradle.api.logging.Logger
 
 
 /**
- * {@link OutputStream} implementation logging the data sent to the Gradle logger.
+ * Non thread safe {@link OutputStream} implementation logging the data sent to the Gradle logger.
  */
 class LoggingOutputStream extends OutputStream
 {
     /**
-     * Bytes collection, convertible to {@code String}.
+     * Non thread safe bytes collection, convertible to {@code String}.
      */
     @Invariant({ ( pointer > -1 ) && ( pointer <= bytes.length ) })
     private static class Bytes
@@ -24,7 +24,7 @@ class LoggingOutputStream extends OutputStream
         Bytes ( int initialSize ){ bytes = new byte[ initialSize ]}
 
         @SuppressWarnings([ 'GroovySynchronizedMethod', 'GroovyPublicFieldAccessedInSynchronizedContext' ])
-        synchronized void append( byte b )
+        void append( byte b )
         {
             assert pointer <= bytes.length
             if (   pointer == bytes.length )
@@ -39,7 +39,7 @@ class LoggingOutputStream extends OutputStream
         }
 
         @SuppressWarnings([ 'GroovySynchronizedMethod' ])
-        synchronized void reset(){ pointer = 0 }
+        void reset(){ pointer = 0 }
 
         boolean isEmpty(){ pointer < 1 }
 
