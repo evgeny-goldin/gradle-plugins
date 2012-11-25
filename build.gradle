@@ -56,13 +56,13 @@ subprojects {
 
     sourceCompatibility = 1.6
     group               = 'com.github.goldin.plugins.gradle'
-
+    final extraJars     = ( ! p.hasProperty( 'nj' /* no jars */ ))
 
     clean { delete( "$rootDir/out", "$rootDir/build" ) }
 
     repositories {
-        mavenRepo url: 'http://repository.jetbrains.com/kotlin/'
-        mavenRepo url: 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'
+        maven { url 'http://repository.jetbrains.com/kotlin/' }
+        maven { url 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
     }
 
     about        { includeDependencies = [ 'compile', 'runtime' ]
@@ -89,20 +89,25 @@ subprojects {
      */
 
     task sourcesJar( type: Jar, dependsOn: classes ) {
+        onlyIf { extraJars }
         classifier = 'sources'
         from sourceSets.main.allSource
         from files( "${ project.rootProject.projectDir }/license.txt" )
     }
 
     task groovydocJar( type: Jar, dependsOn: groovydoc ) {
+        onlyIf { extraJars }
         classifier = 'javadoc'
         from groovydoc.destinationDir
         from files( "${ project.rootProject.projectDir }/license.txt" )
     }
 
-    artifacts {
-         archives sourcesJar
-         archives groovydocJar
+    if ( extraJars )
+    {
+        artifacts {
+             archives sourcesJar
+             archives groovydocJar
+        }
     }
 }
 
