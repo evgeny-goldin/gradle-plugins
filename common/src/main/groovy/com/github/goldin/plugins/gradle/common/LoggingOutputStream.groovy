@@ -23,7 +23,6 @@ class LoggingOutputStream extends OutputStream
         @Requires({ initialSize > 0 })
         Bytes ( int initialSize ){ bytes = new byte[ initialSize ]}
 
-        @SuppressWarnings([ 'GroovySynchronizedMethod', 'GroovyPublicFieldAccessedInSynchronizedContext' ])
         void append( byte b )
         {
             assert pointer <= bytes.length
@@ -38,7 +37,6 @@ class LoggingOutputStream extends OutputStream
             bytes[ pointer++ ] = b
         }
 
-        @SuppressWarnings([ 'GroovySynchronizedMethod' ])
         void reset(){ pointer = 0 }
 
         boolean isEmpty(){ pointer < 1 }
