@@ -22,9 +22,18 @@ class NodeStartTask extends NodeBaseTask
     @Ensures({ result })
     private String startScript()
     {
+        String foreverCommand = ''
+
+        if ( ext.isCoffee )
+        {
+            final  coffee  = project.file( COFFEE_EXECUTABLE )
+            assert coffee.file, "[$coffee] executable is not available"
+            foreverCommand = "\"$COFFEE_EXECUTABLE\""
+        }
+
         final List<String> startCommands =
             ext.startCommands ?:
-            [ "forever start --pidFile \"${ project.name }.pid\" ${ foreverCommand() } \"$ext.scriptPath\"" ]
+            [ "forever start --pidFile \"${ project.name }.pid\" $foreverCommand \"$ext.scriptPath\"" ]
 
         """
         |${ baseBashScript() }

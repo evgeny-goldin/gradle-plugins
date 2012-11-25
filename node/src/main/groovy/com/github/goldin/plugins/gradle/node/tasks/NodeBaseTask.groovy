@@ -20,6 +20,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Override
     void verifyUpdateExtension ( String description )
     {
+        assert project.name,            "'project.name' should be defined"
         assert ext.NODE_ENV,            "'NODE_ENV' should be defined in $description"
         assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
         assert ext.testCommand,         "'testCommand' should be defined in $description"
@@ -42,24 +43,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
-     * Retrieves 'forever' command to use
-     * @return 'forever' command to use to start the application script ('coffee' executable full path or empty string)
-     */
-    final String foreverCommand()
-    {
-        final  coffee = project.file( NODE_COFFEE_BIN )
-        assert coffee.file, "[$coffee] is not available"
-
-        ext.isCoffee ? "\"${ coffee.canonicalPath }\"" : ''
-    }
-
-
-    /**
      * Retrieves base part of the bash script to be used by various tasks.
      */
     final String baseBashScript ()
     {
-        final  binFolder = project.file( NODE_BIN_DIR )
+        final  binFolder = project.file( MODULES_BIN_DIR )
         assert ( binFolder.directory || ext.generateOnly ), "[$binFolder] is not available"
 
         """#!/bin/bash

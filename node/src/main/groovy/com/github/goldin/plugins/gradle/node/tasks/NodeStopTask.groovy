@@ -34,9 +34,14 @@ class NodeStopTask extends NodeBaseTask
     {
         final List<String> stopCommands =
             ext.stopCommands ?:
-            [ "forever stop --pidFile \"${ project.name }.pid\" ${ foreverCommand() }",
-              '',
-              "<kill forever,${ project.name }|${ ext.scriptPath },${ project.name }>" ]
+            """
+            |pid=`cat \$HOME/.forever/pids/${ project.name }.pid`
+            |foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
+            |if [ "\$foreverId" != "" ]; then echo "Stopping forever process [\$foreverId], pid [\$pid]"; forever stop \$foreverId; fi
+            |
+            |# If 'forever' failed to list the process or stop it ..
+            |
+            |<kill forever,${ project.name }|${ ext.scriptPath },${ project.name }>""".stripMargin().readLines()
 
         final stopCommandsExpanded = stopCommands.collect {
 
