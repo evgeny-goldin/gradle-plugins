@@ -48,7 +48,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     final String foreverCommand()
     {
         final  coffee = project.file( NODE_COFFEE_BIN )
-        assert coffee.file, "[$coffee] - doesn't exist"
+        assert coffee.file, "[$coffee] is not available"
 
         ext.isCoffee ? "\"${ coffee.canonicalPath }\"" : ''
     }
