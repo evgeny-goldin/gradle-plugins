@@ -32,13 +32,13 @@ class ConfigHelper
     /**
      * Updates JSON config file specified using the file provided.
      *
-     * @param  configPath    JSON config file to update or create if doesn't exist yet
+     * @param  configFile    JSON config file to update or create if doesn't exist yet
      * @param  newConfigData config data file to read, can be another JSON config or a .properties file
      * @return               config file updated or created
      */
-    @Requires({ configPath && newConfigData })
+    @Requires({ configFile && newConfigData })
     @Ensures ({ result.with{ file && length() }})
-    File updateConfigWithFile ( String configPath, File newConfigData )
+    File updateConfigWithFile ( File configFile, File newConfigData )
     {
         assert newConfigData.file, "[$newConfigData] is not available"
         final  configText = newConfigData.text.trim()
@@ -49,7 +49,7 @@ class ConfigHelper
             final  json = new JsonSlurper().parseText( configText )
             assert ( json instanceof Map ) && ( json ), "Failed to read JSON data from [$newConfigData.canonicalPath]"
 
-            updateConfigWithMap( configPath, ( Map ) json )
+            updateConfigWithMap( configFile, ( Map ) json )
         }
         else
         {
@@ -57,7 +57,7 @@ class ConfigHelper
             properties.load( new StringReader( configText ))
             assert properties, "Failed to load Properties data from [$newConfigData.canonicalPath]"
 
-            updateConfigWithMap( configPath, ( Map ) properties )
+            updateConfigWithMap( configFile, ( Map ) properties )
         }
     }
 
@@ -65,17 +65,16 @@ class ConfigHelper
     /**
      * Updates JSON config file specified using the data provided.
      *
-     * @param configPath    JSON config file to update or create if doesn't exist yet
+     * @param configFile    JSON config file to update or create if doesn't exist yet
      * @param newConfigData config data to use for updating,
      *                      keys may contain {@link NodeExtension#configsKeyDelimiter} to indicate configuration nesting,
      *                      values may be real values or another configuration {@code Map} if read from JSON
      * @return              config file updated or created
      */
-    @Requires({ configPath && newConfigData })
+    @Requires({ configFile && newConfigData })
     @Ensures ({ result.with{ file && length() }})
-    File updateConfigWithMap ( String configPath, Map<String, ?> newConfigData )
+    File updateConfigWithMap ( File configFile, Map<String, ?> newConfigData )
     {
-        final configFile               = new File( configPath )
         final Map<String,?> configData =
             ( Map ) ( configFile.file ? new JsonSlurper().parseText( configFile.getText( 'UTF-8' )) : [:] )
 

@@ -45,12 +45,18 @@ class NodeSetupTask extends NodeBaseTask
             configMap.each {
                 String configPath, Object configValue ->
 
-                assert (( configValue instanceof File ) || ( configValue instanceof  Map )), \
-                       "Config value for [$configPath] is of type [${ configValue?.getClass()?.name}], " +
+                final configFile  = project.file( configPath )
+                final isValueFile = configValue instanceof File
+                final isValueMap  = configValue instanceof Map
+
+                assert ( isValueFile || isValueMap ), \
+                       "Config value for [$configFile.canonicalPath] is of type [${ configValue?.getClass()?.name}], " +
                        "should be of type [$File.name] or [$Map.name]"
 
-                if ( configValue instanceof File ){ configHelper.updateConfigWithFile( configPath, ( File ) configValue )}
-                else                              { configHelper.updateConfigWithMap ( configPath, ( Map )  configValue )}
+                log{ "Updating [$configFile.canonicalPath] JSON config using ${ isValueFile ? 'file': 'config Map' } $configValue" }
+
+                if ( isValueFile ){ configHelper.updateConfigWithFile( configFile, ( File ) configValue )}
+                else              { configHelper.updateConfigWithMap ( configFile, ( Map )  configValue )}
             }
         }
     }
@@ -67,6 +73,9 @@ class NodeSetupTask extends NodeBaseTask
                 String replacePath, Map replaces ->
 
                 final replaceFile    = file( replacePath )
+
+                log{ "Updating [$replaceFile.canonicalPath] using replacements Map $replaces" }
+
                 final String content = replaces.inject( replaceFile.getText( 'UTF-8' )) {
                     String content, String replacePattern, String replaceContent ->
 
