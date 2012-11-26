@@ -109,7 +109,7 @@ class NodeTestTask extends NodeBaseTask
     ${ xUnitReportLines.join( '\n    ' ) }
 </testsuite>""".trim()
 
-        assert reportFile.with { ( ! file ) || ( project.delete( delegate )) }
+        delete( reportFile )
         reportFile.write( xUnitReport, 'UTF-8' )
 
         ( failures > 0 )

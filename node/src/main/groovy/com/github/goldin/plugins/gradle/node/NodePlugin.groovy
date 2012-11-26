@@ -18,12 +18,12 @@ class NodePlugin extends BasePlugin
     Map<String , Class<? extends BaseTask>> tasks ( Project project )
     {
         [
-          ( CLEAN_TASK      ) : NodeCleanTask,
-          ( CLEAN_ALL_TASK  ) : NodeCleanAllTask,
-          ( SETUP_TASK      ) : NodeSetupTask,
-          ( TEST_TASK       ) : NodeTestTask,
-          ( STOP_TASK       ) : NodeStopTask,
-          ( START_TASK      ) : NodeStartTask
+          ( CLEAN_TASK    ) : NodeCleanTask,
+          ( CLEAN_MODULES ) : NodeCleanModulesTask,
+          ( SETUP_TASK    ) : NodeSetupTask,
+          ( TEST_TASK     ) : NodeTestTask,
+          ( STOP_TASK     ) : NodeStopTask,
+          ( START_TASK    ) : NodeStartTask
         ]
     }
 
@@ -36,16 +36,13 @@ class NodePlugin extends BasePlugin
     {
         super.apply( project )
 
-        final cleanTask    = project.tasks[ CLEAN_TASK     ] // All tasks
-        final cleanAllTask = project.tasks[ CLEAN_ALL_TASK ] // should
-        final setupTask    = project.tasks[ SETUP_TASK     ] // be
-        final testTask     = project.tasks[ TEST_TASK      ] // defined
-        final stopTask     = project.tasks[ STOP_TASK      ] // already
-        final startTask    = project.tasks[ START_TASK     ] // by "super.apply( project )" call
+        final setupTask = project.tasks[ SETUP_TASK ]
+        final testTask  = project.tasks[ TEST_TASK  ]
+        final stopTask  = project.tasks[ STOP_TASK  ]
+        final startTask = project.tasks[ START_TASK ]
 
-        cleanAllTask.dependsOn cleanTask
-        testTask.dependsOn   setupTask
-        stopTask.dependsOn   setupTask
+        testTask. dependsOn  setupTask
+        stopTask. dependsOn  setupTask
         startTask.dependsOn  setupTask, stopTask
     }
 }

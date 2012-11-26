@@ -25,9 +25,8 @@ class AboutTask extends BaseTask<AboutExtension>
             if ( ! archives ) { return }
 
             final aboutFile = createAboutFile()
-
             updateArchives( aboutFile, archives )
-            assert project.delete( aboutFile )
+            delete( aboutFile )
         }
         catch ( Throwable error )
         {

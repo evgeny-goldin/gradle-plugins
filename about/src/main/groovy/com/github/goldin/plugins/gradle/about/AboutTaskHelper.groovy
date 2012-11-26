@@ -220,7 +220,7 @@ class AboutTaskHelper
         final renderer   = asciiReportRenderer()
         final file       = new File( project.buildDir, "${ this.class.name }-dependencies.txt" )
         final line       = '-' * 80
-        assert (( ! file.file ) || project.delete( file )), "Unable to delete [$file.canonicalPath]"
+        task.delete( file )
 
         renderer.outputFile = file
         reportTask.renderer = renderer
@@ -232,7 +232,7 @@ class AboutTaskHelper
             file.text
 
         report = "$line\n" + report.replaceAll( /(?m)^\s*$/, line ) // Empty lines replaced by $line
-        assert project.delete( file ), "Unable to delete [$file.canonicalPath]"
+        task.delete( file )
         report
     }
 

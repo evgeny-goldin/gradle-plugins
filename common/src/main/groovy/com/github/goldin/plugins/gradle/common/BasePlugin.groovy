@@ -51,7 +51,7 @@ abstract class BasePlugin implements Plugin<Project>
         task.ext           = extension
         task.extensionName = extensionName
 
-        assert extension && task && task.ext && task.extensionName
+        assert extension && task && task.ext && task.extensionName && project.tasks[ taskName ]
         task
     }
 }

@@ -96,8 +96,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         this.threadPool   = Executors.newFixedThreadPool( ext.threadPoolSize ) as ThreadPoolExecutor
         this.linksStorage = new LinksStorage( ext )
 
-        assert (( ! ext.log ) || ( ! ext.log.file ) || project.delete( ext.log )), \
-               "Failed to delete [${ ext.log.canonicalPath }]"
+        if ( ext.log ){ delete( ext.log )}
 
         printStartBanner()
         submitRootLinks()
@@ -305,7 +304,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         if ( ext.zipLogFiles && logFiles )
         {
-            logFiles.each { zip( it ); project.delete( it )}
+            logFiles.each { zip( it ); delete( it )}
         }
     }
 

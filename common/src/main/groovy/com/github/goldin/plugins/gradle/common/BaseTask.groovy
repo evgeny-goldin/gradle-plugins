@@ -181,6 +181,34 @@ abstract class BaseTask<T> extends DefaultTask
 
 
     /**
+     * {@link org.gradle.api.Project#delete(java.lang.Object...)} wrapper logging the files being deleted
+     * and verifying delete operation was successful.
+     *
+     * @param  files files to delete
+     * @return files specified
+     */
+    @Requires({ files != null })
+    Object[] delete( Object ... files )
+    {
+        if ( files )
+        {
+            for ( file in files.grep().collect{ project.file( it ) })
+            {
+                if ( file.exists()) // *DO NOT* use findAll{ .. } - files can be deleted in a loop by deleting parent directories
+                {
+                    log { "Deleting [$file.canonicalPath]" }
+                    assert ( project.delete( file ) && ( ! file.exists())), "Unable to delete [$file.canonicalPath]"
+                }
+
+                assert ! file.exists()
+            }
+        }
+
+        files
+    }
+
+
+    /**
      * Retrieves files (and directories, if required) given base directory and inclusion/exclusion patterns.
      * Symbolic links are not followed.
      *
@@ -254,7 +282,7 @@ abstract class BaseTask<T> extends DefaultTask
     @Ensures ({ result.file })
     final File zip ( File archive, Closure zipClosure )
     {
-        project.delete( archive )
+        delete( archive )
         ant.zip( destfile: archive, duplicate: 'fail', whenempty: 'fail', level: 9 ){ zipClosure() }
         assert archive.file, "Failed to create [$archive.canonicalPath] using 'ant.zip( .. ){ .. }'"
         archive
@@ -329,7 +357,7 @@ abstract class BaseTask<T> extends DefaultTask
     @Ensures({ ( result == dir ) && ( result.directory ) && ( ! result.list())})
     final File makeEmptyDirectory( File dir )
     {
-        assert (( ! dir.exists()) || ( project.delete( dir ) && ( ! dir.exists())))
+        delete( dir )
         project.mkdir( dir )
     }
 

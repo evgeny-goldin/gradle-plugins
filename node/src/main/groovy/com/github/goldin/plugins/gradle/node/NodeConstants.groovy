@@ -13,7 +13,7 @@ class NodeConstants
 
     final static String NODE_EXTENSION    = 'node'
     final static String CLEAN_TASK        = 'clean'
-    final static String CLEAN_ALL_TASK    = 'cleanAll'
+    final static String CLEAN_MODULES     = 'cleanModules'
     final static String SETUP_TASK        = 'setup'
     final static String TEST_TASK         = 'test'
     final static String STOP_TASK         = 'stop'

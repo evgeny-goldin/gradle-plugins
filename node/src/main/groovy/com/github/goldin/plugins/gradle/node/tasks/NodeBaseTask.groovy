@@ -88,7 +88,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                            boolean generateOnly = false )
     {
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
-        assert scriptFile.with            { ( ! file ) || project.delete( delegate ) }, "Failed to delete [$scriptFile.canonicalPath]"
+        delete( scriptFile )
 
         scriptContent = ( ext.transformers ?: [] ).inject( scriptContent.trim() + '\n' ){
             String script, Closure c -> c( script, scriptFile, this )

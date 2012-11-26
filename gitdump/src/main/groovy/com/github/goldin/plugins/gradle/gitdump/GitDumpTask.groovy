@@ -54,7 +54,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         if ( ext.singleArchive )
         {
             final archive = archive( ext.outputDirectory, ext.singleArchiveName, false, ext.totalBackupMaxSize )
-            project.delete( ext.outputDirectory.listFiles().findAll{ it.name != archive.name })
+            delete( ext.outputDirectory.listFiles().findAll{ it.name != archive.name } as File[] )
         }
     }
 
@@ -87,7 +87,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         {
             gitExec( "checkout $checkoutId", targetDirectory )
             lastCommit = getLastCommit( targetDirectory )
-            assert ( project.delete( dotGit ) && ( ! dotGit.directory ))
+            delete( dotGit )
         }
         else
         {
@@ -95,7 +95,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
             if ( ext.runAggressiveGitGc )
             {
-                project.delete( new File( targetDirectory, ( bareClone ? 'hooks' : '.git/hooks' )))
+                delete( new File( targetDirectory, ( bareClone ? 'hooks' : '.git/hooks' )))
                 gitExec( 'reflog expire --all --expire=1.minute', targetDirectory )
             }
 
@@ -143,9 +143,8 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Ensures({ result.file })
     File archive( File directory, String archiveBaseName, boolean deleteDirectory, long maxSizeLimit )
     {
-        final archive = new File( ext.outputDirectory, "${ archiveBaseName }.${ ext.useZip ? 'zip' : 'tar.gz' }" )
-
-        assert (( ! archive.file ) || ( project.delete( archive ) && ( ! archive.file )))
+        final   archive = new File( ext.outputDirectory, "${ archiveBaseName }.${ ext.useZip ? 'zip' : 'tar.gz' }" )
+        delete( archive )
 
         if ( ext.useZip )
         {
@@ -169,10 +168,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
         log{ "[$directory.canonicalPath] archived to [$archive.canonicalPath]" }
 
-        if ( deleteDirectory )
-        {
-            assert ( project.delete( directory ) && ( ! directory.directory ))
-        }
+        if ( deleteDirectory ){ delete( directory )}
 
         archive
     }
