@@ -7,24 +7,26 @@ then
 fi
 
 NVM_HOME="$HOME/.nvm"
-. "$NVM_HOME/nvm.sh"
+NVM_SH="$NVM_HOME/nvm.sh"
+
+. "$NVM_SH"
 nvm ls
 
-if [ $? -ne 0 ]; then
+if [ $? -ne 0 ] || [ ! -f "$NVM_SH" ]; then
     rm -rf "$NVM_HOME"
     git clone ${nvmRepo} "$NVM_HOME"
 fi
 
-if [ ! -f "$NVM_HOME/nvm.sh" ];
+if [ ! -f "$NVM_SH" ];
 then
-    echo "[$NVM_HOME/nvm.sh] not found"
+    echo "[$NVM_SH] not found"
     exit 1
 fi
 
 set -e
 set -o pipefail
 
-. "$NVM_HOME/nvm.sh"
+. "$NVM_SH"
 
 nvm install ${nodeVersion}
 nvm use     ${nodeVersion}
