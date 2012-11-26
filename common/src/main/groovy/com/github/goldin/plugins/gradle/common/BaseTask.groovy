@@ -116,7 +116,7 @@ abstract class BaseTask<T> extends DefaultTask
                        boolean      failOnError  = true )
     {
         final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }" +
-                                   "${ directory ? ' in [' + directory.canonicalPath + ']' : '' }"
+                                   "${ directory ? ' in directory [' + directory.canonicalPath + ']' : '' }"
 
         log{ "Running $commandDescription" }
 
