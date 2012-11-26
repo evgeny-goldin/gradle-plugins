@@ -44,6 +44,8 @@ class NodePlugin extends BasePlugin
         final startTask    = project.tasks[ START_TASK     ] // by "super.apply( project )" call
 
         cleanAllTask.dependsOn cleanTask
-        startTask.   dependsOn  stopTask
+        testTask.dependsOn   setupTask
+        stopTask.dependsOn   setupTask
+        startTask.dependsOn  setupTask, stopTask
     }
 }
