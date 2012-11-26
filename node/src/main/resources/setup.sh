@@ -11,6 +11,7 @@ NVM_HOME="$HOME/.nvm"
 nvm ls
 
 if [ $? -ne 0 ]; then
+    rm -rf "$NVM_HOME"
     git clone ${nvmRepo} "$NVM_HOME"
 fi
 
