@@ -24,7 +24,7 @@ class NodeStopTask extends NodeBaseTask
         """
         |${ baseBashScript() }
         |
-        |${ stopCommands()*.trim().join( '\n|' ) }""".stripMargin()
+        |${ stopCommands().join( '\n|' ) }""".stripMargin()
     }
 
 
@@ -36,10 +36,17 @@ class NodeStopTask extends NodeBaseTask
             ext.stopCommands ?:
             """
             |pid=`cat \$HOME/.forever/pids/${ project.name }.pid`
-            |foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
-            |if [ "\$foreverId" != "" ]; then echo "Stopping forever process [\$foreverId], pid [\$pid]"; forever stop \$foreverId; fi
+            |if [ "\$pid" != "" ];
+            |then
+            |    foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
+            |    if [ "\$foreverId" != "" ];
+            |    then
+            |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
+            |        forever stop \$foreverId;
+            |    fi;
+            |fi
             |
-            |# If 'forever' failed to list the process or stop it ..
+            |# If .pid file doesn't exist or 'forever stop' doesn't stop ..
             |
             |<kill forever,${ project.name }|${ ext.scriptPath },${ project.name }>""".stripMargin().readLines()
 

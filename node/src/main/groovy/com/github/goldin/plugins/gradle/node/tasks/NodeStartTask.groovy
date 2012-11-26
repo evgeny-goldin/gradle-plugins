@@ -18,10 +18,23 @@ class NodeStartTask extends NodeBaseTask
     }
 
 
-    @Requires({ ext.startCommands || ext.scriptPath })
     @Ensures({ result })
     private String startScript()
     {
+        """
+        |${ baseBashScript() }
+        |export BUILD_ID=JenkinsLetMeSpawn
+        |
+        |${ startCommands().join( '\n|' )}""".stripMargin()
+    }
+
+
+    @Requires({ ext.startCommands || ext.scriptPath })
+    @Ensures({ result })
+    private List<String> startCommands()
+    {
+        if ( ext.startCommands ) { return ext.startCommands }
+
         String foreverCommand = ''
 
         if ( ext.isCoffee )
@@ -31,14 +44,6 @@ class NodeStartTask extends NodeBaseTask
             foreverCommand = "\"$COFFEE_EXECUTABLE\""
         }
 
-        final List<String> startCommands =
-            ext.startCommands ?:
-            [ "forever start --pidFile \"${ project.name }.pid\" $foreverCommand \"$ext.scriptPath\"" ]
-
-        """
-        |${ baseBashScript() }
-        |export BUILD_ID=JenkinsLetMeSpawn
-        |
-        |${ startCommands*.trim().join( '\n|' )}""".stripMargin()
+        [ "forever start --pidFile \"${ project.name }.pid\" $foreverCommand \"$ext.scriptPath\"" ]
     }
 }
