@@ -39,8 +39,7 @@ class NodeStartTask extends NodeBaseTask
 
         if ( ext.isCoffee )
         {
-            final  coffee  = project.file( COFFEE_EXECUTABLE )
-            assert coffee.file, "[$coffee] executable is not available"
+            file( COFFEE_EXECUTABLE ) // Validates existence
             foreverCommand = "\"$COFFEE_EXECUTABLE\""
         }
 

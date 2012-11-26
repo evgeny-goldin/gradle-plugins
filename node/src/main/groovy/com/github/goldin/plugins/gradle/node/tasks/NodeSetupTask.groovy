@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import java.util.regex.Pattern
 import com.github.goldin.plugins.gradle.node.ConfigHelper
 
 
@@ -15,6 +16,7 @@ class NodeSetupTask extends NodeBaseTask
         verifyGitAvailable()
         cleanWorkspace()
         updateConfigs()
+        makeReplacements()
         runSetupScript()
     }
 
@@ -38,9 +40,8 @@ class NodeSetupTask extends NodeBaseTask
 
         final configHelper = new ConfigHelper( ext )
 
-        ext.configs.each {
-            Map configMap ->
-
+        for ( configMap in ext.configs )
+        {
             configMap.each {
                 String configPath, Object configValue ->
 
@@ -50,6 +51,42 @@ class NodeSetupTask extends NodeBaseTask
 
                 if ( configValue instanceof File ){ configHelper.updateConfigWithFile( configPath, ( File ) configValue )}
                 else                              { configHelper.updateConfigWithMap ( configPath, ( Map )  configValue )}
+            }
+        }
+    }
+
+
+    @SuppressWarnings([ 'BuilderMethodWithSideEffects' ])
+    private void makeReplacements()
+    {
+        if ( ! ext.replaces ){ return }
+
+        for ( replacesMap in ext.replaces )
+        {
+            replacesMap.each {
+                String replacePath, Map replaces ->
+
+                final replaceFile    = file( replacePath )
+                final String content = replaces.inject( replaceFile.getText( 'UTF-8' )) {
+                    String content, String replacePattern, String replaceContent ->
+
+                    assert content && replacePattern && replaceContent, \
+                           'Content to replace, matching pattern and replacement content should be defined'
+
+                    if ( replacePattern.with { startsWith( '/' ) && endsWith( '/' ) })
+                    {
+                        final  pattern = replacePattern[ 1 .. -2 ]
+                        assert pattern, 'Empty regex replace patterns are not allowed'
+                        content.replaceAll( Pattern.compile( pattern ), replaceContent )
+                    }
+                    else
+                    {
+                        content.replace( replacePattern, replaceContent )
+                    }
+                }
+
+                assert content, 'Resulting content after all replaces are made is empty'
+                replaceFile.write( content, 'UTF-8' )
             }
         }
     }

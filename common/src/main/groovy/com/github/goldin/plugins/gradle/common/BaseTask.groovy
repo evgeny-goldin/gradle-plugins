@@ -154,6 +154,31 @@ abstract class BaseTask<T> extends DefaultTask
         stdoutStream.toString().trim() + stderrStream.toString().trim()
     }
 
+    /**
+     * {@link org.gradle.api.Project#file(java.lang.Object)} wrapper validating the file created exists already.
+     */
+    @Requires({ path })
+    @Ensures ({ result.file })
+    File file( String path )
+    {
+        final  f = project.file( path )
+        assert f.file, "File [$f] is not available"
+        f
+    }
+
+
+    /**
+     * {@link org.gradle.api.Project#file(java.lang.Object)} wrapper validating the directory created exists already.
+     */
+    @Requires({ path })
+    @Ensures ({ result.directory })
+    File directory( String path )
+    {
+        final  f = project.file( path )
+        assert f.directory, "Directory [$f] is not available"
+        f
+    }
+
 
     /**
      * Retrieves files (and directories, if required) given base directory and inclusion/exclusion patterns.

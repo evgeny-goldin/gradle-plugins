@@ -27,8 +27,14 @@ class NodeExtension
     List<String>  startCommands
 
     List <Map<String,?>> configs             = []   // List of config maps. Every map is:
-                                                    // Key   - path of destination JSON config file to update or generate
-                                                    // Value - existing JSON / .properties File to read or config data Map
+                                                    // Key   - path of destination JSON config file to update or create
+                                                    // Value - config data Map ( key => value ) or existing JSON / .properties File
     boolean              configsUpdateOnly   = true
     String               configsKeyDelimiter = '.'
+
+    List <Map<String,Map<String, String>>> replaces = []   // List of replace maps. Every map is:
+                                                           // Key   - path of destination file to update (should exist)
+                                                           // Value - Map of replacements to make:
+                                                           //         Key   - replacement regex /pattern/ or regular 'value'
+                                                           //         Value - value to replace the pattern to
 }
