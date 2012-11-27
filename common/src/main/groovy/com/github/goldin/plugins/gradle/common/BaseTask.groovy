@@ -35,6 +35,7 @@ abstract class BaseTask<T> extends DefaultTask
 
     @TaskAction
     @Requires({ this.project && this.ext && this.extensionName })
+    @SuppressWarnings([ 'GroovyUnusedDeclaration' ])
     final void doTask()
     {
         verifyUpdateExtension( "$project => ${ this.extensionName } { .. }" )
