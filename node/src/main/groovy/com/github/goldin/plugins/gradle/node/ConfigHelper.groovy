@@ -121,7 +121,7 @@ class ConfigHelper
     }
 
 
-    @Requires({ map && key.contains( ext.configsKeyDelimiter ) && ( value != null ) })
+    @Requires({ ( map != null ) && key.contains( ext.configsKeyDelimiter ) && ( value != null ) })
     private void updateConfigMapKeyIsDelimited ( Map<String,?> map, String key, Object value )
     {
         final delimiter = ext.configsKeyDelimiter
@@ -146,7 +146,7 @@ class ConfigHelper
     }
 
 
-    @Requires({ map && key && ( ! key.contains( ext.configsKeyDelimiter )) && ( value != null ) })
+    @Requires({ ( map != null ) && key && ( ! key.contains( ext.configsKeyDelimiter )) && ( value != null ) })
     private void updateConfigMapValueIsMap( Map<String,?> map, String key, Map<String, ?> value )
     {
         if ( map[ key ] == null )
