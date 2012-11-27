@@ -15,13 +15,19 @@ class NodeExtension
     boolean      echoCommands           = false // Echo all commands executed in bash scripts to the build log
     boolean      teamCityTests          = false // Whether test results should be written to log as TeamCity service messages
 
-    List<Closure> transformers  = []  // Callbacks to invoke when every bash script is generated
-    String        NODE_ENV      = 'development'
-    String        nodeVersion   = 'latest'
-    String        testCommand   = 'mocha'
-    String        testInput     = 'test'
+    boolean      startVerify            = true        // Whether application should be verified to be running after it has started
+    long         startVerifySleep       = 1000        // If 'startVerify' - amount of milliseconds to wait before making a connection
+    String       startVerifyHost        = '127.0.0.1' // If 'startVerify' the connection will be made to http://<verifyHost>:<verifyPort>
+    int          startVerifyPort        = 1337        // If 'startVerify' the connection will be made to http://<verifyHost>:<verifyPort>
+    String       startVerifyResponse    = ''          // If 'startVerify' - response to expect when making a request
 
-    String        scriptPath    = 'server.js'
+    List<Closure> transformers          = []  // Callbacks to invoke when every bash script is generated
+    String        NODE_ENV              = 'development'
+    String        nodeVersion           = 'latest'
+    String        testCommand           = 'mocha'
+    String        testInput             = 'test'
+
+    String        scriptPath            = 'server.js'
     boolean       isCoffee
     List<String>  stopCommands
     List<String>  startCommands
