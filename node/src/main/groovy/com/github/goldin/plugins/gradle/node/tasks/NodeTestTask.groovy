@@ -111,6 +111,7 @@ class NodeTestTask extends NodeBaseTask
 
         delete( reportFile )
         reportFile.write( xUnitReport, 'UTF-8' )
+        log{ "xUnit report is created at: file:${ reportFile.canonicalPath }" }
 
         ( failures > 0 )
     }
