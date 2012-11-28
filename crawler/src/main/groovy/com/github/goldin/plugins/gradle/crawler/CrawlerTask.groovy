@@ -24,7 +24,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     private final AtomicLong    bytesDownloaded = new AtomicLong( 0L )
     private final AtomicLong    linksProcessed  = new AtomicLong( 0L )
 
-    private volatile boolean            verificationFlag = true // If ever becomes false - crawling process is aborted immediately
+    private volatile boolean            crawlingAborted = false // If ever becomes true - crawling process is aborted immediately
     private          ThreadPoolExecutor threadPool
     private          LinksStorage       linksStorage
 
@@ -197,7 +197,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      */
     void waitForIdleOrVerificationFailure ()
     {
-        while ( verificationFlag && futures.any{ ! it.done } )
+        while (( ! crawlingAborted ) && futures.any{ ! it.done } )
         {
             sleep( ext.futuresPollingPeriod )
             futures.removeAll { it.done }
@@ -251,7 +251,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                         append( '\n' )
             }
         }
-        else if ( verificationFlag )
+        else if ( ! crawlingAborted )
         {
             message.append( ' - thumbs up!' )
         }
@@ -261,8 +261,8 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         if ( ext.teamcityMessages )
         {
-            final status = ((( ! verificationFlag ) || ( ext.failOnBrokenLinks && brokenLinks )) ? 'FAILURE' : 'SUCCESS' )
-            final text   = "$processedLinks link${ s( processedLinks )}, $brokenLinks broken${ verificationFlag ? '' : ', verification failure' }"
+            final status = (( crawlingAborted || ( ext.failOnBrokenLinks && brokenLinks )) ? 'FAILURE' : 'SUCCESS' )
+            final text   = "$processedLinks link${ s( processedLinks )}, $brokenLinks broken${ crawlingAborted ?  ', crawling aborted' : '' }"
             log( LogLevel.WARN ){ "##teamcity[buildStatus status='$status' text='$text']" }
         }
     }
@@ -316,10 +316,10 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     {
         final brokenLinks = linksStorage.brokenLinksNumber()
 
-        if ( ! verificationFlag )
+        if ( crawlingAborted )
         {
             throw new GradleException(
-                'Crawling process was aborted due to verification failure, see above for more details' )
+                'Crawling process was aborted, see above for more details' )
         }
 
         if ( ext.failOnBrokenLinks && brokenLinks )
@@ -357,7 +357,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     @Requires({ pageUrl && referrerUrl && referrerContent && ( pageDepth > -1 ) && linksStorage && threadPool })
     void checkLinks ( String pageUrl, String referrerUrl, String referrerContent, boolean isRootLink, int pageDepth )
     {
-        if ( ! verificationFlag ) { return }
+        if ( crawlingAborted ) { return }
 
         assert (( ext.maxDepth < 0 ) || ( pageDepth <= ext.maxDepth ))
         delay  ( ext.requestDelay )
@@ -390,10 +390,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
             if ( ! verificationPassed )
             {
-                verificationFlag = false
-
-                log( LogLevel.ERROR ){ "! Verification of [$pageUrl] has failed, aborting the crawling process" }
-                threadPool.shutdownNow()
+                abortCrawling(  "! Verification of [$pageUrl] has failed" )
                 return
             }
 
@@ -427,6 +424,15 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         {
             crawlerLog( LogLevel.ERROR, error ){ "Unexpected error while reading [$pageUrl], referrer [$referrerUrl]" }
         }
+    }
+
+
+    @Requires({ errorMessage })
+    void abortCrawling ( String errorMessage )
+    {
+        crawlingAborted = true
+        log( LogLevel.ERROR ){ "! $errorMessage, aborting the crawling process" }
+        threadPool.shutdownNow()
     }
 
 
@@ -575,18 +581,18 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
             if ( readFullContent && ( ! isRedirect ))
             {
-                response.data      = inputStream.bytes
-                final responseSize = response.data.length
-
-                response.data      = decodeResponseData( response )
-                final contentSize  = response.data.length
-
-                bytesDownloaded.addAndGet( responseSize )
+                response.data              = inputStream.bytes
+                final responseSize         = response.data.length
+                response.data              = decodeResponseData( response )
+                final contentSize          = response.data.length
+                final totalBytesDownloaded = bytesDownloaded.addAndGet( responseSize )
 
                 crawlerLog {
                     "[$pageUrl] - [$responseSize${ ( responseSize != contentSize ) ? ' => ' + contentSize : '' }] " +
                     "byte${ s( Math.max( responseSize, contentSize )) }, [${ System.currentTimeMillis() - t }] ms"
                 }
+
+                checkDownloadLimits( pageUrl, responseSize, totalBytesDownloaded )
             }
             else
             {
@@ -609,6 +615,24 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         finally
         {
             if ( inputStream ){ inputStream.close() }
+        }
+    }
+
+
+    @Requires({ pageUrl && ( responseSize >= 0 ) && ( totalBytesDownloaded >= 0 ) })
+    void checkDownloadLimits( String pageUrl, long responseSize, long totalBytesDownloaded )
+    {
+        if (( ext.pageDownloadLimit > 0 ) && ( responseSize > ext.pageDownloadLimit ))
+        {
+            abortCrawling( "[$pageUrl] - response size of [$responseSize] byte${ s( responseSize ) } " +
+                           "exceeds the per page download limit of [$ext.pageDownloadLimit] byte${ s( ext.pageDownloadLimit ) }" )
+            return
+        }
+
+        if (( ext.totalDownloadLimit > 0 ) && ( totalBytesDownloaded > ext.totalDownloadLimit ))
+        {
+            abortCrawling( "Total amount of bytes download [$totalBytesDownloaded] " +
+                           "exceeds the total download limit of [$ext.totalDownloadLimit] byte${ s( ext.totalDownloadLimit ) }" )
         }
     }
 

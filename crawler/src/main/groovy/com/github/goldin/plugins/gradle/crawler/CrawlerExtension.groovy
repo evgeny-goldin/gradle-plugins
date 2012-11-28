@@ -47,6 +47,8 @@ class CrawlerExtension
     int           checksumsChunkSize       = 1024
     int           futuresPollingPeriod     = 5000
     long          retryDelay               = 5000
+    long          pageDownloadLimit        = 100 * 1024
+    long          totalDownloadLimit       = 100 * 1024 * 1024
     long          requestDelay             = 0
     File          log                      = null
     File          linksMapFile             = null
