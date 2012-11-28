@@ -104,7 +104,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         delete( scriptFile )
 
         scriptContent = ( ext.transformers ?: [] ).inject( scriptContent.trim() + '\n' ){
-            String script, Closure c -> c( script, scriptFile, this )
+            String script, Closure c -> c( script, scriptFile, this ) ?: script
         }
 
         scriptFile.write( scriptContent, 'UTF-8' )
