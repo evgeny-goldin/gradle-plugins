@@ -92,8 +92,9 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
         if ( checkoutId )
         {
-            lastCommit = ( checkoutId == '<last>' ) ? lastCommitAllBranches( targetDirectory ) : checkoutId
-            gitExec( "checkout $lastCommit", targetDirectory )
+            checkoutId = ( checkoutId == '<last>' ) ? lastCommitAllBranches( targetDirectory ) : checkoutId
+            gitExec( "checkout $checkoutId", targetDirectory )
+            lastCommit = lastCommitCurrentBranch( targetDirectory )
             delete( dotGit )
         }
         else
@@ -132,7 +133,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     }
 
 
-    @Requires({ projectName && repoUrl && lastCommit })
+    @Requires({ projectName && repoUrl && lastCommit && lastCommit ==~ /\w{40}/ })
     void updateAboutFile ( String projectName, String repoUrl, String lastCommit )
     {
         if ( ext.aboutFile )
