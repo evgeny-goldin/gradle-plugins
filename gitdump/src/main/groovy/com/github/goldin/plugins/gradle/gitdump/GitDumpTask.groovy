@@ -133,15 +133,15 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     }
 
 
-    @Requires({ projectName && repoUrl && lastCommit && lastCommit ==~ /\w{40}/ })
-    void updateAboutFile ( String projectName, String repoUrl, String lastCommit )
+    @Requires({ projectName && repoUrl.endsWith( '.git' ) && commit ==~ /\w{40}/ })
+    void updateAboutFile ( String projectName, String repoUrl, String commit )
     {
         if ( ext.aboutFile )
         {
             ext.aboutFile.append( """\n
 [$projectName]:
- * Repo        - [$repoUrl]
- * Last commit - [$lastCommit]""" )
+ * Repo   - [$repoUrl]
+ * Commit - [$commit]""" )
         }
     }
 
