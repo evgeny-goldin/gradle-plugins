@@ -10,7 +10,12 @@ import org.gcontracts.annotations.Requires
  */
 class GitDumpTask extends BaseTask<GitDumpExtension>
 {
-    private getLastCommit( File projectDirectory ){ gitExec( 'log -1 --format=format:%H', projectDirectory ) }
+    @Ensures({ result })
+    private String lastCommitAllBranches   ( File projectDirectory ){ gitExec( 'log -1 --all --format=format:%H', projectDirectory )}
+
+    @Ensures({ result })
+    private String lastCommitCurrentBranch ( File projectDirectory ){ gitExec( 'log -1 --format=format:%H', projectDirectory ) }
+
 
     @Override
     void verifyUpdateExtension ( String description )
@@ -85,13 +90,13 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
         if ( checkoutId )
         {
-            gitExec( "checkout $checkoutId", targetDirectory )
-            lastCommit = getLastCommit( targetDirectory )
+            lastCommit = ( checkoutId == '<last>' ) ? lastCommitAllBranches( targetDirectory ) : checkoutId
+            gitExec( "checkout $lastCommit", targetDirectory )
             delete( dotGit )
         }
         else
         {
-            lastCommit = getLastCommit( targetDirectory )
+            lastCommit = lastCommitCurrentBranch( targetDirectory )
 
             if ( ext.runAggressiveGitGc )
             {
@@ -114,6 +119,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         updateAboutFile( projectName, repoUrl, lastCommit )
         targetDirectory
     }
+
 
 
     void initAboutFile ()
