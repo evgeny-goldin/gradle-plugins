@@ -86,6 +86,8 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
               (( List<String> ) [ 'clone', *ext.cloneFlags, ( bareClone ? '--bare' : '' ), repoUrl, targetDirectory.canonicalPath ].grep()),
               project.rootDir )
 
+        log{ "[$repoUrl] cloned into [$targetDirectory.canonicalPath]" }
+
         if ( ! bareClone ){ assert dotGit.directory }
 
         if ( checkoutId )
@@ -113,8 +115,6 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
             assert targetDirectory.list(), "[$targetDirectory.canonicalPath] contains no files"
         }
-
-        log{ "[$repoUrl${ checkoutId ? ':' + checkoutId : '' }] cloned into [$targetDirectory.canonicalPath]" }
 
         updateAboutFile( projectName, repoUrl, lastCommit )
         targetDirectory
