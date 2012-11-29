@@ -47,15 +47,6 @@ class AboutTaskHelper
     }
 
 
-
-    @Requires({ prefix && ( list != null ) })
-    @Ensures({ result != null })
-    private String find ( String prefix, List<String> list )
-    {
-        list.find{ it.startsWith( prefix ) }?.replace( prefix, '' )?.trim() ?: ''
-    }
-
-
     @Requires({ map })
     @Ensures({ result })
     private String sort ( Map<String,?> map )
@@ -283,7 +274,7 @@ class AboutTaskHelper
             $SEPARATOR
             | Version        : [${ gitVersion.replace( 'git version', '' ).trim() }]
             | Repositories   : [${ padLines( task.gitExec( 'remote -v', rootDir ), ' Repositories   : [' ) }]
-            | Branch         : [${ find( '# On branch', gitStatus.readLines()) }]
+            | Branch         : [${ task.find( gitStatus.readLines(), '# On branch' ) }]
             | Status         : [${ padLines( gitStatus, ' Status         : [' ) }]
             | Commit         : [${ gitLog[ 0 ] }][${ gitLog[ 1 ] }]
             | Commit Date    : [${ gitLog[ 2 ] }]

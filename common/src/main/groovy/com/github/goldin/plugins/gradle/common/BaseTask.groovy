@@ -68,6 +68,7 @@ abstract class BaseTask<T> extends DefaultTask
                "'git' client is not available - 'git --version' returned [$gitVersion]"
     }
 
+
     /**
      * Executes the bash script specified.
      *
@@ -160,7 +161,7 @@ abstract class BaseTask<T> extends DefaultTask
      */
     @Requires({ path })
     @Ensures ({ result.file })
-    File file( String path )
+    final File file( String path )
     {
         final  f = project.file( path )
         assert f.file, "File [$f] is not available"
@@ -173,7 +174,7 @@ abstract class BaseTask<T> extends DefaultTask
      */
     @Requires({ path })
     @Ensures ({ result.directory })
-    File directory( String path )
+    final File directory( String path )
     {
         final  f = project.file( path )
         assert f.directory, "Directory [$f] is not available"
@@ -189,7 +190,7 @@ abstract class BaseTask<T> extends DefaultTask
      * @return files specified
      */
     @Requires({ files != null })
-    Object[] delete( Object ... files )
+    final Object[] delete( Object ... files )
     {
         if ( files )
         {
@@ -403,6 +404,20 @@ abstract class BaseTask<T> extends DefaultTask
      */
     @Requires({ s && p })
     final String find( String s, Pattern p ){ s.find ( p ) { it[ 1 ] }}
+
+
+    /**
+     * Finds a line starting with prefix specified.
+     * @param prefix prefix to search for in all lines
+     * @param list lines to search
+     * @return line found without the prefix, trimmed or an empty String, if not found
+     */
+    @Requires({ prefix && ( list != null ) })
+    @Ensures({ result != null })
+    final String find ( List<String> list, String prefix )
+    {
+        list.find{ it.startsWith( prefix ) }?.replace( prefix, '' )?.trim() ?: ''
+    }
 
 
     /**
