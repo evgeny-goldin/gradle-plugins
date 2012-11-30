@@ -208,11 +208,9 @@ abstract class BaseTask<T> extends DefaultTask
                     {
                         exec( 'rm', [ '-rf', file.canonicalPath ] )
                     }
-
-                    assert ( ! file.exists()), "Failed to delete [$file.canonicalPath]"
                 }
 
-                assert ! file.exists()
+                assert ( ! file.exists()), "Failed to delete [$file.canonicalPath]"
             }
         }
 
