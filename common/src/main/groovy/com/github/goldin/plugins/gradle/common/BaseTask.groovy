@@ -202,12 +202,13 @@ abstract class BaseTask<T> extends DefaultTask
                 if ( file.exists()) // *DO NOT* use findAll{ .. } - files can be deleted in a loop by deleting parent directories
                 {
                     log { "Deleting [$file.canonicalPath]" }
-                    final deleted = project.delete( file )
 
-                    if (( ! deleted ) && ( isMac || isLinux ))
+                    if ( isMac || isLinux )
                     {
                         exec( 'rm', [ '-rf', file.canonicalPath ] )
                     }
+
+                    project.delete( file ) // May fail with "Unable to delete directory" on certain files
                 }
 
                 assert ( ! file.exists()), "Failed to delete [$file.canonicalPath]"
