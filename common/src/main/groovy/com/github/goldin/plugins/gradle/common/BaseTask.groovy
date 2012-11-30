@@ -208,6 +208,7 @@ abstract class BaseTask<T> extends DefaultTask
                     if ( tryNativeDelete && ( isMac || isLinux ))
                     {   // No Windows support yet, sorry.
                         exec( 'rm', [ '-rf', "\"$file.canonicalPath\"" ] )
+                        assert ( ! file.exists()), "Failed to natively delete [$file.canonicalPath]"
                     }
 
                     project.delete( file ) // May fail with "Unable to delete directory" on certain files
