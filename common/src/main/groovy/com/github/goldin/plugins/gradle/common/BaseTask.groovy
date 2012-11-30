@@ -189,11 +189,13 @@ abstract class BaseTask<T> extends DefaultTask
      * {@link org.gradle.api.Project#delete(java.lang.Object...)} wrapper logging the files being deleted
      * and verifying delete operation was successful.
      *
-     * @param  files files to delete
+     * @param  tryNativeDelete whether OS-specific 'delete' command should be attempted before
+     *                         calling {@link org.gradle.api.Project#delete}
+     * @param  files           files to delete
      * @return files specified
      */
     @Requires({ files != null })
-    final Object[] delete( Object ... files )
+    final Object[] delete( boolean tryNativeDelete = false, Object ... files )
     {
         if ( files )
         {
@@ -203,9 +205,9 @@ abstract class BaseTask<T> extends DefaultTask
                 {
                     log { "Deleting [$file.canonicalPath]" }
 
-                    if ( isMac || isLinux )
-                    {
-                        exec( 'rm', [ '-rf', file.canonicalPath ] )
+                    if ( tryNativeDelete && ( isMac || isLinux ))
+                    {   // No Windows support yet, sorry.
+                        exec( 'rm', [ '-rf', "\"$file.canonicalPath\"" ] )
                     }
 
                     project.delete( file ) // May fail with "Unable to delete directory" on certain files
