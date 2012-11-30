@@ -24,6 +24,9 @@ abstract class BaseTask<T> extends DefaultTask
     final dateFormatter      = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
     final startTime          = System.currentTimeMillis()
     final startTimeFormatted = this.dateFormatter.format( new Date( this.startTime ))
+    final osName             = System.getProperty( 'os.name', 'unknown' ).toLowerCase()
+    final isLinux            = osName.contains( 'linux'  )
+    final isMac              = osName.contains( 'mac os' )
 
 
     /**
@@ -199,7 +202,14 @@ abstract class BaseTask<T> extends DefaultTask
                 if ( file.exists()) // *DO NOT* use findAll{ .. } - files can be deleted in a loop by deleting parent directories
                 {
                     log { "Deleting [$file.canonicalPath]" }
-                    assert ( project.delete( file ) && ( ! file.exists())), "Unable to delete [$file.canonicalPath]"
+                    final deleted = project.delete( file )
+
+                    if (( ! deleted ) && ( isMac || isLinux ))
+                    {
+                        exec( 'rm', [ '-rf', file.canonicalPath ] )
+                    }
+
+                    assert ( ! file.exists()), "Failed to delete [$file.canonicalPath]"
                 }
 
                 assert ! file.exists()
