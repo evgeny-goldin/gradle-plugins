@@ -93,7 +93,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         if ( checkoutId )
         {
             checkoutId = ( checkoutId == '<last>' ) ? lastCommitAllBranches( targetDirectory ) : checkoutId
-            gitExec( "checkout $checkoutId", targetDirectory )
+            gitExec( "checkout -q $checkoutId", targetDirectory )
             lastCommit = lastCommitCurrentBranch( targetDirectory )
             delete( dotGit )
         }
