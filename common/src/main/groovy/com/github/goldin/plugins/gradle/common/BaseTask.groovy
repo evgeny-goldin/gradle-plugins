@@ -200,8 +200,8 @@ abstract class BaseTask<T> extends DefaultTask
         if ( files )
         {
             for ( file in files.grep().collect{ project.file( it ) })
-            {
-                if ( file.exists()) // *DO NOT* use findAll{ .. } - files can be deleted in a loop by deleting parent directories
+            {   // *DO NOT* use findAll{ .. } to find all existing files - files can be deleted in a loop by deleting parent directories
+                if ( file.exists())
                 {
                     log { "Deleting [$file.canonicalPath]" }
 
