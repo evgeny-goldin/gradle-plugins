@@ -229,8 +229,8 @@ abstract class BaseTask<T> extends DefaultTask
      * Symbolic links are not followed.
      *
      * @param baseDirectory      files base directory
-     * @param includePatterns    patterns to use for including files, all files are included if null
-     * @param excludePatterns    patterns to use for excluding files, no files are excluded if null
+     * @param includePatterns    comma-separated patterns to use for including files, all files are included if null
+     * @param excludePatterns    comma-separated patterns to use for excluding files, no files are excluded if null
      * @param isCaseSensitive    whether or not include and exclude patterns are matched in a case sensitive way
      * @param includeDirectories whether directories included should be returned as well
      * @param failIfNotFound     whether execution should fail if no files were found
@@ -239,19 +239,20 @@ abstract class BaseTask<T> extends DefaultTask
      */
     @Requires({ baseDirectory.directory })
     @Ensures({ result != null })
-    final List<File> files ( File         baseDirectory,
-                             List<String> includePatterns    = null,
-                             List<String> excludePatterns    = null,
-                             boolean      isCaseSensitive    = true,
-                             boolean      includeDirectories = false,
-                             boolean      failIfNotFound     = true )
+    final List<File> files ( File    baseDirectory,
+                             String  includePatterns    = null,
+                             String  excludePatterns    = null,
+                             boolean isCaseSensitive    = true,
+                             boolean includeDirectories = false,
+                             boolean failIfNotFound     = true )
     {
+        final split   = { String s -> s ? s.split( ',' )*.trim().grep() as String[] : null }
         final scanner = new DirectoryScanner()
 
         scanner.with {
             basedir           = baseDirectory
-            includes          = includePatterns as String[]
-            excludes          = excludePatterns as String[]
+            includes          = split( includePatterns )
+            excludes          = split( excludePatterns )
             caseSensitive     = isCaseSensitive
             errorOnMissingDir = true
             followSymlinks    = false
@@ -264,9 +265,9 @@ abstract class BaseTask<T> extends DefaultTask
 
         assert ( files || ( ! failIfNotFound )), \
                "No files are included by parent dir [$baseDirectory] and " +
-               "include/exclude patterns ${ includePatterns ?: [] }/${ excludePatterns ?: [] }"
+               "include/exclude patterns ${ includePatterns ?: '' }/${ excludePatterns ?: '' }"
 
-        assert files.every { it.file || it.directory }
+        assert files.every { it.file || ( it.directory && includeDirectories ) }
         files
     }
 
