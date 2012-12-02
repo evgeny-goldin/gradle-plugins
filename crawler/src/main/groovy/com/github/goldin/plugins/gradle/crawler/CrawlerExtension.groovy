@@ -36,7 +36,7 @@ class CrawlerExtension
 
     String        baseUrl
 
-    String        userAgent                = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.94 Safari/537.4'
+    String        userAgent                = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11'
     int           threadPoolSize           = Runtime.runtime.availableProcessors()
     int           connectTimeout           = 15000
     int           readTimeout              = 15000

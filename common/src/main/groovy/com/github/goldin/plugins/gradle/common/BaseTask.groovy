@@ -522,4 +522,47 @@ abstract class BaseTask<T> extends DefaultTask
             log( LogLevel.WARN, error ){ message }
         }
     }
+
+
+    /**
+     * Invokes an HTTP request using the data provided.
+     *
+     * @param url            url to send the request to
+     * @param method         HTTP method to use: 'GET' or 'HEAD'
+     * @param headers        HTTP headers to send
+     * @param connectTimeout connection timeout to set
+     * @param readTimeout    connection read timeout to set
+     * @param readContent    closure returning boolean value of whether or not content should be read,
+     *                       passed {@link HttpResponse} when called
+     * @return http response object
+     */
+    @Requires({ url && method && ( headers != null ) && ( connectTimeout > -1 ) && ( readTimeout > -1 ) })
+    @SuppressWarnings([ 'GroovyGetterCallCanBePropertyAccess', 'JavaStylePropertiesInvocation' ])
+    HttpResponse httpRequest( String              url,
+                              String              method,
+                              Map<String, String> headers        = [:],
+                              int                 connectTimeout = 0,
+                              int                 readTimeout    = 0,
+                              Closure             readContent    = null )
+    {
+        final response                     = new HttpResponse( url, method )
+        response.connection                = url.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection
+        response.connection.requestMethod  = method
+        response.connection.connectTimeout = connectTimeout
+        response.connection.readTimeout    = readTimeout
+
+        headers.each { String name, String value -> response.connection.setRequestProperty( name, value )}
+
+        response.inputStream = response.connection.inputStream
+        response.actualUrl   = response.connection.getURL().toString()
+
+        if (( ! readContent ) || readContent( response ))
+        {
+            response.data    = response.inputStream.bytes
+            response.content = HttpResponse.decodeContent( response.connection, response.data )
+            response.inputStream.close()
+        }
+
+        response
+    }
 }

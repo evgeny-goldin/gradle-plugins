@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.crawler
 
 import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.common.HttpResponse
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
@@ -9,9 +10,6 @@ import org.gradle.api.logging.LogLevel
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
 import java.util.regex.Pattern
-import java.util.zip.Deflater
-import java.util.zip.DeflaterInputStream
-import java.util.zip.GZIPInputStream
 
 
 /**
@@ -54,10 +52,10 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         assert ext.userAgent,                 "'userAgent' should be defined in $description"
         assert ext.threadPoolSize       >  0, "'threadPoolSize' [${ ext.threadPoolSize }] in $description should be positive"
-        assert ext.connectTimeout       >  0, "'connectTimeout' [${ ext.connectTimeout }] in $description should be positive"
-        assert ext.readTimeout          >  0, "'readTimeout' [${ ext.readTimeout }] in $description should be positive"
         assert ext.checksumsChunkSize   >  0, "'checksumsChunkSize' [${ ext.checksumsChunkSize }] in $description should be positive"
         assert ext.futuresPollingPeriod >  0, "'futuresPollingPeriod' [${ ext.futuresPollingPeriod }] in $description should be positive"
+        assert ext.connectTimeout       > -1, "'connectTimeout' [${ ext.connectTimeout }] in $description should not be negative"
+        assert ext.readTimeout          > -1, "'readTimeout' [${ ext.readTimeout }] in $description should not be negative"
         assert ext.retries              > -1, "'retries' [${ ext.retries }] in $description should not be negative"
         assert ext.retryDelay           > -1, "'retryDelay' [${ ext.retryDelay }] in $description should not be negative"
         assert ext.requestDelay         > -1, "'requestDelay' [${ ext.requestDelay }] in $description should not be negative"
@@ -356,12 +354,11 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         try
         {
-            final response   = readResponse( pageUrl, referrerUrl, referrerContent, isRootLink )
-            String actualUrl = response.actualUrl
+            final response = readResponse( pageUrl, referrerUrl, referrerContent, isRootLink )
 
-            if ( pageUrl != actualUrl )
+            if ( response.isRedirect )
             {
-                final  actualUrlList = filterTransformLinks([ actualUrl ]) // List of one element, transformed link
+                final  actualUrlList = filterTransformLinks([ response.actualUrl ]) // List of one element, transformed link
                 assert actualUrlList.size().with {( delegate == 0 ) || ( delegate == 1 )}
                 if ( actualUrlList && linksStorage.addLinksToProcess( actualUrlList ))
                 {
@@ -371,7 +368,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                 return
             }
 
-            assert pageUrl == actualUrl
+            assert pageUrl == response.actualUrl
             final processed = linksProcessed.incrementAndGet()
 
             if ( ! response.data ){ return }
@@ -545,38 +542,36 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      * @return response data container
      */
     @Requires({ pageUrl && referrer && referrerContent && linksStorage && ( attempt > 0 ) })
-    @Ensures({ result.actualUrl })
+    @Ensures({ result })
     CrawlerHttpResponse readResponse ( final String  pageUrl,
                                        final String  referrer,
                                        final String  referrerContent,
                                        final boolean forceGetRequest,
                                        final int     attempt = 1 )
     {
-        InputStream  inputStream     = null
         final        htmlLink        = ( ! pageUrl.toLowerCase().with{ ( ext.nonHtmlExtensions - ext.htmlExtensions ).any{ endsWith( ".$it" ) || contains( ".$it?" ) }} ) &&
                                        ( ! ( ext.nonHtmlLinks ?: [] ).any{ it( pageUrl ) })
-        boolean      readFullContent = ( htmlLink && pageUrl.with { startsWith( "http://${ ext.baseUrl  }" ) ||
+        final        readFullContent = ( htmlLink && pageUrl.with { startsWith( "http://${ ext.baseUrl  }" ) ||
                                                                     startsWith( "https://${ ext.baseUrl }" ) })
         final        isHeadRequest   = (( ! forceGetRequest ) && ( ! readFullContent ))
         final        requestMethod   = ( isHeadRequest ? 'HEAD' : 'GET' )
-        final        response        = new CrawlerHttpResponse( pageUrl, referrer, isHeadRequest, referrerContent, linksStorage, attempt )
+        final        crawlerResponse = { HttpResponse r -> new CrawlerHttpResponse( r, referrer, referrerContent, linksStorage, attempt )}
+        CrawlerHttpResponse response = crawlerResponse( new HttpResponse( pageUrl, requestMethod ))
 
         try
         {
+            final t  = System.currentTimeMillis()
             crawlerLog{ "[$pageUrl] - sending $requestMethod request .." }
-
-            final t             = System.currentTimeMillis()
-            response.connection = openConnection( pageUrl , requestMethod )
-            inputStream         = response.connection.inputStream
-            response.actualUrl  = response.connection.getURL().toString()
-            final isRedirect    = ( pageUrl != response.actualUrl )
-
-            if ( readFullContent && ( ! isRedirect ))
-            {
-                response.data              = inputStream.bytes
+            response = crawlerResponse ( httpRequest( pageUrl,
+                                                      requestMethod,
+                                                      [ 'User-Agent' : ext.userAgent, 'Accept-Encoding' : 'gzip,deflate', 'Connection': 'keep-alive' ],
+                                                      ext.connectTimeout,
+                                                      ext.readTimeout,
+                                                      { HttpResponse r -> ( readFullContent && ( ! r.isRedirect ))}))
+            if ( response.data && response.content )
+            {   // Response was read
                 final responseSize         = response.data.length
-                response.data              = decodeResponseData( response )
-                final contentSize          = response.data.length
+                final contentSize          = response.content.length
                 final totalBytesDownloaded = bytesDownloaded.addAndGet( responseSize )
 
                 crawlerLog {
@@ -587,13 +582,13 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                 checkDownloadLimits( pageUrl, responseSize, totalBytesDownloaded )
             }
             else
-            {
-                response.data = []
-                bytesDownloaded.addAndGet(( isRedirect || ( inputStream.read() == -1 )) ? 0 : 1 )
+            {   // Response wasn't read
+                bytesDownloaded.addAndGet(( response.isRedirect || ( response.inputStream.read() == -1 )) ? 0 : 1 )
+                response.inputStream.close()
 
                 crawlerLog {
                     "[$pageUrl] - " +
-                    ( isRedirect ? "redirected to [$response.actualUrl], " : 'can be read, ' ) +
+                    ( response.isRedirect ? "redirected to [$response.actualUrl], " : 'can be read, ' ) +
                     "[${ System.currentTimeMillis() - t }] ms"
                 }
             }
@@ -603,10 +598,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         catch ( Throwable error )
         {
             handleError( response, error )
-        }
-        finally
-        {
-            if ( inputStream ){ inputStream.close() }
         }
     }
 
@@ -688,49 +679,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     {
         try { connection.responseCode }
         catch ( Throwable error ) { error }
-    }
-
-
-    @Requires({ pageUrl && requestMethod })
-    @Ensures({ result })
-    HttpURLConnection openConnection ( String pageUrl, String requestMethod )
-    {
-        /**
-         * Full-blown URL encoding: new URL( pageUrl ).with { new URI( protocol, userInfo, host, port, path, query, ref ).toURL()}
-         * It doesn't work with URLs that are already encoded and is slow, so we simply replace ' ' to '+'.
-         */
-        final connection          = pageUrl.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection
-        connection.connectTimeout = ext.connectTimeout
-        connection.readTimeout    = ext.readTimeout
-        connection.requestMethod  = requestMethod
-
-        connection.setRequestProperty( 'User-Agent' ,     ext.userAgent  )
-        connection.setRequestProperty( 'Accept-Encoding', 'gzip,deflate' )
-        connection.setRequestProperty( 'Connection' ,     'keep-alive'   )
-
-        connection
-    }
-
-
-    @Requires({ response?.connection && ( response?.data != null ) })
-    @Ensures({ result != null })
-    byte[] decodeResponseData ( CrawlerHttpResponse response )
-    {
-        final contentEncoding = response.connection.getHeaderField( 'Content-Encoding' )
-
-        if ( ! ( contentEncoding && response.data )) { return response.data }
-
-        final contentLength = Integer.valueOf( response.connection.getHeaderField( 'Content-Length' ) ?: '-1' )
-        final bufferSize    = ((( contentLength > 0 ) && ( contentLength < ( 100 * 1024 ))) ? contentLength : 10 * 1024 )
-        final inputStream   = new ByteArrayInputStream( response.data ).with {
-            InputStream is ->
-            ( 'gzip'    == contentEncoding ) ? new GZIPInputStream( is, bufferSize ) :
-            ( 'deflate' == contentEncoding ) ? new DeflaterInputStream( is, new Deflater(), bufferSize ) :
-                                               null
-        }
-
-        assert inputStream, "Unknown response content encoding [$contentEncoding]"
-        inputStream.bytes
     }
 
 

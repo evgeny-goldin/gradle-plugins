@@ -1,41 +1,59 @@
 package com.github.goldin.plugins.gradle.common
 
+import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Invariant
 import org.gcontracts.annotations.Requires
+
+import java.util.zip.Deflater
+import java.util.zip.DeflaterInputStream
+import java.util.zip.GZIPInputStream
 
 
 /**
  * HTTP response data container.
  */
-@Invariant({ originalUrl && actualUrl && referrer })
+@Invariant({ originalUrl && method && actualUrl })
 class HttpResponse
 {
     final String       originalUrl
-    final String       referrer
-    final boolean      isHeadRequest
+    final String       method
 
     HttpURLConnection connection
-    String            actualUrl
+    String            actualUrl   // Different from 'originalUrl' if was request redirected
+    InputStream       inputStream
     byte[]            data
+    byte[]            content
+
+    boolean getIsRedirect (){ originalUrl != actualUrl }
 
 
-    @Requires({ originalUrl && referrer })
-    HttpResponse ( String  originalUrl,
-                   String  referrer,
-                   boolean isHeadRequest )
+    @Requires({ url && method })
+    HttpResponse ( String url, String method )
     {
-        this.originalUrl   = originalUrl
-        this.actualUrl     = originalUrl
-        this.referrer      = referrer
-        this.isHeadRequest = isHeadRequest
+        this.originalUrl = url
+        this.actualUrl   = url
+        this.method      = method
     }
 
-    @Requires({ connection })
-    void setConnection ( HttpURLConnection connection ) { this.connection = connection }
 
-    @Requires({ actualUrl })
-    void setActualUrl ( String actualUrl ) { this.actualUrl = actualUrl }
+    @Requires({ connection && ( data != null ) })
+    @Ensures ({ result != null })
+    static byte[] decodeContent ( HttpURLConnection connection, byte[] data )
+    {
+        final contentEncoding = connection.getHeaderField( 'Content-Encoding' )
 
-    @Requires({ data != null })
-    void setData ( byte[] data ) { this.data = data }
+        if ( ! ( contentEncoding && data )) { return data }
+
+        final contentLength      = Integer.valueOf( connection.getHeaderField( 'Content-Length' ) ?: '-1' )
+        final bufferSize         = ((( contentLength > 0 ) && ( contentLength < ( 100 * 1024 ))) ? contentLength : 10 * 1024 )
+        final contentInputStream = new ByteArrayInputStream( data ).with {
+            InputStream is ->
+            ( 'gzip'    == contentEncoding ) ? new GZIPInputStream( is, bufferSize ) :
+            ( 'deflate' == contentEncoding ) ? new DeflaterInputStream( is, new Deflater(), bufferSize ) :
+                                               null
+        }
+
+        assert contentInputStream, "Unknown response content encoding [$contentEncoding]"
+        contentInputStream.bytes
+    }
 }

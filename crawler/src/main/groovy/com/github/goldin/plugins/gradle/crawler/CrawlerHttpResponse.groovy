@@ -1,4 +1,5 @@
 package com.github.goldin.plugins.gradle.crawler
+
 import com.github.goldin.plugins.gradle.common.HttpResponse
 import org.gcontracts.annotations.Invariant
 import org.gcontracts.annotations.Requires
@@ -7,27 +8,30 @@ import org.gcontracts.annotations.Requires
 /**
  * Links crawler specific HTTP response
  */
-@Invariant({ referrerContent && linksStorage && ( attempt > 0 )})
-class CrawlerHttpResponse extends HttpResponse
+@Invariant({ referrer && referrerContent && linksStorage && ( attempt > 0 )})
+class CrawlerHttpResponse
 {
+    @Delegate final HttpResponse response
+    final String       referrer
     final String       referrerContent
     final LinksStorage linksStorage
     final int          attempt
+    final boolean      isHeadRequest
 
 
-    @Requires({ originalUrl && referrer && referrerContent && linksStorage && ( attempt > 0 ) })
+    @Requires({ response && referrer && referrerContent && linksStorage && ( attempt > 0 ) })
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
-    CrawlerHttpResponse ( String       originalUrl,
+    CrawlerHttpResponse ( HttpResponse response,
                           String       referrer,
-                          boolean      isHeadRequest,
                           String       referrerContent,
                           LinksStorage linksStorage,
                           int          attempt )
     {
-        super( originalUrl, referrer, isHeadRequest )
-
+        this.response        = response
+        this.referrer        = referrer
         this.referrerContent = referrerContent
         this.linksStorage    = linksStorage
         this.attempt         = attempt
+        this.isHeadRequest   = ( response.method == 'HEAD' )
     }
 }
