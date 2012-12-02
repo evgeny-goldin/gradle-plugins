@@ -1,7 +1,6 @@
 package com.github.goldin.plugins.gradle.crawler
 
 import com.github.goldin.plugins.gradle.common.BaseTask
-
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
@@ -106,13 +105,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         writeLinksMapFiles()
         archiveLogFiles()
         checkIfBuildShouldFail()
-    }
-
-
-    @Requires({ delayInMilliseconds > -1 })
-    void delay( long delayInMilliseconds )
-    {
-        if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}
     }
 
 
@@ -554,11 +546,11 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      */
     @Requires({ pageUrl && referrer && referrerContent && linksStorage && ( attempt > 0 ) })
     @Ensures({ result.actualUrl })
-    ResponseData readResponse ( final String  pageUrl,
-                                final String  referrer,
-                                final String  referrerContent,
-                                final boolean forceGetRequest,
-                                final int     attempt = 1 )
+    CrawlerHttpResponse readResponse ( final String  pageUrl,
+                                       final String  referrer,
+                                       final String  referrerContent,
+                                       final boolean forceGetRequest,
+                                       final int     attempt = 1 )
     {
         InputStream  inputStream     = null
         final        htmlLink        = ( ! pageUrl.toLowerCase().with{ ( ext.nonHtmlExtensions - ext.htmlExtensions ).any{ endsWith( ".$it" ) || contains( ".$it?" ) }} ) &&
@@ -567,7 +559,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                                                                     startsWith( "https://${ ext.baseUrl }" ) })
         final        isHeadRequest   = (( ! forceGetRequest ) && ( ! readFullContent ))
         final        requestMethod   = ( isHeadRequest ? 'HEAD' : 'GET' )
-        final        response        = new ResponseData( pageUrl, referrer, referrerContent, linksStorage, attempt, forceGetRequest, isHeadRequest )
+        final        response        = new CrawlerHttpResponse( pageUrl, referrer, isHeadRequest, referrerContent, linksStorage, attempt )
 
         try
         {
@@ -646,7 +638,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      */
     @Requires({ response && error })
     @Ensures({ result })
-    ResponseData handleError ( ResponseData response, Throwable error )
+    CrawlerHttpResponse handleError ( CrawlerHttpResponse response, Throwable error )
     {
         response.with {
             final statusCode      = ( connection ? statusCode ( connection )       : null )
@@ -722,7 +714,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
     @Requires({ response?.connection && ( response?.data != null ) })
     @Ensures({ result != null })
-    byte[] decodeResponseData ( ResponseData response )
+    byte[] decodeResponseData ( CrawlerHttpResponse response )
     {
         final contentEncoding = response.connection.getHeaderField( 'Content-Encoding' )
 

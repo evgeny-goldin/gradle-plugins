@@ -62,6 +62,17 @@ abstract class BaseTask<T> extends DefaultTask
 
 
     /**
+     * Sleeps for amount of milliseconds specified if positive.
+     * @param delayInMilliseconds amount of milliseconds to sleep
+     */
+    @Requires({ delayInMilliseconds > -1 })
+    void delay( long delayInMilliseconds )
+    {
+        if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}
+    }
+
+
+    /**
      * Verifies 'git' client is available.
      */
     final void verifyGitAvailable ()
