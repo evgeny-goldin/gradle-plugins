@@ -15,6 +15,7 @@ class NodeStartTask extends NodeBaseTask
     void taskAction()
     {
         bashExec( startScript(), scriptFile( START_SCRIPT ), true, ext.generateOnly )
+        startCheck()
     }
 
 
@@ -44,5 +45,20 @@ class NodeStartTask extends NodeBaseTask
         }
 
         [ "forever start --pidFile \"${ project.name }.pid\" $foreverCommand \"$ext.scriptPath\"" ]
+    }
+
+
+    private void startCheck()
+    {
+        if ( ext.startCheckUrl )
+        {
+            delay( ext.startCheckDelay )
+            final response = ext.startCheckUrl.toURL().text
+
+            assert (( ext.startCheckResponse == response ) || ( ! ext.startCheckResponse )), \
+                   "Requesting [$ext.startCheckUrl] returned [$response] instead of expected [$ext.startCheckResponse]"
+
+            log{ "Requesting [$ext.startCheckUrl] returned [$response]" }
+        }
     }
 }

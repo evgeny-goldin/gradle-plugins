@@ -14,11 +14,10 @@ class NodeExtension
     boolean      echoCommands           = false // Echo all commands executed in bash scripts to the build log
     boolean      teamCityTests          = false // Whether test results should be written to log as TeamCity service messages
 
-    boolean      startVerify            = true        // Whether application should be verified to be running after it has started
-    long         startVerifySleep       = 1000        // If 'startVerify' - amount of milliseconds to wait before making a connection
-    String       startVerifyHost        = '127.0.0.1' // If 'startVerify' the connection will be made to http://<verifyHost>:<verifyPort>
-    int          startVerifyPort        = 1337        // If 'startVerify' the connection will be made to http://<verifyHost>:<verifyPort>
-    String       startVerifyResponse    = ''          // If 'startVerify' - response to expect when making a request
+    String       startCheckUrl          = 'http://127.0.0.1:1337' // The URL to test after application has started
+    long         startCheckDelay        = 1000                    // If 'startCheckUrl' - amount of milliseconds to wait before making a connection
+    String       startCheckResponse     = ''                      // If 'startCheckUrl' - response to expect when making a request
+    int          startCheckResponseCode = 200                     // If 'startCheckUrl' - response code to expect when making a request
 
     List<Closure> transformers          = []  // Callbacks to invoke when every bash script is generated
     String        NODE_ENV              = 'development'
