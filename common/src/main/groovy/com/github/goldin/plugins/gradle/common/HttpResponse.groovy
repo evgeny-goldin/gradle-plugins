@@ -21,8 +21,8 @@ class HttpResponse
     HttpURLConnection connection
     String            actualUrl   // Different from 'originalUrl' if was request redirected
     InputStream       inputStream
-    byte[]            data
-    byte[]            content
+    byte[]            data        // Binary data as received in response
+    byte[]            content     // Content decompressed from the binary data
 
     boolean getIsRedirect (){ originalUrl != actualUrl }
 
@@ -33,6 +33,19 @@ class HttpResponse
         this.originalUrl = url
         this.actualUrl   = url
         this.method      = method
+    }
+
+
+    @Requires({ response })
+    HttpResponse ( HttpResponse response )
+    {
+        this.originalUrl = response.originalUrl
+        this.actualUrl   = response.actualUrl
+        this.method      = response.method
+        this.connection  = response.connection
+        this.inputStream = response.inputStream
+        this.data        = response.data
+        this.content     = response.content
     }
 
 

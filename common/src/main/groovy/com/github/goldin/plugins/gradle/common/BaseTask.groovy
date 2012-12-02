@@ -556,7 +556,7 @@ abstract class BaseTask<T> extends DefaultTask
         response.inputStream = response.connection.inputStream
         response.actualUrl   = response.connection.getURL().toString()
 
-        if (( ! readContent ) || readContent( response ))
+        if (( readContent == null ) || readContent( response ))
         {
             response.data    = response.inputStream.bytes
             response.content = HttpResponse.decodeContent( response.connection, response.data )

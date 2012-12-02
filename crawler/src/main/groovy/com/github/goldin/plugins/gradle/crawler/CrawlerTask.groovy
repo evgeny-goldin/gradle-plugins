@@ -371,9 +371,9 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             assert pageUrl == response.actualUrl
             final processed = linksProcessed.incrementAndGet()
 
-            if ( ! response.data ){ return }
+            if ( ! response.content ){ return }
 
-            final pageContent        = new String( response.data, 'UTF-8' )
+            final pageContent        = new String( response.content, 'UTF-8' )
             final pageIgnored        = ( ext.ignoredContent ?: [] ).any { it ( pageUrl, pageContent )}
             final verificationPassed = ( ext.verifyContent  ? verificationPassed( pageUrl, pageContent, ext.verifyContent ) : true )
 
@@ -549,14 +549,15 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                                        final boolean forceGetRequest,
                                        final int     attempt = 1 )
     {
-        final        htmlLink        = ( ! pageUrl.toLowerCase().with{ ( ext.nonHtmlExtensions - ext.htmlExtensions ).any{ endsWith( ".$it" ) || contains( ".$it?" ) }} ) &&
-                                       ( ! ( ext.nonHtmlLinks ?: [] ).any{ it( pageUrl ) })
-        final        readFullContent = ( htmlLink && pageUrl.with { startsWith( "http://${ ext.baseUrl  }" ) ||
-                                                                    startsWith( "https://${ ext.baseUrl }" ) })
-        final        isHeadRequest   = (( ! forceGetRequest ) && ( ! readFullContent ))
-        final        requestMethod   = ( isHeadRequest ? 'HEAD' : 'GET' )
-        final        crawlerResponse = { HttpResponse r -> new CrawlerHttpResponse( r, referrer, referrerContent, linksStorage, attempt )}
-        CrawlerHttpResponse response = crawlerResponse( new HttpResponse( pageUrl, requestMethod ))
+        final        htmlLink          = ( ! pageUrl.toLowerCase().with{ ( ext.nonHtmlExtensions - ext.htmlExtensions ).any{ endsWith( ".$it" ) || contains( ".$it?" ) }} ) &&
+                                         ( ! ( ext.nonHtmlLinks ?: [] ).any{ it( pageUrl ) })
+        final        readFullContent   = ( htmlLink && pageUrl.with { startsWith( "http://${ ext.baseUrl  }" ) ||
+                                                                      startsWith( "https://${ ext.baseUrl }" ) })
+        final        isHeadRequest     = (( ! forceGetRequest ) && ( ! readFullContent ))
+        final        requestMethod     = ( isHeadRequest ? 'HEAD' : 'GET' )
+        final        linksStorageLocal = linksStorage // So that the closure that follows can access it
+        final        crawlerResponse   = { HttpResponse r -> new CrawlerHttpResponse( r, referrer, referrerContent, linksStorageLocal, attempt )}
+        CrawlerHttpResponse response   = crawlerResponse( new HttpResponse( pageUrl, requestMethod ))
 
         try
         {
@@ -568,8 +569,9 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                                                       ext.connectTimeout,
                                                       ext.readTimeout,
                                                       { HttpResponse r -> ( readFullContent && ( ! r.isRedirect ))}))
-            if ( response.data && response.content )
-            {   // Response was read
+
+            if (( response.data != null ) && ( response.content != null ))
+            {   // Response was read, but it can be empty
                 final responseSize         = response.data.length
                 final contentSize          = response.content.length
                 final totalBytesDownloaded = bytesDownloaded.addAndGet( responseSize )
@@ -583,7 +585,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             }
             else
             {   // Response wasn't read
-                bytesDownloaded.addAndGet(( response.isRedirect || ( response.inputStream.read() == -1 )) ? 0 : 1 )
+                bytesDownloaded.addAndGet(( isHeadRequest || response.isRedirect || ( response.inputStream.read() == -1 )) ? 0 : 1 )
                 response.inputStream.close()
 
                 crawlerLog {
