@@ -31,7 +31,7 @@ abstract class BasePlugin implements Plugin<Project>
         if ( project.logger.infoEnabled )
         {
             project.logger.info(
-                "Plugin [${ this.class.name }] is applied, " +
+                "Groovy version [$GroovySystem.version], plugin [${ this.class.name }] is applied, " +
                 "added task${ tasks.size() == 1 ? '' : 's' } '${ tasks.keySet().sort().join( '\', \'' )}'." )
         }
     }
