@@ -585,6 +585,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             }
             else
             {   // Response wasn't read
+                assert response.inputStream
                 bytesDownloaded.addAndGet(( isHeadRequest || response.isRedirect || ( response.inputStream.read() == -1 )) ? 0 : 1 )
                 response.inputStream.close()
 
