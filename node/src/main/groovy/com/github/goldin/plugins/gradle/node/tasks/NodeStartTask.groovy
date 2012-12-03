@@ -60,8 +60,10 @@ class NodeStartTask extends NodeBaseTask
         final response     = httpRequest( ext.startCheckUrl, 'GET', [:], 0, 0, null, false )
         final content      = response.content ? new String( response.content, 'UTF-8' ) : ''
         final goodResponse = ( response.statusCode == ext.startCheckStatusCode ) && ( content.contains( ext.startCheckContent ))
-        final message      = "Requesting [$ext.startCheckUrl] resulted in status code [$response.statusCode]" +
-                             ( ext.startCheckContent ? ", content [$content]" : '' )
+        final message      = "Connecting to [$ext.startCheckUrl] resulted in " +
+                             (( response.statusCode instanceof Integer ) ?
+                                "status code [$response.statusCode]" + ( ext.startCheckContent ? ", content [$content]" : '' ) :
+                                "'$response.statusCode'" ) // An error then
 
         if ( goodResponse )
         {
@@ -75,7 +77,7 @@ class NodeStartTask extends NodeBaseTask
                 (( NodeStopTask ) project.tasks[ STOP_TASK ] ).taskAction()
             }
 
-            throw new GradleException( "$message - expected status code [$ext.startCheckStatusCode]" +
+            throw new GradleException( "$message rather than expected status code [$ext.startCheckStatusCode]" +
                                        ( ext.startCheckContent ? ", content contains [$ext.startCheckContent]" : '' ))
         }
     }

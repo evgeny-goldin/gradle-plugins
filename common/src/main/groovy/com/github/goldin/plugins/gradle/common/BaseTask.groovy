@@ -567,7 +567,7 @@ abstract class BaseTask<T> extends DefaultTask
         {
             if ( failOnError ) { throw error }
             response.errorStream = response.connection.errorStream
-            log( LogLevel.WARN ){ "Connecting to [$url], method [$method], headers $headers resulted in $error" }
+            log( LogLevel.WARN ){ "Connecting to [$url], method [$method], headers $headers resulted in '$error'" }
         }
 
         response.statusCode = HttpResponse.statusCode( response )
