@@ -505,14 +505,14 @@ abstract class BaseTask<T> extends DefaultTask
     /**
      * Throws a {@link GradleException} or logs a warning message according to {@code shouldFail}.
      *
-     * @param shouldFail whether execution should throw an exception
-     * @param message    error message to throw or log
-     * @param error      execution error, optional
+     * @param fail     whether execution should throw an exception
+     * @param message  error message to throw or log
+     * @param error    execution error, optional
      */
     @Requires({ message })
-    final void failOrWarn( boolean shouldFail, String message, Throwable error = null )
+    final void failOrWarn( boolean fail, String message, Throwable error = null )
     {
-        if ( shouldFail )
+        if ( fail )
         {
             if ( error ) { throw new GradleException( message, error )}
             else         { throw new GradleException( message )}
@@ -537,30 +537,44 @@ abstract class BaseTask<T> extends DefaultTask
      * @return http response object
      */
     @Requires({ url && method && ( headers != null ) && ( connectTimeout > -1 ) && ( readTimeout > -1 ) })
+    @Ensures ({ result })
     @SuppressWarnings([ 'GroovyGetterCallCanBePropertyAccess', 'JavaStylePropertiesInvocation' ])
     HttpResponse httpRequest( String              url,
-                              String              method,
+                              String              method         = 'GET',
                               Map<String, String> headers        = [:],
                               int                 connectTimeout = 0,
                               int                 readTimeout    = 0,
-                              Closure             readContent    = null )
+                              Closure             readContent    = null,
+                              boolean             failOnError    = true )
     {
-        final response                     = new HttpResponse( url, method )
-        response.connection                = url.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection
-        response.connection.requestMethod  = method
-        response.connection.connectTimeout = connectTimeout
-        response.connection.readTimeout    = readTimeout
+        final response = new HttpResponse( url, method )
 
-        headers.each { String name, String value -> response.connection.setRequestProperty( name, value )}
+        try
+        {
+            response.connection                = url.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection
+            response.connection.requestMethod  = method
+            response.connection.connectTimeout = connectTimeout
+            response.connection.readTimeout    = readTimeout
 
-        response.inputStream = response.connection.inputStream
-        response.actualUrl   = response.connection.getURL().toString()
+            headers.each { String name, String value -> response.connection.setRequestProperty( name, value )}
+
+            response.inputStream = response.connection.inputStream
+            response.actualUrl   = response.connection.getURL().toString()
+        }
+        catch ( Throwable error )
+        {
+            if ( failOnError ) { throw error }
+            response.errorStream = response.connection.errorStream
+            log( LogLevel.WARN ){ "Connecting to [$url], method [$method], headers $headers resulted in $error" }
+        }
 
         if (( readContent == null ) || readContent( response ))
         {
-            response.data    = response.inputStream.bytes
-            response.content = HttpResponse.decodeContent( response.connection, response.data )
-            response.inputStream.close()
+            final inputStream = ( response.inputStream ?: response.errorStream )
+            response.data     = ( inputStream ? inputStream.bytes : null )
+            response.content  = ( inputStream ? HttpResponse.decodeContent( response.connection, response.data ) : null )
+            response.inputStream?.close()
+            response.errorStream?.close()
         }
 
         response

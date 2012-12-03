@@ -16,8 +16,8 @@ class NodeExtension
 
     String       startCheckUrl          = 'http://127.0.0.1:1337' // The URL to test after application has started
     long         startCheckDelay        = 1000                    // If 'startCheckUrl' - amount of milliseconds to wait before making a connection
-    String       startCheckResponse     = ''                      // If 'startCheckUrl' - response to expect when making a request
-    int          startCheckResponseCode = 200                     // If 'startCheckUrl' - response code to expect when making a request
+    String       startCheckContent      = ''                      // If 'startCheckUrl' - response to expect when making a request
+    int          startCheckStatusCode   = 200                     // If 'startCheckUrl' - response code to expect when making a request
 
     List<Closure> transformers          = []  // Callbacks to invoke when every bash script is generated
     String        NODE_ENV              = 'development'

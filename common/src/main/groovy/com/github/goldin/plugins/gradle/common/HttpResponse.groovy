@@ -21,6 +21,7 @@ class HttpResponse
     HttpURLConnection connection
     String            actualUrl   // Different from 'originalUrl' if was request redirected
     InputStream       inputStream
+    InputStream       errorStream
     byte[]            data        // Binary data as received in response
     byte[]            content     // Content decompressed from the binary data
 

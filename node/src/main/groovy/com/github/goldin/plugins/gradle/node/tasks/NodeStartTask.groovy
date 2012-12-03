@@ -1,5 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
+import org.gradle.api.GradleException
+
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -15,7 +17,7 @@ class NodeStartTask extends NodeBaseTask
     void taskAction()
     {
         bashExec( startScript(), scriptFile( START_SCRIPT ), true, ext.generateOnly )
-        startCheck()
+        if ( ext.startCheckUrl ){ startCheck() }
     }
 
 
@@ -48,17 +50,26 @@ class NodeStartTask extends NodeBaseTask
     }
 
 
+    @Requires({ ext.startCheckUrl })
     private void startCheck()
     {
-        if ( ext.startCheckUrl )
+        delay( ext.startCheckDelay )
+
+        final response     = httpRequest( ext.startCheckUrl, 'GET', [:], 0, 0, null, false )
+        final content      = response.content ? new String( response.content, 'UTF-8' ) : ''
+        final statusCode   = response.connection.responseCode
+        final goodResponse = ( statusCode == ext.startCheckStatusCode ) && ( content.contains( ext.startCheckContent ))
+        final message      = "Requesting [$ext.startCheckUrl] resulted in status code [$statusCode]" +
+                             ( ext.startCheckContent ? ", content [$content]" : '' )
+
+        if ( goodResponse )
         {
-            delay( ext.startCheckDelay )
-            final response = ext.startCheckUrl.toURL().text
-
-            assert (( ext.startCheckResponse == response ) || ( ! ext.startCheckResponse )), \
-                   "Requesting [$ext.startCheckUrl] returned [$response] instead of expected [$ext.startCheckResponse]"
-
-            log{ "Requesting [$ext.startCheckUrl] returned [$response]" }
+            log{ "$message - good!" }
+        }
+        else
+        {
+            throw new GradleException( "$message - expected status code [$ext.startCheckStatusCode]" +
+                                       ( ext.startCheckContent ? ", content contains [$ext.startCheckContent]" : '' ))
         }
     }
 }
