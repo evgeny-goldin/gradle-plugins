@@ -635,53 +635,37 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     CrawlerHttpResponse handleError ( CrawlerHttpResponse response, Throwable error )
     {
         response.with {
-            final statusCode      = ( connection ? statusCode ( connection )       : null )
-            final statusCodeError = ( statusCode instanceof Throwable ? statusCode : null )
-            final isRetryMatch    = ( ext.retryStatusCodes?.any { it == statusCode } ||
-                                      ext.retryExceptions?. any { it.isInstance( error ) || it.isInstance( statusCodeError ) })
-            final isRetry         = ( isHeadRequest || ( isRetryMatch && ( attempt < ext.retries )))
-            final isAttempt       = (( ! isHeadRequest ) && ( ext.retries > 1 ) && ( isRetryMatch ))
-            final logMessage      = "! [$actualUrl] - $error, status code [${ (( statusCode == null ) || statusCodeError ) ? 'unknown' : statusCode }]"
+            final isRetryMatch = ( ext.retryStatusCodes?.any { it == statusCode } ||
+                                   ext.retryExceptions?. any { it.isInstance( error ) || it.isInstance( statusCode ) })
+            final isRetry      = ( isHeadRequest || ( isRetryMatch && ( attempt < ext.retries )))
+            final isAttempt    = (( ! isHeadRequest ) && ( ext.retries > 1 ) && ( isRetryMatch ))
+            final errorMessage = "! [$actualUrl] - $error, status code [${ ( statusCode instanceof Integer ) ? statusCode : 'unknown' }]"
 
             if ( isRetry )
             {
                 assert ( isHeadRequest || isAttempt )
-                crawlerLog { "$logMessage, ${ isHeadRequest ? 'will be retried as GET request' : 'attempt ' + attempt }" }
+                crawlerLog { "$errorMessage, ${ isHeadRequest ? 'will be retried as GET request' : 'attempt ' + attempt }" }
 
                 delay( ext.retryDelay )
                 readResponse( actualUrl, referrer, referrerContent, true, isHeadRequest ? 1 : attempt + 1 )
             }
             else
             {
-                logMessage = "$logMessage${ isAttempt ? ', attempt ' + attempt : '' }"
+                errorMessage = "$errorMessage${ isAttempt ? ', attempt ' + attempt : '' }"
 
                 if (( ext.ignoredBrokenLinks ?: [] ).any{ it ( actualUrl )})
                 {
-                    crawlerLog{ "$logMessage, not registered as broken link - filtered out by ignoredBrokenLinks" }
+                    crawlerLog{ "$errorMessage, not registered as broken link - filtered out by ignoredBrokenLinks" }
                 }
                 else
                 {
-                    crawlerLog{ "$logMessage, registered as broken link" }
+                    crawlerLog{ "$errorMessage, registered as broken link" }
                     linksStorage.addBrokenLink( originalUrl, referrer )
                 }
 
                 response
             }
         }
-    }
-
-
-    /**
-     * Attempts to read connection status code.
-     * @param connection connection to read its status code
-     * @return connection status code or exception thrown
-     */
-    @Requires({ connection })
-    @Ensures({ result })
-    Object statusCode( HttpURLConnection connection )
-    {
-        try { connection.responseCode }
-        catch ( Throwable error ) { error }
     }
 
 

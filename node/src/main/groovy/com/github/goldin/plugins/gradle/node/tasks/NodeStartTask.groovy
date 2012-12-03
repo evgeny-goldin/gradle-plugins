@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import org.gradle.api.GradleException
+import org.gradle.api.logging.LogLevel
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import org.gcontracts.annotations.Ensures
@@ -58,9 +59,8 @@ class NodeStartTask extends NodeBaseTask
 
         final response     = httpRequest( ext.startCheckUrl, 'GET', [:], 0, 0, null, false )
         final content      = response.content ? new String( response.content, 'UTF-8' ) : ''
-        final statusCode   = response.connection.responseCode
-        final goodResponse = ( statusCode == ext.startCheckStatusCode ) && ( content.contains( ext.startCheckContent ))
-        final message      = "Requesting [$ext.startCheckUrl] resulted in status code [$statusCode]" +
+        final goodResponse = ( response.statusCode == ext.startCheckStatusCode ) && ( content.contains( ext.startCheckContent ))
+        final message      = "Requesting [$ext.startCheckUrl] resulted in status code [$response.statusCode]" +
                              ( ext.startCheckContent ? ", content [$content]" : '' )
 
         if ( goodResponse )
@@ -69,6 +69,12 @@ class NodeStartTask extends NodeBaseTask
         }
         else
         {
+            if ( ext.stopIfFailsToStart )
+            {
+                log( LogLevel.ERROR ) { "The application has failed to start - running '$STOP_TASK' task" }
+                (( NodeStopTask ) project.tasks[ STOP_TASK ] ).taskAction()
+            }
+
             throw new GradleException( "$message - expected status code [$ext.startCheckStatusCode]" +
                                        ( ext.startCheckContent ? ", content contains [$ext.startCheckContent]" : '' ))
         }

@@ -570,11 +570,13 @@ abstract class BaseTask<T> extends DefaultTask
             log( LogLevel.WARN ){ "Connecting to [$url], method [$method], headers $headers resulted in $error" }
         }
 
+        response.statusCode = HttpResponse.statusCode( response )
+
         if (( readContent == null ) || readContent( response ))
         {
             final inputStream = ( response.inputStream ?: response.errorStream )
             response.data     = ( inputStream ? inputStream.bytes : null )
-            response.content  = ( inputStream ? HttpResponse.decodeContent( response.connection, response.data ) : null )
+            response.content  = ( inputStream ? HttpResponse.decodeContent( response ) : null )
             response.inputStream?.close()
             response.errorStream?.close()
         }

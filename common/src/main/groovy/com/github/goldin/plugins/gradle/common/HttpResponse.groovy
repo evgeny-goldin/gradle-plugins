@@ -19,6 +19,7 @@ class HttpResponse
     final String       method
 
     HttpURLConnection connection
+    Object            statusCode  // Response status code (Integer) or an error thrown when we tried to read it
     String            actualUrl   // Different from 'originalUrl' if was request redirected
     InputStream       inputStream
     InputStream       errorStream
@@ -50,17 +51,17 @@ class HttpResponse
     }
 
 
-    @Requires({ connection && ( data != null ) })
+    @Requires({ response && response.connection && ( response.data != null ) })
     @Ensures ({ result != null })
-    static byte[] decodeContent ( HttpURLConnection connection, byte[] data )
+    static byte[] decodeContent ( HttpResponse response )
     {
-        final contentEncoding = connection.getHeaderField( 'Content-Encoding' )
+        final contentEncoding = response.connection.getHeaderField( 'Content-Encoding' )
 
-        if ( ! ( contentEncoding && data )) { return data }
+        if ( ! ( contentEncoding && response.data )) { return response.data }
 
-        final contentLength      = Integer.valueOf( connection.getHeaderField( 'Content-Length' ) ?: '-1' )
+        final contentLength      = Integer.valueOf( response.connection.getHeaderField( 'Content-Length' ) ?: '-1' )
         final bufferSize         = ((( contentLength > 0 ) && ( contentLength < ( 100 * 1024 ))) ? contentLength : 10 * 1024 )
-        final contentInputStream = new ByteArrayInputStream( data ).with {
+        final contentInputStream = new ByteArrayInputStream( response.data ).with {
             InputStream is ->
             ( 'gzip'    == contentEncoding ) ? new GZIPInputStream( is, bufferSize ) :
             ( 'deflate' == contentEncoding ) ? new DeflaterInputStream( is, new Deflater(), bufferSize ) :
@@ -69,5 +70,14 @@ class HttpResponse
 
         assert contentInputStream, "Unknown response content encoding [$contentEncoding]"
         contentInputStream.bytes
+    }
+
+
+    @Requires({ response && response.connection })
+    @Ensures ({ result })
+    static Object statusCode( HttpResponse response )
+    {
+        try { response.connection.responseCode }
+        catch ( Throwable error ) { error }
     }
 }
