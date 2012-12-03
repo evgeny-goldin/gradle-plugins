@@ -206,7 +206,7 @@ abstract class BaseTask<T> extends DefaultTask
      * @return files specified
      */
     @Requires({ files != null })
-    final Object[] delete( boolean tryNativeDelete = false, Object ... files )
+    final Object[] delete( Object ... files )
     {
         if ( files )
         {
@@ -218,13 +218,15 @@ abstract class BaseTask<T> extends DefaultTask
                 {
                     log { "Deleting [$file.canonicalPath]" }
 
-                    if ( tryNativeDelete && ( isMac || isLinux ))
-                    {   // No Windows support yet, sorry.
-                        exec( 'rm', [ '-rf', file.canonicalPath ] )
-                        assert ( ! file.exists()), "Failed to natively delete [$file.canonicalPath]"
+                    try { project.delete( file ) }
+                    catch ( Throwable ignored )
+                    {   // http://issues.gradle.org/browse/GRADLE-2581
+                        if ( isMac || isLinux )
+                        {
+                            exec( 'rm', [ '-rf', file.canonicalPath ] )
+                            assert ( ! file.exists()), "Failed to natively delete [$file.canonicalPath]"
+                        }
                     }
-
-                    project.delete( file ) // May fail with "Unable to delete directory" on certain files
                 }
 
                 assert ( ! file.exists()), "Failed to delete [$file.canonicalPath]"

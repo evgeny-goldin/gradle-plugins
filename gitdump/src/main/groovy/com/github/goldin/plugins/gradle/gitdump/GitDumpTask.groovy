@@ -59,7 +59,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         if ( ext.singleArchive )
         {
             final archive = archive( ext.outputDirectory, ext.singleArchiveName, false, ext.totalBackupMaxSize )
-            delete( true, ext.outputDirectory.listFiles().findAll{ it.name != archive.name } as File[] )
+            delete( ext.outputDirectory.listFiles().findAll{ it.name != archive.name } as File[] )
         }
     }
 
@@ -175,7 +175,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
         log{ "[$directory.canonicalPath] archived to [$archive.canonicalPath]" }
 
-        if ( deleteDirectory ){ delete( true, directory )}
+        if ( deleteDirectory ){ delete( directory )}
 
         archive
     }

@@ -46,7 +46,8 @@ class NodeStartTask extends NodeBaseTask
             foreverCommand = "\"$COFFEE_EXECUTABLE\""
         }
 
-        [ "forever start --pidFile \"${ project.name }.pid\" $foreverCommand \"$ext.scriptPath\"" ]
+        [ "forever start --pidFile \"${ project.name }.pid\" $foreverCommand \"$ext.scriptPath\"",
+          "forever list" ]
     }
 
 
