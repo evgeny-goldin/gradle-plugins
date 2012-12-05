@@ -17,7 +17,9 @@ class NodeStartTask extends NodeBaseTask
     @Override
     void taskAction()
     {
+        if ( ext.stopAndStart )  { runTask ( STOP_TASK )}
         bashExec( startScript(), scriptFile( START_SCRIPT ), true )
+        if ( ext.startAndCheck ) { runTask ( CHECK_TASK )}
     }
 
 

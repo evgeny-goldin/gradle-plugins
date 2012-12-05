@@ -25,12 +25,12 @@ class NodeTestTask extends NodeBaseTask
 
             if ( failures )
             {
-                failOrWarn( ext.failOnTestFailures, "There were failing tests. See the report at: file:${ xUnitReportFile.canonicalPath }" )
+                failOrWarn( ext.failIfTestsFail, "There were failing tests. See the report at: file:${ xUnitReportFile.canonicalPath }" )
             }
         }
         else
         {
-            failOrWarn( ext.failOnTestFailures, "Running tests produced no reports:\n$testReport" )
+            failOrWarn( ext.failIfTestsFail, "Running tests produced no reports:\n$testReport" )
         }
     }
 

@@ -44,6 +44,6 @@ class NodePlugin extends BasePlugin
 
         testTask. dependsOn  setupTask
         stopTask. dependsOn  setupTask
-        startTask.dependsOn  setupTask, stopTask
+        startTask.dependsOn  setupTask
     }
 }

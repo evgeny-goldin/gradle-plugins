@@ -31,8 +31,8 @@ class NodeCheckTask extends NodeBaseTask
         {
             if ( ext.stopIfFailsToStart )
             {
-                log( LogLevel.ERROR ) { "The application has failed to start - running '$STOP_TASK' task" }
-                (( NodeStopTask ) project.tasks[ STOP_TASK ] ).taskAction()
+                log( LogLevel.ERROR ) { 'The application has failed to start' }
+                runTask( STOP_TASK )
             }
 
             throw new GradleException( "$resultMessage and not as expected: status code [$ext.checkStatusCode]" +

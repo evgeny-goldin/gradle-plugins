@@ -56,6 +56,14 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     final File scriptFile ( String scriptName ) { new File( project.buildDir, scriptName ) }
 
 
+    @Requires({ taskName })
+    final void runTask( String taskName )
+    {
+        log{ "Running task '$taskName'" }
+        (( NodeBaseTask ) project.tasks[ taskName ] ).taskAction()
+    }
+
+
     /**
      * Retrieves base part of the bash script to be used by various tasks.
      */

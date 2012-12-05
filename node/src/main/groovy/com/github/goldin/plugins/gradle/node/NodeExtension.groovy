@@ -6,8 +6,10 @@ class NodeExtension
 {
     List<String> cleanWorkspaceCommands = [ 'git checkout -f', 'git clean -dff' ]
     boolean      cleanWorkspace         = false // Whether to run cleanWorkspaceCommands before running tasks
-    boolean      failOnTestFailures     = true  // Whether to fail execution if tests fail
+    boolean      failIfTestsFail        = true  // Whether to fail execution if tests fail
     boolean      stopIfFailsToStart     = true  // Whether the app should be stopped if it fails to start
+    boolean      stopAndStart           = true  // Whether 'start' should be preceded by 'stop'
+    boolean      startAndCheck          = true  // Whether 'start' should be followed by 'check'
 
     String       checkUrl               = 'http://127.0.0.1:1337' // The URL to check after application has started
     long         checkDelay             = 1000                    // Amount of milliseconds to wait before making a connection
