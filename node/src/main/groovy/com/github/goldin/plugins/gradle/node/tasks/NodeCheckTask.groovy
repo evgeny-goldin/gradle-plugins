@@ -29,12 +29,8 @@ class NodeCheckTask extends NodeBaseTask
         }
         else
         {
-            if ( ext.stopIfFailsToStart )
-            {
-                log( LogLevel.ERROR ) { 'The application has failed to start' }
-                runTask( STOP_TASK )
-            }
-
+            log( LogLevel.ERROR ) { 'The application has failed to start properly' }
+            if ( ext.stopIfFailsToStart ){ runTask( STOP_TASK )}
             throw new GradleException( "$resultMessage and not as expected: status code [$ext.checkStatusCode]" +
                                        ( ext.checkContent ? ", content contains [$ext.checkContent]" : '' ))
         }
