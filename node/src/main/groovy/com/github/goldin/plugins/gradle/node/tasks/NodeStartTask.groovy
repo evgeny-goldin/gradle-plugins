@@ -17,8 +17,7 @@ class NodeStartTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        bashExec( startScript(), scriptFile( START_SCRIPT ), true, ext.generateOnly )
-        if ( ext.startCheckUrl ){ startCheck() }
+        bashExec( startScript(), scriptFile( START_SCRIPT ), true )
     }
 
 
@@ -48,37 +47,6 @@ class NodeStartTask extends NodeBaseTask
         }
 
         [ "forever start --pidFile \"${ project.name }.pid\" $foreverCommand \"$ext.scriptPath\"",
-          "forever list" ]
-    }
-
-
-    @Requires({ ext.startCheckUrl })
-    private void startCheck()
-    {
-        delay( ext.startCheckDelay )
-
-        final response     = httpRequest( ext.startCheckUrl, 'GET', [:], 0, 0, null, false )
-        final content      = response.content ? new String( response.content, 'UTF-8' ) : ''
-        final goodResponse = ( response.statusCode == ext.startCheckStatusCode ) && ( content.contains( ext.startCheckContent ))
-        final message      = "Connecting to [$ext.startCheckUrl] resulted in " +
-                             (( response.statusCode instanceof Integer ) ?
-                                "status code [$response.statusCode]" + ( ext.startCheckContent ? ", content [$content]" : '' ) :
-                                "'$response.statusCode'" ) // An error then
-
-        if ( goodResponse )
-        {
-            log{ "$message - good!" }
-        }
-        else
-        {
-            if ( ext.stopIfFailsToStart )
-            {
-                log( LogLevel.ERROR ) { "The application has failed to start - running '$STOP_TASK' task" }
-                (( NodeStopTask ) project.tasks[ STOP_TASK ] ).taskAction()
-            }
-
-            throw new GradleException( "$message rather than expected status code [$ext.startCheckStatusCode]" +
-                                       ( ext.startCheckContent ? ", content contains [$ext.startCheckContent]" : '' ))
-        }
+          'forever list' ]
     }
 }

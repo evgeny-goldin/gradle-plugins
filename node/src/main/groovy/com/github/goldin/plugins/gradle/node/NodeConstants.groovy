@@ -18,6 +18,7 @@ class NodeConstants
     final static String TEST_TASK         = 'test'
     final static String STOP_TASK         = 'stop'
     final static String START_TASK        = 'start'
+    final static String CHECK_TASK        = 'check'
 
     final static String SETUP_SCRIPT      = "${ SETUP_TASK }.sh"
     final static String TEST_SCRIPT       = "${ TEST_TASK }.sh"

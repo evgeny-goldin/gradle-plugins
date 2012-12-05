@@ -7,20 +7,14 @@ class NodeExtension
     List<String> cleanWorkspaceCommands = [ 'git checkout -f', 'git clean -dff' ]
     boolean      cleanWorkspace         = false // Whether to run cleanWorkspaceCommands before running tasks
     boolean      failOnTestFailures     = true  // Whether to fail execution if tests fail
-    boolean      generateOnly           = false // Whether bash scripts should be generated but not run
     boolean      stopIfFailsToStart     = true  // Whether the app should be stopped if it fails to start
 
-    boolean      startDependsOnStop     = true  // Whether 'start' task should depend on the 'stop' task
-    boolean      echoScripts            = false // Echo all bash scripts generated to the build log
-    boolean      echoCommands           = false // Echo all commands executed in bash scripts to the build log
-    boolean      teamCityTests          = false // Whether test results should be written to log as TeamCity service messages
+    String       checkUrl               = 'http://127.0.0.1:1337' // The URL to check after application has started
+    long         checkDelay             = 1000                    // Amount of milliseconds to wait before making a connection
+    String       checkContent           = ''                      // Response to expect when making a request
+    int          checkStatusCode        = 200                     // Response code to expect when making a request
 
-    String       startCheckUrl          = 'http://127.0.0.1:1337' // The URL to test after application has started
-    long         startCheckDelay        = 1000                    // If 'startCheckUrl' - amount of milliseconds to wait before making a connection
-    String       startCheckContent      = ''                      // If 'startCheckUrl' - response to expect when making a request
-    int          startCheckStatusCode   = 200                     // If 'startCheckUrl' - response code to expect when making a request
-
-    List<Closure> transformers          = []  // Callbacks to invoke when every bash script is generated
+    List<Closure> transformers          = []                      // Callbacks to invoke when every bash script is generated
     String        NODE_ENV              = 'development'
     String        nodeVersion           = 'latest'
     String        testCommand           = 'mocha'

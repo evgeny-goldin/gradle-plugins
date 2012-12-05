@@ -38,6 +38,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
         assert ext.testCommand,         "'testCommand' should be defined in $description"
         assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
+        assert ext.checkUrl,            "'checkUrl' should be defined in $description"
 
         assert ext.stopCommands  || ext.scriptPath, "'stopCommands' or 'scriptPath' should be defined in $description"
         assert ext.startCommands || ext.scriptPath, "'startCommands' or 'scriptPath' should be defined in $description"
@@ -61,7 +62,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     final String baseBashScript ()
     {
         final  binFolder = project.file( MODULES_BIN_DIR )
-        assert ( binFolder.directory || ext.generateOnly ), "[$binFolder] is not available"
+        assert binFolder.directory, "[$binFolder] is not available"
 
         """#!/bin/bash
         |
@@ -88,7 +89,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      * @param scriptContent content to run as bash script
      * @param scriptFile    script file to create
      * @param failOnError   whether execution should fail if bash execution returns non-zero value
-     * @param generateOnly  whether bash script should only be generated but not executed
      *
      * @return bash output or empty String if bash was generated but not executed
      */
@@ -97,8 +97,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
     final String bashExec( String  scriptContent,
                            File    scriptFile,
-                           boolean failOnError  = true,
-                           boolean generateOnly = false )
+                           boolean failOnError = true )
     {
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
         delete( scriptFile )
@@ -112,7 +111,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         log( LogLevel.INFO ){ "Bash script created at [$scriptFile.canonicalPath], size [${ scriptFile.length() }] bytes" }
 
-        if ( generateOnly ) { '' }
-        else                { bashExec( scriptFile, project.rootDir, failOnError )}
+        bashExec( scriptFile, project.rootDir, failOnError )
     }
 }

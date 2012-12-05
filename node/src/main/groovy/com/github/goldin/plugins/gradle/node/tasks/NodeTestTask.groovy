@@ -15,10 +15,7 @@ class NodeTestTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        final testReport = bashExec( testScript(), scriptFile( TEST_SCRIPT ), false, ext.generateOnly )
-
-        if ( ext.generateOnly ) { return }
-
+        final testReport          = bashExec( testScript(), scriptFile( TEST_SCRIPT ), false )
         final teamCityReportLines = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity[' )}
 
         if ( teamCityReportLines )

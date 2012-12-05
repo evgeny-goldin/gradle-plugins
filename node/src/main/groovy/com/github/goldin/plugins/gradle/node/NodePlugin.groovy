@@ -23,7 +23,8 @@ class NodePlugin extends BasePlugin
           ( SETUP_TASK    ) : NodeSetupTask,
           ( TEST_TASK     ) : NodeTestTask,
           ( STOP_TASK     ) : NodeStopTask,
-          ( START_TASK    ) : NodeStartTask
+          ( START_TASK    ) : NodeStartTask,
+          ( CHECK_TASK    ) : NodeCheckTask
         ]
     }
 
