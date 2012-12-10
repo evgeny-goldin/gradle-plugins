@@ -29,7 +29,8 @@ class NodeConstants
     final static String MODULES_BIN_DIR   = "$NODE_MODULES_DIR/.bin"
     final static String COFFEE_EXECUTABLE = "$MODULES_BIN_DIR/coffee"
 
-    final static Pattern AttributePattern = Pattern.compile( /(\w+)='(.*?[^|])'/ )
-    final static Pattern NumberPattern    = Pattern.compile( /^\d+$/ )
-    final static Pattern KillPattern      = Pattern.compile( /<kill (.+?)>/ )
+    final static Pattern AttributePattern      = Pattern.compile( /(\w+)='(.*?[^|])'/ )
+    final static Pattern EmptyAttributePattern = Pattern.compile( /(\w+)='()'/ )
+    final static Pattern NumberPattern         = Pattern.compile( /^\d+$/ )
+    final static Pattern KillPattern           = Pattern.compile( /<kill (.+?)>/ )
 }

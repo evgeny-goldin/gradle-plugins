@@ -79,7 +79,7 @@ class NodeTestTask extends NodeBaseTask
 
         for ( line in teamCityReportLines[ 1 .. -2 ] )
         {
-            final attributes = lineToMap( line )
+            final attributes = teamCityReportLineToMap( line )
             final testName   = attribute( attributes, 'name', line )
 
             if ( line.startsWith( '##teamcity[testFinished ' ))
@@ -100,7 +100,7 @@ class NodeTestTask extends NodeBaseTask
             }
         }
 
-        final testSuiteName      = attribute( lineToMap( teamCityReportLines[ 0 ] ), 'name', teamCityReportLines[ 0 ])
+        final testSuiteName      = attribute( teamCityReportLineToMap( teamCityReportLines[ 0 ] ), 'name', teamCityReportLines[ 0 ])
         final String xUnitReport = """
 <testsuite name="$testSuiteName" tests="$tests" failures="$failures" skip="$skipped">
     ${ xUnitReportLines.join( '\n    ' ) }
@@ -138,21 +138,23 @@ class NodeTestTask extends NodeBaseTask
 
 
     /**
-     * Converts a line into a {@code Map} of key => value of its attributes.
+     * Converts a TeamCity report line into a {@code Map} of key => value of line's attributes.
      * @param line line to read,
      *        example: {@code "##teamcity[testFailed name='RTB - Campaign "before all" hook' message='ER_ACCESS_DENIED_ERROR: Access denied for user |'root|'@|'localhost|' (using password: NO)']"}
-     * @return {@code Map} of key => value of its attributes.
+     * @return {@code Map} of key => value of line's attributes.
      */
     @Requires({ line })
     @Ensures ({ result != null })
-    private Map<String, String> lineToMap( String line )
-    {
-        line.findAll( AttributePattern ){ it [ 1 .. 2 ] }.inject( [:] ){
-            Map m, List<String> l -> m[ l[ 0 ] ] = l[ 1 ].trim().
-                                                          replace( "|'", "'"    ).
-                                                          replace( '"',  "'"    ).
-                                                          replace( '<',  '&lt;' ).
-                                                          replace( '>',  '&gt;' )
+    private Map<String, String> teamCityReportLineToMap ( String line )
+    {   // http://confluence.jetbrains.net/display/TCD7/Build+Script+Interaction+with+TeamCity#BuildScriptInteractionwithTeamCity-ServiceMessages
+        ( line.findAll( AttributePattern,      { it [ 1 .. 2 ] } ) +
+          line.findAll( EmptyAttributePattern, { it [ 1 .. 2 ] } )).inject( [:] ){
+            Map m, List<String> l -> // l[ 0 ] is attribute name, l[ 1 ] is attribute value
+                m[ l[ 0 ] ] = l[ 1 ].trim().
+                                     replace( "|'", "'"    ).
+                                     replace( '"',  "'"    ).
+                                     replace( '<',  '&lt;' ).
+                                     replace( '>',  '&gt;' )
             m
         }
     }
