@@ -43,7 +43,7 @@ class NodeTestTask extends NodeBaseTask
         """
         |${ baseBashScript() }
         |
-        |$ext.testCommand ${ ext.testInput ?: '' } -R teamcity""".stripMargin()
+        |$ext.testCommand ${ (( ! ext.testInput ) || ( ext.testInput == 'test' )) ? '' : ext.testInput } -R teamcity""".stripMargin()
     }
 
 
