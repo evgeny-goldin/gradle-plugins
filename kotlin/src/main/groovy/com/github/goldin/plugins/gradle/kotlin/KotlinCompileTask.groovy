@@ -37,13 +37,15 @@ class KotlinCompileTask extends AbstractCompile
 
         if ( logger.infoEnabled )
         {
-            logger.info( "Running Kotlin compiler" )
-            logger.info( "sourceDirs:" )
-            logger.info( list( args.sourceDirs ))
-            logger.info( "outputDir:" )
-            logger.info( list([ args.outputDir ]))
-            logger.info( "classpath:" )
-            logger.info( list( args.classpath.split( DELIM ).toList()))
+            logger.with {
+                info( 'Running Kotlin compiler' )
+                info( 'sourceDirs:' )
+                info( list( args.sourceDirs ))
+                info( 'outputDir:' )
+                info( list([ args.outputDir ]))
+                info( 'classpath:' )
+                info( list( args.classpath.split( DELIM ).toList()))
+            }
         }
 
         final exitCode = compiler.exec( System.err, args )
