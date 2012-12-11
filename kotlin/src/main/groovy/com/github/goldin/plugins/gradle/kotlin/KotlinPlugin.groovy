@@ -50,7 +50,7 @@ class KotlinPlugin implements Plugin<Project>
 
             // "compileKotlin", "compileTestKotlin"
             String            kotlinTaskName = sourceSet.getCompileTaskName( 'kotlin' )
-            KotlinTask kotlinTask     = project.tasks.add( kotlinTaskName, KotlinTask )
+            KotlinCompileTask kotlinTask     = project.tasks.add( kotlinTaskName, KotlinCompileTask )
 
             javaBasePlugin.configureForSourceSet( sourceSet, kotlinTask )
 

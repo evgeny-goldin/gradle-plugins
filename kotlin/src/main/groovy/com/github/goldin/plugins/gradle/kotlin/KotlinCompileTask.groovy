@@ -1,15 +1,13 @@
 package com.github.goldin.plugins.gradle.kotlin
 
 import static org.jetbrains.jet.cli.common.ExitCode.*
-
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.compile.AbstractCompile
-import org.gradle.api.tasks.compile.Compile
 import org.jetbrains.jet.cli.jvm.K2JVMCompiler
 import org.jetbrains.jet.cli.jvm.K2JVMCompilerArguments
 
 
-class KotlinTask extends AbstractCompile
+class KotlinCompileTask extends AbstractCompile
 {
     private final K2JVMCompiler compiler = new K2JVMCompiler()
     private final static String DELIM    = System.getProperty( 'path.separator' )
@@ -28,7 +26,7 @@ class KotlinTask extends AbstractCompile
 
         for ( compileTask in dependsOn.findAll{ it instanceof AbstractCompile } )
         {
-            final destinationDir = (( Compile ) compileTask ).destinationDir
+            final destinationDir = (( AbstractCompile ) compileTask ).destinationDir
             if ( destinationDir.directory )
             {
                 destinationDir.canonicalPath.with {
@@ -45,7 +43,7 @@ class KotlinTask extends AbstractCompile
             logger.info( "outputDir:" )
             logger.info( list([ args.outputDir ]))
             logger.info( "classpath:" )
-            logger.info( list( args.classpath.split( System.getProperty( 'path.separator' )).toList()))
+            logger.info( list( args.classpath.split( DELIM ).toList()))
         }
 
         final exitCode = compiler.exec( System.err, args )
