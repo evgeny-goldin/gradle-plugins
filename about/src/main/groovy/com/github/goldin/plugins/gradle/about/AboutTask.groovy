@@ -60,7 +60,7 @@ class AboutTask extends BaseTask<AboutExtension>
         if ( ! ext.patterns ) { return [] }
 
         final baseDir = ext.directory ?: project.buildDir
-        baseDir.directory ? files( baseDir, ext.include, ext.exclude ) : []
+        baseDir.directory ? files( baseDir, ext.include, ext.exclude, true, false, false ) : []
     }
 
 
