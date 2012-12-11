@@ -119,7 +119,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         log( LogLevel.INFO ){ "Bash script created at [$scriptFile.canonicalPath], size [${ scriptFile.length() }] bytes" }
 
-        exec( 'chmod', [ '+x', scriptFile.canonicalPath ])
+        if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ]) }
         bashExec( scriptFile, project.rootDir, failOnError )
     }
 }
