@@ -24,6 +24,7 @@ class KotlinTask extends AbstractCompile
         args.classpath        = classpath.filter{ File f -> f.exists() }.asPath ?: null
         args.sourceDirs       = source.files*.canonicalPath
         args.outputDir        = destinationDir.canonicalPath
+        final list            = { Collection c -> "* [${ c.join( ']\n* [' )}]"}
 
         for ( compileTask in dependsOn.findAll{ it instanceof AbstractCompile } )
         {
@@ -34,6 +35,17 @@ class KotlinTask extends AbstractCompile
                     args.classpath = args.classpath ? "${ args.classpath }${ DELIM }${ delegate }" : delegate
                 }
             }
+        }
+
+        if ( logger.infoEnabled )
+        {
+            logger.info( "Running Kotlin compiler" )
+            logger.info( "sourceDirs:" )
+            logger.info( list( args.sourceDirs ))
+            logger.info( "outputDir:" )
+            logger.info( list([ args.outputDir ]))
+            logger.info( "classpath:" )
+            logger.info( list( args.classpath.split( System.getProperty( 'path.separator' )).toList()))
         }
 
         final exitCode = compiler.exec( System.err, args )
