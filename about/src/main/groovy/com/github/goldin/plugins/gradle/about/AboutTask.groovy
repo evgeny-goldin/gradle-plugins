@@ -3,7 +3,7 @@ package com.github.goldin.plugins.gradle.about
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
-import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.api.tasks.bundling.Zip
 
 
 /**
@@ -43,10 +43,10 @@ class AboutTask extends BaseTask<AboutExtension>
      * @return   archive tasks to be updated by the plugin
      */
     @Ensures({ result != null })
-    private List<AbstractArchiveTask> tasksToUpdate()
+    private List<Zip> tasksToUpdate()
     {
         if ( ! ext.zipTasks ) { return [] }
-        ext.tasks ?: project.tasks.withType( AbstractArchiveTask ).toList()
+        ext.tasks ?: project.tasks.withType( Zip ).toList()
     }
 
 
@@ -100,7 +100,7 @@ class AboutTask extends BaseTask<AboutExtension>
      * @param archives zip archives to update
      */
     @Requires({ tasks || archives })
-    private void updateArchives( List<AbstractArchiveTask> tasks, List<File> archives )
+    private void updateArchives( List<Zip> tasks, List<File> archives )
     {
         final aboutFile = createAboutFile()
         final prefix    = (( ext.prefix == '/' ) ? '' : ext.prefix )
@@ -114,7 +114,7 @@ class AboutTask extends BaseTask<AboutExtension>
             else
             {
                 log{ "Adding 'about' to $task" }
-                task.from( aboutFile ).into( prefix )
+                task.into( prefix ){ from( aboutFile ) }
             }
         }
 
