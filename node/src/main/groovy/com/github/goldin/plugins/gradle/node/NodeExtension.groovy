@@ -10,6 +10,8 @@ class NodeExtension
     boolean      stopIfFailsToStart     = true  // Whether the app should be stopped if it fails to start
     boolean      stopAndStart           = true  // Whether 'start' should be preceded by 'stop'
     boolean      startAndCheck          = true  // Whether 'start' should be followed by 'check'
+    boolean      verbose                = false // Whether plugin output should be verbose about all actions (log to WARN + verbose bash)
+    boolean      startWithForever       = true  // Whether 'forever' should be used to start the application
 
     String       checkUrl               = 'http://127.0.0.1:1337' // The URL to check after application has started
     long         checkDelay             = 1000                    // Amount of milliseconds to wait before making a connection
