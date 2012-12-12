@@ -15,22 +15,16 @@ class NodeTestTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        final testReport          = bashExec( testScript(), scriptFile( TEST_SCRIPT ), false )
-        final teamCityReportLines = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity[' )}
+        final  testReport          = bashExec( testScript(), scriptFile( TEST_SCRIPT ), false )
+        final  teamCityReportLines = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity[' )}
+        assert teamCityReportLines, "Running tests produced no test report:\n$testReport"
 
-        if ( teamCityReportLines )
-        {
-            final xUnitReportFile = new File( testResultsDir(), 'TEST-node.xml' )
-            final failures        = writeXUnitReport( teamCityReportLines, xUnitReportFile )
+        final xUnitReportFile = new File( testResultsDir(), 'TEST-node.xml' )
+        final failures        = writeXUnitReport( teamCityReportLines, xUnitReportFile )
 
-            if ( failures )
-            {
-                failOrWarn( ext.failIfTestsFail, "There were failing tests. See the report at: file:${ xUnitReportFile.canonicalPath }" )
-            }
-        }
-        else
+        if ( failures )
         {
-            failOrWarn( ext.failIfTestsFail, "Running tests produced no reports:\n$testReport" )
+            failOrWarn( ext.failIfTestsFail, "There were failing tests. See the report at: file:${ xUnitReportFile.canonicalPath }" )
         }
     }
 
