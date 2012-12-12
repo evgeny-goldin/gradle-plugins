@@ -19,7 +19,7 @@ class KotlinCompileTask extends AbstractCompile
         final args            = new K2JVMCompilerArguments()
         args.noStdlib         = true
         args.noJdkAnnotations = true
-        args.classpath        = classpath.asPath ?: null
+        args.classpath        = classpath.filter{ File f -> f.exists() }.asPath ?: null
         args.sourceDirs       = source.files*.canonicalPath
         args.outputDir        = destinationDir.canonicalPath
         final list            = { Collection c -> "* [${ c.join( ']\n* [' )}]"}
