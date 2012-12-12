@@ -1,5 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
+import org.gradle.api.GradleException
+
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -15,9 +17,10 @@ class NodeTestTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        final  testReport          = bashExec( testScript(), scriptFile( TEST_SCRIPT ), false )
-        final  teamCityReportLines = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity[' )}
-        assert teamCityReportLines, "Running tests produced no test report:\n$testReport"
+        final testReport          = bashExec( testScript(), scriptFile( TEST_SCRIPT ), false )
+        final teamCityReportLines = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity[' )}
+
+        if ( ! teamCityReportLines ) { throw new GradleException( "Running tests produced no test report:\n$testReport" )}
 
         final xUnitReportFile = new File( testResultsDir(), 'TEST-node.xml' )
         final failures        = writeXUnitReport( teamCityReportLines, xUnitReportFile )
