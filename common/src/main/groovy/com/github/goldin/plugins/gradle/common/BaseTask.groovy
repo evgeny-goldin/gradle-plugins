@@ -422,16 +422,16 @@ abstract class BaseTask<T> extends DefaultTask
     /**
      * Retrieves all appearances of the first capturing group of the pattern specified in a String or empty list if not found.
      */
-    @Requires({ s && p })
+    @Requires({ s && p && ( groupIndex > -1 ) })
     @Ensures({ result != null })
-    final List<String> findAll( String s, Pattern p ){ s.findAll ( p ) { it[ 1 ] }}
+    final List<String> findAll( String s, Pattern p, int groupIndex = 1 ){ s.findAll ( p ) { it[ groupIndex ] }}
 
 
     /**
      * Retrieves first appearance of the first capturing group of the pattern specified in a String or null if not found.
      */
-    @Requires({ s && p })
-    final String find( String s, Pattern p ){ s.find ( p ) { it[ 1 ] }}
+    @Requires({ s && p && ( groupIndex > -1 ) })
+    final String find( String s, Pattern p, int groupIndex = 1 ){ s.find ( p ) { it[ groupIndex ] }}
 
 
     /**

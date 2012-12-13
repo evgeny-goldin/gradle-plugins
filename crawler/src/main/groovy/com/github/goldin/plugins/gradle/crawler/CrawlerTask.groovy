@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.crawler
 
+import static com.github.goldin.plugins.gradle.crawler.CrawlerConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.common.HttpResponse
 import org.gcontracts.annotations.Ensures
@@ -33,19 +34,12 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     @Override
     void verifyUpdateExtension ( String description )
     {
-        assert ext.externalLinkPattern         &&
-               ext.absoluteLinkPattern         &&
-               ext.relativeLinkPattern         &&
-               ext.relativeLinkReminderPattern &&
-               ext.htmlCommentPattern          &&
-               ext.slashesPattern
-
         assert ( ! ext.rootUrl             ), "'rootUrl' should not be used in $description - private area"
         assert ( ! ext.internalLinkPattern ), "'internalLinkPattern' should not be used in $description - private area"
 
         ext.baseUrl             = ext.baseUrl?.trim()?.replace( '\\', '/' )?.replaceAll( '^.+?:/+', '' ) // Protocol part removed
         ext.rootUrl             = ext.baseUrl?.replaceAll( '/.*', '' )                                   // Path part removed
-        ext.internalLinkPattern = Pattern.compile( /(?:'|"|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:'|"|<)/ )
+        ext.internalLinkPattern = Pattern.compile( /(?:('|")|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:\1|<)/ )
 
         assert ext.baseUrl, "'baseUrl' should be defined in $description"
         assert ext.rootUrl && ( ! ext.rootUrl.endsWith( '/' )) && ext.internalLinkPattern
@@ -475,31 +469,31 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         if ( ext.removeHtmlComments )
         {
-            cleanContent = cleanContent.replaceAll( ext.htmlCommentPattern, '' )
+            cleanContent = cleanContent.replaceAll( htmlCommentPattern, '' )
         }
 
-        final List<String> links = findAll( cleanContent, ext.internalLinkPattern )
+        final List<String> links = findAll( cleanContent, ext.internalLinkPattern, 2 )
 
         if ( ext.checkExternalLinks ) {
-            final  externalLinks = findAll ( cleanContent, ext.externalLinkPattern )
+            final  externalLinks = findAll ( cleanContent, externalLinkPattern, 2 )
             assert externalLinks.every { it.startsWith( 'http://' ) || it.startsWith( 'https://' ) }
 
             links.addAll( externalLinks )
         }
 
         if ( ext.checkAbsoluteLinks ) {
-            final  absoluteLinks = findAll ( cleanContent, ext.absoluteLinkPattern )
+            final  absoluteLinks = findAll ( cleanContent, absoluteLinkPattern, 2 )
             assert absoluteLinks.every{ it.startsWith( '/' ) }
 
-            links.addAll( absoluteLinks.collect{( it.startsWith( '//' ) ? "http://${ it.replaceAll( ext.slashesPattern, '' )}" :
+            links.addAll( absoluteLinks.collect{( it.startsWith( '//' ) ? "http://${ it.replaceAll( slashesPattern, '' )}" :
                                                                           "http://$ext.rootUrl$it" ).toString() })
         }
 
         if ( ext.checkRelativeLinks ) {
 
-            final pageBaseUrl    = pageUrl.replaceFirst( ext.relativeLinkReminderPattern, '' )
+            final pageBaseUrl    = pageUrl.replaceFirst( relativeLinkReminderPattern, '' )
             final requestBaseUrl = removeAllAfter( '?', pageUrl, pageBaseUrl )
-            final relativeLinks  = findAll ( cleanContent, ext.relativeLinkPattern )
+            final relativeLinks  = findAll ( cleanContent, relativeLinkPattern, 2 )
             assert ( ! pageBaseUrl.endsWith( '/' )) && ( ! requestBaseUrl.endsWith( '?' )) && relativeLinks.every { ! it.startsWith( '/' )}
 
             links.addAll( relativeLinks.collect{( it.startsWith( '?' ) ? "$requestBaseUrl$it" : "$pageBaseUrl/$it" ).toString() })
