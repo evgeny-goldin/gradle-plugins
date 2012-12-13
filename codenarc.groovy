@@ -21,6 +21,7 @@ ruleset {
         SpaceBeforeClosingBrace  ( enabled : false )
 
         VariableName             ( finalRegex          : /\w+/ )
+        PropertyName             ( staticFinalRegex    : /\w+/ )
         AbcComplexity            ( maxMethodComplexity : 70  )
         LineLength               ( length              : 180 )
     }
