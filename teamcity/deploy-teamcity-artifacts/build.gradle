@@ -14,7 +14,7 @@ apply plugin: 'java'
  * http://confluence.jetbrains.net/display/TW/Previous+Releases+Downloads
  */
 
-final String     teamCityVersions = '7.1.2 7.1.1 7.1 7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'
+final String     teamCityVersions = '7.1.3 7.1.2 7.1.1 7.1 7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'
 final List<File> files            = [] // Files to be deployed
 
 
@@ -58,7 +58,7 @@ uploadArchives {
         files.each{ assert it.file }
         println "Uploading [${ files.size()}] files to [${ repositories.mavenDeployer.repository.url }]"
     }
-    repositories.mavenDeployer { 
+    repositories.mavenDeployer {
         repository( url: 'http://evgenyg.artifactoryonline.com/evgenyg/temp/' ){
             authentication( userName: 'temp-deployer', password: '{DESede}xtnt3nnvIKDvPdrT+lZJmUuA3LJ4WBNW' )
         }
@@ -186,4 +186,4 @@ File addArtifact( Project project, File file, String groupId, String artifactId,
 }
 
 
-task wrapper( type: Wrapper ) { gradleVersion = '1.2' }
+task wrapper( type: Wrapper ) { gradleVersion = '1.3' }
