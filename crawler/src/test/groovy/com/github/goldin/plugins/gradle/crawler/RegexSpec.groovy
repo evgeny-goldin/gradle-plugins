@@ -20,10 +20,8 @@ class RegexSpec extends Specification
 
         where:
         link | content
-        'http://pagead2/show_ads.js'   | '<script type="text/javascript" src="http://pagead2/show_ads.js" href="aaaa"></script>'
-        'http://pagead2/show_ads\'.js' | '<script type="text/javascript" src="http://pagead2/show_ads\'.js"></script>'
-        'http://pagead2/show_ads.js'   | "<script type='text/javascript' href='http://pagead2/show_ads.js'></script>"
-        'http://pagead2/"show_ads.js'  | "<script type='text/javascript' href='http://pagead2/\"show_ads.js'></script>"
+        'http://pagead2/show_ads.js' | '<script type="text/javascript" src="http://pagead2/show_ads.js" href="aaaa"></script>'
+        'http://pagead2/show_ads.js' | "<script type='text/javascript' href='http://pagead2/show_ads.js'></script>"
     }
 
 
@@ -36,6 +34,8 @@ class RegexSpec extends Specification
         where:
         content << [ '<script type="text/javascript" src="http://pagead2/show_ads.js\'></script>',
                      '<script type="text/javascript" src="http://pagead2/show_ads\'.js\'></script>',
+                     '<script type="text/javascript" src="http://pagead2/show_ads\'.js"></script>',
+                     "<script type='text/javascript' href='http://pagead2/\"show_ads.js'></script>",
                      "<script type='text/javascript' href='http://pagead2/show_ads.js\"></script>",
                      "<script type='text/javascript' href='http://pagead2/\"show_ads.js\"></script>",
                      "<script type='text/javascript' href='pagead2/show_ads.js\"></script>",
@@ -52,10 +52,8 @@ class RegexSpec extends Specification
 
         where:
         link | content
-        '/pagead2/show_ads.js'   | '<script type="text/javascript" src="/pagead2/show_ads.js" href="aaaa"></script>'
-        '/pagead2/show_ads\'.js' | '<script type="text/javascript" src="/pagead2/show_ads\'.js"></script>'
-        '/pagead2/show_ads.js'   | "<script type='text/javascript' href='/pagead2/show_ads.js'></script>"
-        '/pagead2/"show_ads.js'  | "<script type='text/javascript' href='/pagead2/\"show_ads.js'></script>"
+        '/pagead2/show_ads.js' | '<script type="text/javascript" src="/pagead2/show_ads.js" href="aaaa"></script>'
+        '/pagead2/show_ads.js' | "<script type='text/javascript' href='/pagead2/show_ads.js'></script>"
     }
 
 
@@ -67,6 +65,8 @@ class RegexSpec extends Specification
 
         where:
         content << [ '<script type="text/javascript" src="http://pagead2/show_ads.js" href="aaaa"></script>',
+                     '<script type="text/javascript" src="/pagead2/show_ads\'.js"></script>',
+                     "<script type='text/javascript' href='/pagead2/\"show_ads.js'></script>",
                      '<script type="text/javascript" src="pagead2/show_ads"></script>',
                      "<script type='text/javascript' href='/pagead2/show_ads.js\"></script>",
                      "<script type='text/javascript' href=\"/pagead2/show_ads.js'></script>",
@@ -84,10 +84,8 @@ class RegexSpec extends Specification
 
         where:
         link | content
-        'pagead2/show_ads.js'   | '<script type="text/javascript" src="pagead2/show_ads.js" href="aaaa"></script>'
-        'pagead2/show_ads\'.js' | '<script type="text/javascript" src="pagead2/show_ads\'.js"></script>'
-        'pagead2/show_ads.js'   | "<script type='text/javascript' href='pagead2/show_ads.js'></script>"
-        'pagead2/"show_ads.js'  | "<script type='text/javascript' href='pagead2/\"show_ads.js'></script>"
+        'pagead2/show_ads.js' | '<script type="text/javascript" src="pagead2/show_ads.js" href="aaaa"></script>'
+        'pagead2/show_ads.js' | "<script type='text/javascript' href='pagead2/show_ads.js'></script>"
     }
 
 
@@ -99,6 +97,8 @@ class RegexSpec extends Specification
 
         where:
         content << [ '<script type="text/javascript" src="http://pagead2/show_ads.js"></script>',
+                     '<script type="text/javascript" src="pagead2/show_ads\'.js"></script>',
+                     "<script type='text/javascript' href='pagead2/\"show_ads.js'></script>",
                      '<script type="text/javascript" src="/pagead2/show_ads"></script>',
                      "<script type='text/javascript' href='pagead2/show_ads.js\"></script>",
                      "<script type='text/javascript' href=\"pagead2/show_ads.js'></script>",
