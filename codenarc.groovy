@@ -16,6 +16,9 @@ ruleset {
         ThrowRuntimeException    ( enabled : false )
         FactoryMethodName        ( enabled : false )
         MethodName               ( enabled : false )
+        SpaceAfterOpeningBrace   ( enabled : false )
+        SpaceBeforeOpeningBrace  ( enabled : false )
+        SpaceBeforeClosingBrace  ( enabled : false )
 
         VariableName             ( finalRegex          : /\w+/ )
         AbcComplexity            ( maxMethodComplexity : 70  )
