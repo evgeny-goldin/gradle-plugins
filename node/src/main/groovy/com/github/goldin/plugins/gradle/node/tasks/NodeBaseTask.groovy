@@ -65,6 +65,16 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
+     * Retrieves .pid file name to use when application is started and stopped.
+     * @param port application port
+     * @return .pid file name to use when application is started and stopped
+     */
+    @Requires({ port > 0 })
+    @Ensures ({ result   })
+    final String pidFileName( int port ){ "${ project.name }-${ port }.pid" }
+
+
+    /**
      * Retrieves base part of the bash script to be used by various tasks.
      */
     final String baseBashScript ()

@@ -1,8 +1,5 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
-import org.gradle.api.GradleException
-import org.gradle.api.logging.LogLevel
-
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -48,7 +45,7 @@ class NodeStartTask extends NodeBaseTask
             foreverCommand = "\"$COFFEE_EXECUTABLE\""
         }
 
-        [ "forever start --pidFile \"${ project.name }.pid\" $foreverCommand \"$ext.scriptPath\"",
+        [ "forever start --pidFile \"${ pidFileName( ext.portNumber ) }\" $foreverCommand \"$ext.scriptPath\"",
           'forever list' ]
     }
 }

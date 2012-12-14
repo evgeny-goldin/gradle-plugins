@@ -33,22 +33,24 @@ class NodeStopTask extends NodeBaseTask
     private List<String> stopCommands()
     {
         final List<String> stopCommands =
-            ext.stopCommands ?:
-            """
-            |pid=`cat \$HOME/.forever/pids/${ project.name }.pid`
-            |if [ "\$pid" != "" ];
-            |then
-            |    foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
-            |    if [ "\$foreverId" != "" ];
-            |    then
-            |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
-            |        forever stop \$foreverId;
-            |    fi;
-            |fi
-            |
-            |# If .pid file doesn't exist or 'forever stop' doesn't stop ..
-            |
-            |<kill forever,${ project.name }|${ ext.scriptPath },${ project.name }>""".stripMargin().readLines()
+            ext.stopCommands ?: """
+                                |pid=`cat "\$HOME/.forever/pids/${ pidFileName( ext.portNumber ) }"`
+                                |if [ "\$pid" != "" ];
+                                |then
+                                |    foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
+                                |    if [ "\$foreverId" != "" ];
+                                |    then
+                                |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
+                                |        forever stop \$foreverId;
+                                |    fi;
+                                |fi
+                                """.stripMargin().readLines() +
+                                ( ext.usePidOnlyToStop ? [] :
+                                """
+                                |
+                                |# If .pid file doesn't exist or 'forever stop' doesn't stop ..
+                                |<kill forever,${ project.name }|${ ext.scriptPath },${ project.name }>
+                                """.stripMargin().readLines())
 
         final stopCommandsExpanded = stopCommands.collect {
 
