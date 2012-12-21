@@ -25,8 +25,9 @@ abstract class BaseTask<T> extends DefaultTask
     final startTime          = System.currentTimeMillis()
     final startTimeFormatted = this.dateFormatter.format( new Date( this.startTime ))
     final osName             = System.getProperty( 'os.name', 'unknown' ).toLowerCase()
-    final isLinux            = osName.contains( 'linux'  )
-    final isMac              = osName.contains( 'mac os' )
+    final isWindows          = osName.contains( 'windows' )
+    final isLinux            = osName.contains( 'linux'   )
+    final isMac              = osName.contains( 'mac os'  )
 
 
     /**
@@ -221,9 +222,18 @@ abstract class BaseTask<T> extends DefaultTask
                     try { project.delete( file ) }
                     catch ( Throwable ignored )
                     {   // http://issues.gradle.org/browse/GRADLE-2581
-                        if ( isMac || isLinux )
+                        if ( isWindows || isLinux || isMac )
                         {
-                            exec( 'rm', [ '-rf', file.canonicalPath ] )
+                            if ( isWindows )
+                            {
+                                exec( 'rmdir', [ '/s', '/q', file.canonicalPath ], null, false )
+                                exec( 'del',   [ '/f', '/q', file.canonicalPath ], null, false )
+                            }
+                            else if ( isLinux || isMac )
+                            {
+                                exec( 'rm', [ '-rf', file.canonicalPath ] )
+                            }
+
                             assert ( ! file.exists()), "Failed to natively delete [$file.canonicalPath]"
                         }
                     }
