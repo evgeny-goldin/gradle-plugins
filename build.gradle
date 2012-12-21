@@ -35,9 +35,9 @@ idea.project {
 
 
 idea.module {
+    excludeDirs += file( 'out' )
     iml.withXml {
         provider ->
-        provider.node.component.content.first().appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/out' ])
         provider.node.component.first().appendNode( 'orderEntry', [ type : 'library', name : 'Groovy', level: 'application' ])
     }
 }
@@ -136,22 +136,20 @@ subprojects.findAll{ Project p -> p.name != 'common' }.each {
 
 
 project( ':kotlin' ) {
-    duplicates   { fail = false; verbose = false }
-    dependencies { compile "org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion",
-                           "org.jetbrains.kotlin:kdoc:$kotlinVersion" }
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
+        compile ( "org.jetbrains.kotlin:kdoc:$kotlinVersion" ){
+            exclude group:  'asm'            /* Brought by gcontracts */
+            exclude module: 'kotlin-runtime' /* Conflicts with 'kotlin-compiler' */
+        }
+    }
 }
 
 
 project( ':teamcity' ) {
     idea.module {
-        iml.withXml {
-            provider ->
-            provider.node.component.content.first().with {
-                appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/deploy-teamcity-artifacts/.gradle' ])
-                appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/deploy-teamcity-artifacts/gradle'  ])
-                appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/deploy-teamcity-artifacts/build'   ])
-            }
-        }
+        excludeDirs += file( 'deploy-teamcity-artifacts/.gradle' )
+        excludeDirs += file( 'deploy-teamcity-artifacts/build'   )
     }
 }
 
