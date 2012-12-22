@@ -6,7 +6,7 @@ final gcontractsVersion = '1.2.10'         // http://search.maven.org/#search%7C
 final junitVersion      = '4.11'           // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22junit%22%20AND%20a%3A%22junit%22
 final spockVersion      = '0.7-groovy-1.8' // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.spockframework%22%20AND%20a%3A%22spock-core%22
 
-defaultTasks 'duplicates', 'clean', 'codenarc', 'groovydoc', 'build', 'install'
+defaultTasks 'duplicates', 'clean', 'codenarc', 'build', 'install'
 
 
 ext.codenarcRuleSetFiles = [ "$rootDir/codenarc.groovy" ]
