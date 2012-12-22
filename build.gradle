@@ -6,7 +6,7 @@ final gcontractsVersion = '1.2.10'         // http://search.maven.org/#search%7C
 final junitVersion      = '4.11'           // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22junit%22%20AND%20a%3A%22junit%22
 final spockVersion      = '0.7-groovy-1.8' // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.spockframework%22%20AND%20a%3A%22spock-core%22
 
-defaultTasks 'duplicates', 'clean', 'codenarc', 'groovydoc', 'build', 'about', 'install'
+defaultTasks 'duplicates', 'clean', 'codenarc', 'groovydoc', 'build', 'install'
 
 
 ext.codenarcRuleSetFiles = [ "$rootDir/codenarc.groovy" ]
@@ -22,8 +22,8 @@ println "> Running Gradle [${ project.gradle.gradleVersion }], Groovy [${ Groovy
 buildscript {
     repositories { maven { url 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }}
     dependencies {
-        classpath 'com.github.goldin.plugins.gradle:about:0.2-beta-4',
-                  'com.github.goldin.plugins.gradle:duplicates:0.2-beta-4'
+        classpath 'com.github.goldin.plugins.gradle:about:0.2-beta-5',
+                  'com.github.goldin.plugins.gradle:duplicates:0.2-beta-5'
     }
 }
 
@@ -77,7 +77,10 @@ subprojects {
         testCompile "junit:junit:$junitVersion"
     }
 
-    jar { from new File(( File ) project.rootProject.projectDir, 'license.txt' ) }
+    jar {
+        dependsOn 'about'
+        from new File(( File ) project.rootProject.projectDir, 'license.txt' )
+    }
 
     idea.module {
         downloadSources = true
@@ -90,6 +93,7 @@ subprojects {
 
     task sourcesJar( type: Jar, dependsOn: classes ) {
         onlyIf { extraJars }
+        dependsOn 'about'
         classifier = 'sources'
         from sourceSets.main.allSource
         from files( "${ project.rootProject.projectDir }/license.txt" )
@@ -97,6 +101,7 @@ subprojects {
 
     task groovydocJar( type: Jar, dependsOn: groovydoc ) {
         onlyIf { extraJars }
+        dependsOn 'about'
         classifier = 'javadoc'
         from groovydoc.destinationDir
         from files( "${ project.rootProject.projectDir }/license.txt" )
