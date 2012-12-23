@@ -39,7 +39,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         ext.baseUrl             = ext.baseUrl?.trim()?.replace( '\\', '/' )?.replaceAll( '^.+?:/+', '' ) // Protocol part removed
         ext.rootUrl             = ext.baseUrl?.replaceAll( '/.*', '' )                                   // Path part removed
-        ext.internalLinkPattern = Pattern.compile( /(?:('|")|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:\1|<)/ )
+        ext.internalLinkPattern = ~/(?:('|")|>)(https?:\/\/\Q${ ext.baseUrl }\E.*?)(?:\1|<)/
 
         assert ext.baseUrl, "'baseUrl' should be defined in $description"
         assert ext.rootUrl && ( ! ext.rootUrl.endsWith( '/' )) && ext.internalLinkPattern

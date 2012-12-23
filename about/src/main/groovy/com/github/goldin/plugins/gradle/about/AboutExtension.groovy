@@ -28,5 +28,5 @@ class AboutExtension
     /**
      * Pattern for finding out the configuration name in the dependencies report
      */
-    final Pattern configurationNamePattern = Pattern.compile( /^(\w+) - / )
+    final Pattern configurationNamePattern = ~/^(\w+) - /
 }

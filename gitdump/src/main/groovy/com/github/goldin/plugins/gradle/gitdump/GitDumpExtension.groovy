@@ -18,7 +18,7 @@ class GitDumpExtension
     long         singleBackupMaxSize    = Long.MAX_VALUE
     long         totalBackupMaxSize     = Long.MAX_VALUE
 
-    final Pattern gitProjectNamePattern   = Pattern.compile( /\/([^\/]+)\.git/  )
-    final Pattern gitUrlWithCommitPattern = Pattern.compile( /^(.+\.git):(.+)$/ )
+    final Pattern gitProjectNamePattern   = ~/\/([^\/]+)\.git/
+    final Pattern gitUrlWithCommitPattern = ~/^(.+\.git):(.+)$/
     File          aboutFile
 }
