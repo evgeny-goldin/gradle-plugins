@@ -219,11 +219,11 @@ class AboutTaskHelper
 
         assert file.file, "File [$file.canonicalPath] was not created by dependency report"
         final String report = ( ext.includeDependencies instanceof List ) ?
-            file.text.split( '\n\n' ).findAll { task.find( it, ext.configurationNamePattern ) in ext.includeDependencies }.join( '\n\n' ) :
-            file.text
+            file.getText( 'UTF-8' ).split( '\n\n' ).findAll { task.find( it, ext.configurationNamePattern ) in ext.includeDependencies }.join( '\n\n' ) :
+            file.getText( 'UTF-8' )
 
         report = "$line\n" + report.replaceAll( /(?m)^\s*$/, line ) // Empty lines replaced by $line
-        task.delete( file )
+        task.delete( false, file ) // https://github.com/evgeny-goldin/gradle-plugins/issues/6
         report
     }
 

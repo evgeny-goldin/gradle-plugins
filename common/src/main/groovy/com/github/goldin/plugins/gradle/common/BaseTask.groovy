@@ -201,49 +201,47 @@ abstract class BaseTask<T> extends DefaultTask
      * {@link org.gradle.api.Project#delete(java.lang.Object...)} wrapper logging the files being deleted
      * and verifying delete operation was successful.
      *
-     * @param  tryNativeDelete whether OS-specific 'delete' command should be attempted before
-     *                         calling {@link org.gradle.api.Project#delete}
-     * @param  files           files to delete
+     * @param  mustDelete whether all file have to be deleted,
+     *                    if false then failing to delete any file will cause a warning and not an error
+     * @param  files      files to delete
      * @return files specified
      */
+    @SuppressWarnings([ 'GroovyOverlyNestedMethod' ])
     @Requires({ files != null })
-    final Object[] delete( Object ... files )
+    final void delete( boolean mustDelete = true, Object ... files )
     {
-        if ( files )
-        {
-            for ( file in files.grep().collect{ project.file( it ) })
-            {   /**
-                 * Files can be deleted by previous loop iterations
-                 */
-                if ( file.exists())
-                {
-                    log { "Deleting [$file.canonicalPath]" }
+        if ( ! files ) { return }
 
-                    try { project.delete( file ) }
-                    catch ( Throwable ignored )
-                    {   // http://issues.gradle.org/browse/GRADLE-2581
-                        if ( isWindows || isLinux || isMac )
+        for ( file in files.grep().collect{ project.file( it ) })
+        {   /**
+             * Files can be deleted by previous loop iterations
+             */
+            if ( file.exists())
+            {
+                log { "Deleting [$file.canonicalPath]" }
+
+                try { project.delete( file ) }
+                catch ( Throwable ignored )
+                {   // http://issues.gradle.org/browse/GRADLE-2581 or locked
+                    if ( isWindows || isLinux || isMac )
+                    {
+                        if ( isWindows )
                         {
-                            if ( isWindows )
-                            {
-                                exec( 'rmdir', [ '/s', '/q', file.canonicalPath ], null, false )
-                                exec( 'del',   [ '/f', '/q', file.canonicalPath ], null, false )
-                            }
-                            else if ( isLinux || isMac )
-                            {
-                                exec( 'rm', [ '-rf', file.canonicalPath ] )
-                            }
-
-                            assert ( ! file.exists()), "Failed to natively delete [$file.canonicalPath]"
+                            exec( 'rmdir', [ '/s', '/q', file.canonicalPath ], null, false )
+                            exec( 'del',   [ '/f', '/q', file.canonicalPath ], null, false )
                         }
+                        else if ( isLinux || isMac )
+                        {
+                            exec( 'rm', [ '-rf', file.canonicalPath ] )
+                        }
+
+                        if ( file.exists()){ failOrWarn( mustDelete, "Failed to natively delete [$file.canonicalPath]" )}
                     }
                 }
-
-                assert ( ! file.exists()), "Failed to delete [$file.canonicalPath]"
             }
-        }
 
-        files
+            if ( file.exists()){ failOrWarn( mustDelete, "Failed to delete [$file.canonicalPath]" )}
+        }
     }
 
 
