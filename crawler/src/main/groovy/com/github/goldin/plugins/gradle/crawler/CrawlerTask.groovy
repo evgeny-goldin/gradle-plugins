@@ -190,7 +190,9 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             {
                 final processed = linksProcessed.get()
                 final queued    = threadPool.queue.size()
-                logger.warn( "##teamcity[progressMessage '$processed link${ s( processed ) } processed, $queued queued']" )
+                final broken    = linksStorage.brokenLinksNumber()
+                logger.warn(
+                    "##teamcity[progressMessage '$processed link${ s( processed ) } processed, $broken broken, $queued queued']" )
             }
         }
 

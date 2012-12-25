@@ -78,7 +78,6 @@ class LinksStorage
     @Ensures({ result >= 0 })
     int brokenLinksNumber()
     {
-        assert locked
         brokenLinks.size()
     }
 
