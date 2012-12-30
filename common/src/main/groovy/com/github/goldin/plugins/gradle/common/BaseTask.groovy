@@ -513,7 +513,7 @@ abstract class BaseTask<T> extends DefaultTask
 
 
     /**
-     * Throws a {@link GradleException} or logs a warning message according to {@code shouldFail}.
+     * Throws a {@link GradleException} or logs a warning message according to {@code fail}.
      *
      * @param fail     whether execution should throw an exception
      * @param message  error message to throw or log
