@@ -37,11 +37,9 @@ class NodeStartTask extends NodeBaseTask
     {
         if ( ext.startCommands ) { return ext.startCommands }
 
-        final executable   = ext.scriptPath.endsWith( '.coffee' ) ? "\"${ file( COFFEE_EXECUTABLE ) }\"" : ''
-        final startCommand = ( ext.startWithForever ? "forever start --pidFile \"${ pidFileName( ext.portNumber ) }\"" :
-                                                      'node' ) + " $executable \"$ext.scriptPath\""
-        final listCommand  = ( ext.startWithForever ? 'forever list' : '' )
+        final executable = ext.scriptPath.endsWith( '.coffee' ) ? "\"$COFFEE_EXECUTABLE\"" : ''
 
-        [ startCommand, listCommand ]
+        [ "forever start --pidFile \"${ pidFileName( ext.portNumber ) }\" $executable \"$ext.scriptPath\"",
+          'forever list' ]
     }
 }
