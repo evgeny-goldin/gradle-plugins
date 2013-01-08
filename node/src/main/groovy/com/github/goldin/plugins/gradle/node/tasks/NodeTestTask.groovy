@@ -17,10 +17,9 @@ class NodeTestTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        final xUnitReport = System.getProperty( 'xunit' ) != null
-        final testReport  = bashExec( testScript( xUnitReport ? '-R teamcity' : '' ), scriptFile( TEST_SCRIPT ), false )
+        final testReport = bashExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), scriptFile( TEST_SCRIPT ), false )
 
-        if ( ! xUnitReport ) { return }
+        if ( ! ext.xUnitReport ) { return }
 
         final teamCityReportLines = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity[' )}
         if ( ! teamCityReportLines ) { throw new GradleException( "Running tests produced no test report:\n$testReport" )}
@@ -40,11 +39,11 @@ class NodeTestTask extends NodeBaseTask
     private String testScript( String testArguments )
     {
         assert ext.testCommand.startsWith( 'mocha' ), "Only 'mocha' test runner is currently supported"
+        final testCommand = "$ext.testCommand ${ (( ! ext.testInput ) || ( ext.testInput == 'test' )) ? '' : ext.testInput } $testArguments"
 
         """
         |${ baseBashScript() }
-        |
-        |$ext.testCommand ${ (( ! ext.testInput ) || ( ext.testInput == 'test' )) ? '' : ext.testInput } $testArguments""".stripMargin()
+        |$testCommand""".stripMargin()
     }
 
 

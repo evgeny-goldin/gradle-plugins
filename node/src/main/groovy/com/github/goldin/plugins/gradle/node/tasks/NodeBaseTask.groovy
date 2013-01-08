@@ -44,10 +44,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.startCommands || ext.scriptPath, "'startCommands' or 'scriptPath' should be defined in $description"
 
         ext.nodeVersion = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
-        ext.isCoffee    = ext.scriptPath?.endsWith( '.coffee' )
-
-        assert ( ext.isCoffee || ext.scriptPath?.endsWith( '.js' )), \
-               "Unknown [$ext.scriptPath] - I only know '.coffee' and '.js' extensions"
     }
 
 

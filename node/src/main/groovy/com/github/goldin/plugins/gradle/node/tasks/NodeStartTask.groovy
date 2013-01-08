@@ -27,7 +27,7 @@ class NodeStartTask extends NodeBaseTask
         |${ baseBashScript() }
         |export BUILD_ID=JenkinsLetMeSpawn
         |
-        |${ startCommands().join( '\n|' )}""".stripMargin()
+        |${ startCommands().grep().join( '\n|' ) }""".stripMargin()
     }
 
 
@@ -37,15 +37,11 @@ class NodeStartTask extends NodeBaseTask
     {
         if ( ext.startCommands ) { return ext.startCommands }
 
-        String foreverCommand = ''
+        final executable   = ext.scriptPath.endsWith( '.coffee' ) ? "\"${ file( COFFEE_EXECUTABLE ) }\"" : ''
+        final startCommand = ( ext.startWithForever ? "forever start --pidFile \"${ pidFileName( ext.portNumber ) }\"" :
+                                                      'node' ) + " $executable \"$ext.scriptPath\""
+        final listCommand  = ( ext.startWithForever ? 'forever list' : '' )
 
-        if ( ext.isCoffee )
-        {
-            file( COFFEE_EXECUTABLE ) // Validates existence
-            foreverCommand = "\"$COFFEE_EXECUTABLE\""
-        }
-
-        [ "forever start --pidFile \"${ pidFileName( ext.portNumber ) }\" $foreverCommand \"$ext.scriptPath\"",
-          'forever list' ]
+        [ startCommand, listCommand ]
     }
 }
