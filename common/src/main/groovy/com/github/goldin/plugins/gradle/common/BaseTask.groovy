@@ -5,9 +5,12 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.internal.project.AbstractProject
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecSpec
+import org.gradle.process.internal.DefaultExecAction
+import org.gradle.util.ConfigureUtil
 
 import javax.xml.XMLConstants
 import javax.xml.transform.stream.StreamSource
@@ -128,25 +131,27 @@ abstract class BaseTask<T> extends DefaultTask
         OutputStream stdoutStream = null
         OutputStream stderrStream = null
 
-        if ( waitForProcess )
-        {
-            stdoutStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
-                                                new ByteArrayOutputStream()
-            stderrStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
-                                                new ByteArrayOutputStream()
-        }
-
         try
         {
-            project.exec {
-                ExecSpec spec ->
-                spec.with {
-                    executable( command )
-                    if ( arguments      ) { args( arguments ) }
-                    if ( directory      ) { workingDir     = directory }
-                    if ( waitForProcess ) { standardOutput = stdoutStream
-                                            errorOutput    = stderrStream }
-                }
+
+            if ( waitForProcess )
+            {
+                stdoutStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
+                                                    new ByteArrayOutputStream()
+                stderrStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
+                                                    new ByteArrayOutputStream()
+
+                project.exec({ ExecSpec spec -> spec.with {
+                                                    executable( command )
+                                                    if ( arguments ) { args( arguments ) }
+                                                    if ( directory ) { workingDir = directory }
+                                                    standardOutput = stdoutStream
+                                                    errorOutput    = stderrStream
+                                            }})
+            }
+            else
+            {
+                ant.exec( executable: command ){ arg ( line: arguments.join ( ' ' )) }
             }
         }
         catch ( Throwable error )
