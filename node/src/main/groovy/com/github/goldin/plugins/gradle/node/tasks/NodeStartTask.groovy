@@ -15,7 +15,7 @@ class NodeStartTask extends NodeBaseTask
     void taskAction()
     {
         if ( ext.stopAndStart )  { runTask ( STOP_TASK )}
-        if ( ext.before       )  { bashExec( beforeAfterScript( ext.before ), scriptFile( START_BEFORE_SCRIPT ), false ) }
+        if ( ext.before       )  { bashExec( beforeAfterScript( ext.before ), scriptFile( BEFORE_START_SCRIPT ), false, false ) }
         bashExec( startScript(), scriptFile( START_SCRIPT ))
         if ( ext.startAndCheck ) { runTask ( CHECK_TASK )}
     }

@@ -84,20 +84,6 @@ abstract class BaseTask<T> extends DefaultTask
     }
 
 
-    /**
-     * Executes the bash script specified.
-     *
-     * @param  bashScript bash script to execute
-     * @return bash output
-     */
-    @Requires({ bashScript.file })
-    @Ensures({ result != null })
-    final String bashExec( File bashScript, File directory = null, boolean failOnError = true )
-    {
-        exec( 'bash', [ bashScript.canonicalPath ], directory, failOnError )
-    }
-
-
    /**
     * Executes 'git' command specified.
     *
@@ -118,46 +104,55 @@ abstract class BaseTask<T> extends DefaultTask
     /**
      * Executes the command specified.
      *
-     * @param command     command to execute
-     * @param arguments   command arguments
-     * @param directory   process working directory
-     * @param failOnError whether execution should fail in case of an error
+     * @param command        command to execute
+     * @param arguments      command arguments
+     * @param directory      process working directory
+     * @param failOnError    whether execution should fail in case of an error
+     * @param waitForProcess whether execution is performed synchronously (true) or asynchronously (false)
      *
      * @return process standard and error output
      */
     @Requires({ command && ( ! command.contains( ' ' )) && ( arguments != null ) })
     @Ensures({ result != null })
     final String exec( String       command,
-                       List<String> arguments    = [],
-                       File         directory    = null,
-                       boolean      failOnError  = true )
+                       List<String> arguments      = [],
+                       File         directory      = null,
+                       boolean      failOnError    = true,
+                       boolean      waitForProcess = true )
     {
         final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }" +
                                    "${ directory ? ' in directory [' + directory.canonicalPath + ']' : '' }"
 
         log{ "Running $commandDescription" }
 
-        final stdoutStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
-                                                  new ByteArrayOutputStream()
-        final stderrStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
-                                                  new ByteArrayOutputStream()
+        OutputStream stdoutStream = null
+        OutputStream stderrStream = null
+
+        if ( waitForProcess )
+        {
+            stdoutStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
+                                                new ByteArrayOutputStream()
+            stderrStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
+                                                new ByteArrayOutputStream()
+        }
+
         try
         {
             project.exec {
                 ExecSpec spec ->
                 spec.with {
                     executable( command )
-                    if ( arguments ) { args( arguments )      }
-                    if ( directory ) { workingDir = directory }
-                    standardOutput = stdoutStream
-                    errorOutput    = stderrStream
+                    if ( arguments      ) { args( arguments ) }
+                    if ( directory      ) { workingDir     = directory }
+                    if ( waitForProcess ) { standardOutput = stdoutStream
+                                            errorOutput    = stderrStream }
                 }
             }
         }
         catch ( Throwable error )
         {
-            final stdout = stdoutStream.toString().trim()
-            final stderr = stderrStream.toString().trim()
+            final stdout = waitForProcess ? stdoutStream.toString().trim() : ''
+            final stderr = waitForProcess ? stderrStream.toString().trim() : ''
 
             if ( failOnError )
             {
@@ -168,7 +163,8 @@ abstract class BaseTask<T> extends DefaultTask
             if ( ! ( stdout || stderr )) { error.printStackTrace( new PrintStream( stderrStream, true )) }
         }
 
-        stdoutStream.toString().trim() + stderrStream.toString().trim()
+        waitForProcess ? stdoutStream.toString().trim() + stderrStream.toString().trim() :
+                         ''
     }
 
     /**

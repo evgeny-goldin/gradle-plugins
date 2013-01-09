@@ -113,18 +113,20 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     /**
      * Executes the script specified as bash command.
      *
-     * @param scriptContent content to run as bash script
-     * @param scriptFile    script file to create
-     * @param failOnError   whether execution should fail if bash execution returns non-zero value
+     * @param scriptContent  content to run as bash script
+     * @param scriptFile     script file to create
+     * @param failOnError    whether execution should fail if bash execution returns non-zero value
+     * @param waitForProcess whether execution is performed synchronously (true) or asynchronously (false)
      *
-     * @return bash output or empty String if bash was generated but not executed
+     * @return bash output or empty String if bash was generated but not executed or
      */
     @Requires({ scriptContent && scriptFile })
     @Ensures ({ result != null })
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
     final String bashExec( String  scriptContent,
                            File    scriptFile,
-                           boolean failOnError = true )
+                           boolean failOnError    = true,
+                           boolean waitForProcess = true )
     {
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
         delete( scriptFile )
@@ -145,6 +147,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         log( LogLevel.INFO ){ "Bash script created at [$scriptFile.canonicalPath], size [${ scriptFile.length() }] bytes" }
 
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ]) }
-        bashExec( scriptFile, project.rootDir, failOnError )
+
+        exec ( 'bash', [ scriptFile.canonicalPath ], project.rootDir, failOnError, waitForProcess )
     }
 }

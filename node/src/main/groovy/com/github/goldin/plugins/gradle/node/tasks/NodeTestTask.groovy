@@ -17,7 +17,7 @@ class NodeTestTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        if ( ext.before ) { bashExec( beforeAfterScript( ext.before ), scriptFile( TEST_BEFORE_SCRIPT ), false ) }
+        if ( ext.before ) { bashExec( beforeAfterScript( ext.before ), scriptFile( BEFORE_TEST_SCRIPT ), false, false ) }
 
         try
         {
@@ -25,7 +25,7 @@ class NodeTestTask extends NodeBaseTask
         }
         finally
         {
-            if ( ext.after ) { bashExec( beforeAfterScript( ext.after ), scriptFile( TEST_AFTER_SCRIPT ), false )}
+            if ( ext.after ) { bashExec( beforeAfterScript( ext.after ), scriptFile( AFTER_TEST_SCRIPT ), false, false )}
         }
     }
 

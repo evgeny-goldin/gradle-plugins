@@ -22,12 +22,12 @@ class NodeConstants
 
     final static String SETUP_SCRIPT        = "${ SETUP_TASK }.sh"
     final static String TEST_SCRIPT         = "${ TEST_TASK }.sh"
-    final static String TEST_BEFORE_SCRIPT  = "${ TEST_TASK }.before.sh"
-    final static String TEST_AFTER_SCRIPT   = "${ TEST_TASK }.after.sh"
+    final static String BEFORE_TEST_SCRIPT  = "before-${ TEST_TASK }.sh"
+    final static String AFTER_TEST_SCRIPT   = "after-${ TEST_TASK }.sh"
     final static String START_SCRIPT        = "${ START_TASK }.sh"
     final static String STOP_SCRIPT         = "${ STOP_TASK }.sh"
-    final static String START_BEFORE_SCRIPT = "${ START_TASK }.before.sh"
-    final static String STOP_AFTER_SCRIPT   = "${ STOP_TASK }.after.sh"
+    final static String BEFORE_START_SCRIPT = "before-${ START_TASK }.before.sh"
+    final static String AFTER_STOP_SCRIPT   = "after-${ STOP_TASK }.after.sh"
 
     final static String NODE_MODULES_DIR  = 'node_modules'
     final static String MODULES_BIN_DIR   = "$NODE_MODULES_DIR/.bin"
