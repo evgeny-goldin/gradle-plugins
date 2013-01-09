@@ -20,6 +20,8 @@ class NodeExtension
 
     List<Closure> transformers          = []  // Callbacks to invoke after every bash script is generated
     String        foreverOptions        = ''  // Additional command-line 'forever' options, such as '-w -v'
+    List<String>  before                = []  // Commands to execute before running unit tests or starting the application
+    List<String>  after                 = []  // Commands to execute after running unit tests or stopping the application
     String        NODE_ENV              = 'development'
     String        nodeVersion           = 'latest'
     String        testCommand           = 'mocha'

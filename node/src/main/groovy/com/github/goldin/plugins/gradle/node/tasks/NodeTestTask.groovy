@@ -17,6 +17,21 @@ class NodeTestTask extends NodeBaseTask
     @Override
     void taskAction()
     {
+        if ( ext.before ) { bashExec( beforeAfterScript( ext.before ), scriptFile( TEST_BEFORE_SCRIPT )) }
+
+        try
+        {
+            runTests()
+        }
+        finally
+        {
+            if ( ext.after ) { bashExec( beforeAfterScript( ext.after ), scriptFile( TEST_AFTER_SCRIPT ))}
+        }
+    }
+
+
+    private void runTests ()
+    {
         final testReport = bashExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), scriptFile( TEST_SCRIPT ), false )
 
         if ( ! ext.xUnitReport ) { return }
@@ -32,7 +47,6 @@ class NodeTestTask extends NodeBaseTask
             failOrWarn( ext.failIfTestsFail, "There were failing tests. See the report at: file:${ xUnitReportFile.canonicalPath }" )
         }
     }
-
 
     @Requires({ testArguments != null })
     @Ensures ({ result })

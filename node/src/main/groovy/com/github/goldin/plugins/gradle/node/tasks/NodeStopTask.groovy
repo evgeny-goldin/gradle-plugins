@@ -14,7 +14,14 @@ class NodeStopTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        bashExec( stopScript(), scriptFile( STOP_SCRIPT ), true )
+        try
+        {
+            bashExec( stopScript(), scriptFile( STOP_SCRIPT ), true )
+        }
+        finally
+        {
+            if ( ext.after ) { bashExec( beforeAfterScript( ext.after ), scriptFile( STOP_AFTER_SCRIPT ))}
+        }
     }
 
 

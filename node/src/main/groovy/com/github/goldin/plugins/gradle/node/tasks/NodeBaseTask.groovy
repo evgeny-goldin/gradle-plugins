@@ -97,6 +97,14 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     }
 
 
+    @Requires({ commands })
+    @Ensures ({ result })
+    final String beforeAfterScript( List<String> commands )
+    {
+        commands.join( '\n' )
+    }
+
+
     /**
      * Executes the script specified as bash command.
      *
