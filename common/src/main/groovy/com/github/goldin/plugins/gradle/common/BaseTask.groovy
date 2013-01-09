@@ -107,21 +107,21 @@ abstract class BaseTask<T> extends DefaultTask
     /**
      * Executes the command specified.
      *
-     * @param command        command to execute
-     * @param arguments      command arguments
-     * @param directory      process working directory
-     * @param failOnError    whether execution should fail in case of an error
-     * @param waitForProcess whether execution is performed synchronously (true) or asynchronously (false)
+     * @param command       command to execute
+     * @param arguments     command arguments
+     * @param directory     process working directory
+     * @param failOnError   whether execution should fail in case of an error
+     * @param useGradleExec whether Gradle (true) or Ant (false) exec is used
      *
      * @return process standard and error output
      */
     @Requires({ command && ( ! command.contains( ' ' )) && ( arguments != null ) })
-    @Ensures({ result != null })
+    @Ensures ({ result != null })
     final String exec( String       command,
-                       List<String> arguments      = [],
-                       File         directory      = null,
-                       boolean      failOnError    = true,
-                       boolean      waitForProcess = true )
+                       List<String> arguments     = [],
+                       File         directory     = null,
+                       boolean      failOnError   = true,
+                       boolean      useGradleExec = true )
     {
         final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }" +
                                    "${ directory ? ' in directory [' + directory.canonicalPath + ']' : '' }"
@@ -133,8 +133,7 @@ abstract class BaseTask<T> extends DefaultTask
 
         try
         {
-
-            if ( waitForProcess )
+            if ( useGradleExec )
             {
                 stdoutStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
                                                     new ByteArrayOutputStream()
@@ -142,22 +141,24 @@ abstract class BaseTask<T> extends DefaultTask
                                                     new ByteArrayOutputStream()
 
                 project.exec({ ExecSpec spec -> spec.with {
-                                                    executable( command )
-                                                    if ( arguments ) { args( arguments ) }
-                                                    if ( directory ) { workingDir = directory }
-                                                    standardOutput = stdoutStream
-                                                    errorOutput    = stderrStream
-                                            }})
+                    executable( command )
+                    if ( arguments ) { args( arguments ) }
+                    if ( directory ) { workingDir = directory }
+                    standardOutput = stdoutStream
+                    errorOutput    = stderrStream
+                }})
             }
             else
             {
-                ant.exec( executable: command ){ arg ( line: arguments.join ( ' ' )) }
+                ant.exec([ executable : command, failonerror : failOnError ] + ( directory ? [ dir : directory ] : [:] )){
+                    arg ( line : arguments.join ( ' ' ))
+                }
             }
         }
         catch ( Throwable error )
         {
-            final stdout = waitForProcess ? stdoutStream.toString().trim() : ''
-            final stderr = waitForProcess ? stderrStream.toString().trim() : ''
+            final stdout = useGradleExec ? stdoutStream.toString().trim() : ''
+            final stderr = useGradleExec ? stderrStream.toString().trim() : ''
 
             if ( failOnError )
             {
@@ -168,8 +169,8 @@ abstract class BaseTask<T> extends DefaultTask
             if ( ! ( stdout || stderr )) { error.printStackTrace( new PrintStream( stderrStream, true )) }
         }
 
-        waitForProcess ? stdoutStream.toString().trim() + stderrStream.toString().trim() :
-                         ''
+        useGradleExec ? stdoutStream.toString().trim() + stderrStream.toString().trim() :
+                        ''
     }
 
     /**

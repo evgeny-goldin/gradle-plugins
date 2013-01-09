@@ -113,10 +113,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     /**
      * Executes the script specified as bash command.
      *
-     * @param scriptContent  content to run as bash script
-     * @param scriptFile     script file to create
-     * @param failOnError    whether execution should fail if bash execution returns non-zero value
-     * @param waitForProcess whether execution is performed synchronously (true) or asynchronously (false)
+     * @param scriptContent content to run as bash script
+     * @param scriptFile    script file to create
+     * @param failOnError   whether execution should fail if bash execution returns non-zero value
+     * @param useGradleExec whether Gradle (true) or Ant (false) exec is used
      *
      * @return bash output or empty String if bash was generated but not executed or
      */
@@ -125,8 +125,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
     final String bashExec( String  scriptContent,
                            File    scriptFile,
-                           boolean failOnError    = true,
-                           boolean waitForProcess = true )
+                           boolean failOnError   = true,
+                           boolean useGradleExec = true )
     {
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
         delete( scriptFile )
@@ -148,6 +148,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ]) }
 
-        exec ( 'bash', [ scriptFile.canonicalPath ], project.rootDir, failOnError, waitForProcess )
+        exec ( 'bash', [ scriptFile.canonicalPath ], project.rootDir, failOnError, useGradleExec )
     }
 }
