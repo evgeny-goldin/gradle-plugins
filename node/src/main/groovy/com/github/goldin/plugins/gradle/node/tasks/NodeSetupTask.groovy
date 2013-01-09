@@ -1,8 +1,9 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
-import java.util.regex.Pattern
 import com.github.goldin.plugins.gradle.node.ConfigHelper
+import org.gcontracts.annotations.Ensures
+import java.util.regex.Pattern
 
 
 /**
@@ -15,7 +16,7 @@ class NodeSetupTask extends NodeBaseTask
     {
         verifyGitAvailable()
         cleanWorkspace()
-        updateConfigs()
+        ext.configsResult = updateConfigs()
         makeReplacements()
         runSetupScript()
     }
@@ -34,10 +35,13 @@ class NodeSetupTask extends NodeBaseTask
     }
 
 
-    private void updateConfigs()
+    @SuppressWarnings([ 'JavaStylePropertiesInvocation', 'GroovyGetterCallCanBePropertyAccess' ])
+    @Ensures({ result != null })
+    private List<Map<String, ?>> updateConfigs()
     {
-        if ( ! ext.configs ) { return }
+        if ( ! ext.configs ) { return [] }
 
+        final configs      = []
         final configHelper = new ConfigHelper( ext )
 
         for ( configMap in ext.configs )
@@ -56,10 +60,12 @@ class NodeSetupTask extends NodeBaseTask
                 log{ "Updating JSON config [$configFile.canonicalPath] using " +
                      ( isValueFile ? "[${ (( File ) configValue ).canonicalPath }]" : "config Map $configValue" ) }
 
-                if ( isValueFile ){ configHelper.updateConfigWithFile( configFile, ( File ) configValue )}
-                else              { configHelper.updateConfigWithMap ( configFile, ( Map )  configValue )}
+                configs << ( isValueFile ? configHelper.updateConfigWithFile( configFile, ( File ) configValue ) :
+                                           configHelper.updateConfigWithMap ( configFile, ( Map )  configValue ))
             }
         }
+
+        configs
     }
 
 
@@ -107,6 +113,6 @@ class NodeSetupTask extends NodeBaseTask
         final setupScript = getResourceText( SETUP_SCRIPT ).replace( '${nvmRepo}',     NVM_GIT_REPO    ).
                                                             replace( '${nodeVersion}', ext.nodeVersion )
         assert ( ! setupScript.contains( '${' ))
-        bashExec(  setupScript, scriptFile( SETUP_SCRIPT ), true )
+        bashExec(  setupScript, scriptFile( SETUP_SCRIPT ))
     }
 }

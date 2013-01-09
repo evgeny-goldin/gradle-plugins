@@ -16,11 +16,11 @@ class NodeStopTask extends NodeBaseTask
     {
         try
         {
-            bashExec( stopScript(), scriptFile( STOP_SCRIPT ), true )
+            bashExec( stopScript(), scriptFile( STOP_SCRIPT ))
         }
         finally
         {
-            if ( ext.after ) { bashExec( beforeAfterScript( ext.after ), scriptFile( STOP_AFTER_SCRIPT ))}
+            if ( ext.after ) { bashExec( beforeAfterScript( ext.after ), scriptFile( STOP_AFTER_SCRIPT ), false )}
         }
     }
 

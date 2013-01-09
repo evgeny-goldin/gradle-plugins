@@ -34,8 +34,11 @@ class NodeExtension
     List <Map<String,?>> configs             = []   // List of config maps. Every map is:
                                                     // Key   - path of destination JSON config file to update or create
                                                     // Value - config data Map ( key => value ) or existing JSON / .properties File
-    boolean              configsUpdateOnly   = true
+    boolean              configsUpdateOnly   = true // Whether configs specified are only allowed to update project's configs
     String               configsKeyDelimiter = '.'
+
+    List <Map<String,?>> configsResult       = []   // Internal property, configs resulting from merging external configs with those of the project
+
 
     List <Map<String,Map<String, String>>> replaces = []   // List of replace maps. Every map is:
                                                            // Key   - path of destination file to update (should exist)

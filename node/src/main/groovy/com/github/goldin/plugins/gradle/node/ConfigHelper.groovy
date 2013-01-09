@@ -37,8 +37,8 @@ class ConfigHelper
      * @return               config file updated or created
      */
     @Requires({ configFile && newConfigData })
-    @Ensures ({ result.with{ file && length() }})
-    File updateConfigWithFile ( File configFile, File newConfigData )
+    @Ensures ({ result })
+    Map<String,?> updateConfigWithFile ( File configFile, File newConfigData )
     {
         assert newConfigData.file, "[$newConfigData] is not available"
         final  configText = newConfigData.text.trim()
@@ -72,8 +72,8 @@ class ConfigHelper
      * @return              config file updated or created
      */
     @Requires({ configFile && newConfigData })
-    @Ensures ({ result.with{ file && length() }})
-    File updateConfigWithMap ( File configFile, Map<String, ?> newConfigData )
+    @Ensures ({ result })
+    Map<String,?> updateConfigWithMap ( File configFile, Map<String, ?> newConfigData )
     {
         final Map<String,?> configData =
             ( Map ) ( configFile.file ? new JsonSlurper().parseText( configFile.getText( 'UTF-8' )) : [:] )
@@ -88,7 +88,7 @@ class ConfigHelper
         assert configDataStringified
 
         configFile.write( configDataStringified, 'UTF-8' )
-        configFile
+        configData
     }
 
 
@@ -122,6 +122,7 @@ class ConfigHelper
 
 
     @Requires({ ( map != null ) && key.contains( ext.configsKeyDelimiter ) && ( value != null ) })
+    @SuppressWarnings([ 'JavaStylePropertiesInvocation', 'GroovyGetterCallCanBePropertyAccess' ])
     private void updateConfigMapKeyIsDelimited ( Map<String,?> map, String key, Object value )
     {
         final delimiter = ext.configsKeyDelimiter
@@ -147,6 +148,7 @@ class ConfigHelper
 
 
     @Requires({ ( map != null ) && key && ( ! key.contains( ext.configsKeyDelimiter )) && ( value != null ) })
+    @SuppressWarnings([ 'JavaStylePropertiesInvocation', 'GroovyGetterCallCanBePropertyAccess' ])
     private void updateConfigMapValueIsMap( Map<String,?> map, String key, Map<String, ?> value )
     {
         if ( map[ key ] == null )

@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import groovy.text.SimpleTemplateEngine
 import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.node.NodeExtension
 import com.github.goldin.plugins.gradle.node.NodeHelper
@@ -78,11 +79,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         final  binFolder = project.file( MODULES_BIN_DIR )
         assert binFolder.directory, "[$binFolder] is not available"
 
-        """#!/bin/bash
-        |
-        |set -e
-        |set -o pipefail
-        |
+        """
         |export NODE_ENV=$ext.NODE_ENV
         |export PATH=$binFolder:\$PATH
         |
@@ -97,11 +94,19 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     }
 
 
+    /**
+     * Retrieves script content to be used as before/after execution interceptor.
+     *
+     * @param commands commands to execute
+     * @return script content to be used as before/after execution interceptor.
+     */
     @Requires({ commands })
     @Ensures ({ result })
     final String beforeAfterScript( List<String> commands )
     {
-        commands.join( '\n' )
+        final binding = [ configs : ext.configsResult ] +
+                        ( ext.configsResult ? [ config : ext.configsResult.head() ] : [:] )
+        new SimpleTemplateEngine().createTemplate( commands.join( '\n' )).make( binding ).toString()
     }
 
 
@@ -124,9 +129,15 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
         delete( scriptFile )
 
-        scriptContent = ( ext.transformers ?: [] ).inject( scriptContent.trim() + '\n' ){
-            String script, Closure c -> c( script, scriptFile, this ) ?: script
-        }
+        scriptContent = ( ext.transformers ?: [] ).inject(
+        """#!/bin/bash
+        |
+        |${ failOnError ? 'set -e'          : '' }
+        |${ failOnError ? 'set -o pipefail' : '' }
+        |
+        |${ scriptContent.trim() }
+        |
+        """.stripMargin()){ String script, Closure transformer -> transformer( script, scriptFile, this ) ?: script }
 
         scriptFile.write( scriptContent, 'UTF-8' )
         assert scriptFile.with { file && size() }
