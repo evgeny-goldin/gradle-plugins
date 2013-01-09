@@ -18,7 +18,8 @@ class NodeExtension
     String       checkContent           = ''                             // Response to expect when making a request
     int          checkStatusCode        = 200                            // Response code to expect when making a request
 
-    List<Closure> transformers          = [] // Callbacks to invoke when every bash script is generated
+    List<Closure> transformers          = []  // Callbacks to invoke after every bash script is generated
+    String        foreverOptions        = ''  // Additional command-line 'forever' options, such as '-w -v'
     String        NODE_ENV              = 'development'
     String        nodeVersion           = 'latest'
     String        testCommand           = 'mocha'
