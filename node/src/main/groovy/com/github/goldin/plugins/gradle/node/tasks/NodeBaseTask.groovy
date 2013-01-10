@@ -45,14 +45,15 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.startCommands || ext.scriptPath, "'startCommands' or 'scriptPath' should be defined in $description"
 
         ext.nodeVersion = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
-
-        if (( ext.redisPort > 0 ) || ext.redisPortConfigKey )
+        final addRedis  = (( ! ext.redisAdded ) && (( ext.redisPort > 0 ) || ext.redisPortConfigKey ))
+        if (  addRedis )
         {
             final redisPort  = ( ext.redisPort > 0 ) ? ext.redisPort as String : '${ config.' + ext.redisPortConfigKey + ' }'
             final stopRedis  = "redis-cli -p $redisPort shutdown"
             final startRedis = "redis-server --port $redisPort &"
             ext.before       = [ stopRedis, startRedis ] + ( ext.before ?: [] )
             ext.after        = [ stopRedis             ] + ( ext.after  ?: [] )
+            ext.redisAdded   = true
         }
     }
 
