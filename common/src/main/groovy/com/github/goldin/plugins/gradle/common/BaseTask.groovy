@@ -128,17 +128,16 @@ abstract class BaseTask<T> extends DefaultTask
 
         log{ "Running $commandDescription" }
 
-        OutputStream stdoutStream = null
-        OutputStream stderrStream = null
+        OutputStream stdoutStream    = null
+        OutputStream stderrStream    = null
+        final        newOutputStream = { new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) }
 
         try
         {
             if ( useGradleExec )
             {
-                stdoutStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
-                                                    new ByteArrayOutputStream()
-                stderrStream = logger.infoEnabled ? new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) :
-                                                    new ByteArrayOutputStream()
+                stdoutStream = logger.infoEnabled ? newOutputStream() : new ByteArrayOutputStream()
+                stderrStream = logger.infoEnabled ? newOutputStream() : new ByteArrayOutputStream()
 
                 project.exec({ ExecSpec spec -> spec.with {
                     executable( command )
@@ -150,15 +149,16 @@ abstract class BaseTask<T> extends DefaultTask
             }
             else
             {
-                ant.exec([ executable : command, failonerror : failOnError ] + ( directory ? [ dir : directory ] : [:] )){
-                    arg ( line : arguments.join ( ' ' ))
+                ant.exec([ executable  : command,
+                           failonerror : failOnError ] + ( directory ? [ dir : directory ] : [:] )){
+                    arg (  line        : arguments.join ( ' ' ))
                 }
             }
         }
         catch ( Throwable error )
         {
-            final stdout = useGradleExec ? stdoutStream.toString().trim() : ''
-            final stderr = useGradleExec ? stderrStream.toString().trim() : ''
+            final stdout = ( stdoutStream instanceof ByteArrayOutputStream ? stdoutStream.toString().trim() : '' )
+            final stderr = ( stderrStream instanceof ByteArrayOutputStream ? stderrStream.toString().trim() : '' )
 
             if ( failOnError )
             {
