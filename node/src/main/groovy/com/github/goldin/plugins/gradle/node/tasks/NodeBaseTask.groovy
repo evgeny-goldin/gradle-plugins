@@ -147,9 +147,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |${ failOnError ? 'set -e'          : '' }
         |${ failOnError ? 'set -o pipefail' : '' }
         |
-        |${ scriptContent.trim() }
-        |
-        """.stripMargin()){ String script, Closure transformer -> transformer( script, scriptFile, this ) ?: script }
+        |${ scriptContent.readLines().join( '\n|' ) }
+        |""".stripMargin()){
+            String script, Closure transformer ->
+            transformer( script, scriptFile, this ) ?: script
+        }
 
         scriptFile.write( scriptContent, 'UTF-8' )
         assert scriptFile.with { file && size() }
