@@ -22,6 +22,8 @@ class NodeExtension
     String        foreverOptions        = ''  // Additional command-line 'forever' options, such as '-w -v'
     List<String>  before                = []  // Commands to execute before running unit tests or starting the application
     List<String>  after                 = []  // Commands to execute after running unit tests or stopping the application
+    int           redisPort             = -1  // Local Redis instance port number to start and stop
+    String        redisPortConfigKey    = ''  // Config key holding local Redis instance port number to start and stop
     String        NODE_ENV              = 'development'
     String        nodeVersion           = 'latest'
     String        testCommand           = 'mocha'
