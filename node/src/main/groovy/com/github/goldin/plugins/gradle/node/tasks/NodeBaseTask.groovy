@@ -48,12 +48,13 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         final addRedis  = (( ! ext.redisAdded ) && (( ext.redisPort > 0 ) || ext.redisPortConfigKey ))
         if (  addRedis )
         {
-            final redisPort  = ( ext.redisPort > 0 ) ? ext.redisPort as String : '${ config.' + ext.redisPortConfigKey + ' }'
-            final stopRedis  = "redis-cli -p $redisPort shutdown"
-            final startRedis = "redis-server --port $redisPort &"
-            ext.before       = [ stopRedis, startRedis ] + ( ext.before ?: [] )
-            ext.after        = [ stopRedis             ] + ( ext.after  ?: [] )
-            ext.redisAdded   = true
+            final redisPort    = ( ext.redisPort > 0 ) ? ext.redisPort as String : '${ config.' + ext.redisPortConfigKey + ' }'
+            final jenkinsSpawn = 'export BUILD_ID=JenkinsLetMeSpawn'
+            final stopRedis    = "redis-cli -p $redisPort shutdown"
+            final startRedis   = "redis-server --port $redisPort &"
+            ext.before         = [ jenkinsSpawn, stopRedis, startRedis ] + ( ext.before ?: [] )
+            ext.after          = [ stopRedis ] + ( ext.after  ?: [] )
+            ext.redisAdded     = true
         }
     }
 
