@@ -114,8 +114,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Ensures ({ result })
     final String beforeAfterScript( List<String> commands )
     {
-        final binding = [ configs : ext.configsResult ] +
-                        ( ext.configsResult ? [ config : ext.configsResult.head() ] : [:] )
+        final Map binding = [ configs : ext.configsResult ] +
+                            ( ext.configsResult ? [ config : ext.configsResult.head() ] : [:] )
         new SimpleTemplateEngine().createTemplate( commands.join( '\n' )).make( binding ).toString()
     }
 
