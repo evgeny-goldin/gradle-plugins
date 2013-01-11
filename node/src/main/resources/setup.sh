@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ ! -d "$HOME" ];
 then
     echo "[\$HOME] is not defined"

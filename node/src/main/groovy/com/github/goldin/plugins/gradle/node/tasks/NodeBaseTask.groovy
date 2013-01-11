@@ -49,11 +49,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         if (  addRedis )
         {
             final redisPort    = ( ext.redisPort > 0 ) ? ext.redisPort as String : '${ config.' + ext.redisPortConfigKey + ' }'
-            final jenkinsSpawn = 'export BUILD_ID=JenkinsLetMeSpawn'
-            final stopRedis    = "redis-cli -p $redisPort shutdown"
-            final startRedis   = "redis-server --port $redisPort &"
-            ext.before         = [ jenkinsSpawn, stopRedis, startRedis ] + ( ext.before ?: [] )
-            ext.after          = [ stopRedis ] + ( ext.after  ?: [] )
+            final redisRunning = '"`redis-cli -p ' + redisPort + ' ping 2> /dev/null`" = "PONG"'
+            final getScript    = { String scriptName -> getResourceText( scriptName ).replace( '${redisPort}',    redisPort ).
+                                                                                      replace( '${redisRunning}', redisRunning ) }
+            ext.before         = getScript( 'redis-start.sh' ).readLines() + ( ext.before ?: [] )
+            ext.after          = getScript( 'redis-stop.sh'  ).readLines() + ( ext.after  ?: [] )
             ext.redisAdded     = true
         }
     }
