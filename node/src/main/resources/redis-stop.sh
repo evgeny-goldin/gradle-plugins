@@ -10,7 +10,7 @@ echo "redis-cli    --version" : [`redis-cli    --version`]
 if [ ${redisRunning} ];
 then
     redis-cli -p ${redisPort} shutdown
-    sleep 3
+    sleep ${sleep}
 
     if [ ${redisRunning} ];
     then

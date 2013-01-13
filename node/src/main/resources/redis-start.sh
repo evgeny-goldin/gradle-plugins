@@ -13,7 +13,7 @@ then
 else
     export BUILD_ID=JenkinsLetMeSpawn
     redis-server --port ${redisPort} &
-    sleep 3
+    sleep ${sleep}
 
     if [ ${redisRunning} ];
     then
