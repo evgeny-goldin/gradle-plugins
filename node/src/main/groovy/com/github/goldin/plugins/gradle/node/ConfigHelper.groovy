@@ -30,34 +30,30 @@ class ConfigHelper
 
 
     /**
-     * Updates JSON config file specified using the file provided.
+     * Reads configuration data from the file provided which can be a JSON or .properties file.
      *
-     * @param  configFile    JSON config file to update or create if doesn't exist yet
-     * @param  newConfigData config data file to read, can be another JSON config or a .properties file
-     * @return               config file updated or created
+     * @param  file file to read
+     * @return configuration data read from the file
      */
-    @Requires({ configFile && newConfigData })
+    @Requires({ file.file })
     @Ensures ({ result })
-    Map<String,?> updateConfigWithFile ( File configFile, File newConfigData )
+    Map<String, ?> readConfigFile ( File file )
     {
-        assert newConfigData.file, "[$newConfigData] is not available"
-        final  configText = newConfigData.text.trim()
-        assert configText, "[$newConfigData.canonicalPath] is empty"
+        final  configText = file.getText( 'UTF-8' ).trim()
+        assert configText, "[$file.canonicalPath] is empty"
 
         if ( configText.with{ startsWith( '{' ) and endsWith( '}' ) })
         {
-            final  json = new JsonSlurper().parseText( configText )
-            assert ( json instanceof Map ) && ( json ), "Failed to read JSON data from [$newConfigData.canonicalPath]"
-
-            updateConfigWithMap( configFile, ( Map ) json )
+            final json = new JsonSlurper().parseText( configText )
+            assert ( json instanceof Map ) && ( json ), "Failed to read JSON from [$file.canonicalPath]"
+            json
         }
         else
         {
             final properties = new Properties()
             properties.load( new StringReader( configText ))
-            assert properties, "Failed to load Properties data from [$newConfigData.canonicalPath]"
-
-            updateConfigWithMap( configFile, ( Map ) properties )
+            assert properties, "Failed to read Properties from [$file.canonicalPath]"
+            ( Map<String, ?> ) properties
         }
     }
 
@@ -73,22 +69,22 @@ class ConfigHelper
      */
     @Requires({ configFile && newConfigData })
     @Ensures ({ result })
-    Map<String,?> updateConfigWithMap ( File configFile, Map<String, ?> newConfigData )
+    Map<String,?> updateConfigFile ( File configFile, Map<String, ?> newConfigData )
     {
-        final Map<String,?> configData =
+        final Map<String,?> oldConfigData =
             ( Map ) ( configFile.file ? new JsonSlurper().parseText( configFile.getText( 'UTF-8' )) : [:] )
 
         newConfigData.each {
             String key, Object value ->
-            updateConfigMap( configData, key, value )
+            updateConfigMap( oldConfigData, key, value )
         }
 
-        assert configData
-        final  configDataStringified = JsonOutput.prettyPrint( JsonOutput.toJson( configData ))
+        assert oldConfigData
+        final  configDataStringified = JsonOutput.prettyPrint( JsonOutput.toJson( oldConfigData ))
         assert configDataStringified
 
         configFile.write( configDataStringified, 'UTF-8' )
-        configData
+        oldConfigData
     }
 
 

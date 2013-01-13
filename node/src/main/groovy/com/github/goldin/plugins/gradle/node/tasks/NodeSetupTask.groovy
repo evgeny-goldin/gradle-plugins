@@ -39,12 +39,10 @@ class NodeSetupTask extends NodeBaseTask
     @Ensures({ result != null })
     private List<Map<String, ?>> updateConfigs()
     {
-        if ( ! ext.configs ) { return [] }
-
         final configs      = []
         final configHelper = new ConfigHelper( ext )
 
-        for ( configMap in ext.configs )
+        for ( configMap in ( ext.configs ?: [] ))
         {
             configMap.each {
                 String configPath, Object configValue ->
@@ -54,14 +52,15 @@ class NodeSetupTask extends NodeBaseTask
                 final isValueMap  = configValue instanceof Map
 
                 assert ( isValueFile || isValueMap ), \
-                       "Config value for [$configFile.canonicalPath] is of type [${ configValue?.getClass()?.name}], " +
+                       "Config value for [$configFile.canonicalPath] is of type [${ configValue?.getClass()?.name }], " +
                        "should be of type [$File.name] or [$Map.name]"
 
                 log{ "Updating JSON config [$configFile.canonicalPath] using " +
                      ( isValueFile ? "[${ (( File ) configValue ).canonicalPath }]" : "config Map $configValue" ) }
 
-                configs << ( isValueFile ? configHelper.updateConfigWithFile( configFile, ( File ) configValue ) :
-                                           configHelper.updateConfigWithMap ( configFile, ( Map )  configValue ))
+                configs << configHelper.updateConfigFile (
+                    configFile,
+                    ( isValueFile ? configHelper.readConfigFile(( File ) configValue ) : ( Map ) configValue ))
             }
         }
 

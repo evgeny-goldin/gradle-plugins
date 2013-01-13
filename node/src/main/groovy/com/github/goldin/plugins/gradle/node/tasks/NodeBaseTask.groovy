@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import com.github.goldin.plugins.gradle.node.ConfigHelper
 import groovy.text.SimpleTemplateEngine
 import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.node.NodeExtension
@@ -115,9 +116,35 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Ensures ({ result })
     final String beforeAfterScript( List<String> commands )
     {
+        if ( ext.configsResult == null )
+        {
+            ext.configsResult = readConfigs()
+        }
+
+        assert ( ext.configsResult != null )
         final Map binding = [ configs : ext.configsResult ] +
                             ( ext.configsResult ? [ config : ext.configsResult.head() ] : [:] )
         new SimpleTemplateEngine().createTemplate( commands.join( '\n' )).make( binding ).toString()
+    }
+
+
+    @Ensures ({ result != null })
+    private List<Map<String, ?>> readConfigs ()
+    {
+        final result       = []
+        final configHelper = new ConfigHelper( ext )
+
+        for ( configMap in ( ext.configs ?: [] ))
+        {
+            configMap.each {
+                String configPath, Object configValue ->
+                result << ( configValue instanceof File ? configHelper.readConfigFile(( File ) configValue ) :
+                            configValue instanceof Map  ? (( Map ) configValue ) :
+                                                          [:] )
+            }
+        }
+
+        result
     }
 
 
