@@ -45,11 +45,12 @@ class NodeStopTask extends NodeBaseTask
                                 |if [ "\$pid" != "" ];
                                 |then
                                 |    foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
-                                |    if [ "\$foreverId" != "" ];
-                                |    then
+                                |    while [ "\$foreverId" != "" ];
+                                |    do
                                 |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
                                 |        forever stop \$foreverId;
-                                |    fi;
+                                |        foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
+                                |    done
                                 |fi
                                 """.stripMargin().readLines() +
                                 ( ext.pidOnlyToStop ? [] :
