@@ -52,10 +52,10 @@ class NodeStopTask extends NodeBaseTask
                                 |    fi;
                                 |fi
                                 """.stripMargin().readLines() +
-                                ( ext.usePidOnlyToStop ? [] :
+                                ( ext.pidOnlyToStop ? [] :
                                 """
                                 |
-                                |# If .pid file doesn't exist or 'forever stop' doesn't stop ..
+                                |# If .pid file doesn't exist or 'forever stop' fails to stop ..
                                 |<kill forever,${ project.name }|${ ext.scriptPath },${ project.name }>
                                 """.stripMargin().readLines())
 

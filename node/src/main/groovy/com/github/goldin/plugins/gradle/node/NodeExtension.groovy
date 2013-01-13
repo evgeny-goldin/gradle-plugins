@@ -9,9 +9,9 @@ class NodeExtension
     boolean      xUnitReport            = true  // Whether xUnit report should be created when tests are run
     boolean      failIfTestsFail        = true  // Whether to fail execution if tests fail
     boolean      stopIfFailsToStart     = true  // Whether the app should be stopped if it fails to start
-    boolean      stopAndStart           = true  // Whether 'start' should be preceded by 'stop'
-    boolean      startAndCheck          = true  // Whether 'start' should be followed by 'check'
-    boolean      usePidOnlyToStop       = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
+    boolean      stopBeforeStart        = true  // Whether 'stop' should run before 'start'
+    boolean      checkAfterStart        = true  // Whether 'check' should run after 'start'
+    boolean      pidOnlyToStop          = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
     int          portNumber             = 1337                           // Port the application starts on (becomes part of .pid file name)
     String       checkUrl               = "http://127.0.0.1:$portNumber" // The URL to check after application has started
     long         checkDelay             = 1000                           // Amount of milliseconds to wait before making a connection
