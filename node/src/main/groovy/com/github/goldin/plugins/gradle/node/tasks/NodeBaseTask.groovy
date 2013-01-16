@@ -153,10 +153,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     /**
      * Executes the script specified as bash command.
      *
-     * @param scriptContent content to run as bash script
-     * @param scriptFile    script file to create
-     * @param failOnError   whether execution should fail if bash execution returns non-zero value
-     * @param useGradleExec whether Gradle (true) or Ant (false) exec is used
+     * @param scriptContent  content to run as bash script
+     * @param scriptFile     script file to create
+     * @param watchExitCodes whether script exit codes need to be monitored (by adding set -e/set -o pipefail)
+     * @param failOnError    whether execution should fail if bash execution results in non-zero value
+     * @param useGradleExec  whether Gradle (true) or Ant (false) exec is used
      *
      * @return bash output or empty String if bash was generated but not executed or
      */
@@ -165,8 +166,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
     final String bashExec( String  scriptContent,
                            File    scriptFile,
-                           boolean failOnError   = true,
-                           boolean useGradleExec = true )
+                           boolean watchExitCodes = true,
+                           boolean failOnError    = true,
+                           boolean useGradleExec  = true )
     {
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
         delete( scriptFile )
@@ -174,8 +176,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         scriptContent = ( ext.transformers ?: [] ).inject(
         """#!/bin/bash
         |
-        |${ failOnError ? 'set -e'          : '' }
-        |${ failOnError ? 'set -o pipefail' : '' }
+        |${ watchExitCodes ? 'set -e'          : '' }
+        |${ watchExitCodes ? 'set -o pipefail' : '' }
         |
         |${ scriptContent.readLines().join( '\n|' ) }
         |""".stripMargin()){

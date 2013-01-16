@@ -22,7 +22,7 @@ class NodeStartTask extends NodeBaseTask
             ext.after   = after
         }
 
-        if ( ext.before          ) { bashExec( beforeAfterScript( ext.before ), scriptFile( BEFORE_START_SCRIPT ), false, false ) }
+        if ( ext.before          ) { bashExec( beforeAfterScript( ext.before ), scriptFile( BEFORE_START_SCRIPT ), false, true, false ) }
         bashExec( startScript(), scriptFile( START_SCRIPT ))
         if ( ext.checkAfterStart ) { runTask ( CHECK_TASK )}
     }
