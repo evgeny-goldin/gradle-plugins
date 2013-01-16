@@ -192,6 +192,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ]) }
 
-        exec ( 'bash', [ scriptFile.canonicalPath ], project.rootDir, failOnError, useGradleExec )
+        exec ( 'bash', [ scriptFile.canonicalPath ], project.projectDir, failOnError, useGradleExec )
     }
 }
