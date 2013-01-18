@@ -92,10 +92,12 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     /**
      * Retrieves base part of the bash script to be used by various tasks.
      */
-    final String baseBashScript ()
+    @Requires({ operationTitle })
+    final String baseBashScript ( String operationTitle )
     {
         final  binFolder = project.file( MODULES_BIN_DIR )
         assert binFolder.directory, "[$binFolder] is not available"
+        final  q         = '"\\""'
 
         """
         |export NODE_ENV=$ext.NODE_ENV
@@ -105,7 +107,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |nvm use $ext.nodeVersion
         |
         |echo ---------------------------------------------
-        |echo \\\$NODE_ENV = [$ext.NODE_ENV]
+        |echo Running $q$operationTitle$q in $q`pwd`$q
+        |echo \\\$NODE_ENV = $q$ext.NODE_ENV$q
         |echo ---------------------------------------------
         |
         """.stripMargin()

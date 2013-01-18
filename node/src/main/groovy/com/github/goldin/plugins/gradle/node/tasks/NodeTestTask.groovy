@@ -56,7 +56,7 @@ class NodeTestTask extends NodeBaseTask
         final testCommand = "$ext.testCommand ${ (( ! ext.testInput ) || ( ext.testInput == 'test' )) ? '' : ext.testInput } $testArguments"
 
         """
-        |${ baseBashScript() }
+        |${ baseBashScript( 'test' ) }
         |$testCommand""".stripMargin()
     }
 

@@ -29,8 +29,7 @@ class NodeStopTask extends NodeBaseTask
     private String stopScript ()
     {
         """
-        |${ baseBashScript() }
-        |
+        |${ baseBashScript( 'stop' ) }
         |${ stopCommands().join( '\n|' ) }""".stripMargin()
     }
 
