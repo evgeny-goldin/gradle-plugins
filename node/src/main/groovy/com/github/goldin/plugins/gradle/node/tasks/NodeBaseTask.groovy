@@ -40,15 +40,17 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
         assert ext.testCommand,         "'testCommand' should be defined in $description"
         assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
-        assert ext.checkUrl,            "'checkUrl' should be defined in $description"
+        assert ext.portNumber > 0,      "'portNumber' should be positive in $description"
 
+        ext.checkUrl   = ext.checkUrl   ?: "http://127.0.0.1:${ ext.portNumber }"
         ext.scriptPath = ext.scriptPath ?: ( new File( project.projectDir, 'server.js'     ).file ? 'server.js'     :
                                              new File( project.projectDir, 'server.coffee' ).file ? 'server.coffee' :
                                                                                                     null )
-        assert ext.scriptPath, "'scriptPath' should be defined in $description or provide 'server.js' / 'server.coffee'"
+        assert ext.checkUrl
+        assert ext.scriptPath, "'scriptPath' should be defined in $description or use 'server.[js|coffee]' script to auto-discover it"
 
         ext.nodeVersion = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
-        final addRedis  = (( ! ext.redisAdded ) && (( ext.redisPort > 0 ) || ext.redisPortConfigKey ))
+        final addRedis  = (( ! ext.redisAddedAlready ) && (( ext.redisPort > 0 ) || ext.redisPortConfigKey ))
         if (  addRedis )
         {
             final redisPort    = ( ext.redisPort > 0 ) ? ext.redisPort as String : '${ config.' + ext.redisPortConfigKey + ' }'
@@ -57,9 +59,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                                                         replace( '${redisPort}',    redisPort ).
                                                         replace( '${redisRunning}', redisRunning ).
                                                         replace( '${sleep}',        ( ext.redisWait > 0 ? ext.redisWait : 0 ) as String )}
-            ext.before         = getScript( 'redis-start.sh' ).readLines() + ( ext.before ?: [] )
-            ext.after          = getScript( 'redis-stop.sh'  ).readLines() + ( ext.after  ?: [] )
-            ext.redisAdded     = true
+            ext.before            = getScript( 'redis-start.sh' ).readLines() + ( ext.before ?: [] )
+            ext.after             = getScript( 'redis-stop.sh'  ).readLines() + ( ext.after  ?: [] )
+            ext.redisAddedAlready = true
         }
     }
 

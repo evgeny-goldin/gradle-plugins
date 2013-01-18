@@ -12,11 +12,11 @@ class NodeExtension
     boolean      stopBeforeStart        = true  // Whether 'stop' should run before 'start'
     boolean      checkAfterStart        = true  // Whether 'check' should run after 'start'
     boolean      pidOnlyToStop          = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
-    int          portNumber             = 1337                           // Port the application starts on (becomes part of .pid file name)
-    String       checkUrl               = "http://127.0.0.1:$portNumber" // The URL to check after application has started
-    long         checkDelay             = 1000                           // Amount of milliseconds to wait before making a connection
-    String       checkContent           = ''                             // Response to expect when making a request
-    int          checkStatusCode        = 200                            // Response code to expect when making a request
+    int          portNumber             = 1337  // Port the application starts on (becomes part of .pid file name)
+    String       checkUrl                       // The URL to check after application has started, "http://127.0.0.1:$portNumber" by default
+    long         checkDelay             = 1000  // Amount of milliseconds to wait before making a connection
+    String       checkContent           = ''    // Response to expect when making a request
+    int          checkStatusCode        = 200   // Response code to expect when making a request
 
     List<Closure> transformers          = []    // Callbacks to invoke after every bash script is generated
     String        foreverOptions        = ''    // Additional command-line 'forever' options, such as '-w -v'
@@ -25,7 +25,7 @@ class NodeExtension
     int           redisPort             = -1    // Local Redis instance port number to start and stop
     String        redisPortConfigKey    = ''    // Config key holding local Redis instance port number to start and stop
     int           redisWait             = 3     // Number of seconds to wait after Redis has started or stopped
-    boolean       redisAdded            = false // Internal property, whether Redis commands are already added to before/after
+    boolean       redisAddedAlready     = false // Internal property, whether Redis commands are already added to before/after
     String        NODE_ENV              = 'development'
     String        nodeVersion           = 'latest'
     String        testCommand           = 'mocha'

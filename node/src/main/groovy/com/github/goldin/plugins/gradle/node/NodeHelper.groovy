@@ -16,7 +16,7 @@ class NodeHelper
      * @return latest Node.js version
      */
     @Ensures({ result })
-    String latestNodeVersion(){ latestNodeVersion( 'http://nodejs.org/dist/'.toURL().text )}
+    String latestNodeVersion(){ latestNodeVersion( 'http://nodejs.org/dist/'.toURL().getText( 'UTF-8' ) )}
 
 
     /**
