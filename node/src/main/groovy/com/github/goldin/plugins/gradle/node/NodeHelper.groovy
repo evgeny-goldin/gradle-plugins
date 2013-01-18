@@ -28,7 +28,7 @@ class NodeHelper
      * @return latest Node.js version
      */
     @Ensures({ result })
-    String latestNodeVersion(){ latestNodeVersion( NODE_VERSIONS_URL.toURL().getText( 'UTF-8' ) )}
+    String latestNodeVersion(){ latestNodeVersion( NODE_VERSION_URL.toURL().getText( 'UTF-8' ) )}
 
 
     /**
@@ -41,16 +41,7 @@ class NodeHelper
     @Ensures ({ result  })
     String latestNodeVersion( String content )
     {
-        // Map: release date => version
-        final Map<String, String> dateToVersionMap =
-            content.
-            // List of Lists, l[0] is Node version, l[1] is version release date
-            findAll( />(v.+?)\/<\/a>\s+(\d{2}-\w{3}-\d{4} \d{2}:\d{2})\s+-/ ){ it[ 1 .. 2 ] }.
-            inject([:]){ Map m, List l -> m[ l[1] ] = l[0]; m }
-
-        final DateFormat formatter = new java.text.SimpleDateFormat( 'dd-MMM-yyyy HH:mm' )
-        final latestDate           = dateToVersionMap.keySet().max{ String date -> formatter.parse( date ).time }
-        final latestVersion        = dateToVersionMap[ latestDate ]
+        final latestVersion = content.find( ~/<p>Current Version: (.+?)<\/p>/ ){ it[ 1 ] }
 
         if ( logger.infoEnabled )
         {

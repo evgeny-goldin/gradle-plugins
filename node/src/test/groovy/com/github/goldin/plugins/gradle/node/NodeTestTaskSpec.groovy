@@ -16,8 +16,7 @@ class NodeTestTaskSpec extends BaseSpecification
         new NodeHelper( log ).latestNodeVersion( load( fileName )) == version
 
         where:
-        fileName                    | version
-        'node-versions-v0.9.3.txt'  | 'v0.9.3'
-        'node-versions-v0.8.14.txt' | 'v0.8.14'
+        fileName                   | version
+        'node-version-v0.8.17.txt' | 'v0.8.17'
     }
 }

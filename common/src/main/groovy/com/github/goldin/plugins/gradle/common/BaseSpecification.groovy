@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.common
 
+import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import spock.lang.Specification
 
@@ -10,7 +11,8 @@ import spock.lang.Specification
 class BaseSpecification extends Specification
 {
 
-    @Requires({ resourcePath })
+    @Requires({ resourcePath   })
+    @Ensures ({ result != null })
     String load( String resourcePath )
     {
         final  inputStream = this.class.classLoader.getResourceAsStream( resourcePath )
