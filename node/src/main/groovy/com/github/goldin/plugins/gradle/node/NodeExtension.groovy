@@ -30,10 +30,7 @@ class NodeExtension
     String        nodeVersion           = 'latest'
     String        testCommand           = 'mocha'
     String        testInput             = 'test'
-
-    String        scriptPath            = 'server.js'
-    List<String>  stopCommands
-    List<String>  startCommands
+    String        scriptPath
 
     List <Map<String, ?>> configs            = []   // List of config maps to update project files with. Every map is:
                                                     // Key   - path of destination JSON config file to update or create

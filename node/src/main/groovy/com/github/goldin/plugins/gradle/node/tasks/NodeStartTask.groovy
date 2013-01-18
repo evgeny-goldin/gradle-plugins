@@ -39,12 +39,10 @@ class NodeStartTask extends NodeBaseTask
     }
 
 
-    @Requires({ ext.startCommands || ext.scriptPath })
+    @Requires({ ext.scriptPath })
     @Ensures({ result })
     private List<String> startCommands()
     {
-        if ( ext.startCommands ) { return ext.startCommands }
-
         final executable = ext.scriptPath.endsWith( '.coffee' ) ? "\"$COFFEE_EXECUTABLE\"" : ''
 
         [ "forever start ${ ext.foreverOptions ?: '' } --plain --pidFile \"${ pidFileName( ext.portNumber ) }\" $executable \"$ext.scriptPath\"",

@@ -35,35 +35,38 @@ class NodeStopTask extends NodeBaseTask
     }
 
 
-    @Requires({ ext.stopCommands || ext.scriptPath })
+    @Requires({ ext.scriptPath })
     @Ensures({ result })
     private List<String> stopCommands()
     {
         final List<String> stopCommands =
-            ext.stopCommands ?: """
-                                |pid=`cat "\$HOME/.forever/pids/${ pidFileName( ext.portNumber ) }"`
-                                |if [ "\$pid" != "" ];
-                                |then
-                                |    foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
-                                |    while [ "\$foreverId" != "" ];
-                                |    do
-                                |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
-                                |        forever stop \$foreverId;
-                                |        foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
-                                |    done
-                                |fi
-                                """.stripMargin().readLines() +
-                                ( ext.pidOnlyToStop ? [] :
-                                """
-                                |
-                                |# If .pid file doesn't exist or 'forever stop' fails to stop ..
-                                |<kill forever,${ project.name }|${ ext.scriptPath },${ project.name }>
-                                """.stripMargin().readLines())
+            """
+            |pid=`cat "\$HOME/.forever/pids/${ pidFileName( ext.portNumber ) }"`
+            |if [ "\$pid" != "" ];
+            |then
+            |    foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
+            |    while [ "\$foreverId" != "" ];
+            |    do
+            |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
+            |        forever stop \$foreverId;
+            |        foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
+            |    done
+            |fi
+            """.stripMargin().readLines()
+
+            +
+
+            ( ext.pidOnlyToStop ? [] :
+            """
+            |
+            |# If .pid file doesn't exist or 'forever stop' fails to stop ..
+            |<kill forever,${ project.name }|${ ext.scriptPath },${ project.name }>
+            """.stripMargin().readLines())
 
         final stopCommandsExpanded = stopCommands.collect {
 
             String stopCommand ->
-            assert stopCommand != null, "Undefined stop command [$stopCommand] in $ext.stopCommands"
+            assert stopCommand != null, "Undefined stop command [$stopCommand]"
 
             final killProcesses = ( stopCommand ? find( stopCommand, KillPattern ) : null /* Empty command*/ )
             if  ( killProcesses )

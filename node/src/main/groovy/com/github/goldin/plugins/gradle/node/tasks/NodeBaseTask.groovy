@@ -42,8 +42,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
         assert ext.checkUrl,            "'checkUrl' should be defined in $description"
 
-        assert ext.stopCommands  || ext.scriptPath, "'stopCommands' or 'scriptPath' should be defined in $description"
-        assert ext.startCommands || ext.scriptPath, "'startCommands' or 'scriptPath' should be defined in $description"
+        ext.scriptPath = ext.scriptPath ?: ( new File( project.projectDir, 'server.js'     ).file ? 'server.js'     :
+                                             new File( project.projectDir, 'server.coffee' ).file ? 'server.coffee' :
+                                                                                                    null )
+        assert ext.scriptPath, "'scriptPath' should be defined in $description or provide 'server.js' / 'server.coffee'"
 
         ext.nodeVersion = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
         final addRedis  = (( ! ext.redisAdded ) && (( ext.redisPort > 0 ) || ext.redisPortConfigKey ))
