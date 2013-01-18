@@ -52,10 +52,7 @@ class NodeStopTask extends NodeBaseTask
             |        foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
             |    done
             |fi
-            """.stripMargin().readLines()
-
-            +
-
+            """.stripMargin().readLines() +
             ( ext.pidOnlyToStop ? [] :
             """
             |
