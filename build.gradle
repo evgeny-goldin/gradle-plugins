@@ -71,9 +71,7 @@ subprojects {
                    verbose             = true }
 
     dependencies {
-        groovy      localGroovy()
-        compile     gradleApi(),
-                    "org.gcontracts:gcontracts-core:$gcontractsVersion"
+        compile     gradleApi(), "org.gcontracts:gcontracts-core:$gcontractsVersion"
         testCompile "junit:junit:$junitVersion"
     }
 
@@ -159,7 +157,7 @@ project( ':teamcity' ) {
 }
 
 
-task wrapper( type: Wrapper ) { gradleVersion = '1.3' }
+task wrapper( type: Wrapper ) { gradleVersion = '1.4-rc-1' }
 
 
 private Properties validatePropertiesFile( Project p, File gradleProperties )
