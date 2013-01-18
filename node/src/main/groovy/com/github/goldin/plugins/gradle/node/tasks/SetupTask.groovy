@@ -9,7 +9,7 @@ import java.util.regex.Pattern
 /**
  * Setup Node.js environment.
  */
-class NodeSetupTask extends NodeBaseTask
+class SetupTask extends NodeBaseTask
 {
     @Override
     void taskAction()

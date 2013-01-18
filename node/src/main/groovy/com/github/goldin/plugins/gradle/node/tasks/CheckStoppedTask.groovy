@@ -6,9 +6,9 @@ import org.gradle.api.logging.LogLevel
 
 
 /**
- * Checks that Node.js application is up and running.
+ * Checks that Node.js application has stopped.
  */
-class NodeCheckTask extends NodeBaseTask
+class CheckStoppedTask extends NodeBaseTask
 {
 
     @Override

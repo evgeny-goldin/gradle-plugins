@@ -11,7 +11,7 @@ import org.gradle.api.tasks.testing.Test
 /**
  * Tests Node.js application.
  */
-class NodeTestTask extends NodeBaseTask
+class TestTask extends NodeBaseTask
 {
 
     @Override

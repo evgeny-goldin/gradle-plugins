@@ -6,7 +6,7 @@ import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 /**
  * Deletes Node.js local modules.
  */
-class NodeCleanModulesTask extends NodeBaseTask
+class CleanModulesTask extends NodeBaseTask
 {
 
     @Override

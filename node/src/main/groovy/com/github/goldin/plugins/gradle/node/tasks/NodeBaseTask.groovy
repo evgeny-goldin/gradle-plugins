@@ -32,6 +32,20 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     }
 
 
+    @Requires({ ext.scriptPath })
+    @Ensures ({ result != null })
+    String executable()
+    {
+        final executable = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
+        if (  executable )
+        {
+            assert project.file( executable ).canonicalFile.file, "[$executable] is not available"
+        }
+
+        executable
+    }
+
+
     @Override
     void verifyUpdateExtension ( String description )
     {

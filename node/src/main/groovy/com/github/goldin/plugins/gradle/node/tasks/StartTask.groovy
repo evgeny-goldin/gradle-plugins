@@ -8,7 +8,7 @@ import org.gcontracts.annotations.Requires
 /**
  * Starts Node.js application.
  */
-class NodeStartTask extends NodeBaseTask
+class StartTask extends NodeBaseTask
 {
 
     @Override
@@ -24,7 +24,7 @@ class NodeStartTask extends NodeBaseTask
 
         if ( ext.before          ) { bashExec( beforeAfterScript( ext.before ), scriptFile( BEFORE_START_SCRIPT ), false, true, false ) }
         bashExec( startScript(), scriptFile( START_SCRIPT ))
-        if ( ext.checkAfterStart ) { runTask ( CHECK_TASK )}
+        if ( ext.checkAfterStart ) { runTask ( CHECK_STARTED_TASK )}
     }
 
 
@@ -39,12 +39,13 @@ class NodeStartTask extends NodeBaseTask
 
 
     @Requires({ ext.scriptPath })
-    @Ensures({ result })
+    @Ensures ({ result })
     private List<String> startCommands()
     {
-        final executable = ext.scriptPath.endsWith( '.coffee' ) ? "\"$COFFEE_EXECUTABLE\"" : ''
+        final executable = executable()
 
-        [ "forever start ${ ext.foreverOptions ?: '' } --plain --pidFile \"${ pidFileName( ext.portNumber ) }\" $executable \"$ext.scriptPath\"",
-          'forever list --plain' ]
+        [ "forever start ${ ext.foreverOptions ?: '' } --plain --pidFile \"${ pidFileName( ext.portNumber ) }\" " +
+          "${ executable ? '"' + executable + '"' : '' } \"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }",
+          'forever list   --plain' ]
     }
 }

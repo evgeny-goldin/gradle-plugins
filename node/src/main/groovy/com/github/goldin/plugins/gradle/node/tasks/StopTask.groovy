@@ -8,7 +8,7 @@ import org.gcontracts.annotations.Requires
 /**
  * Stops Node.js application.
  */
-class NodeStopTask extends NodeBaseTask
+class StopTask extends NodeBaseTask
 {
 
     @Override

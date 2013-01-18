@@ -10,7 +10,8 @@ class NodeExtension
     boolean      failIfTestsFail        = true  // Whether to fail execution if tests fail
     boolean      stopIfFailsToStart     = true  // Whether the app should be stopped if it fails to start
     boolean      stopBeforeStart        = true  // Whether 'stop' should run before 'start'
-    boolean      checkAfterStart        = true  // Whether 'check' should run after 'start'
+    boolean      checkAfterStart        = true  // Whether 'checkStarted' should run after 'start'
+    boolean      checkAfterStop         = true  // Whether 'checkStopped' should run after 'stop'
     boolean      pidOnlyToStop          = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
     int          portNumber             = 1337  // Port the application starts on (becomes part of .pid file name)
     String       checkUrl                       // The URL to check after application has started, "http://127.0.0.1:$portNumber" by default
@@ -20,6 +21,7 @@ class NodeExtension
 
     List<Closure> transformers          = []    // Callbacks to invoke after every bash script is generated
     String        foreverOptions        = ''    // Additional command-line 'forever' options, such as '-w -v'
+    String        scriptArguments       = ''    // Additional script arguments when run by 'forever'
     List<String>  before                = []    // Commands to execute before running unit tests or starting the application
     List<String>  after                 = []    // Commands to execute after running unit tests or stopping the application
     int           redisPort             = -1    // Local Redis instance port number to start and stop

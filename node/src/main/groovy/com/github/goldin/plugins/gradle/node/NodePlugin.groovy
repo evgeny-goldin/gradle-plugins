@@ -18,13 +18,14 @@ class NodePlugin extends BasePlugin
     Map<String , Class<? extends BaseTask>> tasks ( Project project )
     {
         [
-          ( CLEAN_TASK    ) : NodeCleanTask,
-          ( CLEAN_MODULES ) : NodeCleanModulesTask,
-          ( SETUP_TASK    ) : NodeSetupTask,
-          ( TEST_TASK     ) : NodeTestTask,
-          ( STOP_TASK     ) : NodeStopTask,
-          ( START_TASK    ) : NodeStartTask,
-          ( CHECK_TASK    ) : NodeCheckTask
+          ( CLEAN_TASK         ) : CleanTask,
+          ( CLEAN_MODULES      ) : CleanModulesTask,
+          ( SETUP_TASK         ) : SetupTask,
+          ( TEST_TASK          ) : TestTask,
+          ( STOP_TASK          ) : StopTask,
+          ( START_TASK         ) : StartTask,
+          ( CHECK_STARTED_TASK ) : CheckStartedTask,
+          ( CHECK_STOPPED_TASK ) : CheckStoppedTask
         ]
     }
 

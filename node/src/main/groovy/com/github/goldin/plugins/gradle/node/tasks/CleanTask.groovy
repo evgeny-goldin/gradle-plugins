@@ -6,7 +6,7 @@ import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 /**
  * Deletes Node.js generated files.
  */
-class NodeCleanTask extends NodeBaseTask
+class CleanTask extends NodeBaseTask
 {
     @Override
     void taskAction()
