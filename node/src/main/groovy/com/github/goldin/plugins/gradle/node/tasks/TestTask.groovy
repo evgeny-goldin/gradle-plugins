@@ -31,7 +31,7 @@ class TestTask extends NodeBaseTask
 
     private void runTests ()
     {
-        final testReport = bashExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), scriptFile( TEST_SCRIPT ), true, ext.failIfTestsFail )
+        final testReport = bashExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), scriptFile( TEST_SCRIPT ), true, ( ! ext.xUnitReport ))
 
         if ( ! ext.xUnitReport ) { return }
 
