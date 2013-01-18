@@ -10,6 +10,7 @@ import org.gradle.api.logging.LogLevel
  */
 class CheckStoppedTask extends NodeBaseTask
 {
+    boolean requiresScriptPath(){ false }
 
     @Override
     void taskAction()
