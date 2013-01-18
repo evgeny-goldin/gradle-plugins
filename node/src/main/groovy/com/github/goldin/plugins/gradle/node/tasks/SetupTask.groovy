@@ -11,6 +11,8 @@ import java.util.regex.Pattern
  */
 class SetupTask extends NodeBaseTask
 {
+    boolean requiresScriptPath(){ false }
+
     @Override
     void taskAction()
     {

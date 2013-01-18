@@ -18,6 +18,13 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 {
     final NodeHelper nodeHelper = new NodeHelper( logger )
 
+    /**
+     * Determines if current task requires an existence of {@link NodeExtension#scriptPath}
+     * @return true if current task requires an existence of {@link NodeExtension#scriptPath},
+     *         false otherwise
+     */
+    protected boolean requiresScriptPath(){ true }
+
 
     /**
      * Passes a new extensions object to the closure specified.
@@ -61,7 +68,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                                              new File( project.projectDir, 'server.coffee' ).file ? 'server.coffee' :
                                                                                                     null )
         assert ext.checkUrl
-        assert ext.scriptPath, "'scriptPath' should be defined in $description or use 'server.[js|coffee]' script to auto-discover it"
+        assert ( ext.scriptPath || ( ! requiresScriptPath())), \
+               "'scriptPath' should be defined in $description or use 'server.[js|coffee]' script to auto-discover it"
 
         ext.nodeVersion = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
         final addRedis  = (( ! ext.redisAddedAlready ) && (( ext.redisPort > 0 ) || ext.redisPortConfigKey ))

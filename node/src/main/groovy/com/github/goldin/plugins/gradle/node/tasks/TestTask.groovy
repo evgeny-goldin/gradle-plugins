@@ -13,6 +13,7 @@ import org.gradle.api.tasks.testing.Test
  */
 class TestTask extends NodeBaseTask
 {
+    boolean requiresScriptPath(){ false }
 
     @Override
     void taskAction()
