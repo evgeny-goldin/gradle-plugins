@@ -1,8 +1,9 @@
 package com.github.goldin.plugins.gradle.node
 
+import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
-
+import org.slf4j.Logger
 import java.text.DateFormat
 
 
@@ -11,12 +12,23 @@ import java.text.DateFormat
  */
 class NodeHelper
 {
+    private final Logger logger
+
+
+    @Requires({ logger })
+    @Ensures ({ this.logger })
+    NodeHelper ( Logger logger )
+    {
+        this.logger = logger
+    }
+
+
     /**
      * Retrieves latest Node.js version
      * @return latest Node.js version
      */
     @Ensures({ result })
-    String latestNodeVersion(){ latestNodeVersion( 'http://nodejs.org/dist/'.toURL().getText( 'UTF-8' ) )}
+    String latestNodeVersion(){ latestNodeVersion( NODE_VERSIONS_URL.toURL().getText( 'UTF-8' ) )}
 
 
     /**
@@ -39,6 +51,12 @@ class NodeHelper
         final DateFormat formatter = new java.text.SimpleDateFormat( 'dd-MMM-yyyy HH:mm' )
         final latestDate           = dateToVersionMap.keySet().max{ String date -> formatter.parse( date ).time }
         final latestVersion        = dateToVersionMap[ latestDate ]
+
+        if ( logger.infoEnabled )
+        {
+            logger.info( "Latest Node.js version is [$latestVersion]" )
+        }
+
         latestVersion
     }
 }

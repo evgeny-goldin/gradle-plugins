@@ -1,18 +1,13 @@
 apply plugin: 'idea'
 
 
-final kotlinVersion     = '0.4.297'        // http://repository.jetbrains.com/kotlin/org/jetbrains/kotlin/kotlin-compiler/
-final gcontractsVersion = '1.2.10'         // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.gcontracts%22%20AND%20a%3A%22gcontracts-core%22
-final junitVersion      = '4.11'           // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22junit%22%20AND%20a%3A%22junit%22
-final spockVersion      = '0.7-groovy-1.8' // http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.spockframework%22%20AND%20a%3A%22spock-core%22
-
 defaultTasks 'duplicates', 'clean', 'codenarc', 'build', 'install'
 
 
 ext.codenarcRuleSetFiles = [ "$rootDir/codenarc.groovy" ]
 ext.codenarcExtensions   = [ '**/*.groovy' ]
-ext.codenarcSources      = project.subprojects.collect{[ "${ it.projectDir.name }/src/main/groovy",
-                                                         "${ it.projectDir.name }/src/test/groovy" ]}.flatten()
+ext.codenarcSources      = project.subprojects.collect{ Project p -> [ "${ p.projectDir.name }/src/main/groovy",
+                                                                       "${ p.projectDir.name }/src/test/groovy" ]}.flatten()
 apply from: 'file:codenarc/CodeNarc.gradle'
 
 
@@ -71,8 +66,10 @@ subprojects {
                    verbose             = true }
 
     dependencies {
-        compile     gradleApi(), "org.gcontracts:gcontracts-core:$gcontractsVersion"
-        testCompile "junit:junit:$junitVersion"
+        compile     gradleApi(),
+                    'org.gcontracts:gcontracts-core:1.2.10'
+        testCompile 'junit:junit:4.11'
+        testRuntime 'ch.qos.logback:logback-classic:1.0.9'
     }
 
     jar {
@@ -116,7 +113,7 @@ subprojects {
 
 project( ':common' ) {
     Project p ->
-    p.dependencies { compile ( "org.spockframework:spock-core:$spockVersion" ) {
+    p.dependencies { compile ( 'org.spockframework:spock-core:0.7-groovy-1.8' ) {
         exclude group: 'junit'
         exclude group: 'org.codehaus.groovy'
     }}
@@ -140,8 +137,8 @@ subprojects.findAll{ Project p -> p.name != 'common' }.each {
 
 project( ':kotlin' ) {
     dependencies {
-        compile "org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
-        compile ( "org.jetbrains.kotlin:kdoc:$kotlinVersion" ){
+        compile   'org.jetbrains.kotlin:kotlin-compiler:0.4.297'
+        compile ( 'org.jetbrains.kotlin:kdoc:0.4.297' ){
             exclude group:  'asm'            /* Brought by gcontracts */
             exclude module: 'kotlin-runtime' /* Conflicts with 'kotlin-compiler' */
         }
@@ -163,7 +160,7 @@ task wrapper( type: Wrapper ) { gradleVersion = '1.4-rc-1' }
 private Properties validatePropertiesFile( Project p, File gradleProperties )
 {
     assert gradleProperties
-    assert gradleProperties.file, "[$gradleProperties.canonicalPath] can't be found"
+    assert gradleProperties.file, "[$gradleProperties.canonicalPath] is not available"
 
     final properties = new Properties()
 
@@ -175,7 +172,7 @@ private Properties validatePropertiesFile( Project p, File gradleProperties )
     final classFile = new File(( File ) p.compileGroovy.destinationDir,
                                implementationClass.replace( '.', '/' ) + '.class' )
     assert classFile.file, "File [$classFile.canonicalPath] referenced by [$implementationClass] " +
-                           "in [$gradleProperties.canonicalPath] can't be found"
+                           "in [$gradleProperties.canonicalPath] is not available"
     properties
 }
 

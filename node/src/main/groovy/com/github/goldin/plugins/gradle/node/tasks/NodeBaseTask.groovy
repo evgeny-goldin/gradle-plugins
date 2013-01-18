@@ -16,7 +16,7 @@ import org.gradle.api.logging.LogLevel
  */
 abstract class NodeBaseTask extends BaseTask<NodeExtension>
 {
-    final NodeHelper nodeHelper = new NodeHelper()
+    final NodeHelper nodeHelper = new NodeHelper( logger )
 
 
     /**

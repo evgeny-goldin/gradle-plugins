@@ -1,17 +1,19 @@
 package com.github.goldin.plugins.gradle.node
 
 import com.github.goldin.plugins.gradle.common.BaseSpecification
+import groovy.util.logging.Slf4j
 
 
 /**
- * {@link NodeTestTask} test specification.
+ * {@link com.github.goldin.plugins.gradle.node.tasks.TestTask} test specification.
  */
+@Slf4j
 class NodeTestTaskSpec extends BaseSpecification
 {
     def 'Latest Node.js version'() {
 
         expect:
-        new NodeHelper().latestNodeVersion( load( fileName )) == version
+        new NodeHelper( log ).latestNodeVersion( load( fileName )) == version
 
         where:
         fileName                    | version

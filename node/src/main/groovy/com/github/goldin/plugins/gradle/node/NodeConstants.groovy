@@ -9,6 +9,7 @@ import java.util.regex.Pattern
 @SuppressWarnings([ 'PropertyName' ])
 class NodeConstants
 {
+    final static String NODE_VERSIONS_URL   = 'http://nodejs.org/dist/'
     final static String NVM_GIT_REPO        = 'git://github.com/creationix/nvm.git'
 
     final static String NODE_EXTENSION      = 'node'
