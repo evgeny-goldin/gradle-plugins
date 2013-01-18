@@ -8,8 +8,6 @@ import static com.github.goldin.plugins.gradle.node.NodeConstants.*
  */
 class CleanTask extends NodeBaseTask
 {
-    boolean requiresScriptPath(){ false }
-
     @Override
     void taskAction()
     {

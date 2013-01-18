@@ -10,6 +10,7 @@ import org.gcontracts.annotations.Requires
  */
 class StopTask extends NodeBaseTask
 {
+    boolean requiresScriptPath(){ ( ! ext.pidOnlyToStop ) }
 
     @Override
     void taskAction()
@@ -34,7 +35,7 @@ class StopTask extends NodeBaseTask
     }
 
 
-    @Requires({ ext.scriptPath })
+    @Requires({ ext.pidOnlyToStop || ext.scriptPath })
     @Ensures({ result })
     private List<String> stopCommands()
     {

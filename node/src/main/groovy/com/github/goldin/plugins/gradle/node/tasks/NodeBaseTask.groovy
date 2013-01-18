@@ -23,7 +23,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      * @return true if current task requires an existence of {@link NodeExtension#scriptPath},
      *         false otherwise
      */
-    protected boolean requiresScriptPath(){ true }
+    protected boolean requiresScriptPath(){ false }
 
 
     /**
@@ -56,7 +56,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Override
     void verifyUpdateExtension ( String description )
     {
-        assert project.name,            "'project.name' should be defined"
         assert ext.NODE_ENV,            "'NODE_ENV' should be defined in $description"
         assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
         assert ext.testCommand,         "'testCommand' should be defined in $description"

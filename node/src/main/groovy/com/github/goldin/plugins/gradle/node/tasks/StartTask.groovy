@@ -10,6 +10,7 @@ import org.gcontracts.annotations.Requires
  */
 class StartTask extends NodeBaseTask
 {
+    boolean requiresScriptPath(){ true }
 
     @Override
     void taskAction()

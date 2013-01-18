@@ -13,8 +13,6 @@ import org.gradle.api.tasks.testing.Test
  */
 class TestTask extends NodeBaseTask
 {
-    boolean requiresScriptPath(){ false }
-
     @Override
     void taskAction()
     {
@@ -33,7 +31,7 @@ class TestTask extends NodeBaseTask
 
     private void runTests ()
     {
-        final testReport = bashExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), scriptFile( TEST_SCRIPT ))
+        final testReport = bashExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), scriptFile( TEST_SCRIPT ), true, ext.failIfTestsFail )
 
         if ( ! ext.xUnitReport ) { return }
 
