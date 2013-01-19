@@ -17,11 +17,12 @@ class StopTask extends NodeBaseTask
     {
         try
         {
-            bashExec( stopScript(), scriptFile( STOP_SCRIPT ))
+            bashExec( stopScript(), taskScriptFile())
+            if ( ext.checkAfterStop ) { runTask ( CHECK_STOPPED_TASK )}
         }
         finally
         {
-            if ( ext.after ) { bashExec( beforeAfterScript( ext.after ), scriptFile( AFTER_STOP_SCRIPT ), false, true, false )}
+            if ( ext.after ) { bashExec( beforeAfterScript( ext.after ), taskScriptFile( false, true ), false, true, false )}
         }
     }
 
@@ -48,7 +49,7 @@ class StopTask extends NodeBaseTask
             |    while [ "\$foreverId" != "" ];
             |    do
             |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
-            |        forever stop \$foreverId;
+            |        forever stop \$foreverId
             |        foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
             |    done
             |fi
@@ -56,40 +57,9 @@ class StopTask extends NodeBaseTask
             ( ext.pidOnlyToStop ? [] :
             """
             |
-            |# If .pid file doesn't exist or 'forever stop' fails to stop ..
-            |<kill forever,${ project.name }|${ ext.scriptPath },${ project.name }>
+            |${ killCommands().join( '\n|' )}
             """.stripMargin().readLines())
 
-        final stopCommandsExpanded = stopCommands.collect {
-
-            String stopCommand ->
-            assert stopCommand != null, "Undefined stop command [$stopCommand]"
-
-            final killProcesses = ( stopCommand ? find( stopCommand, KillPattern ) : null /* Empty command*/ )
-            if  ( killProcesses )
-            {
-                killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
-                    String process ->
-
-                    final processGrepSteps = process.tokenize( ',' )*.replace( "'", "'\\''" ).collect { "grep '$it'" }.join( ' | ' )
-                    final listProcesses    = "ps -Af | $processGrepSteps | grep -v 'grep'"
-                    final pids             = "$listProcesses | awk '{print \$2}'"
-                    final killAll          = "$pids | while read pid; do echo \"kill \$pid\"; kill \$pid; done"
-                    final forceKillAll     = "$pids | while read pid; do echo \"kill -9 \$pid\"; kill -9 \$pid; done"
-                    final ifStillRunning   = "if [ \"`$pids`\" != \"\" ]; then"
-
-                    [ "$ifStillRunning $killAll; fi",
-                      "$ifStillRunning sleep 5; $forceKillAll; fi",
-                      "$ifStillRunning echo 'Failed to kill process [$process]:'; $listProcesses; exit 1; fi" ]
-                }.flatten()
-            }
-            else
-            {
-                stopCommand
-            }
-        }.flatten()
-
-        assert stopCommandsExpanded
-        [ 'set +e', '', *stopCommandsExpanded, '', 'set -e' ] // Empty commands correspond to empty lines in a bash script
+        [ 'set +e', '', *stopCommands, '', 'set -e' ] // Empty commands correspond to empty lines in a bash script
     }
 }

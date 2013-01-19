@@ -1,11 +1,11 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
-import com.github.goldin.plugins.gradle.node.ConfigHelper
-import groovy.text.SimpleTemplateEngine
 import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.node.ConfigHelper
 import com.github.goldin.plugins.gradle.node.NodeExtension
 import com.github.goldin.plugins.gradle.node.NodeHelper
+import groovy.text.SimpleTemplateEngine
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.logging.LogLevel
@@ -87,9 +87,16 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     }
 
 
-    @Requires({ project.buildDir && scriptName })
+    @Requires({ project.buildDir && this?.name })
     @Ensures ({ result })
-    final File scriptFile ( String scriptName ) { new File( project.buildDir, scriptName ) }
+    final File taskScriptFile ( boolean before = false, boolean after = false )
+    {
+        final fileName = ( before ? 'before-' :
+                           after  ? 'after-'  :
+                                    '' ) + this.name + '.sh'
+
+        new File( project.buildDir, fileName )
+    }
 
 
     @Requires({ taskName })
@@ -114,6 +121,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      * Retrieves base part of the bash script to be used by various tasks.
      */
     @Requires({ operationTitle })
+    @Ensures ({ result })
     final String baseBashScript ( String operationTitle )
     {
         final  binFolder = project.file( MODULES_BIN_DIR )
@@ -221,5 +229,31 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ]) }
 
         exec ( 'bash', [ scriptFile.canonicalPath ], project.projectDir, failOnError, useGradleExec )
+    }
+
+
+    /**
+     * Retrieves commands to be used for killing the project's running processes.
+     * @return commands to be used for killing the project's running processes
+     */
+    @Requires({ project.name && ext.scriptPath })
+    @Ensures ({ result })
+    final List<String> killCommands ()
+    {
+        final  killProcesses = "forever,${ project.name }|${ ext.scriptPath },${ project.name }"
+        killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
+            String process ->
+
+            final processGrepSteps = process.tokenize( ',' )*.replace( "'", "'\\''" ).collect { "grep '$it'" }.join( ' | ' )
+            final listProcesses    = "ps -Af | $processGrepSteps | grep -v 'grep'"
+            final pids             = "$listProcesses | awk '{print \$2}'"
+            final killAll          = "$pids | while read pid; do echo \"kill \$pid\"; kill \$pid; done"
+            final forceKillAll     = "$pids | while read pid; do echo \"kill -9 \$pid\"; kill -9 \$pid; done"
+            final ifStillRunning   = "if [ \"`$pids`\" != \"\" ]; then"
+
+            [ "$ifStillRunning $killAll; fi",
+              "$ifStillRunning sleep 5; $forceKillAll; fi",
+              "$ifStillRunning echo 'Failed to kill process [$process]:'; $listProcesses; exit 1; fi" ]
+        }.flatten()
     }
 }

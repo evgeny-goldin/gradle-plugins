@@ -22,10 +22,14 @@ class NodePlugin extends BasePlugin
           ( CLEAN_MODULES      ) : CleanModulesTask,
           ( SETUP_TASK         ) : SetupTask,
           ( TEST_TASK          ) : TestTask,
+
           ( STOP_TASK          ) : StopTask,
+          ( STOP_ALL_TASK      ) : StopAllTask,
+          ( CHECK_STOPPED_TASK ) : CheckStoppedTask,
+
           ( START_TASK         ) : StartTask,
-          ( CHECK_STARTED_TASK ) : CheckStartedTask,
-          ( CHECK_STOPPED_TASK ) : CheckStoppedTask
+          ( RESTART_ALL_TASK   ) : RestartAllTask,
+          ( CHECK_STARTED_TASK ) : CheckStartedTask
         ]
     }
 
@@ -39,12 +43,9 @@ class NodePlugin extends BasePlugin
         super.apply( project )
 
         final setupTask = project.tasks[ SETUP_TASK ]
-        final testTask  = project.tasks[ TEST_TASK  ]
-        final stopTask  = project.tasks[ STOP_TASK  ]
-        final startTask = project.tasks[ START_TASK ]
 
-        testTask. dependsOn  setupTask
-        stopTask. dependsOn  setupTask
-        startTask.dependsOn  setupTask
+        [ TEST_TASK, STOP_TASK, STOP_ALL_TASK, START_TASK, RESTART_ALL_TASK ].each {
+            String taskName -> project.tasks[ taskName ].dependsOn( setupTask )
+        }
     }
 }

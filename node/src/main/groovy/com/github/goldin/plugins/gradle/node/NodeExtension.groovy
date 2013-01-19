@@ -11,7 +11,9 @@ class NodeExtension
     boolean      stopIfFailsToStart     = true  // Whether the app should be stopped if it fails to start
     boolean      stopBeforeStart        = true  // Whether 'stop' should run before 'start'
     boolean      checkAfterStart        = true  // Whether 'checkStarted' should run after 'start'
+    boolean      checkAfterRestartall   = true  // Whether 'checkStarted' should run after 'restartall'
     boolean      checkAfterStop         = true  // Whether 'checkStopped' should run after 'stop'
+    boolean      checkAfterStopall      = true  // Whether 'checkStopped' should run after 'stopall'
     boolean      pidOnlyToStop          = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
     int          portNumber             = 1337  // Port the application starts on (becomes part of .pid file name)
     String       checkUrl                       // The URL to check after application has started, "http://127.0.0.1:$portNumber" by default
