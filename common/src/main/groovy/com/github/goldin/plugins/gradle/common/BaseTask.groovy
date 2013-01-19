@@ -71,7 +71,7 @@ abstract class BaseTask<T> extends DefaultTask
      * @param delayInMilliseconds amount of milliseconds to sleep
      */
     @Requires({ delayInMilliseconds > -1 })
-    void delay( long delayInMilliseconds )
+    final void delay( long delayInMilliseconds )
     {
         if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}
     }
@@ -545,21 +545,23 @@ abstract class BaseTask<T> extends DefaultTask
      * @param headers        HTTP headers to send
      * @param connectTimeout connection timeout to set
      * @param readTimeout    connection read timeout to set
-     * @param readContent    closure returning boolean value of whether or not content should be read,
+     * @param isReadContent  closure returning boolean value of whether or not content should be read,
      *                       passed {@link HttpResponse} when called
      * @return http response object
      */
     @Requires({ url && method && ( headers != null ) && ( connectTimeout > -1 ) && ( readTimeout > -1 ) })
     @Ensures ({ result })
     @SuppressWarnings([ 'GroovyGetterCallCanBePropertyAccess', 'JavaStylePropertiesInvocation' ])
-    HttpResponse httpRequest( String              url,
-                              String              method         = 'GET',
-                              Map<String, String> headers        = [:],
-                              int                 connectTimeout = 0,
-                              int                 readTimeout    = 0,
-                              Closure             readContent    = null,
-                              boolean             failOnError    = true )
+    final HttpResponse httpRequest( String              url,
+                                    String              method         = 'GET',
+                                    Map<String, String> headers        = [:],
+                                    int                 connectTimeout = 0,
+                                    int                 readTimeout    = 0,
+                                    Closure             isReadContent  = null,
+                                    boolean             failOnError    = true )
     {
+        assert url.with { startsWith( 'http://' ) || startsWith( 'https://' )}, "[$url] - only 'http[s]://' URLs are supported"
+
         final response = new HttpResponse( url, method )
 
         try
@@ -583,7 +585,7 @@ abstract class BaseTask<T> extends DefaultTask
 
         response.statusCode = HttpResponse.statusCode( response )
 
-        if (( readContent == null ) || readContent( response ))
+        if (( isReadContent == null ) || isReadContent( response ))
         {
             final inputStream = ( response.inputStream ?: response.errorStream )
             if (  inputStream )
