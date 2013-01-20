@@ -52,14 +52,16 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
             if ( ! passed )
             {
-                addFailure( "Requesting [$checkUrl] received status code [$responseStatusCode] and content [$responseContent] " +
+                addFailure( "Requesting [$checkUrl] we received status code [$responseStatusCode] and content [$responseContent] " +
                              "while expected status code [$checkStatusCode] and content containing [$checkContent]" )
             }
             else if ( ! timePassed )
             {
-                addFailure( "Requesting [$checkUrl] received correct status code and content but it took " +
+                addFailure( "Requesting [$checkUrl] we received correct status code and content but it took " +
                             "[${ response.timeMillis }] ms while expected less than or equal to [${ timeLimit }] ms" )
             }
+
+            log { "Checking [$checkUrl] - Ok, [${ response.timeMillis }] ms" }
         }
 
         if ( failures )
