@@ -28,6 +28,7 @@ class NodeExtension
     List<String>  after                 = []    // Commands to execute after running unit tests or stopping the application
     int           redisPort             = -1    // Local Redis instance port number to start and stop
     String        redisPortConfigKey    = ''    // Config key holding local Redis instance port number to start and stop
+    boolean       redisStopInProduction = false // Whether Redis should be stopped when NODE_ENV=production
     int           redisWait             = 3     // Number of seconds to wait after Redis has started or stopped
     boolean       redisAddedAlready     = false // Internal property, whether Redis commands are already added to before/after
     String        NODE_ENV              = 'development'
