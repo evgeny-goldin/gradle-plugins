@@ -32,28 +32,33 @@ class MonitorTask extends BaseTask<MonitorExtension>
     {
         final resourceLines = ext.resources.readLines()*.trim().grep().findAll { ! it.startsWith( '#' ) }
         final failures      = []
+        final addFailure    = { String message -> failures << message; log( LogLevel.ERROR ){ ">>>> $message" }}
 
         for ( resourceLine in resourceLines )
         {
-            def ( String checkUrl, String checkStatusCode, String checkContent ) = resourceLine.tokenize( '|' )
+            def ( String checkUrl, String checkStatusCode, String checkContent, String timeLimit ) = resourceLine.tokenize( '|' )
             assert checkUrl
             checkStatusCode = checkStatusCode ?: '200'
             checkContent    = checkContent    ?: ''
+            timeLimit       = timeLimit       ?: ( Long.MAX_VALUE as String )
 
             log { "Checking [$checkUrl], expecting status code [$checkStatusCode] and content containing [$checkContent]" }
 
-            final response           = httpRequest( checkUrl, 'GET', [:], 0, 0, null, false )
+            final response           = httpRequest( checkUrl, 'GET', [:], 0, 0, null, false, false )
             final responseStatusCode = response.statusCode.toString()
             final responseContent    = response.content ? new String( response.content, 'UTF-8' ) : ''
             final passed             = ( responseStatusCode == checkStatusCode ) && ( responseContent.contains( checkContent ))
+            final timePassed         = ( response.timeMillis <= ( timeLimit as long ))
 
             if ( ! passed )
             {
-                final message = "Requesting [$checkUrl] received status code [$responseStatusCode] and content [$responseContent] " +
-                                "while expected status code [$checkStatusCode] and content containing [$checkContent]"
-
-                failures << message
-                log( LogLevel.ERROR ){ ">> $message" }
+                addFailure( "Requesting [$checkUrl] received status code [$responseStatusCode] and content [$responseContent] " +
+                             "while expected status code [$checkStatusCode] and content containing [$checkContent]" )
+            }
+            else if ( ! timePassed )
+            {
+                addFailure( "Requesting [$checkUrl] received correct status code and content but it took " +
+                            "[${ response.timeMillis }] ms while expected less than or equal to [${ timeLimit }] ms" )
             }
         }
 

@@ -5,12 +5,9 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.internal.project.AbstractProject
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecSpec
-import org.gradle.process.internal.DefaultExecAction
-import org.gradle.util.ConfigureUtil
 
 import javax.xml.XMLConstants
 import javax.xml.transform.stream.StreamSource
@@ -547,21 +544,25 @@ abstract class BaseTask<T> extends DefaultTask
      * @param readTimeout    connection read timeout to set
      * @param isReadContent  closure returning boolean value of whether or not content should be read,
      *                       passed {@link HttpResponse} when called
+     * @param failOnError    whether execution should fail if sending request fails
+     * @param logError       whether an error thrown should be logged
      * @return http response object
      */
     @Requires({ url && method && ( headers != null ) && ( connectTimeout > -1 ) && ( readTimeout > -1 ) })
     @Ensures ({ result })
-    @SuppressWarnings([ 'GroovyGetterCallCanBePropertyAccess', 'JavaStylePropertiesInvocation' ])
+    @SuppressWarnings([ 'GroovyGetterCallCanBePropertyAccess', 'JavaStylePropertiesInvocation', 'GroovyMethodParameterCount' ])
     final HttpResponse httpRequest( String              url,
                                     String              method         = 'GET',
                                     Map<String, String> headers        = [:],
                                     int                 connectTimeout = 0,
                                     int                 readTimeout    = 0,
                                     Closure             isReadContent  = null,
-                                    boolean             failOnError    = true )
+                                    boolean             failOnError    = true,
+                                    boolean             logError       = true )
     {
         assert url.with { startsWith( 'http://' ) || startsWith( 'https://' )}, "[$url] - only 'http[s]://' URLs are supported"
 
+        final time     = System.currentTimeMillis()
         final response = new HttpResponse( url, method )
 
         try
@@ -580,7 +581,7 @@ abstract class BaseTask<T> extends DefaultTask
         {
             if ( failOnError ) { throw error }
             response.errorStream = response.connection.errorStream
-            log{ "Connecting to [$url], method [$method], headers $headers resulted in '$error'" }
+            if ( logError    ) { log{ "Connecting to [$url], method [$method], headers $headers resulted in '$error'" }}
         }
 
         response.statusCode = HttpResponse.statusCode( response )
@@ -597,6 +598,7 @@ abstract class BaseTask<T> extends DefaultTask
             response.errorStream?.close()
         }
 
+        response.timeMillis = System.currentTimeMillis() - time
         response
     }
 }

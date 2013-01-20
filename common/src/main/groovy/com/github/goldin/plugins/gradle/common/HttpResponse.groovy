@@ -25,6 +25,7 @@ class HttpResponse
     InputStream       errorStream
     byte[]            data           // Binary data as received in response
     byte[]            content        // Content decompressed from the binary data
+    long              timeMillis     // Time in milliseconds it took to receive and process the response
 
     boolean getIsRedirect (){ originalUrl != actualUrl }
 
@@ -48,6 +49,7 @@ class HttpResponse
         this.inputStream = response.inputStream
         this.data        = response.data
         this.content     = response.content
+        this.timeMillis  = response.timeMillis
     }
 
 
