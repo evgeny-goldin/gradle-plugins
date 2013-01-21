@@ -467,7 +467,7 @@ abstract class BaseTask<T> extends DefaultTask
     final InputStream getResource ( String resourcePath )
     {
         final  inputStream = this.class.classLoader.getResourceAsStream( resourcePath.startsWith( '/' ) ? resourcePath.substring( 1 ) : resourcePath )
-        assert inputStream, "Unable to load resource [$resourcePath]. If you believe there's no mistake then consider restarting the Gradle daemon."
+        assert inputStream, "Unable to load resource [$resourcePath]. If you believe there's no mistake then consider restarting the Gradle daemon"
         inputStream
     }
 

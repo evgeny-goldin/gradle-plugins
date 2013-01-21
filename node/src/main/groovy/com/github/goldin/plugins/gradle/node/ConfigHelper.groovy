@@ -4,6 +4,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
+import org.gradle.api.GradleException
 
 
 /**
@@ -25,7 +26,8 @@ class ConfigHelper
     @Ensures ({ result })
     private String noNewKeysErrorMessage( Map map, String key, Object value )
     {
-        "Config Map $map contains no key \"$key\" to update it with [$value] - new config keys can't be created"
+        "Config Map $map contains no key \"$key\" to update it with [$value] - new config keys can't be created. " +
+        "Make sure there's no typo in \"$key\" and that config file being updated already contains a value for it."
     }
 
 
@@ -71,20 +73,34 @@ class ConfigHelper
     @Ensures ({ result })
     Map<String,?> updateConfigFile ( File configFile, Map<String, ?> newConfigData )
     {
-        final Map<String,?> oldConfigData =
-            ( Map ) ( configFile.file ? new JsonSlurper().parseText( configFile.getText( 'UTF-8' )) : [:] )
+        try
+        {
+            final Map<String,?> existingConfigData =
+                ( Map ) ( configFile.file ? new JsonSlurper().parseText( configFile.getText( 'UTF-8' )) : [:] )
 
-        newConfigData.each {
-            String key, Object value ->
-            updateConfigMap( oldConfigData, key, value )
+            if ( ext.configsUpdateOnly )
+            {
+                assert configFile.file,    "[$configFile.canonicalPath] is not available"
+                assert existingConfigData, "No configuration data was read from [$configFile.canonicalPath]"
+            }
+
+            newConfigData.each {
+                String key, Object value ->
+                updateConfigMap( existingConfigData, key, value )
+            }
+
+            assert existingConfigData
+            final  configDataStringified = JsonOutput.prettyPrint( JsonOutput.toJson( existingConfigData ))
+            assert configDataStringified
+
+            configFile.write( configDataStringified, 'UTF-8' )
+            existingConfigData
         }
-
-        assert oldConfigData
-        final  configDataStringified = JsonOutput.prettyPrint( JsonOutput.toJson( oldConfigData ))
-        assert configDataStringified
-
-        configFile.write( configDataStringified, 'UTF-8' )
-        oldConfigData
+        catch ( Throwable error )
+        {
+            throw new GradleException( "Failed to update config [$configFile.canonicalPath] with $newConfigData",
+                                       error )
+        }
     }
 
 
