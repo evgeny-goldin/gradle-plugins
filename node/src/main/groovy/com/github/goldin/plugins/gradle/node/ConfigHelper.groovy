@@ -91,7 +91,7 @@ class ConfigHelper
 
             assert existingConfigData
             final  configDataStringified = JsonOutput.prettyPrint( JsonOutput.toJson( existingConfigData ))
-            assert configDataStringified
+            assert configDataStringified && new JsonSlurper().parseText( configDataStringified )
 
             configFile.write( configDataStringified, 'UTF-8' )
             existingConfigData
