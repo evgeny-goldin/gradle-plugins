@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 echo ---------------------------------------------
 echo Running "\""setup"\"" in "\""`pwd`"\""
 echo ---------------------------------------------
@@ -14,10 +13,12 @@ fi
 NVM_HOME="$HOME/.nvm"
 NVM_SH="$NVM_HOME/nvm.sh"
 
-. "$NVM_SH"
-nvm ls
+if [ -f "$NVM_SH" ]; then
+    . "$NVM_SH"
+    nvm ls
+fi
 
-if [ $? -ne 0 ] || [ ! -f "$NVM_SH" ]; then
+if [ ! -f "$NVM_SH" ] || [ $? -ne 0 ]; then
     rm -rf "$NVM_HOME"
     git clone ${nvmRepo} "$NVM_HOME"
 fi
@@ -28,16 +29,13 @@ then
     exit 1
 fi
 
-set -e
-set -o pipefail
-
 . "$NVM_SH"
 
 nvm install ${nodeVersion}
 nvm use     ${nodeVersion}
 
-echo npm install
-npm install
-
 echo "npm  : [`which npm`][`npm --version`]"
 echo "node : [`which node`][`node --version`]"
+
+echo npm install
+npm install
