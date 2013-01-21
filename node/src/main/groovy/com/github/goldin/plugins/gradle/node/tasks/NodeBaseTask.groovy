@@ -75,14 +75,15 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         if (  addRedis )
         {
             final redisPort    = ( ext.redisPort > 0 ) ? ext.redisPort as String : '${ config.' + ext.redisPortConfigKey + ' }'
-            final isStopRedis  = (( ext.redisStopInProduction ) || ( ext.NODE_ENV != 'production' ))
+            final isStartRedis = (( ext.redisStartInProduction ) || ( ext.NODE_ENV != 'production' ))
+            final isStopRedis  = (( ext.redisStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
             final redisRunning = '"`redis-cli -p ' + redisPort + ' ping 2> /dev/null`" = "PONG"'
             final getScript    = { String scriptName -> getResourceText( scriptName ).
                                                         replace( '${redisPort}',    redisPort ).
                                                         replace( '${redisRunning}', redisRunning ).
                                                         replace( '${sleep}',        ( ext.redisWait > 0 ? ext.redisWait : 0 ) as String )}
-            ext.before            = getScript( 'redis-start.sh' ).readLines()                        + ( ext.before ?: [] )
-            ext.after             = ( isStopRedis ? getScript( 'redis-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
+            ext.before            = ( isStartRedis ? getScript( 'redis-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
+            ext.after             = ( isStopRedis  ? getScript( 'redis-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
             ext.redisAddedAlready = true
         }
     }
