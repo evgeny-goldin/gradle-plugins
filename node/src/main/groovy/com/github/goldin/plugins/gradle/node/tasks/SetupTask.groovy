@@ -110,6 +110,7 @@ class SetupTask extends NodeBaseTask
     private void runSetupScript()
     {
         final setupScript = getResourceText( 'setup.sh' ).replace( '${nvmRepo}',     NVM_GIT_REPO    ).
+                                                          replace( '${nvmCommit}',   NVM_COMMIT      ).
                                                           replace( '${nodeVersion}', ext.nodeVersion )
         assert ( ! setupScript.contains( '${' ))
         bashExec(  setupScript, taskScriptFile(), false )
