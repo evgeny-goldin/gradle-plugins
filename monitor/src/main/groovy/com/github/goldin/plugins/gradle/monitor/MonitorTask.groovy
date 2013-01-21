@@ -21,8 +21,11 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Override
     void verifyUpdateExtension ( String description )
     {
-        assert ext.resources, "'resources' should be defined in $description"
-        assert ext.resources.file, "[${ ext.resources }] is not available"
+        assert ext.resources,           "'resources' should be defined in $description"
+        assert ext.resources.file,      "[${ ext.resources }] is not available"
+        assert ext.headers     != null, "'headers' should not be null in $description"
+        assert ext.connectTimeout > -1, "'connectTimeout' should not be negative in $description"
+        assert ext.readTimeout    > -1, "'readTimeout' should not be negative in $description"
     }
 
 
@@ -44,7 +47,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
             log { "Checking [$checkUrl], expecting status code [$checkStatusCode] and content containing [$checkContent]" }
 
-            final response           = httpRequest( checkUrl, 'GET', [:], 0, 0, null, false, false )
+            final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, null, false, false )
             final responseStatusCode = response.statusCode.toString()
             final responseContent    = response.content ? new String( response.content, 'UTF-8' ) : ''
             final passed             = ( responseStatusCode == checkStatusCode ) && ( responseContent.contains( checkContent ))
@@ -52,8 +55,9 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
             if ( ! passed )
             {
-                addFailure( "Requesting [$checkUrl] we received status code [$responseStatusCode] and content [$responseContent] " +
-                             "while expected status code [$checkStatusCode] and content containing [$checkContent]" )
+                addFailure( "Requesting [$checkUrl] we received ${ response.statusCode instanceof Throwable ? 'error' : 'status code' } " +
+                            "[$responseStatusCode] and content [$responseContent] " +
+                            "while expected status code [$checkStatusCode] and content containing [$checkContent]" )
             }
             else if ( ! timePassed )
             {

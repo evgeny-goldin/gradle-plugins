@@ -540,8 +540,8 @@ abstract class BaseTask<T> extends DefaultTask
      * @param url            url to send the request to
      * @param method         HTTP method to use: 'GET' or 'HEAD'
      * @param headers        HTTP headers to send
-     * @param connectTimeout connection timeout to set
-     * @param readTimeout    connection read timeout to set
+     * @param connectTimeout connection timeout to set (in milliseconds)
+     * @param readTimeout    connection read timeout to set (in milliseconds)
      * @param isReadContent  closure returning boolean value of whether or not content should be read,
      *                       passed {@link HttpResponse} when called
      * @param failOnError    whether execution should fail if sending request fails
