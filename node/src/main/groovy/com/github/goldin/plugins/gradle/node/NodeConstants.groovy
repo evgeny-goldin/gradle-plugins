@@ -11,7 +11,8 @@ class NodeConstants
 {
     final static String NODE_VERSION_URL       = 'http://nodejs.org/'
     final static String NVM_GIT_REPO           = 'git://github.com/creationix/nvm.git'
-    final static String NVM_COMMIT             = 'e145978e73a195472fe13d5564fae7696812e4cb'
+    // https://github.com/creationix/nvm/commits/master
+    final static String NVM_COMMIT             = 'f605581c7d83cd73910e6978a863982906bad7c7'
 
     final static String NODE_EXTENSION         = 'node'
     final static String CLEAN_TASK             = 'clean'
