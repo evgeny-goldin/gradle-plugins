@@ -12,9 +12,6 @@ apply from: 'file:codenarc/CodeNarc.gradle'
 apply from: 'https://raw.github.com/evgeny-goldin/scripts/master/src/main/gradle/wrapper.gradle'
 
 
-println "> Running Gradle [${ project.gradle.gradleVersion }], Groovy [${ GroovySystem.version }], Java [${ System.getProperty( 'java.version' ) }]"
-
-
 buildscript {
     repositories { maven { url 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }}
     dependencies {
