@@ -154,7 +154,7 @@ project( ':teamcity' ) {
 }
 
 
-task wrapper( type: Wrapper ) { gradleVersion = '1.4-rc-1' }
+task wrapper( type: Wrapper ) { gradleVersion = '1.4-rc-2' }
 
 
 private Properties validatePropertiesFile( Project p, File gradleProperties )
