@@ -18,6 +18,7 @@ class NodePlugin extends BasePlugin
     Map<String , Class<? extends BaseTask>> tasks ( Project project )
     {
         [
+          ( HELP_TASK          ) : HelpTask,
           ( CLEAN_TASK         ) : CleanTask,
           ( CLEAN_MODULES      ) : CleanModulesTask,
           ( SETUP_TASK         ) : SetupTask,
