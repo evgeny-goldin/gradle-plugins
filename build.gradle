@@ -9,6 +9,7 @@ ext.codenarcExtensions   = [ '**/*.groovy' ]
 ext.codenarcSources      = project.subprojects.collect{ Project p -> [ "${ p.projectDir.name }/src/main/groovy",
                                                                        "${ p.projectDir.name }/src/test/groovy" ]}.flatten()
 apply from: 'file:codenarc/CodeNarc.gradle'
+apply from: 'https://raw.github.com/evgeny-goldin/scripts/master/src/main/gradle/wrapper.gradle'
 
 
 println "> Running Gradle [${ project.gradle.gradleVersion }], Groovy [${ GroovySystem.version }], Java [${ System.getProperty( 'java.version' ) }]"
@@ -153,8 +154,6 @@ project( ':teamcity' ) {
     }
 }
 
-
-task wrapper( type: Wrapper ) { gradleVersion = '1.4-rc-2' }
 
 
 private Properties validatePropertiesFile( Project p, File gradleProperties )
