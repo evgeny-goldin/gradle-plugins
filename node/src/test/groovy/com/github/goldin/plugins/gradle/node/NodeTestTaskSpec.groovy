@@ -18,5 +18,6 @@ class NodeTestTaskSpec extends BaseSpecification
         where:
         fileName                   | version
         'node-version-v0.8.17.txt' | 'v0.8.17'
+        'node-version-v0.8.18.txt' | 'v0.8.18'
     }
 }
