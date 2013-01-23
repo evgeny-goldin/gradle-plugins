@@ -81,8 +81,8 @@ class ConfigHelper
             {
                 switch ( ext.configsNewKeys )
                 {
-                    case 'fail'   : throw new GradleException( "Config [$configFile.canonicalPath] to update is not available" )
-                    case 'ignore' : return [:]
+                    case 'fail'   : // fall through
+                    case 'ignore' : throw new GradleException( "Config [$configFile.canonicalPath] to update is not available" )
                     default       : break // continue, new file will be created
                 }
             }
