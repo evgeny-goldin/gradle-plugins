@@ -164,10 +164,11 @@ class TestTask extends NodeBaseTask
           line.findAll( EmptyAttributePattern, { it [ 1 .. 2 ] } )).inject( [:] ){
             Map m, List<String> l -> // l[ 0 ] is attribute name, l[ 1 ] is attribute value
                 m[ l[ 0 ] ] = l[ 1 ].trim().
-                                     replace( "|'", "'"    ).
-                                     replace( '"',  "'"    ).
-                                     replace( '<',  '&lt;' ).
-                                     replace( '>',  '&gt;' )
+                                     replace( "|'", "'"     ).
+                                     replace( '"',  "'"     ).
+                                     replace( '&',  '&amp;' ).
+                                     replace( '<',  '&lt;'  ).
+                                     replace( '>',  '&gt;'  )
             m
         }
     }
