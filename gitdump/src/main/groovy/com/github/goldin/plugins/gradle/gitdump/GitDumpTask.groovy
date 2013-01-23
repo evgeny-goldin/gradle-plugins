@@ -23,8 +23,13 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         assert ext.singleArchiveName,       "'singleArchiveName' should be defined in $description"
         assert ext.gitProjectNamePattern,   "'gitProjectNamePattern' should be defined in $description"
         assert ext.gitUrlWithCommitPattern, "'gitUrlWithCommitPattern' should be defined in $description"
+        assert ext.singleBackupMinSize > 0, "'singleBackupMinSize' should be positive in $description"
+        assert ext.totalBackupMinSize  > 0, "'totalBackupMinSize' should be positive in $description"
         assert ext.singleBackupMaxSize > 0, "'singleBackupMaxSize' should be positive in $description"
         assert ext.totalBackupMaxSize  > 0, "'totalBackupMaxSize' should be positive in $description"
+
+        assert ext.singleBackupMinSize <= ext.singleBackupMaxSize
+        assert ext.totalBackupMinSize  <= ext.totalBackupMaxSize
 
         ext.urls = ext.urls?.grep()?.toSet()?.sort()
         assert ext.urls, "List of Git URLs should be specifed in $description"
@@ -52,13 +57,13 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
             if ( ! ext.singleArchive )
             {
-                archive( repoDirectory, projectName, true, ext.singleBackupMaxSize  )
+                archive( repoDirectory, projectName, true, ext.singleBackupMinSize, ext.singleBackupMaxSize )
             }
         }
 
         if ( ext.singleArchive )
         {
-            final archive = archive( ext.outputDirectory, ext.singleArchiveName, false, ext.totalBackupMaxSize )
+            final archive = archive( ext.outputDirectory, ext.singleArchiveName, false, ext.totalBackupMinSize, ext.totalBackupMaxSize )
             delete( ext.outputDirectory.listFiles().findAll{ it.name != archive.name } as File[] )
         }
     }
@@ -146,9 +151,9 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     }
 
 
-    @Requires({ directory.directory && archiveBaseName })
+    @Requires({ directory.directory && archiveBaseName && ( minSizeLimit > 0 ) && ( maxSizeLimit > 0 ) && ( minSizeLimit <= maxSizeLimit ) })
     @Ensures({ result.file })
-    File archive( File directory, String archiveBaseName, boolean deleteDirectory, long maxSizeLimit )
+    File archive( File directory, String archiveBaseName, boolean deleteDirectory, long minSizeLimit, long maxSizeLimit )
     {
         final   archive = new File( ext.outputDirectory, "${ archiveBaseName }.${ ext.useZip ? 'zip' : 'tar.gz' }" )
         delete( archive )
@@ -170,13 +175,14 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
         final size = archive.length()
         assert ( archive.file && size )
-        assert ( size < maxSizeLimit ), \
+        assert ( size >= minSizeLimit ), \
+               "[$archive.canonicalPath] size is [$size] byte${ s( size )}, it is smaller than limit of [$minSizeLimit] byte${ s( minSizeLimit )}"
+        assert ( size <= maxSizeLimit ), \
                "[$archive.canonicalPath] size is [$size] byte${ s( size )}, it is larger than limit of [$maxSizeLimit] byte${ s( maxSizeLimit )}"
 
-        log{ "[$directory.canonicalPath] archived to [$archive.canonicalPath]" }
+        log { "[$directory.canonicalPath] archived to [$archive.canonicalPath]" }
 
         if ( deleteDirectory ){ delete( directory )}
-
         archive
     }
 }
