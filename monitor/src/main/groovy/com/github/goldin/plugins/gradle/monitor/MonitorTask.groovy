@@ -7,6 +7,7 @@ import org.gradle.api.logging.LogLevel
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLSession
+import java.util.regex.Pattern
 
 
 /**
@@ -48,32 +49,47 @@ class MonitorTask extends BaseTask<MonitorExtension>
             checkContent    = checkContent    ?: ''
             timeLimit       = timeLimit       ?: ( Long.MAX_VALUE as String )
 
-            log { "Checking [$checkUrl], expecting status code [$checkStatusCode] and content containing [$checkContent]" }
+            log { "[$checkUrl] - expecting status code [$checkStatusCode] and content matching [$checkContent]" }
 
             final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, null, false, false )
             final responseStatusCode = response.statusCode.toString()
             final responseContent    = response.content ? new String( response.content, 'UTF-8' ) : ''
-            final passed             = ( responseStatusCode == checkStatusCode ) && ( responseContent.contains( checkContent ))
-            final timePassed         = ( response.timeMillis <= ( timeLimit as long ))
+            final isMatch            = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent )
+            final isTimeMatch        = ( response.timeMillis <= ( timeLimit as long ))
 
-            if ( ! passed )
+            if ( ! isMatch )
             {
                 addFailure( "Requesting [$checkUrl] we received ${ response.statusCode instanceof Throwable ? 'error' : 'status code' } " +
                             "[$responseStatusCode] and content [$responseContent] " +
-                            "while expected status code [$checkStatusCode] and content containing [$checkContent]" )
+                            "while we expected status code [$checkStatusCode] and content matching [$checkContent]" )
             }
-            else if ( ! timePassed )
+            else if ( ! isTimeMatch )
             {
                 addFailure( "Requesting [$checkUrl] we received correct status code and content but it took " +
-                            "[${ response.timeMillis }] ms while expected less than or equal to [${ timeLimit }] ms" )
+                            "[${ response.timeMillis }] ms while we expected less than or equal to [${ timeLimit }] ms" )
             }
 
-            log { "Checking [$checkUrl] - Ok, [${ response.timeMillis }] ms" }
+            log { "[$checkUrl] - [${ response.timeMillis }] ms" }
         }
 
         if ( failures )
         {
             throw new GradleException( "The following checks have failed:\n* [${ failures.join( ']\n* [' )}]" )
         }
+    }
+
+
+    @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
+    @Requires({ ( content != null ) && ( pattern != null ) })
+    static boolean contentMatches( String content, String pattern )
+    {
+        final positiveMatch = ( ! pattern.startsWith( '-' ))
+        pattern             = positiveMatch ? pattern : pattern[ 1 .. -1 ]
+        final regexMatch    = pattern.with { startsWith( '/' ) && endsWith( '/' ) }
+        pattern             = regexMatch    ? pattern[ 1 .. -2 ] : pattern
+        final isMatch       = regexMatch    ? Pattern.compile ( pattern ).matcher( content ).find() :
+                                              content.contains( pattern )
+
+        ( positiveMatch ? isMatch : ( ! isMatch ))
     }
 }
