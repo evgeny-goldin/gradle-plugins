@@ -62,6 +62,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.testCommand,         "'testCommand' should be defined in $description"
         assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
         assert ext.portNumber > 0,      "'portNumber' should be positive in $description"
+        assert ext.configsNewKeys,      "'configsNewKeys' should be defined in $description"
 
         ext.checkUrl   = ext.checkUrl   ?: "http://127.0.0.1:${ ext.portNumber }"
         ext.scriptPath = ext.scriptPath ?: ( new File( project.projectDir, 'server.js'     ).file ? 'server.js'     :

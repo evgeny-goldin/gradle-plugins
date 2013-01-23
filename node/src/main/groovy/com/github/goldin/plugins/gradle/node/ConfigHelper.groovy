@@ -34,27 +34,29 @@ class ConfigHelper
     /**
      * Reads configuration data from the file provided which can be a JSON or .properties file.
      *
-     * @param  file file to read
+     * @param  configFile file to read
      * @return configuration data read from the file
      */
-    @Requires({ file.file })
+    @Requires({ configFile })
     @Ensures ({ result })
-    Map<String, ?> readConfigFile ( File file )
+    Map<String, ?> readConfigFile ( File configFile )
     {
-        final  configText = file.getText( 'UTF-8' ).trim()
-        assert configText, "[$file.canonicalPath] is empty"
+        assert configFile.file, "Config [$configFile.canonicalPath] is not available"
+
+        final  configText = configFile.getText( 'UTF-8' ).trim()
+        assert configText, "[$configFile.canonicalPath] is empty"
 
         if ( configText.with{ startsWith( '{' ) and endsWith( '}' ) })
         {
             final json = new JsonSlurper().parseText( configText )
-            assert ( json instanceof Map ) && ( json ), "Failed to read JSON from [$file.canonicalPath]"
+            assert ( json instanceof Map ) && ( json ), "Failed to read JSON from [$configFile.canonicalPath]"
             json
         }
         else
         {
             final properties = new Properties()
             properties.load( new StringReader( configText ))
-            assert properties, "Failed to read Properties from [$file.canonicalPath]"
+            assert properties, "Failed to read Properties from [$configFile.canonicalPath]"
             ( Map<String, ?> ) properties
         }
     }
@@ -67,22 +69,29 @@ class ConfigHelper
      * @param newConfigData config data to use for updating,
      *                      keys may contain {@link NodeExtension#configsKeyDelimiter} to indicate configuration nesting,
      *                      values may be real values or another configuration {@code Map} if read from JSON
-     * @return              config file updated or created
+     * @return              data of config file updated or created
      */
     @Requires({ configFile && newConfigData })
-    @Ensures ({ result })
+    @Ensures ({ result != null })
     Map<String,?> updateConfigFile ( File configFile, Map<String, ?> newConfigData )
     {
         try
         {
+            if ( ! configFile.file )
+            {
+                switch ( ext.configsNewKeys )
+                {
+                    case 'fail'   : throw new GradleException( "Config [$configFile.canonicalPath] to update is not available" )
+                    case 'ignore' : return [:]
+                    default       : break // continue, new file will be created
+                }
+            }
+
             final Map<String,?> existingConfigData =
                 ( Map ) ( configFile.file ? new JsonSlurper().parseText( configFile.getText( 'UTF-8' )) : [:] )
 
-            if ( ext.configsUpdateOnly )
-            {
-                assert configFile.file,    "[$configFile.canonicalPath] is not available"
-                assert existingConfigData, "No configuration data was read from [$configFile.canonicalPath]"
-            }
+            assert ( existingConfigData || ( ! configFile.file )), \
+                   "No configuration data was read from [$configFile.canonicalPath]"
 
             newConfigData.each {
                 String key, Object value ->
@@ -112,7 +121,7 @@ class ConfigHelper
      * @param value configuration value, may be a real value or another configuration {@code Map} if read from JSON
      */
     @Requires({ ( map != null ) && key && ( value != null ) })
-    @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
+    @SuppressWarnings([ 'GroovyAssignmentToMethodParameter', 'GroovyIfStatementWithTooManyBranches' ])
     void updateConfigMap ( Map<String,?> map, String key, Object value )
     {
         key = key.trim()
@@ -125,10 +134,18 @@ class ConfigHelper
         {
             updateConfigMapValueIsMap( map, key, ( Map ) value )
         }
+        else if ( map.containsKey( key ))
+        {
+            map[ key ] = value
+        }
         else
         {
-            assert (( ! ext.configsUpdateOnly ) || map.containsKey( key )), noNewKeysErrorMessage( map, key, value )
-            map[ key ] = value
+            switch ( ext.configsNewKeys )
+            {
+                case 'fail'   : throw new GradleException( noNewKeysErrorMessage( map, key, value ))
+                case 'ignore' : break
+                default       : map[ key ] = value
+            }
         }
     }
 
@@ -155,7 +172,7 @@ class ConfigHelper
         final subKey  = key.substring( 0, delimiterIndex )
         final nextKey = key.substring( delimiterIndex + delimiter.length())
 
-        updateConfigMapValueIsMap( map, subKey, [ (nextKey) : value ] )
+        updateConfigMapValueIsMap( map, subKey, [ ( nextKey ) : value ] )
     }
 
 
@@ -165,8 +182,12 @@ class ConfigHelper
     {
         if ( map[ key ] == null )
         {
-            assert ( ! ext.configsUpdateOnly ), noNewKeysErrorMessage( map, key, value )
-            map[ key ] = [:]
+            switch ( ext.configsNewKeys )
+            {
+                case 'fail'   : throw new GradleException( noNewKeysErrorMessage( map, key, value ))
+                case 'ignore' : return
+                default       : map[ key ] = [:]
+            }
         }
 
         final Object nextMap = map[ key ]

@@ -38,10 +38,10 @@ class NodeExtension
     String        testInput              = 'test'
     String        scriptPath
 
-    List <Map<String, ?>> configs            = []   // List of config maps to update project files with. Every map is:
-                                                    // Key   - path of destination JSON config file to update or create
-                                                    // Value - config data Map ( key => value ) or existing JSON / .properties File
-    boolean              configsUpdateOnly   = true // Whether configs specified are only allowed to update project's existing config file and its values
+    List <Map<String, ?>> configs            = []     // List of config maps to update project files with. Every map is:
+                                                      // Key   - path of destination JSON config file to update or create
+                                                      // Value - config data Map ( key => value ) or existing JSON / .properties File
+    String               configsNewKeys      = 'fail' // 'fail', 'ignore' or 'ok' - action to be taken when configs merge brings new keys
     String               configsKeyDelimiter = '.'
 
     List <Map<String, ?>> configsResult             // Internal property, configs resulting from merging external configs with those of the project
