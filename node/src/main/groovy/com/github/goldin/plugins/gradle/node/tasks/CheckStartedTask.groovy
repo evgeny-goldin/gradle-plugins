@@ -13,7 +13,7 @@ class CheckStartedTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        delay( ext.checkDelay )
+        delay( ext.checkWait * 1000 )
 
         final response       = httpRequest( ext.checkUrl, 'GET', [:], 0, 0, null, false )
         final content        = response.content ? new String( response.content, 'UTF-8' ) : ''

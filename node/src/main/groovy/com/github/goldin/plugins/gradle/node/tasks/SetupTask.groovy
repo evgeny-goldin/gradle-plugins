@@ -24,7 +24,7 @@ class SetupTask extends NodeBaseTask
 
     private cleanWorkspace()
     {
-        if ( ext.cleanWorkspace && ext.cleanWorkspaceCommands )
+        if ( ext.cleanWorkspace )
         {
             for ( command in ext.cleanWorkspaceCommands )
             {

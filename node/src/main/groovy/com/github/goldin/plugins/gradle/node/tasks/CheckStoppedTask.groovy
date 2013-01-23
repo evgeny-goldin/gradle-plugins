@@ -9,7 +9,8 @@ class CheckStoppedTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        delay( ext.checkDelay )
+        delay( ext.checkWait * 1000 )
+
         final response = httpRequest( ext.checkUrl, 'GET', [:], 0, 0, null, false, false )
         assert ( response.statusCode instanceof ConnectException ) &&
                ((( ConnectException ) response.statusCode ).message == 'Connection refused' ),

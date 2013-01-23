@@ -16,10 +16,11 @@ class NodeExtension
     boolean      checkAfterStopall       = true  // Whether 'checkStopped' should run after 'stopall'
     boolean      pidOnlyToStop           = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
     int          portNumber              = 1337  // Port the application starts on (becomes part of .pid file name)
+
     String       checkUrl                        // The URL to check after application has started, "http://127.0.0.1:$portNumber" by default
-    long         checkDelay              = 1000  // Amount of milliseconds to wait before making a connection
     String       checkContent            = ''    // Response to expect when making a request
     int          checkStatusCode         = 200   // Response code to expect when making a request
+    int          checkWait               = 3     // Seconds to wait after starting/stopping the application and checking it
 
     List<Closure> transformers           = []    // Callbacks to invoke after every bash script is generated
     String        foreverOptions         = ''    // Additional command-line 'forever' options, such as '-w -v'
@@ -30,7 +31,7 @@ class NodeExtension
     String        redisPortConfigKey     = ''    // Config key holding local Redis instance port number to start and stop
     boolean       redisStartInProduction = false // Whether Redis should be started when NODE_ENV=production
     boolean       redisStopInProduction  = false // Whether Redis should be stopped when NODE_ENV=production
-    int           redisWait              = 3     // Number of seconds to wait after Redis has started or stopped
+    int           redisWait              = 3     // Seconds to wait after Redis has started or stopped and checking it
     boolean       redisAddedAlready      = false // Internal property, whether Redis commands are already added to before/after
     String        NODE_ENV               = 'development'
     String        nodeVersion            = 'latest'
