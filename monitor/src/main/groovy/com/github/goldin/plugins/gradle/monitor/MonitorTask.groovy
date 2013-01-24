@@ -98,23 +98,24 @@ class MonitorTask extends BaseTask<MonitorExtension>
     private String processNmapResource ( String resourceLine )
     {
         def ( String address, String ports ) = resourceLine.tokenize( '|' )
+
         address         = address[ 'nmap://'.length() .. -1 ]
-        final portsList = ports.tokenize( ',' )*.trim().grep()
+        final sortList  = { List<String> l -> l.collect { it as int }.toSet().sort() }
+        final portsList = sortList( ports.tokenize( ',' )*.trim().grep())
 
         assert address && portsList
 
         log { "[nmap://$address] - expecting open ports: $portsList" }
 
         final nmapOutput = exec( 'nmap', [ '-v', address ], null, true, true, LogLevel.DEBUG )
-        final openPorts  = nmapOutput.readLines().findAll { String line -> line ==~ ~/\d+\/\w+\s+open\s+.+$/ }.
-                                                  collect { String line -> line.find ( /(\d+)/ ){ it[ 1 ] }}
+        final openPorts  = sortList( nmapOutput.readLines().findAll { String line -> line ==~ ~/\d+\/\w+\s+open\s+.+$/ }.
+                                                            collect { String line -> line.find ( /(\d+)/ ){ it[ 1 ] }})
 
         log { "[nmap://$address] - found open ports: $openPorts" }
 
-        if ( portsList.sort() != openPorts.sort())
+        if ( portsList != openPorts )
         {
-            final sortList = { List<String> l -> l.collect { it as int }.sort()}
-            "Scanning [$address] for open ports we found ${ sortList( openPorts )} open ports while we expected ${ sortList( portsList )}"
+            "Scanning [$address] for open ports we found $openPorts open ports while we expected $portsList"
         }
         else
         {
