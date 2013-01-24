@@ -113,7 +113,8 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         if ( portsList.sort() != openPorts.sort())
         {
-            "Scanning [$address] for open ports we found $openPorts open ports while we expected $portsList"
+            final sortList = { List<String> l -> l.collect { it as int }.sort()}
+            "Scanning [$address] for open ports we found ${ sortList( openPorts )} open ports while we expected ${ sortList( portsList )}"
         }
         else
         {
