@@ -110,32 +110,34 @@ abstract class BaseTask<T> extends DefaultTask
      * @param directory     process working directory
      * @param failOnError   whether execution should fail in case of an error
      * @param useGradleExec whether Gradle (true) or Ant (false) exec is used
+     * @param logLevel      log level to use for logging command output
      *
      * @return process standard and error output
      */
-    @Requires({ command && ( ! command.contains( ' ' )) && ( arguments != null ) })
+    @Requires({ command && ( ! command.contains( ' ' )) && ( arguments != null ) && logLevel })
     @Ensures ({ result != null })
     final String exec( String       command,
                        List<String> arguments     = [],
                        File         directory     = null,
                        boolean      failOnError   = true,
-                       boolean      useGradleExec = true )
+                       boolean      useGradleExec = true,
+                       LogLevel     logLevel      = LogLevel.INFO )
     {
         final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }" +
                                    "${ directory ? ' in directory [' + directory.canonicalPath + ']' : '' }"
 
-        log{ "Running $commandDescription" }
+        log( logLevel ) { "Running $commandDescription" }
 
         OutputStream stdoutStream    = null
         OutputStream stderrStream    = null
-        final        newOutputStream = { new LoggingOutputStream( ">> $command: ", logger, LogLevel.INFO ) }
+        final        newOutputStream = { new LoggingOutputStream( ">> $command: ", logger, logLevel ) }
 
         try
         {
             if ( useGradleExec )
             {
-                stdoutStream = logger.infoEnabled ? newOutputStream() : new ByteArrayOutputStream()
-                stderrStream = logger.infoEnabled ? newOutputStream() : new ByteArrayOutputStream()
+                stdoutStream = logger.isEnabled( logLevel ) ? newOutputStream() : new ByteArrayOutputStream()
+                stderrStream = logger.isEnabled( logLevel ) ? newOutputStream() : new ByteArrayOutputStream()
 
                 project.exec({ ExecSpec spec -> spec.with {
                     executable( command )

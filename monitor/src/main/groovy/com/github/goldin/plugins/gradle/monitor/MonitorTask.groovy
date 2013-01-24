@@ -34,47 +34,90 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Override
     void taskAction()
     {
+        final failures      = []
         final resourceLines = (( ext.resourcesList ?: [] ) + ( ext.resourcesFile?.readLines() ?: [] ))*.
                               trim().grep().findAll { ! it.startsWith( '#' ) }
-        final failures      = []
-        final addFailure    = { String message -> failures << message; log( LogLevel.ERROR ){ ">>>> $message" }}
 
         assert resourceLines, 'No resources found to monitor'
 
         for ( resourceLine in resourceLines )
         {
-            def ( String checkUrl, String checkStatusCode, String checkContent, String timeLimit ) = resourceLine.tokenize( '|' )
-            assert checkUrl
-            checkStatusCode = checkStatusCode ?: '200'
-            checkContent    = checkContent    ?: ''
-            timeLimit       = timeLimit       ?: ( Long.MAX_VALUE as String )
-
-            log { "[$checkUrl] - expecting status code [$checkStatusCode] and content matching [$checkContent]" }
-
-            final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, null, false, false )
-            final responseStatusCode = response.statusCode.toString()
-            final responseContent    = response.content ? new String( response.content, 'UTF-8' ) : ''
-            final isMatch            = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent )
-            final isTimeMatch        = ( response.timeMillis <= ( timeLimit as long ))
-
-            if ( ! isMatch )
-            {
-                addFailure( "Requesting [$checkUrl] we received ${ response.statusCode instanceof Throwable ? 'error' : 'status code' } " +
-                            "[$responseStatusCode] and content [$responseContent] " +
-                            "while we expected status code [$checkStatusCode] and content matching [$checkContent]" )
-            }
-            else if ( ! isTimeMatch )
-            {
-                addFailure( "Requesting [$checkUrl] we received correct status code and content but it took " +
-                            "[${ response.timeMillis }] ms while we expected less than or equal to [${ timeLimit }] ms" )
-            }
-
-            log { "[$checkUrl] - [${ response.timeMillis }] ms" }
+            final isHttpResource = resourceLine.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }
+            final isNmapResource = resourceLine.toLowerCase().startsWith( 'nmap://' )
+            final failureMessage = isHttpResource ? processHttpResource( resourceLine ) :
+                                   isNmapResource ? processNmapResource( resourceLine ) :
+                                                    ''
+            if ( failureMessage ) { failures << failureMessage; log( LogLevel.ERROR ){ ">>>> $failureMessage" }}
         }
 
         if ( failures )
         {
             throw new GradleException( "The following checks have failed:\n* [${ failures.join( ']\n* [' )}]" )
+        }
+    }
+
+
+    @Requires({ resourceLine.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }})
+    private String processHttpResource ( String resourceLine )
+    {
+        def ( String checkUrl, String checkStatusCode, String checkContent, String timeLimit ) = resourceLine.tokenize( '|' )
+        assert checkUrl
+        checkStatusCode = checkStatusCode ?: '200'
+        checkContent    = checkContent    ?: ''
+        timeLimit       = timeLimit       ?: ( Long.MAX_VALUE as String )
+
+        log { "[$checkUrl] - expecting status code [$checkStatusCode] and content matching [$checkContent]" }
+
+        final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, null, false, false )
+        final responseStatusCode = response.statusCode.toString()
+        final responseContent    = response.content ? new String( response.content, 'UTF-8' ) : ''
+        final isMatch            = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent )
+        final isTimeMatch        = ( response.timeMillis <= ( timeLimit as long ))
+
+        log { "[$checkUrl] - [${ response.timeMillis }] ms" }
+
+        if ( ! isMatch )
+        {
+            "Requesting [$checkUrl] we received ${ response.statusCode instanceof Throwable ? 'error' : 'status code' } " +
+            "[$responseStatusCode] and content [$responseContent] " +
+            "while we expected status code [$checkStatusCode] and content matching [$checkContent]"
+        }
+        else if ( ! isTimeMatch )
+        {
+            "Requesting [$checkUrl] we received correct status code and content but it took " +
+            "[${ response.timeMillis }] ms while we expected less than or equal to [${ timeLimit }] ms"
+        }
+        else
+        {
+            ''
+        }
+    }
+
+
+    @Requires({ resourceLine.startsWith( 'nmap://' ) })
+    private String processNmapResource ( String resourceLine )
+    {
+        def ( String address, String ports ) = resourceLine.tokenize( '|' )
+        address         = address[ 'nmap://'.length() .. -1 ]
+        final portsList = ports.tokenize( ',' )*.trim().grep()
+
+        assert address && portsList
+
+        log { "[nmap://$address] - expecting open ports: $portsList" }
+
+        final nmapOutput = exec( 'nmap', [ '-v', address ], null, true, true, LogLevel.DEBUG )
+        final openPorts  = nmapOutput.readLines().findAll { String line -> line ==~ ~/\d+\/\w+\s+open\s+.+$/ }.
+                                                  collect { String line -> line.find ( /(\d+)/ ){ it[ 1 ] }}
+
+        log { "[nmap://$address] - found open ports: $openPorts" }
+
+        if ( portsList.sort() != openPorts.sort())
+        {
+            "Scanning [$address] for open ports we found $openPorts open ports while we expected $portsList"
+        }
+        else
+        {
+            ''
         }
     }
 
