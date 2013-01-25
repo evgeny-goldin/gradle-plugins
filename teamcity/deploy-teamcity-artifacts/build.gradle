@@ -6,7 +6,7 @@ import org.gradle.api.artifacts.maven.MavenPom
 apply plugin: 'idea'
 apply plugin: 'maven'
 apply plugin: 'java'
-
+apply from:   'https://raw.github.com/evgeny-goldin/scripts/master/src/main/gradle/wrapper.gradle'
 
 /**
  * Gradle script deploying TeamCity artifacts to Artifactory repository
@@ -184,6 +184,3 @@ File addArtifact( Project project, File file, String groupId, String artifactId,
     println "[${ file.canonicalPath }] added as \"$groupId:$artifactId:$version\" artifact"
     artifact.file
 }
-
-
-task wrapper( type: Wrapper ) { gradleVersion = '1.3' }
