@@ -24,6 +24,7 @@ class NodeExtension
 
     List<Closure> transformers           = []    // Callbacks to invoke after every bash script is generated
     String        foreverOptions         = ''    // Additional command-line 'forever' options, such as '-w -v'
+    String        scriptPath
     String        scriptArguments        = ''    // Additional script arguments when run by 'forever'
     List<String>  before                 = []    // Commands to execute before running unit tests or starting the application
     List<String>  after                  = []    // Commands to execute after running unit tests or stopping the application
@@ -37,7 +38,6 @@ class NodeExtension
     String        nodeVersion            = 'latest'
     String        testCommand            = 'mocha'
     String        testInput              = 'test'
-    String        scriptPath
 
     List <Map<String, ?>> configs            = []     // List of config maps to update project files with. Every map is:
                                                       // Key   - path of destination JSON config file to update or create
