@@ -14,7 +14,7 @@ apply from:   'https://raw.github.com/evgeny-goldin/scripts/master/src/main/grad
  * http://confluence.jetbrains.net/display/TW/Previous+Releases+Downloads
  */
 
-final String     teamCityVersions = '7.1.3 7.1.2 7.1.1 7.1 7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'
+final String     teamCityVersions = '8.0 7.1.3 7.1.2 7.1.1 7.1 7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'
 final List<File> files            = [] // Files to be deployed
 
 
@@ -27,7 +27,7 @@ version = '0.1'
 
 idea.project {
 
-    jdkName = '1.6'
+    jdkName = '1.7'
 
     ipr.withXml {
         provider ->
@@ -40,21 +40,16 @@ idea.project {
 
 
 idea.module {
-    iml.withXml {
-        provider ->
-        provider.node.component.content.first().with {
-            appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/scripts/build'    ])
-            appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/scripts/download' ])
-            appendNode( 'excludeFolder', [ url : 'file://$MODULE_DIR$/scripts/.gradle'  ])
-        }
-    }
+    excludeDirs += file( 'build' )
+    excludeDirs += file( 'download' )
+    excludeDirs += file( '.gradle' )
 }
 
 
 uploadArchives {
     dependsOn 'downloadTeamCityArtifacts'
     doFirst   {
-        assert files
+        assert files, 'No files downloaded'
         files.each{ assert it.file }
         println "Uploading [${ files.size()}] files to [${ repositories.mavenDeployer.repository.url }]"
     }
@@ -130,7 +125,8 @@ List<File> downloadArtifacts ( Project project, String teamCityVersion, File dow
     // "teamcityTest" configuration
     addFile( [ 'devPackage/tests/tests-support.jar' ],        'tests' )
     addFile( [ 'webapps/ROOT/WEB-INF/lib/jmock-SNAPSHOT.jar',
-               'devPackage/tests/jmock-SNAPSHOT.jar' ],       'jmock' )
+               'devPackage/tests/jmock-SNAPSHOT.jar',
+               'devPackage/tests/jmock-1.2.0.jar' ],          'jmock' )
 
     // "teamcityCommon" configuration
     addFile( [ 'lib/servlet-api.jar'                      ],    'servlet-api'   )
