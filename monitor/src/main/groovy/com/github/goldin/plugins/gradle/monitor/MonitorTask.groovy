@@ -42,10 +42,13 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         for ( resourceLine in resourceLines )
         {
-            final isHttpResource = resourceLine.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }
-            final isNmapResource = resourceLine.toLowerCase().startsWith( 'nmap://' )
-            final failureMessage = isHttpResource ? processHttpResource( resourceLine ) :
-                                   isNmapResource ? processNmapResource( resourceLine ) :
+            def ( String title, String resource ) = resourceLine.contains( ' => ' ) ?
+                resourceLine.tokenize( ' => ') : [ '', resourceLine ]
+
+            final isHttpResource = resource.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }
+            final isNmapResource = resource.toLowerCase().startsWith( 'nmap://' )
+            final failureMessage = isHttpResource ? processHttpResource( title, resource ) :
+                                   isNmapResource ? processNmapResource( title, resource ) :
                                                     ''
             if ( failureMessage ) { failures << failureMessage; log( LogLevel.ERROR ){ ">>>> $failureMessage" }}
         }
@@ -57,16 +60,17 @@ class MonitorTask extends BaseTask<MonitorExtension>
     }
 
 
-    @Requires({ resourceLine.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }})
-    private String processHttpResource ( String resourceLine )
+    @Requires({ resource && resource.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }})
+    private String processHttpResource ( String title, String resource )
     {
-        def ( String checkUrl, String checkStatusCode, String checkContent, String timeLimit ) = resourceLine.tokenize( '|' )
+        def ( String checkUrl, String checkStatusCode, String checkContent, String timeLimit ) = resource.tokenize( '|' )
+
         assert checkUrl
         checkStatusCode = checkStatusCode ?: '200'
         checkContent    = checkContent    ?: ''
         timeLimit       = timeLimit       ?: ( Long.MAX_VALUE as String )
 
-        log { "[$checkUrl] - expecting status code [$checkStatusCode] and content matching [$checkContent]" }
+        log { "${ title ? "'$title' - " : '' }[$checkUrl] - expecting status code [$checkStatusCode] and content matching [$checkContent]" }
 
         final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, null, false, false )
         final responseStatusCode = response.statusCode.toString()
@@ -74,7 +78,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         final isMatch            = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent )
         final isTimeMatch        = ( response.timeMillis <= ( timeLimit as long ))
 
-        log { "[$checkUrl] - [${ response.timeMillis }] ms" }
+        log { "${ title ? "'$title' - " : '' }[$checkUrl] - [${ response.timeMillis }] ms" }
 
         if ( ! isMatch )
         {
@@ -94,10 +98,10 @@ class MonitorTask extends BaseTask<MonitorExtension>
     }
 
 
-    @Requires({ resourceLine.startsWith( 'nmap://' ) })
-    private String processNmapResource ( String resourceLine )
+    @Requires({ resource && resource.toLowerCase().startsWith( 'nmap://' ) })
+    private String processNmapResource ( String title, String resource )
     {
-        def ( String address, String ports ) = resourceLine.tokenize( '|' )
+        def ( String address, String ports ) = resource.tokenize( '|' )
 
         address         = address[ 'nmap://'.length() .. -1 ]
         final sortList  = { List<String> l -> l.collect { it as int }.toSet().sort() }
@@ -105,13 +109,13 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         assert address && portsList
 
-        log { "[nmap://$address] - expecting open ports: $portsList" }
+        log { "${ title ? "'$title' - " : '' }[nmap://$address] - expecting open ports: $portsList" }
 
         final nmapOutput = exec( 'nmap', [ '-v', address ], null, true, true, LogLevel.DEBUG )
         final openPorts  = sortList( nmapOutput.readLines().findAll { String line -> line ==~ ~/\d+\/\w+\s+open\s+.+$/ }.
                                                             collect { String line -> line.find ( /(\d+)/ ){ it[ 1 ] }})
 
-        log { "[nmap://$address] - found open ports: $openPorts" }
+        log { "${ title ? "'$title' - " : '' }[nmap://$address] - found open ports: $openPorts" }
 
         if ( portsList != openPorts )
         {
