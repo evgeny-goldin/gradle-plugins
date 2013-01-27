@@ -71,7 +71,7 @@ subprojects {
     }
 
     jar {
-        dependsOn 'about'
+        dependsOn 'about', 'createPom'
         from new File(( File ) project.rootProject.projectDir, 'license.txt' )
     }
 

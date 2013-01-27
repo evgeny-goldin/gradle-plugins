@@ -12,6 +12,6 @@ for module in 'about' 'common' 'crawler' 'duplicates' 'gitdump' 'kotlin' 'monito
 do
     cd "$rootDir/$module"
     echo "[<===[`pwd`]===>]"
-    gradle clean build createPom
+    ls -al build/pom.xml build/libs/$module-$version.jar build/libs/$module-$version-javadoc.jar build/libs/$module-$version-sources.jar
     $command -DpomFile=build/pom.xml -Dfile=build/libs/$module-$version.jar -Dfiles=build/libs/$module-$version-javadoc.jar,build/libs/$module-$version-sources.jar -Dclassifiers=javadoc,sources -Dtypes=jar,jar
 done
