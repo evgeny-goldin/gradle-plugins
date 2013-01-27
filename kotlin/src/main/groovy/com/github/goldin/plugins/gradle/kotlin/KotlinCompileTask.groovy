@@ -56,6 +56,7 @@ class KotlinCompileTask extends AbstractCompile
     }
 
 
+    @SuppressWarnings([ 'UnnecessaryCollectCall' ])
     private Collection<File> classpathFiles()
     {
         dependsOn.findAll{ Object o          -> o instanceof AbstractCompile }.
