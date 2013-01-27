@@ -29,7 +29,7 @@ buildscript {
      * Has no effect when applied from external resource, this section should appear in master "build.gradle".
      */
     repositories { maven { url 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'  }}
-    dependencies { classpath 'com.github.goldin.plugins.gradle:teamcity:0.2-SNAPSHOT' }
+    dependencies { classpath 'com.github.goldin.plugins.gradle:teamcity:0.2' }
 }
 
 
