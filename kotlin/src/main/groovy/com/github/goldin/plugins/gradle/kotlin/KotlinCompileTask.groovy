@@ -16,29 +16,27 @@ class KotlinCompileTask extends AbstractCompile
     @Override
     protected void compile()
     {
-        final classpathFiles = classpath.filter { File f -> f.exists() }.files +
-                               dependsOn.findAll{ Object o          -> o instanceof AbstractCompile }.
-                                         findAll{ AbstractCompile c -> c.destinationDir.directory   }.
-                                         collect{ AbstractCompile c -> c.destinationDir }
-
+        final singleSource    = ( source.files.size() == 1 )
         final args            = ( K2JVMCompilerArguments ) project.extensions.findByName( KotlinPlugin.EXTENSION_NAME )
-        args.noStdlib         = true // Otherwise, Kotlin compiler
-        args.noJdkAnnotations = true // attempts to locate the corresponding jar files
-        args.sourceDirs       = source.files*.canonicalPath
-        args.outputDir        = destinationDir.canonicalPath
-        args.classpath        = new SimpleFileCollection( classpathFiles ).asPath
+        args.noStdlib         = true // Otherwise, Kotlin compiler attempts
+        args.noJdkAnnotations = true // to locate the corresponding jar files
+        args.outputDir        = ( args.outputDir == null ) ? destinationDir.canonicalPath                       : args.outputDir
+        args.classpath        = ( args.classpath == null ) ? new SimpleFileCollection( classpathFiles()).asPath : args.classpath
+
+        if ( singleSource ) { args.src        = ( args.src        == null ) ? source.singleFile.canonicalPath   : args.src }
+        else                { args.sourceDirs = ( args.sourceDirs == null ) ? source.files*.canonicalPath       : args.sourceDirs }
 
         if ( logger.infoEnabled )
         {
             final list = { Collection c -> "* [${ c.join( ']\n* [' )}]" }
             logger.with {
                 info( 'Running Kotlin compiler' )
-                info( 'sourceDirs:' )
-                info( list( args.sourceDirs ))
+                info( singleSource? 'src:' : 'sourceDirs:' )
+                info( list( singleSource ? [ args.src ] : args.sourceDirs ))
                 info( 'outputDir:' )
                 info( list([ args.outputDir ]))
                 info( 'classpath:' )
-                info( list( args.classpath.tokenize( System.getProperty( 'path.separator' ))))
+                info( list( args.classpath.tokenize( File.pathSeparator )))
             }
         }
 
@@ -55,5 +53,14 @@ class KotlinCompileTask extends AbstractCompile
             default:
                 logger.info( 'Compilation successful' )
         }
+    }
+
+
+    private Collection<File> classpathFiles()
+    {
+        dependsOn.findAll{ Object o          -> o instanceof AbstractCompile }.
+                  collect{ AbstractCompile c -> c.destinationDir }.
+                  findAll{ File f            -> f.directory } +
+        classpath.filter { File f -> f.exists() }.files
     }
 }
