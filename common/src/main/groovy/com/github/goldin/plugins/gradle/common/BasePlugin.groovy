@@ -40,7 +40,9 @@ abstract class BasePlugin implements Plugin<Project>
     @Requires({ project && taskName && taskClass })
     <T extends BaseTask> T addTask( Project project, String taskName, Class<T> taskClass )
     {
-        final  extensions     = extensions( project )
+        final  extensions = extensions( project )
+        assert extensions.size() == 1
+
         final  extensionName  = extensions.keySet().toList().first()
         final  extensionClass = extensions[ extensionName ]
         assert extensionName && extensionClass

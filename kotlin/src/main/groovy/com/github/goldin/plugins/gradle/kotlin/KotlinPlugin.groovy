@@ -8,6 +8,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
+import org.jetbrains.jet.cli.jvm.K2JVMCompilerArguments
 
 
 /**
@@ -15,7 +16,8 @@ import org.gradle.api.tasks.SourceSet
  */
 class KotlinPlugin implements Plugin<Project>
 {
-    public static final String KDOC_TASK_NAME = 'kdoc'
+    static final String KDOC_TASK_NAME = 'kdoc'
+    static final String EXTENSION_NAME = 'kotlin'
 
 
     @Requires({ project })
@@ -25,6 +27,7 @@ class KotlinPlugin implements Plugin<Project>
         final javaBasePlugin       = project.plugins.apply( JavaBasePlugin )
         final javaPluginConvention = project.convention.getPlugin( JavaPluginConvention )
 
+        project.extensions.create  ( EXTENSION_NAME, K2JVMCompilerArguments )
         project.plugins.apply      ( JavaPlugin )
         configureSourceSetDefaults ( project, javaPluginConvention, javaBasePlugin );
         configureKDoc              ( project, javaPluginConvention );
