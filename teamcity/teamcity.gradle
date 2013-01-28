@@ -28,7 +28,7 @@ buildscript {
      * Gradle plugin repository and coordinates.
      * Has no effect when applied from external resource, this section should appear in master "build.gradle".
      */
-    repositories { maven { url 'http://evgenyg.artifactoryonline.com/evgenyg/repo/'  }}
+    repositories { mavenCentral() }
     dependencies { classpath 'com.github.goldin.plugins.gradle:teamcity:0.2' }
 }
 
