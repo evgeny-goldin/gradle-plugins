@@ -5,6 +5,7 @@ import groovy.json.JsonSlurper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
+import java.util.regex.Pattern
 
 
 /**
@@ -20,6 +21,16 @@ class ConfigHelper
     {
         this.ext = ext
     }
+
+
+    @Requires({ s })
+    @Ensures ({ result != null })
+    private static Map<String,?> jsonToMap( String s ){ ( Map ) new JsonSlurper().parseText( s )}
+
+
+    @Requires({ map != null })
+    @Ensures ({ result })
+    private static String mapToJson( Map<String,?> map ){ JsonOutput.prettyPrint( JsonOutput.toJson( map )) }
 
 
     @Requires({ ( map != null ) && key && ( value != null ) })
@@ -48,9 +59,9 @@ class ConfigHelper
 
         if ( configText.with{ startsWith( '{' ) and endsWith( '}' ) })
         {
-            final json = new JsonSlurper().parseText( configText )
-            assert ( json instanceof Map ) && ( json ), "Failed to read JSON from [$configFile.canonicalPath]"
-            json
+            final  jsonMap = jsonToMap( configText )
+            assert jsonMap, "No configuration data was read from [$configFile.canonicalPath]"
+            jsonMap
         }
         else
         {
@@ -87,9 +98,7 @@ class ConfigHelper
                 }
             }
 
-            final Map<String,?> configData =
-                ( Map ) ( configFile.file ? new JsonSlurper().parseText( configFile.getText( 'UTF-8' )) : [:] )
-
+            final Map<String,?> configData = ( configFile.file ? jsonToMap( configFile.getText( 'UTF-8' )) : [:] )
             assert ( configData || ( ! configFile.file )), "No configuration data was read from [$configFile.canonicalPath]"
 
             newConfigData.each {
@@ -98,8 +107,8 @@ class ConfigHelper
             }
 
             writeConfigFile( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
-                                         mergeConfigValueIsMap( configFile.getText( 'UTF-8' ), configData ) :
-                                         JsonOutput.prettyPrint( JsonOutput.toJson( configData )))
+                                         mergeConfig( configFile.getText( 'UTF-8' ), configData ) :
+                                         mapToJson( configData ))
             configData
         }
         catch ( Throwable error )
@@ -113,34 +122,44 @@ class ConfigHelper
     @Requires({ configFile && content })
     private void writeConfigFile( File configFile, String content )
     {
-        assert new JsonSlurper().parseText( content ), "Unable to JSON-parse [$content]"
+        assert jsonToMap( content ), "No configuration data was read from [$content]"
         configFile.write( content, 'UTF-8' )
     }
 
 
     @Requires({ configContent && ( keys != null ) && ( configData != null ) })
-    private String mergeConfigValueIsMap ( String configContent, List<String> keys = [], Map<String, ?> configData )
+    private String mergeConfig ( String configContent, List<String> keys = [], Map<String, ?> configData )
     {
         configData.inject( configContent ){
             String content, String key, Object value ->
 
-            ( value instanceof Map ) ? mergeConfigValueIsMap  ( content, ( List<String> )( keys + key ), ( Map ) value ) :
-                                       mergeConfigValueIsPlain( content, ( List<String> )( keys + key ), value )
+            ( value instanceof Map ) ? mergeConfig  ( content, ( List<String> )( keys + key ), ( Map ) value ) :
+                                       mergeConfigPlainValue( content, ( List<String> )( keys + key ), value )
         }
     }
 
 
     @Requires({ configContent && keys && ( value != null ) && ( ! ( value instanceof Map )) })
-    private String mergeConfigValueIsPlain ( String configContent, List<String> keys, Object value )
+    private String mergeConfigPlainValue ( String configContent, List<String> keys, Object value )
     {
-        final String valueRegex = '(?s)(.*\\{.*' +
-                                  keys.collect { '"\\Q' + it + '\\E"' }.join( '\\s*:.*?\\{.+?' ) +
-                                  '\\s*:\\s*)(.+?)(?=(,|\r|\n))'
-        assert (( ~/$valueRegex/ ).matcher( configContent ).find()), \
-               "Unable to merge config keys $keys with [$configContent], value regex [$valueRegex] can't be found"
+        final Pattern valuePattern = ~( '(?s)(.*\\{.*' +
+                                        keys.collect { '"\\Q' + it + '\\E"' }.join( '\\s*:.*?\\{.+?' ) +
+                                        '\\s*:\\s*)(.+?)(?=(,|\r|\n))' )
 
-        configContent.replaceFirst( ~/$valueRegex/ ){
-            it[ 1 ] + ( value instanceof Number ? value as String : '"' + value + '"' )
+        final boolean keysExist = valuePattern.matcher( configContent ).find()
+
+        if ( keysExist )
+        {
+            return configContent.replaceFirst( valuePattern ){
+                it[ 1 ] + ( value instanceof Number ? value as String : '"' + value + '"' )
+            }
+        }
+
+        switch ( ext.configsNewKeys )
+        {
+            case 'fail'   : throw new GradleException( "Unable to merge config keys $keys with [$configContent], value pattern [$valuePattern] can't be found" )
+            case 'ignore' : return configContent
+            default       : return mapToJson( updateConfigMap( jsonToMap( configContent ), keys.join( ext.configsKeyDelimiter ), value ))
         }
     }
 
@@ -153,8 +172,9 @@ class ConfigHelper
      * @param value configuration value, may be a real value or another configuration {@code Map} if read from JSON
      */
     @Requires({ ( map != null ) && key && ( value != null ) })
+    @Ensures ({ result == map })
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter', 'GroovyIfStatementWithTooManyBranches' ])
-    void updateConfigMap ( Map<String,?> map, String key, Object value )
+    Map<String,?> updateConfigMap ( Map<String,?> map, String key, Object value )
     {
         key = key.trim()
 
@@ -179,6 +199,8 @@ class ConfigHelper
                 default       : map[ key ] = value
             }
         }
+
+        map
     }
 
 
