@@ -98,7 +98,8 @@ class ConfigHelper
                 }
             }
 
-            final Map<String,?> configData = ( configFile.file ? jsonToMap( configFile.getText( 'UTF-8' )) : [:] )
+            final configContent            = ( configFile.file ? configFile.getText( 'UTF-8' ) : ''  )
+            final Map<String,?> configData = ( configFile.file ? jsonToMap( configContent )    : [:] )
             assert ( configData || ( ! configFile.file )), "No configuration data was read from [$configFile.canonicalPath]"
 
             newConfigData.each {
@@ -107,7 +108,7 @@ class ConfigHelper
             }
 
             writeConfigFile( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
-                                         mergeConfig( configFile.getText( 'UTF-8' ), configData ) :
+                                         mergeConfig( configContent, configData ) :
                                          mapToJson( configData ))
             configData
         }
