@@ -157,8 +157,8 @@ subprojects.findAll{ Project p -> p.name != 'common' }.each {
     p.processResources << {
         Copy processResourcesTask ->
         final gradleProperties = new File( processResourcesTask.destinationDir, "META-INF/gradle-plugins/${ p.name }.properties" )
-        final properties       = validatePropertiesFile( p, gradleProperties )
-        updatePropertiesFile( gradleProperties, properties,
+        updatePropertiesFile( gradleProperties,
+                              validatePropertiesFile( p, gradleProperties ),
                               [ group: p.group, name: p.name, version : p.version ])
     }
 }
@@ -181,7 +181,6 @@ project( ':teamcity' ) {
         excludeDirs += file( 'deploy-teamcity-artifacts/build'   )
     }
 }
-
 
 
 private Properties validatePropertiesFile( Project p, File gradleProperties )
