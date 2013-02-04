@@ -87,28 +87,60 @@ class ConfigHelper
                 }
             }
 
-            final Map<String,?> existingConfigData =
+            final Map<String,?> configData =
                 ( Map ) ( configFile.file ? new JsonSlurper().parseText( configFile.getText( 'UTF-8' )) : [:] )
 
-            assert ( existingConfigData || ( ! configFile.file )), \
-                   "No configuration data was read from [$configFile.canonicalPath]"
+            assert ( configData || ( ! configFile.file )), "No configuration data was read from [$configFile.canonicalPath]"
 
             newConfigData.each {
                 String key, Object value ->
-                updateConfigMap( existingConfigData, key, value )
+                updateConfigMap( configData, key, value )
             }
 
-            assert existingConfigData
-            final  configDataStringified = JsonOutput.prettyPrint( JsonOutput.toJson( existingConfigData ))
-            assert configDataStringified && new JsonSlurper().parseText( configDataStringified )
-
-            configFile.write( configDataStringified, 'UTF-8' )
-            existingConfigData
+            writeConfigFile( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
+                                         mergeConfigValueIsMap( configFile.getText( 'UTF-8' ), configData ) :
+                                         JsonOutput.prettyPrint( JsonOutput.toJson( configData )))
+            configData
         }
         catch ( Throwable error )
         {
             throw new GradleException( "Failed to update config [$configFile.canonicalPath] with $newConfigData",
                                        error )
+        }
+    }
+
+
+    @Requires({ configFile && content })
+    private void writeConfigFile( File configFile, String content )
+    {
+        assert new JsonSlurper().parseText( content ), "Unable to JSON-parse [$content]"
+        configFile.write( content, 'UTF-8' )
+    }
+
+
+    @Requires({ configContent && ( keys != null ) && ( configData != null ) })
+    private String mergeConfigValueIsMap ( String configContent, List<String> keys = [], Map<String, ?> configData )
+    {
+        configData.inject( configContent ){
+            String content, String key, Object value ->
+
+            ( value instanceof Map ) ? mergeConfigValueIsMap  ( content, ( List<String> )( keys + key ), ( Map ) value ) :
+                                       mergeConfigValueIsPlain( content, ( List<String> )( keys + key ), value )
+        }
+    }
+
+
+    @Requires({ configContent && keys && ( value != null ) && ( ! ( value instanceof Map )) })
+    private String mergeConfigValueIsPlain ( String configContent, List<String> keys, Object value )
+    {
+        final String valueRegex = '(?s)(.*\\{.*' +
+                                  keys.collect { '"\\Q' + it + '\\E"' }.join( '\\s*:.*?\\{.+?' ) +
+                                  '\\s*:\\s*)(.+?)(?=(,|\r|\n))'
+        assert (( ~/$valueRegex/ ).matcher( configContent ).find()), \
+               "Unable to merge config keys $keys with [$configContent], value regex [$valueRegex] can't be found"
+
+        configContent.replaceFirst( ~/$valueRegex/ ){
+            it[ 1 ] + ( value instanceof Number ? value as String : '"' + value + '"' )
         }
     }
 
