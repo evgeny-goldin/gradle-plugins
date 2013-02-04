@@ -152,7 +152,9 @@ class ConfigHelper
         if ( keysExist )
         {
             return configContent.replaceFirst( valuePattern ){
-                it[ 1 ] + ( value instanceof Number ? value as String : '"' + value + '"' )
+                it[ 1 ] + ( value instanceof Number  ? value as String :
+                            value instanceof Boolean ? value as String :
+                                                       '"' + value + '"' )
             }
         }
 
