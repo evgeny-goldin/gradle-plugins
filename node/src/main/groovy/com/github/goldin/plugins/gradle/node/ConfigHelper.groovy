@@ -143,11 +143,19 @@ class ConfigHelper
     @Requires({ configContent && keys && ( value != null ) && ( ! ( value instanceof Map )) })
     private String mergeConfigPlainValue ( String configContent, List<String> keys, Object value )
     {
-        final Pattern valuePattern = ~( '(?s)(.*\\{.*' +
-                                        keys.collect { '"\\Q' + it + '\\E"' }.join( '\\s*:.*?\\{.+?' ) +
-                                        '\\s*:\\s*)(.+?)(?=(,|\r|\n))' )
+        String keysPattern = ''
 
-        final boolean keysExist = valuePattern.matcher( configContent ).find()
+        keys.collect { '"\\Q' + it + '\\E"' }.eachWithIndex {
+            String key, int index ->
+
+            final separator = (( index <  ( keys.size() - 2 )) ? '\\s*:.*?\\{.+?'           : // extra '{' are allowed for intermediate delimiters
+                               ( index == ( keys.size() - 2 )) ? '\\s*:[^\\{]*?\\{[^\\{]+?' : // extra '{' are *not* allowed for last delimiter
+                                                                 '' )
+            keysPattern += ( key + separator )
+        }
+
+        final valuePattern = ~( '(?s)(.*\\{[^\\{]*' + keysPattern + '\\s*:\\s*)(.+?)(?=(,|\r|\n))' )
+        final keysExist    = valuePattern.matcher( configContent ).find()
 
         if ( keysExist )
         {
