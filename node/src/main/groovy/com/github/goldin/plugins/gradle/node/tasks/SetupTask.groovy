@@ -29,7 +29,7 @@ class SetupTask extends NodeBaseTask
             for ( command in ext.cleanWorkspaceCommands )
             {
                 final commandSplit = command.trim().tokenize()
-                exec( commandSplit.head(), commandSplit.tail(), project.rootDir )
+                exec( commandSplit.head(), commandSplit.tail(), project.projectDir )
             }
         }
     }
