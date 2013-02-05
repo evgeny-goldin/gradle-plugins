@@ -6,7 +6,7 @@ class NodeExtension
 {
     List<String> cleanWorkspaceCommands   = [ 'git checkout -f', 'git clean -dff' ]
     boolean      cleanWorkspace           = false // Whether to run cleanWorkspaceCommands before running tasks
-    boolean      configMergePreserveOrder = true  // Whether configs merge should preserve keys order (risky, complex regexes are involved)
+    boolean      configMergePreserveOrder = true  // Whether configs merge should preserve keys order (more risky, some nasty regexes are involved)
     boolean      xUnitReport              = true  // Whether xUnit report should be created when tests are run
     boolean      failIfTestsFail          = true  // Whether to fail execution if tests fail
     boolean      stopIfFailsToStart       = true  // Whether the app should be stopped if it fails to start

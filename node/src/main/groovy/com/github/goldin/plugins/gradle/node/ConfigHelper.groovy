@@ -5,7 +5,6 @@ import groovy.json.JsonSlurper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
-import java.util.regex.Pattern
 
 
 /**
@@ -25,12 +24,20 @@ class ConfigHelper
 
     @Requires({ s })
     @Ensures ({ result != null })
-    private static Map<String,?> jsonToMap( String s ){ ( Map ) new JsonSlurper().parseText( s )}
+    private static Map<String,?> jsonToMap( String s )
+    {
+        try { ( Map ) new JsonSlurper().parseText( s )}
+        catch ( e ){ throw new GradleException( "Failed to convert to map JSON [$s]", e )}
+    }
 
 
     @Requires({ map != null })
     @Ensures ({ result })
-    private static String mapToJson( Map<String,?> map ){ JsonOutput.prettyPrint( JsonOutput.toJson( map )) }
+    private static String mapToJson( Map<String,?> map )
+    {
+        try { JsonOutput.prettyPrint( JsonOutput.toJson( map )) }
+        catch ( e ) { throw new GradleException( "Failed to convert to JSON map $map", e )}
+    }
 
 
     @Requires({ ( map != null ) && key && ( value != null ) })
@@ -109,7 +116,7 @@ class ConfigHelper
 
             writeConfigFile( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
                                          mergeConfig( configContent, configData ) :
-                                         mapToJson( configData ))
+                                         mapToJson  ( configData ))
             configData
         }
         catch ( Throwable error )
@@ -134,7 +141,7 @@ class ConfigHelper
         configData.inject( configContent ){
             String content, String key, Object value ->
 
-            ( value instanceof Map ) ? mergeConfig  ( content, ( List<String> )( keys + key ), ( Map ) value ) :
+            ( value instanceof Map ) ? mergeConfig          ( content, ( List<String> )( keys + key ), ( Map ) value ) :
                                        mergeConfigPlainValue( content, ( List<String> )( keys + key ), value )
         }
     }
@@ -148,21 +155,23 @@ class ConfigHelper
         keys.collect { '"\\Q' + it + '\\E"' }.eachWithIndex {
             String key, int index ->
 
-            final separator = (( index <  ( keys.size() - 2 )) ? '\\s*:.*?\\{.+?'           : // extra '{' are allowed for intermediate delimiters
-                               ( index == ( keys.size() - 2 )) ? '\\s*:[^\\{]*?\\{[^\\{]+?' : // extra '{' are *not* allowed for last delimiter
+            final separator = (( index  < ( keys.size() - 2 )) ? '\\s*:.*?\\{.+?'           : // extra '{' are allowed for intermediate delimiters
+                               ( index == ( keys.size() - 2 )) ? '\\s*:[^\\{]*?\\{[^\\{]+?' : // extra '{' are *not* allowed for the last delimiter
                                                                  '' )
-            keysPattern += ( key + separator )
+            keysPattern    += ( key + separator )
         }
 
-        final valuePattern = ~( '(?s)(.*\\{[^\\{]*' + keysPattern + '\\s*:\\s*)(.+?)(?=(,|\r|\n))' )
+        final valuePattern = ~( '(?s)(.*\\{[^\\{]*' + keysPattern + '\\s*:\\s*)(.+?)(?=(,|\\s|\\}))' )
         final keysExist    = valuePattern.matcher( configContent ).find()
 
         if ( keysExist )
         {
             return configContent.replaceFirst( valuePattern ){
-                it[ 1 ] + ( value instanceof Number  ? value as String :
-                            value instanceof Boolean ? value as String :
-                                                       '"' + value + '"' )
+                final asIs = ( value instanceof Number  ) ||
+                             ( value instanceof Boolean ) ||
+                             ( value as String ).with { startsWith( '"' ) || endsWith( '"' ) }
+
+                it[ 1 ] + ( asIs ? value as String : '"' + value + '"' )
             }
         }
 
