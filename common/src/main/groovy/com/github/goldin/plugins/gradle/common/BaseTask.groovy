@@ -189,17 +189,18 @@ abstract class BaseTask<T> extends DefaultTask
     /**
      * {@code File.write()} wrapper.
      *
-     * @param file
-     * @param content
-     * @param encoding
-     * @return
+     * @param file     file to write to
+     * @param content  content to write
+     * @param encoding encoding to use
+     * @return file written
      */
     @Requires({ file && content && encoding })
     @Ensures ({ result == file })
     final File write ( File file, String content, String encoding = 'UTF-8' )
     {
         delete( file )
-        file.parentFile.mkdirs()
+        assert file.parentFile.with { directory || mkdirs() }, "Unable to create [${ file.parentFile.canonicalPath }]"
+
         file.write( content, encoding )
         assert ( file.file && ( file.size() >= content.size()))
         file

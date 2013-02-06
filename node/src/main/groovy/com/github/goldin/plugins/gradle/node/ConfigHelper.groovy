@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.node
 
+import com.github.goldin.plugins.gradle.common.BaseTask
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.gcontracts.annotations.Ensures
@@ -12,31 +13,33 @@ import org.gradle.api.GradleException
  */
 class ConfigHelper
 {
-    NodeExtension ext
+    private final NodeExtension ext
+    private final BaseTask      task
 
-    @Requires({ ext })
-    @Ensures ({ this.ext })
-    ConfigHelper ( NodeExtension ext )
+    @Requires({ ext && task })
+    @Ensures ({ this.ext && this.task })
+    ConfigHelper ( NodeExtension ext, BaseTask task )
     {
-        this.ext = ext
+        this.ext  = ext
+        this.task = task
     }
 
 
     @Requires({ s })
     @Ensures ({ result != null })
-    private static Map<String,?> jsonToMap( String s )
+    private static Map<String,?> parseJsonToMap ( String s )
     {
         try { ( Map ) new JsonSlurper().parseText( s )}
-        catch ( e ){ throw new GradleException( "Failed to convert to map JSON [$s]", e )}
+        catch ( e ){ throw new GradleException( "Failed to parse and convert to map JSON [$s]", e )}
     }
 
 
     @Requires({ map != null })
     @Ensures ({ result })
-    private static String mapToJson( Map<String,?> map )
+    private static String stringifyMapToJson ( Map<String,?> map )
     {
         try { JsonOutput.prettyPrint( JsonOutput.toJson( map )) }
-        catch ( e ) { throw new GradleException( "Failed to convert to JSON map $map", e )}
+        catch ( e ) { throw new GradleException( "Failed to stringify and convert to JSON map $map", e )}
     }
 
 
@@ -66,7 +69,7 @@ class ConfigHelper
 
         if ( configText.with{ startsWith( '{' ) and endsWith( '}' ) })
         {
-            final  jsonMap = jsonToMap( configText )
+            final  jsonMap = parseJsonToMap( configText )
             assert jsonMap, "No configuration data was read from [$configFile.canonicalPath]"
             jsonMap
         }
@@ -105,8 +108,8 @@ class ConfigHelper
                 }
             }
 
-            final configContent            = ( configFile.file ? configFile.getText( 'UTF-8' ) : ''  )
-            final Map<String,?> configData = ( configFile.file ? jsonToMap( configContent )    : [:] )
+            final configContent            = ( configFile.file ? configFile.getText( 'UTF-8' )   : ''  )
+            final Map<String,?> configData = ( configFile.file ? parseJsonToMap( configContent ) : [:] )
             assert ( configData || ( ! configFile.file )), "No configuration data was read from [$configFile.canonicalPath]"
 
             newConfigData.each {
@@ -115,8 +118,8 @@ class ConfigHelper
             }
 
             writeConfigFile( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
-                                         mergeConfig( configContent, configData ) :
-                                         mapToJson  ( configData ))
+                                         mergeConfig ( configContent, configData ) :
+                                         stringifyMapToJson ( configData ))
             configData
         }
         catch ( Throwable error )
@@ -130,8 +133,8 @@ class ConfigHelper
     @Requires({ configFile && content })
     private void writeConfigFile( File configFile, String content )
     {
-        assert jsonToMap( content ), "No configuration data was read from [$content]"
-        configFile.write( content, 'UTF-8' )
+        assert parseJsonToMap( content ), "No configuration data was read from [$content]"
+        task.write( configFile, content )
     }
 
 
@@ -179,7 +182,7 @@ class ConfigHelper
         {
             case 'fail'   : throw new GradleException( "Unable to merge config keys $keys with [$configContent], value pattern [$valuePattern] can't be found" )
             case 'ignore' : return configContent
-            default       : return mapToJson( updateConfigMap( jsonToMap( configContent ), keys.join( ext.configsKeyDelimiter ), value ))
+            default       : return stringifyMapToJson( updateConfigMap( parseJsonToMap( configContent ), keys.join( ext.configsKeyDelimiter ), value ))
         }
     }
 

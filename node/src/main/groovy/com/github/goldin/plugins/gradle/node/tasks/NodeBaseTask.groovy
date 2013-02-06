@@ -176,7 +176,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     private List<Map<String, ?>> readConfigs ()
     {
         final result       = []
-        final configHelper = new ConfigHelper( ext )
+        final configHelper = new ConfigHelper( ext, this )
 
         for ( configMap in ( ext.configs ?: [] ))
         {
@@ -227,8 +227,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
             transformer( script, scriptFile, this ) ?: script
         }
 
-        scriptFile.write( scriptContent, 'UTF-8' )
-        assert scriptFile.with { file && size() }
+        write( scriptFile, scriptContent )
 
         log( LogLevel.INFO ){ "Bash script created at [$scriptFile.canonicalPath], size [${ scriptFile.length() }] bytes" }
 

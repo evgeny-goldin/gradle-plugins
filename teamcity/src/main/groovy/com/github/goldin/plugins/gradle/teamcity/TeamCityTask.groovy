@@ -253,8 +253,7 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
         }
 
         final xml      = validateXml( writer.toString(), getResourceText( '/teamcity-plugin-descriptor.xsd' ))
-        final tempFile = File.createTempFile( project.name, null )
-        tempFile.write( xml, 'UTF-8' )
+        final tempFile = write( File.createTempFile( project.name, null ), xml )
         tempFile.deleteOnExit()
         tempFile
     }

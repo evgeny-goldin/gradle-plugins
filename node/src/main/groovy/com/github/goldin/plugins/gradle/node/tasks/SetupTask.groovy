@@ -40,7 +40,7 @@ class SetupTask extends NodeBaseTask
     private List<Map<String, ?>> updateConfigs()
     {
         final configs      = []
-        final configHelper = new ConfigHelper( ext )
+        final configHelper = new ConfigHelper( ext, this )
 
         for ( configMap in ( ext.configs ?: [] ))
         {
@@ -101,7 +101,7 @@ class SetupTask extends NodeBaseTask
                 }
 
                 assert content, 'Resulting content after all replaces are made is empty'
-                replaceFile.write( content, 'UTF-8' )
+                write( replaceFile, content )
             }
         }
     }

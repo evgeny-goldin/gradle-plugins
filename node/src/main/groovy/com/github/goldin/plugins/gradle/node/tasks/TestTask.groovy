@@ -119,8 +119,7 @@ class TestTask extends NodeBaseTask
     ${ xUnitReportLines.join( '\n    ' ) }
 </testsuite>""".trim()
 
-        delete( reportFile )
-        reportFile.write( xUnitReport, 'UTF-8' )
+        write( reportFile, xUnitReport )
         log{ "xUnit report is created at: file:${ reportFile.canonicalPath }" }
 
         ( failures > 0 )

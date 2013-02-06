@@ -268,7 +268,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                                    collect { String pageUrl -> "[$pageUrl]:\n${ toMultiLines( linksMap[ pageUrl ] ) }" }.
                                    join( '\n' )
 
-            file.write( linksMapReport, 'UTF-8' )
+            write( file, linksMapReport )
             if ( linksMap ){ assert file.size()}
 
             crawlerLog {
