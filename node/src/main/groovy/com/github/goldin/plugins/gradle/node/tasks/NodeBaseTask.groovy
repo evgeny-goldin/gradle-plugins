@@ -16,8 +16,11 @@ import org.gradle.api.logging.LogLevel
  */
 abstract class NodeBaseTask extends BaseTask<NodeExtension>
 {
-    final NodeHelper nodeHelper    = new NodeHelper( logger )
-    final File       scriptsFolder = project.buildDir
+    final NodeHelper nodeHelper = new NodeHelper( logger )
+
+    @Requires({ result })
+    final File scriptsFolder(){ project.buildDir }
+
 
     /**
      * Determines if current task requires an existence of {@link NodeExtension#scriptPath}
@@ -93,7 +96,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     }
 
 
-    @Requires({ scriptsFolder && this.name })
+    @Requires({ this.name })
     @Ensures ({ result })
     final File taskScriptFile ( boolean before = false, boolean after = false )
     {
@@ -101,7 +104,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                            after  ? 'after-'  :
                                     '' ) + this.name + '.sh'
 
-        new File( scriptsFolder, fileName )
+        new File( scriptsFolder(), fileName )
     }
 
 

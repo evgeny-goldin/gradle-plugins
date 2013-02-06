@@ -9,6 +9,6 @@ class CleanTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        delete( scriptsFolder )
+        delete( scriptsFolder())
     }
 }

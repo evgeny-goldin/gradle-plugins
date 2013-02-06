@@ -15,7 +15,7 @@ class HelpTask extends NodeBaseTask
         System.out.println( "Hello, I'm Gradle Node.js plugin." )
         System.out.println( "You can run me as follows:" )
         System.out.println( "- gradle $HELP_TASK        : displays this help message" )
-        System.out.println( "- gradle $CLEAN_TASK       : deletes '${ scriptsFolder.name }' folder where all *.sh scripts are created" )
+        System.out.println( "- gradle $CLEAN_TASK       : deletes '${ scriptsFolder().name }' folder where all *.sh scripts are created" )
         System.out.println( "- gradle $CLEAN_MODULES: deletes '$NODE_MODULES_DIR' folder" )
         System.out.println( "- gradle $SETUP_TASK       : installs Node.js and all application dependencies" )
         System.out.println( "                       runs automatically" )
