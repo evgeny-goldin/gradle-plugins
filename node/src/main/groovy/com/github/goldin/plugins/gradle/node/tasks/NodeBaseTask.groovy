@@ -161,18 +161,21 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Ensures ({ result })
     final String beforeAfterScript( List<String> commands, String title )
     {
-        if ( ext.configsResult == null )
+        final script = commands.join( '\n' )
+
+        if ( script.contains( '$' ))
         {
-            ext.configsResult = readConfigs()
+            if ( ext.configsResult == null ) { ext.configsResult = readConfigs() }
+            assert ( ext.configsResult != null )
+
+            final Map binding = [ configs : ext.configsResult ] + ( ext.configsResult ? [ config : ext.configsResult.head() ] : [:] )
+
+            baseBashScript( title ) + '\n' + renderTemplate( script, binding )
         }
-
-        assert ( ext.configsResult != null )
-
-        final Map binding = [ configs : ext.configsResult ] +
-                            ( ext.configsResult ? [ config : ext.configsResult.head() ] : [:] )
-        final script      = baseBashScript( title ) + '\n' + commands.join( '\n' )
-
-        new SimpleTemplateEngine().createTemplate( script ).make( binding ).toString()
+        else
+        {
+            baseBashScript( title ) + '\n' + script
+        }
     }
 
 

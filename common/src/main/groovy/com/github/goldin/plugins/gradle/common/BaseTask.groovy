@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.common
 
+import groovy.text.SimpleTemplateEngine
 import org.apache.tools.ant.DirectoryScanner
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -217,6 +218,21 @@ abstract class BaseTask<T> extends DefaultTask
         final  f = project.file( path )
         assert f.directory, "Directory [$f] is not available"
         f
+    }
+
+
+    /**
+     * Renders template provided using the binding mapping specified.
+     *
+     * @param template template to render
+     * @param binding binding to use when template is rendered
+     * @return template rendered
+     */
+    @Requires({ template && ( binding != null ) })
+    @Ensures ({ result })
+    final String renderTemplate( String template, Map<String,?> binding )
+    {
+        new SimpleTemplateEngine().createTemplate( template ).make( binding ).toString()
     }
 
 
