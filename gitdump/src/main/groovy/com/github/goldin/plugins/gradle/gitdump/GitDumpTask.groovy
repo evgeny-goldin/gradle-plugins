@@ -133,7 +133,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         if ( ext.aboutFile )
         {
             final line = ( '-' * ( startTimeFormatted.length() + 2 ))
-            ext.aboutFile.write( "$line\n $startTimeFormatted\n$line" )
+            write( ext.aboutFile, "$line\n $startTimeFormatted\n$line" )
         }
     }
 
