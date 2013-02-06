@@ -187,6 +187,26 @@ abstract class BaseTask<T> extends DefaultTask
 
 
     /**
+     * {@code File.write()} wrapper.
+     *
+     * @param file
+     * @param content
+     * @param encoding
+     * @return
+     */
+    @Requires({ file && content && encoding })
+    @Ensures ({ result == file })
+    final File write ( File file, String content, String encoding = 'UTF-8' )
+    {
+        delete( file )
+        file.parentFile.mkdirs()
+        file.write( content, encoding )
+        assert ( file.file && ( file.size() >= content.size()))
+        file
+    }
+
+
+    /**
      * {@link org.gradle.api.Project#file(java.lang.Object)} wrapper validating the directory created exists already.
      */
     @Requires({ path })
