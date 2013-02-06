@@ -18,7 +18,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 {
     final NodeHelper nodeHelper = new NodeHelper( logger )
 
-    @Requires({ result })
+    @Ensures({ result })
     final File scriptsFolder(){ project.buildDir }
 
 
