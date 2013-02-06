@@ -154,11 +154,12 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      * Retrieves script content to be used as before/after execution interceptor.
      *
      * @param commands commands to execute
+     * @param title    commands title
      * @return script content to be used as before/after execution interceptor.
      */
-    @Requires({ commands })
+    @Requires({ commands && title })
     @Ensures ({ result })
-    final String beforeAfterScript( List<String> commands )
+    final String beforeAfterScript( List<String> commands, String title )
     {
         if ( ext.configsResult == null )
         {
@@ -166,9 +167,12 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         }
 
         assert ( ext.configsResult != null )
+
         final Map binding = [ configs : ext.configsResult ] +
                             ( ext.configsResult ? [ config : ext.configsResult.head() ] : [:] )
-        new SimpleTemplateEngine().createTemplate( commands.join( '\n' )).make( binding ).toString()
+        final script      = baseBashScript( title ) + '\n' + commands.join( '\n' )
+
+        new SimpleTemplateEngine().createTemplate( script ).make( binding ).toString()
     }
 
 

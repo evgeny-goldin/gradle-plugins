@@ -22,7 +22,7 @@ class StopTask extends NodeBaseTask
         }
         finally
         {
-            if ( ext.after ) { bashExec( beforeAfterScript( ext.after ), taskScriptFile( false, true ), false, true, false )}
+            if ( ext.after ) { bashExec( beforeAfterScript( ext.after, 'after stop' ), taskScriptFile( false, true ), false, true, false )}
         }
     }
 
