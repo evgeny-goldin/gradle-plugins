@@ -194,7 +194,7 @@ abstract class BaseTask<T> extends DefaultTask
      * @param encoding encoding to use
      * @return file written
      */
-    @Requires({ file && content && encoding })
+    @Requires({ file && ( content != null ) && encoding })
     @Ensures ({ result == file })
     final File write ( File file, String content, String encoding = 'UTF-8' )
     {
