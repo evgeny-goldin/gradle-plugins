@@ -164,7 +164,7 @@ class ConfigHelper
             keysPattern    += ( key + separator )
         }
 
-        final valuePattern = ~( '(?s)^([^\\{]*\\{[^\\{]*' + keysPattern + '\\s*:\\s*)(.+?)(?=(,|\\s|\\}))' )
+        final valuePattern = ~( '(?s)(.*\\{[^\\{]*' + keysPattern + '\\s*:\\s*)(.+?)(?=(,|\\s|\\}))' )
         final keysExist    = valuePattern.matcher( configContent ).find()
 
         if ( keysExist )
