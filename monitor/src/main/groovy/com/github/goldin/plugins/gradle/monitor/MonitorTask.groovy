@@ -69,8 +69,9 @@ class MonitorTask extends BaseTask<MonitorExtension>
         checkStatusCode = checkStatusCode ?: '200'
         checkContent    = checkContent    ?: ''
         timeLimit       = timeLimit       ?: ( Long.MAX_VALUE as String )
+        final url       = "${ title ? "'$title' " : '' }[$checkUrl]"
 
-        log { "${ title ? "'$title' - " : '' }[$checkUrl] - expecting status code [$checkStatusCode] and content matching [$checkContent]" }
+        log { "$url - expecting status code [$checkStatusCode] and content matching [$checkContent]" }
 
         final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, null, false, false )
         final responseStatusCode = response.statusCode.toString()
@@ -78,17 +79,17 @@ class MonitorTask extends BaseTask<MonitorExtension>
         final isMatch            = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent )
         final isTimeMatch        = ( response.timeMillis <= ( timeLimit as long ))
 
-        log { "${ title ? "'$title' - " : '' }[$checkUrl] - [${ response.timeMillis }] ms" }
+        log { "$url - [${ response.timeMillis }] ms" }
 
         if ( ! isMatch )
         {
-            "Requesting [$checkUrl] we received ${ response.statusCode instanceof Throwable ? 'error' : 'status code' } " +
+            "Requesting $url we received ${ response.statusCode instanceof Throwable ? 'error' : 'status code' } " +
             "[$responseStatusCode] and content [$responseContent] " +
             "while we expected status code [$checkStatusCode] and content matching [$checkContent]"
         }
         else if ( ! isTimeMatch )
         {
-            "Requesting [$checkUrl] we received correct status code and content but it took " +
+            "Requesting $url we received correct status code and content but it took " +
             "[${ response.timeMillis }] ms while we expected less than or equal to [${ timeLimit }] ms"
         }
         else
@@ -103,23 +104,23 @@ class MonitorTask extends BaseTask<MonitorExtension>
     {
         def ( String address, String ports ) = resource.tokenize( '|' )
 
-        address         = address[ 'nmap://'.length() .. -1 ]
         final sortList  = { List<String> l -> l.collect { it as int }.toSet().sort() }
         final portsList = sortList( ports.tokenize( ',' )*.trim().grep())
+        final url       = "${ title ? "'$title' " : '' }[nmap://${ address[ 'nmap://'.length() .. -1 ] }]"
 
         assert address && portsList
 
-        log { "${ title ? "'$title' - " : '' }[nmap://$address] - expecting open ports: $portsList" }
+        log { "$url - expecting open ports: $portsList" }
 
         final nmapOutput = exec( 'nmap', [ '-v', address ], null, true, true, LogLevel.DEBUG )
         final openPorts  = sortList( nmapOutput.readLines().findAll { String line -> line ==~ ~/\d+\/\w+\s+open\s+.+$/ }.
                                                             collect { String line -> line.find ( /(\d+)/ ){ it[ 1 ] }})
 
-        log { "${ title ? "'$title' - " : '' }[nmap://$address] - found open ports: $openPorts" }
+        log { "$url - found open ports: $openPorts" }
 
         if ( portsList != openPorts )
         {
-            "Scanning [$address] for open ports we found $openPorts open ports while we expected $portsList"
+            "Scanning $url for open ports we found $openPorts open ports while we expected $portsList"
         }
         else
         {
