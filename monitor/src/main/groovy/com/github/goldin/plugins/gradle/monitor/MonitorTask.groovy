@@ -104,9 +104,10 @@ class MonitorTask extends BaseTask<MonitorExtension>
     {
         def ( String address, String ports ) = resource.tokenize( '|' )
 
+        address         = address[ 'nmap://'.length() .. -1 ]
         final sortList  = { List<String> l -> l.collect { it as int }.toSet().sort() }
         final portsList = sortList( ports.tokenize( ',' )*.trim().grep())
-        final url       = "${ title ? "'$title' " : '' }[nmap://${ address[ 'nmap://'.length() .. -1 ] }]"
+        final url       = "${ title ? "'$title' " : '' }[nmap://$address]"
 
         assert address && portsList
 
