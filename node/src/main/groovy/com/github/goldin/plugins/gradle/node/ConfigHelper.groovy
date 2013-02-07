@@ -43,7 +43,7 @@ class ConfigHelper
     }
 
 
-    @Requires({ ( map != null ) && key && ( value != null ) })
+    @Requires({ ( map != null ) && key })
     @Ensures ({ result })
     private String noNewKeysErrorMessage( Map map, String key, Object value )
     {
@@ -150,7 +150,7 @@ class ConfigHelper
     }
 
 
-    @Requires({ configContent && keys && ( value != null ) && ( ! ( value instanceof Map )) })
+    @Requires({ configContent && keys && ( ! ( value instanceof Map )) })
     private String mergeConfigPlainValue ( String configContent, List<String> keys, Object value )
     {
         String keysPattern = ''
@@ -170,7 +170,8 @@ class ConfigHelper
         if ( keysExist )
         {
             return configContent.replaceFirst( valuePattern ){
-                final asIs = ( value instanceof Number  ) ||
+                final asIs = ( value == null            ) ||
+                             ( value instanceof Number  ) ||
                              ( value instanceof Boolean ) ||
                              ( value as String ).with { startsWith( '"' ) || endsWith( '"' ) }
 
@@ -194,7 +195,7 @@ class ConfigHelper
      * @param key   configuration key, may contain {@link NodeExtension#configsKeyDelimiter} to indicate configuration nesting
      * @param value configuration value, may be a real value or another configuration {@code Map} if read from JSON
      */
-    @Requires({ ( map != null ) && key && ( value != null ) })
+    @Requires({ ( map != null ) && key })
     @Ensures ({ result == map })
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter', 'GroovyIfStatementWithTooManyBranches' ])
     Map<String,?> updateConfigMap ( Map<String,?> map, String key, Object value )
@@ -227,7 +228,7 @@ class ConfigHelper
     }
 
 
-    @Requires({ ( map != null ) && key.contains( ext.configsKeyDelimiter ) && ( value != null ) })
+    @Requires({ ( map != null ) && key.contains( ext.configsKeyDelimiter ) })
     @SuppressWarnings([ 'JavaStylePropertiesInvocation', 'GroovyGetterCallCanBePropertyAccess' ])
     private void updateConfigMapKeyIsDelimited ( Map<String,?> map, String key, Object value )
     {
