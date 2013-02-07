@@ -118,7 +118,7 @@ class ConfigHelper
             }
 
             writeConfigFile( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
-                                         mergeConfig ( configContent, newConfigData ) :
+                                         mergeConfig ( configContent, configData ) :
                                          stringifyMapToJson ( configData ))
             configData
         }
