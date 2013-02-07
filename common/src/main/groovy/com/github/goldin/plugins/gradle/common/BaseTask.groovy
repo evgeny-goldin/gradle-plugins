@@ -199,7 +199,7 @@ abstract class BaseTask<T> extends DefaultTask
     @Ensures ({ result == file })
     final File write ( File file, String content, String encoding = 'UTF-8' )
     {
-        delete( file )
+        assert ( ! file.file ) || project.delete( file ),      "Unable to delete [${ file.canonicalPath }]"
         assert file.parentFile.with { directory || mkdirs() }, "Unable to create [${ file.parentFile.canonicalPath }]"
 
         file.write( content, encoding )
