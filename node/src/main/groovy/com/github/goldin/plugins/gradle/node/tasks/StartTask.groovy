@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import groovy.json.JsonSlurper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
@@ -26,6 +27,7 @@ class StartTask extends NodeBaseTask
         if ( ext.before          ) { bashExec( beforeAfterScript( ext.before, 'before start' ), taskScriptFile( true ), false, true, false ) }
         bashExec( startScript(), taskScriptFile())
         if ( ext.checkAfterStart ) { runTask ( CHECK_STARTED_TASK )}
+        if ( ext.printUrl        ) { printApplicationUrls() }
     }
 
 
@@ -48,5 +50,15 @@ class StartTask extends NodeBaseTask
         [ "forever start ${ ext.foreverOptions ?: '' } --plain --pidFile \"${ pidFileName( ext.portNumber ) }\" " +
           "${ executable ? '"' + executable + '"' : '' } \"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }",
           'forever list   --plain' ]
+    }
+
+
+    void printApplicationUrls ()
+    {
+        final String externalIp  = (( Map ) new JsonSlurper().parseText( 'http://jsonip.com/'.toURL().text )).ip
+        final String internalUrl = "http://127.0.0.1:${ ext.portNumber }${ ext.printUrl }"
+        final String externalUrl = "http://$externalIp:${ ext.portNumber }${ ext.printUrl }"
+
+        println( "The application is up and running at [$internalUrl] / [$externalUrl]" )
     }
 }
