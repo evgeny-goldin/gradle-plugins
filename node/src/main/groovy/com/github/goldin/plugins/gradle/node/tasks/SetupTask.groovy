@@ -3,6 +3,7 @@ package com.github.goldin.plugins.gradle.node.tasks
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.node.ConfigHelper
 import org.gcontracts.annotations.Ensures
+import org.gcontracts.annotations.Requires
 import java.util.regex.Pattern
 
 
@@ -64,7 +65,18 @@ class SetupTask extends NodeBaseTask
             }
         }
 
+        if ( ext.configs && ext.printConfigs ) { printConfigs() }
         configs
+    }
+
+
+    @Requires({ ext.configs })
+    private void printConfigs ()
+    {
+        for ( configFile in ext.configs*.keySet().flatten().toSet().collect { file( it )})
+        {
+            println ( "[$configFile.canonicalPath]:\n-----\n${ configFile.getText( 'UTF-8' )}\n-----" )
+        }
     }
 
 

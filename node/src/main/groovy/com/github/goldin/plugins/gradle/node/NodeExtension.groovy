@@ -46,6 +46,7 @@ class NodeExtension
                                                       // Value - config data Map ( key => value ) or existing JSON / .properties File
     String               configsNewKeys      = 'fail' // 'fail', 'ignore' or 'create' - action to be taken when configs merge brings new keys
     String               configsKeyDelimiter = '.'
+    boolean              printConfigs        = false  // Whether resulting configs should be printed after merge operation
 
     List <Map<String, ?>> configsResult             // Internal property, configs resulting from merging external configs with those of the project
 
