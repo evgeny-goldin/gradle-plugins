@@ -54,8 +54,8 @@ subprojects {
     clean { delete( "$rootDir/out", "$rootDir/build" ) }
 
     repositories {
-        maven { url 'http://repository.jetbrains.com/kotlin/' }
         maven { url 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
+        maven { url 'http://repository.jetbrains.com/kotlin/' }
     }
 
     about        { includeDependencies = [ 'compile', 'runtime' ]
