@@ -6,6 +6,7 @@ import groovy.json.JsonSlurper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
+import java.util.regex.Matcher
 
 
 /**
@@ -150,41 +151,66 @@ class ConfigHelper
     }
 
 
+    @SuppressWarnings([ 'GroovyContinue' ])
     @Requires({ configContent && keys && ( ! ( value instanceof Map )) })
-    private String mergeConfigPlainValue ( String configContent, List<String> keys, Object value )
+    private String mergeConfigPlainValue ( String configContent, List<String> keys, Object value, int startPosition = 0, int keyIndex = 0 )
     {
-        String keysPattern = ''
+        final currentContent = configContent.substring( startPosition );
+        assert currentContent.trim().startsWith( '{' )
 
-        keys.collect { '"\\Q' + it + '\\E"' }.eachWithIndex {
-            String key, int index ->
+        final keyPattern = ~/("\Q${ keys[ keyIndex ] }\E"\s*:\s*)(.*?)(?=(,|\s|\}))/
+        final matcher    = keyPattern.matcher( currentContent )
 
-            final separator = (( index  < ( keys.size() - 2 )) ? '\\s*:.*?\\{.+?'           : // extra '{' are allowed for intermediate delimiters
-                               ( index == ( keys.size() - 2 )) ? '\\s*:[^\\{]*?\\{[^\\{]+?' : // extra '{' are *not* allowed for the last delimiter
-                                                                 '' )
-            keysPattern    += ( key + separator )
-        }
-
-        final valuePattern = ~( '(?s)(.*\\{[^\\{]*' + keysPattern + '\\s*:\\s*)(.+?)(?=(,|\\s|\\}))' )
-        final keysExist    = valuePattern.matcher( configContent ).find()
-
-        if ( keysExist )
+        while ( matcher.find())
         {
-            return configContent.replaceFirst( valuePattern ){
-                final asIs = ( value == null            ) ||
-                             ( value instanceof Number  ) ||
-                             ( value instanceof Boolean ) ||
-                             ( value as String ).with { startsWith( '"' ) || endsWith( '"' ) }
+            final prefix   = matcher.group( 1 )
+            final position = matcher.start()
 
-                it[ 1 ] + ( asIs ? value as String : '"' + value + '"' )
+            if ( bracesWeight( currentContent.substring( 0, position )) == 1 )
+            {
+                return ( keyIndex == ( keys.size() - 1 )) ?
+                    // Last key, recursion stops, replacement made
+                    configContent.substring( 0, startPosition ) + currentContent.substring( 0, position ) +
+                    prefix + valueStringified( value ) + currentContent.substring( matcher.end()) :
+                    // Recursion continues with the next key
+                    mergeConfigPlainValue( configContent, keys, value,
+                                           startPosition + position + prefix.size(),
+                                           keyIndex + 1 )
             }
         }
 
         switch ( ext.configsNewKeys )
         {
-            case 'fail'   : throw new GradleException( "Unable to merge config keys $keys with [$configContent], value pattern [$valuePattern] can't be found" )
+            case 'fail'   : throw new GradleException( "Unable to merge config keys $keys with [$configContent], creating new keys is not allowed" )
             case 'ignore' : return configContent
             default       : return stringifyMapToJson( updateConfigMap( parseJsonToMap( configContent ), keys.join( ext.configsKeyDelimiter ), value ))
         }
+    }
+
+
+    @Requires({ text != null })
+    private int bracesWeight ( String text )
+    {
+        int counter = 0
+        for ( ch in text.toCharArray())
+        {
+            counter += ( ch == '{' ) ?  1 :
+                       ( ch == '}' ) ? -1 :
+                                        0
+        }
+        counter
+    }
+
+
+    @Ensures({ result != null })
+    private String valueStringified( Object o )
+    {
+        final asIs = ( o == null            ) ||
+                     ( o instanceof Number  ) ||
+                     ( o instanceof Boolean ) ||
+                     ( o as String ).with { startsWith( '"' ) || endsWith( '"' ) }
+
+        ( asIs ? String.valueOf( o ) : "\"${o}\"" )
     }
 
 
