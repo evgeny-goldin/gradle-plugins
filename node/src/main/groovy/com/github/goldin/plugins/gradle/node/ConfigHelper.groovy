@@ -155,7 +155,7 @@ class ConfigHelper
     @Requires({ configContent && keys && ( ! ( value instanceof Map )) })
     private String mergeConfigPlainValue ( String configContent, List<String> keys, Object value, int startPosition = 0, int keyIndex = 0 )
     {
-        final currentContent = configContent.substring( startPosition );
+        final currentContent = configContent.substring( startPosition )
         assert currentContent.trim().startsWith( '{' )
 
         final keyPattern = ~/("\Q${ keys[ keyIndex ] }\E"\s*:\s*)(.*?)(?=(,|\s|\}))/
