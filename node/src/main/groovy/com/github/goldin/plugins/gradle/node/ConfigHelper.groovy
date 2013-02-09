@@ -210,7 +210,7 @@ class ConfigHelper
                      ( o instanceof Boolean ) ||
                      ( o as String ).with { startsWith( '"' ) || endsWith( '"' ) }
 
-        ( asIs ? String.valueOf( o ) : "\"${o}\"" )
+        ( asIs ? String.valueOf( o ) : ( '"' +  o + '"' ))
     }
 
 
