@@ -7,10 +7,8 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 import org.gradle.api.logging.LogLevel
-
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
-import java.util.regex.Pattern
 
 
 /**
@@ -22,7 +20,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     private final AtomicLong    bytesDownloaded = new AtomicLong( 0L )
     private final AtomicLong    linksProcessed  = new AtomicLong( 0L )
 
-    private volatile boolean            crawlingAborted = false // If ever becomes true - crawling process is aborted immediately
+    private volatile boolean            crawlingAborted = false // If ever set to true - crawling process is aborted immediately
     private          ThreadPoolExecutor threadPool
     private          LinksStorage       linksStorage
 
@@ -91,7 +89,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         printStartBanner()
         submitRootLinks()
-        waitForIdleOrVerificationFailure()
+        waitForIdle()
 
         printFinishReport()
         writeLinksMapFiles()
@@ -179,7 +177,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     /**
      * Blocks until there is no more activity in a thread pool, meaning all links are checked.
      */
-    void waitForIdleOrVerificationFailure ()
+    void waitForIdle ()
     {
         while (( ! crawlingAborted ) && futures.any{ ! it.done } )
         {
