@@ -48,11 +48,12 @@ class CrawlerExtension
     boolean       zipLogFiles              = true
     boolean       replaceSpecialCharacters = true
     boolean       removeHtmlComments       = true
-    boolean       printSummary             = true
+    boolean       displaySummary           = true
+    boolean       displayLinks             = false
+    boolean       displayLinksPath         = false
     boolean       checkAbsoluteLinks       = true
     boolean       checkRelativeLinks       = true
     boolean       checkExternalLinks       = false
-    boolean       displayLinks             = false
     boolean       failOnBrokenLinks        = false
     boolean       teamcityMessages         = false
 

@@ -23,9 +23,10 @@ class LinksStorage
 
     private final CrawlerExtension          ext
     private final Map<String, List<String>> linksMap
+    private final Map<String, List<String>> linksPathMap
     private final Map<String, List<String>> newLinksMap
-    private final Set<String>               linksSet   // Stores links processed if ext.displayLinks
-    private       long[]                    linksArray // Stores checksums of links processed otherwise
+    private final Set<String>               linksSet       // Stores links processed if ext.displayLinks is true
+    private       long[]                    checksumsArray // Stores checksums of links processed if ext.displayLinks is false
     private       int                       nextChecksum
     private       long                      minChecksum
     private       long                      maxChecksum
@@ -42,14 +43,15 @@ class LinksStorage
         }
         else
         {
-            this.linksArray   = new long[ ext.checksumsChunkSize ]
-            this.nextChecksum = 0
-            this.minChecksum  = Long.MAX_VALUE
-            this.maxChecksum  = Long.MIN_VALUE
+            this.checksumsArray = new long[ ext.checksumsChunkSize ]
+            this.nextChecksum   = 0
+            this.minChecksum    = Long.MAX_VALUE
+            this.maxChecksum    = Long.MIN_VALUE
         }
 
-        this.linksMap    = ext.linksMapFile    ? new ConcurrentHashMap<>() : null
-        this.newLinksMap = ext.newLinksMapFile ? new ConcurrentHashMap<>() : null
+        this.linksMap     = ext.linksMapFile     ? new ConcurrentHashMap<>() : null
+        this.linksPathMap = ext.displayLinksPath ? new ConcurrentHashMap<>() : null
+        this.newLinksMap  = ext.newLinksMapFile  ? new ConcurrentHashMap<>() : null
     }
 
 
@@ -98,6 +100,15 @@ class LinksStorage
     }
 
 
+    @Requires({ link })
+    @Ensures ({ result })
+    List<String> linkPath( String link )
+    {
+        assert ( locked && ext.displayLinksPath )
+        linksPathMap[ link ].asImmutable()
+    }
+
+
     @Ensures({ result != null })
     Map<String, List<String>> newLinksMap()
     {
@@ -115,9 +126,9 @@ class LinksStorage
     }
 
 
-    @Requires({ links })
+    @Requires({ ( parentLink != null ) && links })
     @Ensures({ result != null })
-    List<String> addLinksToProcess ( List<String> links )
+    List<String> addLinksToProcess ( String parentLink, List<String> links )
     {
         assert ( ! locked )
 
@@ -137,8 +148,9 @@ class LinksStorage
             {   // New links have new checksums
                 newLinks = links.findAll {
                     final long checksum = linksChecksums[ it ]
-                    ! (( checksum == minChecksum ) || ( checksum == maxChecksum ) ||
-                       (( checksum > minChecksum ) && ( checksum  < maxChecksum ) && contains( linksArray, checksum, nextChecksum )))
+                    ! (( checksum == minChecksum ) ||
+                       ( checksum == maxChecksum ) ||
+                       (( checksum > minChecksum ) && ( checksum  < maxChecksum ) && contains( checksumsArray, checksum, nextChecksum )))
                 }
 
                 if ( newLinks )
@@ -147,10 +159,10 @@ class LinksStorage
                     ensureLinksArrayCapacity( newLinks.size())
 
                     newLinks.each {
-                        final long checksum          = linksChecksums[ it ]
-                        linksArray[ nextChecksum++ ] = checksum
-                        minChecksum                  = min ( minChecksum, checksum )
-                        maxChecksum                  = max ( maxChecksum, checksum )
+                        final long checksum              = linksChecksums[ it ]
+                        checksumsArray[ nextChecksum++ ] = checksum
+                        minChecksum                      = min ( minChecksum, checksum )
+                        maxChecksum                      = max ( maxChecksum, checksum )
                     }
                 }
 
@@ -159,7 +171,15 @@ class LinksStorage
                     ext.checksumsChunkSize = 10 * 1024
                 }
 
-                assert ( nextChecksum <= linksArray.size()) && ( minChecksum <= maxChecksum )
+                assert ( nextChecksum <= checksumsArray.size()) && ( minChecksum <= maxChecksum )
+            }
+
+            if ( ext.displayLinksPath )
+            {
+                assert ( linksPathMap.containsKey( parentLink ) || ( ! parentLink ))
+                newLinks.each {
+                    linksPathMap[ it ] = linksPathMap.containsKey( parentLink ) ? linksPathMap[ parentLink ] + parentLink : []
+                }
             }
         }
 
@@ -187,14 +207,14 @@ class LinksStorage
 
 
     @Requires({ newElements > 0 })
-    @Ensures({ ( nextChecksum + newElements ) <= linksArray.length })
+    @Ensures({ ( nextChecksum + newElements ) <= checksumsArray.length })
     private void ensureLinksArrayCapacity ( int newElements )
     {
-        if (( nextChecksum + newElements ) <= linksArray.length ) { return }
+        if (( nextChecksum + newElements ) <= checksumsArray.length ) { return }
 
-        final newArray  = new long[ linksArray.length + max( ext.checksumsChunkSize, newElements ) ]
-        System.arraycopy( linksArray, 0, newArray, 0, nextChecksum )
-        this.linksArray = newArray
+        final newArray  = new long[ checksumsArray.length + max( ext.checksumsChunkSize, newElements ) ]
+        System.arraycopy( checksumsArray, 0, newArray, 0, nextChecksum )
+        this.checksumsArray = newArray
     }
 
 

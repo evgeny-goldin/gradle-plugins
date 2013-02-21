@@ -166,7 +166,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      */
     void submitRootLinks ()
     {
-        for ( link in linksStorage.addLinksToProcess( ext.rootLinks ).sort())
+        for ( link in linksStorage.addLinksToProcess( '', ext.rootLinks ).sort())
         {
             final String pageUrl = ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure c -> c( l )}
             futures << threadPool.submit({ checkLinks( pageUrl, 'Root link', 'Root link', true, 0 )} as Runnable )
@@ -227,12 +227,17 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         if ( brokenLinks )
         {
+            final joinLines = { Collection c, String delim = '' -> '\n\n[' + c.join( "]\n$delim[" ) + ']\n\n' }
+
             message.append( ':\n\n' )
             for ( brokenLink in linksStorage.brokenLinks().sort())
             {
-                message.append( "- [$brokenLink] - referred to by".toString()).
-                        append( toMultiLines( linksStorage.brokenLinkReferrers( brokenLink ), ' ' )).
-                        append( '\n' )
+                final linkMessage =
+                    "[$brokenLink]\n\n" +
+                    ( ext.displayLinksPath ? 'Path:' + joinLines(( List<String> )( linksStorage.linkPath( brokenLink ) + brokenLink ), '=>\n' ) : '' ) +
+                    ( 'Referred to by:' + joinLines( linksStorage.brokenLinkReferrers( brokenLink )))
+
+                message.append( "- ${ linkMessage.readLines().join( '\n  ' )}\n" )
             }
         }
         else if ( ! crawlingAborted )
@@ -240,7 +245,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             message.append( ' - thumbs up!' )
         }
 
-        final logLevel = ( brokenLinks ? LogLevel.ERROR : ext.printSummary ? LogLevel.WARN : LogLevel.INFO )
+        final logLevel = ( brokenLinks ? LogLevel.ERROR : ext.displaySummary ? LogLevel.WARN : LogLevel.INFO )
         crawlerLog( logLevel ){ message.toString() }
 
         if ( ext.teamcityMessages )
@@ -353,7 +358,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             {
                 final  actualUrlList = filterTransformLinks([ response.actualUrl ]) // List of one element, transformed link
                 assert actualUrlList.size().with {( delegate == 0 ) || ( delegate == 1 )}
-                if ( actualUrlList && linksStorage.addLinksToProcess( actualUrlList ))
+                if ( actualUrlList && linksStorage.addLinksToProcess( pageUrl, actualUrlList ))
                 {
                     checkLinks( actualUrlList.first(), referrerUrl, referrerContent, isRootLink, pageDepth )
                 }
@@ -380,7 +385,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             if ( pageDepth == ext.maxDepth ){ return }
 
             final List<String> pageLinks = readLinks( pageUrl, pageContent )
-            final List<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageLinks ) : [] )
+            final List<String> newLinks  = ( pageLinks ? linksStorage.addLinksToProcess( pageUrl, pageLinks ) : [] )
             final queued                 = threadPool.queue.size()
 
             linksStorage.updateBrokenLinkReferrers( pageUrl, pageLinks )
