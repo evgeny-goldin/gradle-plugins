@@ -23,6 +23,7 @@ class NodeExtension
     String       checkContent             = ''    // Response to expect when making a request
     int          checkStatusCode          = 200   // Response code to expect when making a request
     int          checkWait                = 3     // Seconds to wait after starting/stopping the application and checking it
+    int          checkTimeout             = 10    // Seconds to wait for check test to succeed or fail (timeout)
 
     List<Closure> transformers            = []    // Callbacks to invoke after every bash script is generated
     String        foreverOptions          = ''    // Additional command-line 'forever' options, such as '-w -v'

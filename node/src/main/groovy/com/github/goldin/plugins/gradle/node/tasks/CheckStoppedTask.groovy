@@ -11,7 +11,7 @@ class CheckStoppedTask extends NodeBaseTask
     {
         delay( ext.checkWait * 1000 )
 
-        final response = httpRequest( ext.checkUrl, 'GET', [:], 0, 0, null, false, false )
+        final response = httpRequest( ext.checkUrl, 'GET', [:], ext.checkTimeout * 500, ext.checkTimeout * 500, null, false, false )
         assert ( response.statusCode instanceof ConnectException ) &&
                ((( ConnectException ) response.statusCode ).message == 'Connection refused' ),
                "Connecting to [$ext.checkUrl] resulted in status code [${ response.statusCode }], expected ${ ConnectException.name }"

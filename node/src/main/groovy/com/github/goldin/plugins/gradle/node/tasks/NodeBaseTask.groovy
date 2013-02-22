@@ -64,9 +64,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
         assert ext.testCommand,         "'testCommand' should be defined in $description"
         assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
-        assert ext.portNumber > 0,      "'portNumber' should be positive in $description"
-        assert ext.checkWait >= 0,      "'checkWait' should not be negative in $description"
-        assert ext.redisWait >= 0,      "'redisWait' should not be negative in $description"
+        assert ext.portNumber   >  0,   "'portNumber' should be positive in $description"
+        assert ext.checkWait    >= 0,   "'checkWait' should not be negative in $description"
+        assert ext.checkTimeout >= 0,   "'checkTimeout' should not be negative in $description"
+        assert ext.redisWait    >= 0,   "'redisWait' should not be negative in $description"
         assert ext.configsNewKeys,      "'configsNewKeys' should be defined in $description"
 
         ext.checkUrl   = ext.checkUrl   ?: "http://127.0.0.1:${ ext.portNumber }"
