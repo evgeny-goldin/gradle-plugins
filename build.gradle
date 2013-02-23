@@ -167,8 +167,8 @@ subprojects.findAll{ Project p -> p.name != 'common' }.each {
 
 project( ':kotlin' ) {
     dependencies {
-        compile   'org.jetbrains.kotlin:kotlin-compiler:0.5.1'
-        compile ( 'org.jetbrains.kotlin:kdoc:0.5.1' ){
+        compile   'org.jetbrains.kotlin:kotlin-compiler:0.0.1'
+        compile ( 'org.jetbrains.kotlin:kdoc:0.0.1' ){
             exclude group:  'asm'            /* Brought by gcontracts */
             exclude module: 'kotlin-runtime' /* Conflicts with 'kotlin-compiler' */
         }
