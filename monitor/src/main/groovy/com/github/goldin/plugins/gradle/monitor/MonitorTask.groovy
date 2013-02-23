@@ -1,12 +1,15 @@
 package com.github.goldin.plugins.gradle.monitor
 
 import com.github.goldin.plugins.gradle.common.BaseTask
+import groovyx.gpars.GParsPool
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 import org.gradle.api.logging.LogLevel
+
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLSession
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.regex.Pattern
 
 
@@ -34,29 +37,39 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Override
     void taskAction()
     {
-        final failures      = []
+        final failures      = ext.runInParallel ? new ConcurrentLinkedQueue<String>() : []
         final resourceLines = (( ext.resourcesList ?: [] ) + ( ext.resourcesFile?.readLines() ?: [] ))*.
                               trim().grep().findAll { ! it.startsWith( '#' ) }
 
         assert resourceLines, 'No resources found to monitor'
 
-        for ( resourceLine in resourceLines )
-        {
-            def ( String title, String resource ) = resourceLine.contains( ' => ' ) ?
-                resourceLine.tokenize( ' => ') : [ '', resourceLine ]
-
-            final isHttpResource = resource.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }
-            final isNmapResource = resource.toLowerCase().startsWith( 'nmap://' )
-            final failureMessage = isHttpResource ? processHttpResource( title, resource ) :
-                                   isNmapResource ? processNmapResource( title, resource ) :
-                                                    ''
+        final lineProcessor = {
+            String line ->
+            final failureMessage = processResourceLine( line )
             if ( failureMessage ) { failures << failureMessage; log( LogLevel.ERROR ){ ">>>> $failureMessage" }}
         }
+
+        if ( ext.runInParallel ) { GParsPool.withPool { resourceLines.eachParallel { String line -> lineProcessor( line ) }}}
+        else                     {                      resourceLines.each         { String line -> lineProcessor( line ) }}
 
         if ( failures )
         {
             throw new GradleException( "The following checks have failed:\n* [${ failures.join( ']\n* [' )}]" )
         }
+    }
+
+
+    @Requires({ line })
+    String processResourceLine( String line )
+    {
+        def ( String title, String resource ) = line.contains( ' => ' ) ? line.tokenize( ' => ' ) : [ '', line ]
+
+        final isHttpResource = resource.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }
+        final isNmapResource = resource.toLowerCase().startsWith( 'nmap://' )
+
+        isHttpResource ? processHttpResource( title, resource ) :
+        isNmapResource ? processNmapResource( title, resource ) :
+                         ''
     }
 
 

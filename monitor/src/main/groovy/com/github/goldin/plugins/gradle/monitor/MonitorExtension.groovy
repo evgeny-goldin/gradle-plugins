@@ -7,4 +7,5 @@ class MonitorExtension
     Map<String, String> headers        = [:]
     int                 connectTimeout = 30000
     int                 readTimeout    = 30000
+    boolean             runInParallel  = true
 }
