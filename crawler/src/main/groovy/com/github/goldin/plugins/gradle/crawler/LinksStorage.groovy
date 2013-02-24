@@ -234,16 +234,16 @@ class LinksStorage
     }
 
 
-    @Requires({ brokenLink && referrer })
-    void addBrokenLink ( String brokenLink, String referrer )
+    @Requires({ brokenLink && referrerUrl })
+    void addBrokenLink ( String brokenLink, String referrerUrl )
     {
-        updateMap( brokenLinks, brokenLink, new ConcurrentLinkedQueue([ referrer ]))
+        updateMap( brokenLinks, brokenLink, new ConcurrentLinkedQueue([ referrerUrl ]))
     }
 
 
-    @Requires({ referrer && ( links != null ) })
-    void updateBrokenLinkReferrers( String referrer, Collection<String> links )
+    @Requires({ referrerUrl && ( links != null ) })
+    void updateBrokenLinkReferrers( String referrerUrl, Collection<String> links )
     {
-        links.each { brokenLinks[ it ]?.add( referrer ) }
+        links.each { brokenLinks[ it ]?.add( referrerUrl ) }
     }
 }

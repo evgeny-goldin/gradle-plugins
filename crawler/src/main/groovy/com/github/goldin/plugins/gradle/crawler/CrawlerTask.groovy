@@ -169,7 +169,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         for ( link in linksStorage.addLinksToProcess( '', ext.rootLinks ).sort())
         {
             final String pageUrl = ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure c -> c( l )}
-            futures << threadPool.submit({ checkLinks( pageUrl, 'Root link', 'Root link', true, 0 )} as Runnable )
+            futures << threadPool.submit({ checkLinks( pageUrl, 'Root link', true, 0 )} as Runnable )
         }
     }
 
@@ -335,15 +335,14 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     /**
      * <b>Invoked in a thread pool worker</b> - checks links in the page specified.
      *
-     * @param pageUrl         URL of a page to check its links
-     * @param referrerUrl     URL of another page referring to the one being checked
-     * @param referrerContent Referrer page content
-     * @param isRootLink      whether url submitted is a root link
-     * @param pageDepth       current page depth
+     * @param pageUrl     URL of a page to check its links
+     * @param referrerUrl URL of another page referring to the one being checked
+     * @param isRootLink  whether url submitted is a root link
+     * @param pageDepth   current page depth
      */
     @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
-    @Requires({ pageUrl && referrerUrl && referrerContent && ( pageDepth > -1 ) && linksStorage && threadPool })
-    void checkLinks ( String pageUrl, String referrerUrl, String referrerContent, boolean isRootLink, int pageDepth )
+    @Requires({ pageUrl && referrerUrl && ( pageDepth > -1 ) && linksStorage && threadPool })
+    void checkLinks ( String pageUrl, String referrerUrl, boolean isRootLink, int pageDepth )
     {
         if ( crawlingAborted ) { return }
 
@@ -352,7 +351,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         try
         {
-            final response = readResponse( pageUrl, referrerUrl, referrerContent, isRootLink )
+            final response = readResponse( pageUrl, referrerUrl, isRootLink )
 
             if ( response.isRedirect )
             {
@@ -360,7 +359,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                 assert actualUrlList.size().with {( delegate == 0 ) || ( delegate == 1 )}
                 if ( actualUrlList && linksStorage.addLinksToProcess( pageUrl, actualUrlList ))
                 {
-                    checkLinks( actualUrlList.first(), referrerUrl, referrerContent, isRootLink, pageDepth )
+                    checkLinks( actualUrlList.first(), referrerUrl, isRootLink, pageDepth )
                 }
 
                 return
@@ -404,7 +403,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             for ( link in newLinks )
             {
                 final String linkUrl = link // Otherwise, various invocations share the same "link" instance when invoked
-                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl, pageContent, false, pageDepth + 1 )} as Runnable )
+                futures << threadPool.submit({ checkLinks( linkUrl, pageUrl, false, pageDepth + 1 )} as Runnable )
             }
         }
         catch( Throwable error )
@@ -532,18 +531,16 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      * Retrieves {@code byte[]} content of the link specified.
      *
      * @param pageUrl         URL of a link to read
-     * @param referrer        URL of link referrer
-     * @param referrerContent Referrer page content
+     * @param referrerUrl     URL of link referrer
      * @param forceGetRequest whether a link should be GET-requested regardless of its type
      * @param attempt         Number of the current attempt, starts from 1
      *
      * @return response data container
      */
-    @Requires({ pageUrl && referrer && referrerContent && linksStorage && ( attempt > 0 ) })
+    @Requires({ pageUrl && referrerUrl && linksStorage && ( attempt > 0 ) })
     @Ensures({ result })
     CrawlerHttpResponse readResponse ( final String  pageUrl,
-                                       final String  referrer,
-                                       final String  referrerContent,
+                                       final String  referrerUrl,
                                        final boolean forceGetRequest,
                                        final int     attempt = 1 )
     {
@@ -554,7 +551,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         final        isHeadRequest     = (( ! forceGetRequest ) && ( ! readFullContent ))
         final        requestMethod     = ( isHeadRequest ? 'HEAD' : 'GET' )
         final        linksStorageLocal = linksStorage // So that the closure that follows can access it
-        final        crawlerResponse   = { HttpResponse r -> new CrawlerHttpResponse( r, referrer, referrerContent, linksStorageLocal, attempt )}
+        final        crawlerResponse   = { HttpResponse r -> new CrawlerHttpResponse( r, referrerUrl, linksStorageLocal, attempt )}
         CrawlerHttpResponse response   = crawlerResponse( new HttpResponse( pageUrl, requestMethod ))
 
         try
@@ -645,7 +642,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                 crawlerLog { "$errorMessage, ${ isHeadRequest ? 'will be retried as GET request' : 'attempt ' + attempt }" }
 
                 delay( ext.retryDelay )
-                readResponse( actualUrl, referrer, referrerContent, true, isHeadRequest ? 1 : attempt + 1 )
+                readResponse( actualUrl, referrerUrl, true, isHeadRequest ? 1 : attempt + 1 )
             }
             else
             {
@@ -658,7 +655,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                 else
                 {
                     crawlerLog{ "$errorMessage, registered as broken link" }
-                    linksStorage.addBrokenLink( originalUrl, referrer )
+                    linksStorage.addBrokenLink( originalUrl, referrerUrl )
                 }
 
                 response

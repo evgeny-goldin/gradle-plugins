@@ -8,30 +8,27 @@ import org.gcontracts.annotations.Requires
 /**
  * Links crawler specific HTTP response
  */
-@Invariant({ referrer && referrerContent && linksStorage && ( attempt > 0 )})
+@Invariant({ referrerUrl && linksStorage && ( attempt > 0 )})
 class CrawlerHttpResponse extends HttpResponse
 {
-    final String       referrer
-    final String       referrerContent
+    final String       referrerUrl
     final LinksStorage linksStorage
     final int          attempt
     final boolean      isHeadRequest
 
 
-    @Requires({ response && referrer && referrerContent && linksStorage && ( attempt > 0 ) })
+    @Requires({ response && referrerUrl && linksStorage && ( attempt > 0 ) })
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     CrawlerHttpResponse ( HttpResponse response,
-                          String       referrer,
-                          String       referrerContent,
+                          String       referrerUrl ,
                           LinksStorage linksStorage,
                           int          attempt )
     {
         super( response  )
 
-        this.referrer        = referrer
-        this.referrerContent = referrerContent
-        this.linksStorage    = linksStorage
-        this.attempt         = attempt
-        this.isHeadRequest   = ( response.method == 'HEAD' )
+        this.referrerUrl   = referrerUrl
+        this.linksStorage  = linksStorage
+        this.attempt       = attempt
+        this.isHeadRequest = ( response.method == 'HEAD' )
     }
 }
