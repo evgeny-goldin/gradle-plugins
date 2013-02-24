@@ -189,7 +189,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                 final processed = linksProcessed.get()
                 final queued    = threadPool.queue.size()
                 final broken    = linksStorage.brokenLinksNumber()
-                logTeamCityMessage( "$processed link${ s( processed ) } processed, $broken broken, $queued queued" )
+                logTeamCityProgressMessage( "$processed link${ s( processed ) } processed, $broken broken, $queued queued" )
             }
         }
 
@@ -202,9 +202,16 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
 
     @Requires({ message })
-    void logTeamCityMessage( String message )
+    void logTeamCityProgressMessage ( String message )
     {
         log( LogLevel.WARN ){ "##teamcity[progressMessage '${ message.replace( "'", "|'" ) }']" }
+    }
+
+
+    @Requires({ status && message })
+    void logTeamCityBuildStatusMessage ( String status, String message )
+    {
+        log( LogLevel.WARN ){ "##teamcity[buildStatus status='${ status.replace( "'", "|'" ) }' text='${ message.replace( "'", "|'" ) }']" }
     }
 
 
@@ -213,7 +220,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      */
     void printFinishReport ()
     {
-        if ( ext.teamcityMessages ) { logTeamCityMessage( 'Writing report' )}
+        if ( ext.teamcityMessages ) { logTeamCityProgressMessage( 'Writing report' )}
 
         final processedLinks = linksProcessed.get()
         final brokenLinks    = linksStorage.brokenLinksNumber()
@@ -254,9 +261,10 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         if ( ext.teamcityMessages )
         {
-            final status = (( crawlingAborted || ( ext.failOnBrokenLinks && brokenLinks )) ? 'FAILURE' : 'SUCCESS' )
-            final text   = "$processedLinks link${ s( processedLinks )}, $brokenLinks broken${ crawlingAborted ?  ', crawling aborted' : '' }"
-            log( LogLevel.WARN ){ "##teamcity[buildStatus status='$status' text='$text']" }
+            final status  = (( crawlingAborted || ( ext.failOnBrokenLinks && brokenLinks )) ? 'FAILURE' : 'SUCCESS' )
+            final message = "$processedLinks link${ s( processedLinks )}, $brokenLinks broken${ crawlingAborted ?  ', crawling aborted' : '' }"
+
+            logTeamCityBuildStatusMessage( status, message )
         }
     }
 
