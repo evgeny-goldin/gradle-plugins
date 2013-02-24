@@ -189,8 +189,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                 final processed = linksProcessed.get()
                 final queued    = threadPool.queue.size()
                 final broken    = linksStorage.brokenLinksNumber()
-                logger.warn(
-                    "##teamcity[progressMessage '$processed link${ s( processed ) } processed, $broken broken, $queued queued']" )
+                logTeamCityMessage( "$processed link${ s( processed ) } processed, $broken broken, $queued queued" )
             }
         }
 
@@ -202,34 +201,42 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     }
 
 
+    @Requires({ message })
+    void logTeamCityMessage( String message )
+    {
+        log( LogLevel.WARN ){ "##teamcity[progressMessage '${ message.replace( "'", "|'" ) }']" }
+    }
+
+
     /**
      * Prints finish report after all links are checked.
      */
     void printFinishReport ()
     {
+        if ( ext.teamcityMessages ) { logTeamCityMessage( 'Writing report' )}
+
         final processedLinks = linksProcessed.get()
         final brokenLinks    = linksStorage.brokenLinksNumber()
         final mbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 * 1024 ))
         final kbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 ))
         final downloaded     = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
-        final message        = new StringBuilder().
-                               append( "\n\n[$processedLinks] link${ s( processedLinks ) } processed in ".toString()).
-                               append( "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, ".toString()).
-                               append( downloaded.toString())
+        final logLevel       = ( brokenLinks ? LogLevel.ERROR : ext.displaySummary ? LogLevel.WARN : LogLevel.INFO )
+        final joinLines      = { Collection c, String delim = '' -> '\n\n[' + c.join( "]\n$delim[" ) + ']\n\n' }
+
+        crawlerLog( logLevel ){ "\n\n[$processedLinks] link${ s( processedLinks ) } processed in " +
+                                "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, $downloaded" +
+                                ( ext.displayLinks ? ':' : '' )}
 
         if ( ext.displayLinks )
         {
-            message.append( ':\n' ).
-                    append( toMultiLines( linksStorage.processedLinks()))
+            final processedLinksLines = toMultiLines( linksStorage.processedLinks())
+            crawlerLog( logLevel ){ processedLinksLines }
         }
 
-        message.append( "\n[$brokenLinks] broken link${ s( brokenLinks ) } found".toString())
+        crawlerLog( logLevel ){ "\n[$brokenLinks] broken link${ s( brokenLinks ) } found${ brokenLinks ? ':\n' : '' }" }
 
         if ( brokenLinks )
         {
-            final joinLines = { Collection c, String delim = '' -> '\n\n[' + c.join( "]\n$delim[" ) + ']\n\n' }
-
-            message.append( ':\n\n' )
             for ( brokenLink in linksStorage.brokenLinks().sort())
             {
                 final linkMessage =
@@ -237,16 +244,13 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                     ( ext.displayLinksPath ? 'Path:' + joinLines(( List<String> )( linksStorage.linkPath( brokenLink ) + brokenLink ), '=>\n' ) : '' ) +
                     ( 'Referred to by:' + joinLines( linksStorage.brokenLinkReferrers( brokenLink )))
 
-                message.append( "- ${ linkMessage.readLines().join( '\n  ' )}\n" )
+                crawlerLog( logLevel ){ "- ${ linkMessage.readLines().join( '\n  ' )}\n" }
             }
         }
         else if ( ! crawlingAborted )
         {
-            message.append( ' - thumbs up!' )
+            crawlerLog( logLevel ){ ' - thumbs up!' }
         }
-
-        final logLevel = ( brokenLinks ? LogLevel.ERROR : ext.displaySummary ? LogLevel.WARN : LogLevel.INFO )
-        crawlerLog( logLevel ){ message.toString() }
 
         if ( ext.teamcityMessages )
         {
