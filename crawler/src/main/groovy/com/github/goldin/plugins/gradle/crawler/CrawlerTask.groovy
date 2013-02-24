@@ -103,7 +103,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     String removeAllAfter( String ch, String input, String alternative )
     {
         final j = input.indexOf( ch )
-        ( j > 0 ? input.substring( 0, j ) : alternative )
+        ( j > 0 ? new String( input.substring( 0, j )) : alternative )
     }
 
 
@@ -512,10 +512,10 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     @Ensures({ result != null })
     List<String> filterTransformLinks ( Collection<String> links )
     {
-        links.collect { normalizeUrl( removeAllAfter( '#', it, it )) }.
-              toSet().
-              findAll { String link -> ( ! ( ext.ignoredLinks ?: [] ).any { it( link ) }) }.
-              collect { String link -> ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure c -> c( l ) }}
+        ( List<String> ) links.collect { normalizeUrl( removeAllAfter( '#', it, it )) }.
+                               toSet().
+                               findAll { String link -> ( ! ( ext.ignoredLinks ?: [] ).any { it( link ) }) }.
+                               collect { String link -> ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure c -> c( l ) }}
     }
 
 
