@@ -178,7 +178,7 @@ class LinksStorage
             {
                 assert ( linksPathMap.containsKey( parentLink ) || ( ! parentLink ))
                 newLinks.each {
-                    linksPathMap[ it ] = linksPathMap.containsKey( parentLink ) ? linksPathMap[ parentLink ] + parentLink : []
+                    linksPathMap[ it.intern() ] = linksPathMap.containsKey( parentLink ) ? linksPathMap[ parentLink ] + parentLink.intern() : []
                 }
             }
         }
@@ -222,7 +222,7 @@ class LinksStorage
     void updateLinksMap ( String pageUrl, List<String> links )
     {
         assert ext.linksMapFile
-        updateMap( linksMap, pageUrl, links )
+        updateMap( linksMap, pageUrl.intern(), links*.intern())
     }
 
 
@@ -230,14 +230,14 @@ class LinksStorage
     void updateNewLinksMap ( String pageUrl, List<String> newLinks )
     {
         assert ext.newLinksMapFile
-        updateMap( newLinksMap, pageUrl, newLinks )
+        updateMap( newLinksMap, pageUrl.intern(), newLinks*.intern())
     }
 
 
     @Requires({ brokenLink && referrerUrl })
     void addBrokenLink ( String brokenLink, String referrerUrl )
     {
-        updateMap( brokenLinks, brokenLink, new ConcurrentLinkedQueue([ referrerUrl ]))
+        updateMap( brokenLinks, brokenLink.intern(), new ConcurrentLinkedQueue([ referrerUrl.intern() ]))
     }
 
 
