@@ -224,11 +224,13 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         final processedLinks = linksProcessed.get()
         final brokenLinks    = linksStorage.brokenLinksNumber()
+        final isSuccess      = ( ! brokenLinks ) && ( ! crawlingAborted )
         final mbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 * 1024 ))
         final kbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 ))
         final downloaded     = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
         final logLevel       = ( brokenLinks ? LogLevel.ERROR : ext.displaySummary ? LogLevel.WARN : LogLevel.INFO )
         final joinLines      = { Collection c, String delim = '' -> '\n\n[' + c.join( "]\n$delim[" ) + ']\n\n' }
+
 
         crawlerLog( logLevel ){ "\n\n[$processedLinks] link${ s( processedLinks ) } processed in " +
                                 "${( long )(( System.currentTimeMillis() - startTime ) / 1000 )} sec, $downloaded" +
@@ -240,7 +242,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             crawlerLog( logLevel ){ processedLinksLines }
         }
 
-        crawlerLog( logLevel ){ "\n[$brokenLinks] broken link${ s( brokenLinks ) } found${ brokenLinks ? ':\n' : crawlingAborted ? '' : ' - thumbs up!' }" }
+        crawlerLog( logLevel ){ "\n[$brokenLinks] broken link${ s( brokenLinks ) } found${ brokenLinks ? ':\n' : isSuccess ? ' - thumbs up!' : '' }" }
 
         if ( brokenLinks )
         {
