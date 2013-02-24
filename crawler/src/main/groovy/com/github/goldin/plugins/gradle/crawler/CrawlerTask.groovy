@@ -240,9 +240,8 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             crawlerLog( logLevel ){ processedLinksLines }
         }
 
-        crawlerLog( logLevel ){ "\n[$brokenLinks] broken link${ s( brokenLinks ) } found${ brokenLinks     ? ':\n' :
-                                                                                           crawlingAborted ? ''    :
-                                                                                                             ' - thumbs up!' }" }
+        crawlerLog( logLevel ){ "\n[$brokenLinks] broken link${ s( brokenLinks ) } found${ brokenLinks ? ':\n' : crawlingAborted ? '' : ' - thumbs up!' }" }
+
         if ( brokenLinks )
         {
             for ( brokenLink in linksStorage.brokenLinks().sort())
