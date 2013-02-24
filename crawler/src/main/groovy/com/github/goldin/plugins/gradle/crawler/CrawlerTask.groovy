@@ -240,8 +240,9 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             crawlerLog( logLevel ){ processedLinksLines }
         }
 
-        crawlerLog( logLevel ){ "\n[$brokenLinks] broken link${ s( brokenLinks ) } found${ brokenLinks ? ':\n' : '' }" }
-
+        crawlerLog( logLevel ){ "\n[$brokenLinks] broken link${ s( brokenLinks ) } found${ brokenLinks     ? ':\n' :
+                                                                                           crawlingAborted ? ''    :
+                                                                                                             ' - thumbs up!' }" }
         if ( brokenLinks )
         {
             for ( brokenLink in linksStorage.brokenLinks().sort())
@@ -253,10 +254,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
                 crawlerLog( logLevel ){ "- ${ linkMessage.readLines().join( '\n  ' )}\n" }
             }
-        }
-        else if ( ! crawlingAborted )
-        {
-            crawlerLog( logLevel ){ ' - thumbs up!' }
         }
 
         if ( ext.teamcityMessages )
