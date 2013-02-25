@@ -23,11 +23,11 @@ class HelpTask extends NodeBaseTask
         System.out.println( "- gradle $START_TASK       : starts an application with 'forever'" )
         System.out.println( "- gradle $RESTART_ALL_TASK  : restarts all currently running applications" )
         System.out.println( "- gradle $CHECK_STARTED_TASK: checks that application started is up and running" )
-        System.out.println( "                       runs automatically after start and restartall" )
+        System.out.println( "                       runs automatically after '$START_TASK' and '$RESTART_ALL_TASK'" )
         System.out.println( "- gradle $STOP_TASK        : stops an application" )
         System.out.println( "                       runs automatically before '$START_TASK' and if '$CHECK_STARTED_TASK' fails" )
         System.out.println( "- gradle $STOP_ALL_TASK     : stops all currently running applications" )
         System.out.println( "- gradle $CHECK_STOPPED_TASK: checks that application stopped is not accepting connections any more" )
-        System.out.println( "                       runs automatically after stop and stopall" )
+        System.out.println( "                       runs automatically after '$STOP_TASK' and '$STOP_ALL_TASK'" )
     }
 }
