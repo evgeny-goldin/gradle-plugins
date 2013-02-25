@@ -61,7 +61,7 @@ abstract class BaseTask<T> extends DefaultTask
 
 
     @Ensures({ result != null })
-    final String s( Number j ){ j == 1 ? '' : 's' }
+    final String s( Number j, String single = '', String multiple = 's' ){ j == 1 ? single : multiple }
 
 
     /**

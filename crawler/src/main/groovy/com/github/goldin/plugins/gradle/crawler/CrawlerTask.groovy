@@ -286,7 +286,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             write( file, linksMapReport )
 
             crawlerLog {
-                "$title is written to [${ file.canonicalPath }], [${ linksMap.size() }] entr${ linksMap.size() == 1 ? 'y' : 'ies' }"
+                "$title is written to [${ file.canonicalPath }], [${ linksMap.size() }] entr${ s( linksMap.size(), 'y', 'ies' )}"
             }
         }
 
