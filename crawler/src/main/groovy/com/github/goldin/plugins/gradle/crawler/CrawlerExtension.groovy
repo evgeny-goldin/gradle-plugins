@@ -35,7 +35,7 @@ class CrawlerExtension
     File          log                      = null
     File          linksMapFile             = null
     File          newLinksMapFile          = null
-    List<String>  nonHtmlExtensions        = 'css js ico logo gif jpg jpeg png ps eps doc pdf zip jar war ear hpi rar gz xml xsd xsl svg flv swf mp4 mp3 avi mkv'.tokenize()
+    List<String>  nonHtmlExtensions        = 'css js ico logo gif jpg jpeg png ps eps doc pdf zip jar war ear hpi rar gz xml xlsx xsd xsl svg flv swf mp4 mp3 avi mkv'.tokenize()
     List<String>  htmlExtensions           = []
     List<String>  rootLinks                = []
     List<Closure> linkTransformers         = []
