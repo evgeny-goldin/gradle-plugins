@@ -229,7 +229,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         final kbDownloaded   = ( long )( bytesDownloaded.get() / ( 1024 ))
         final downloaded     = "[${ mbDownloaded ?: kbDownloaded }] ${ mbDownloaded ? 'Mb' : 'Kb' } downloaded"
         final logLevel       = ( brokenLinks ? LogLevel.ERROR : ext.displaySummary ? LogLevel.WARN : LogLevel.INFO )
-        final joinLines      = { Collection c, String delim = '' -> '\n\n[' + c.join( "]\n$delim[" ) + ']\n\n' }
 
 
         crawlerLog( logLevel ){ "\n\n[$processedLinks] link${ s( processedLinks ) } processed in " +
@@ -246,12 +245,15 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
         if ( brokenLinks )
         {
+            final joinLines = { Collection c, String delim = '' -> '\n\n[' + c.join( "]\n$delim[" ) + ']\n\n' }
+
             for ( brokenLink in linksStorage.brokenLinks().sort())
             {
+                final referrers   = linksStorage.brokenLinkReferrers( brokenLink )
                 final linkMessage =
                     "[$brokenLink]\n\n" +
-                    ( ext.displayLinksPath ? 'Path:' + joinLines(( List<String> )( linksStorage.linkPath( brokenLink ) + brokenLink ), '=>\n' ) : '' ) +
-                    ( 'Referred to by:' + joinLines( linksStorage.brokenLinkReferrers( brokenLink )))
+                    ( ext.displayLinksPath ? "Path:${ joinLines( linksStorage.linkPath( brokenLink ), '=>\n' )}" : '' ) +
+                    ( "Referred by [${ referrers.size()}] resource${ s( referrers.size()) }:${ joinLines( referrers ) }" )
 
                 crawlerLog( logLevel ){ "- ${ linkMessage.readLines().join( '\n  ' )}\n" }
             }

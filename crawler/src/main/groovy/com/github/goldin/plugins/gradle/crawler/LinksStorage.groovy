@@ -105,7 +105,7 @@ class LinksStorage
     List<String> linkPath( String link )
     {
         assert ( locked && ext.displayLinksPath )
-        linksPathMap[ link ].asImmutable()
+        (( List<String> )( linksPathMap[ link ] + link )).asImmutable()
     }
 
 

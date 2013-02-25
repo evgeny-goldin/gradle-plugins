@@ -59,7 +59,7 @@ abstract class BaseTask<T> extends DefaultTask
     @Ensures({ result != null })
     final String s( Collection c ){ s( c.size()) }
 
-    @Requires({ j > -1 })
+
     @Ensures({ result != null })
     final String s( Number j ){ j == 1 ? '' : 's' }
 
