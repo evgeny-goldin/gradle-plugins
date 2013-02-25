@@ -54,7 +54,7 @@ class CrawlerExtension
     boolean       checkAbsoluteLinks       = true
     boolean       checkRelativeLinks       = true
     boolean       checkExternalLinks       = false
-    boolean       failOnFailure            = false
+    boolean       failOnFailure            = true
     boolean       failOnBrokenLinks        = false
     boolean       teamcityMessages         = false
 
