@@ -31,8 +31,8 @@ class StopAllTask extends NodeBaseTask
         |${ baseBashScript( 'stopall' ) }
         |set +e
         |
-        |forever stopall
-        |forever list --plain
+        |${ forever() } stopall
+        |${ forever() } list --plain
         |
         |${ ext.pidOnlyToStop ? '' : killCommands().join( '\n|' ) }
         |

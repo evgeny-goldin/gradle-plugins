@@ -43,17 +43,16 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     }
 
 
-    @Requires({ ext.scriptPath })
-    @Ensures ({ result != null })
-    String executable()
+    /**
+     * Retrieves 'forever' executable path.
+     * @return 'forever' executable path
+     */
+    @Ensures ({ result })
+    String forever()
     {
-        final executable = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
-        if (  executable )
-        {
-            assert project.file( executable ).canonicalFile.file, "[$executable] is not available"
-        }
-
-        executable
+        final  foreverExecutable = project.file( FOREVER_EXECUTABLE ).canonicalFile
+        assert foreverExecutable.file, "[$foreverExecutable.canonicalPath] is not available"
+        FOREVER_EXECUTABLE
     }
 
 

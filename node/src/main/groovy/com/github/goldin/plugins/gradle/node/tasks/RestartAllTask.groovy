@@ -23,7 +23,7 @@ class RestartAllTask extends NodeBaseTask
         """
         |${ baseBashScript( 'restartall' ) }
         |export BUILD_ID=JenkinsLetMeSpawn
-        |forever restartall
-        |forever list --plain""".stripMargin()
+        |${ forever() } restartall
+        |${ forever() } list --plain""".stripMargin()
     }
 }

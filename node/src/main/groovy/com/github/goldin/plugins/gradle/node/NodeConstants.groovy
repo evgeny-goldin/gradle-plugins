@@ -29,9 +29,10 @@ class NodeConstants
     final static String STOP_ALL_TASK          = 'stopall'
     final static String CHECK_STOPPED_TASK     = 'checkStopped'
 
-    final static String NODE_MODULES_DIR       = 'node_modules'
+    final static String NODE_MODULES_DIR       = './node_modules'
     final static String MODULES_BIN_DIR        = "$NODE_MODULES_DIR/.bin"
     final static String COFFEE_EXECUTABLE      = "$MODULES_BIN_DIR/coffee"
+    final static String FOREVER_EXECUTABLE     = "$MODULES_BIN_DIR/forever"
 
     final static Pattern AttributePattern      = ~/(\w+)='(.*?[^|])'/
     final static Pattern EmptyAttributePattern = ~/(\w+)='()'/

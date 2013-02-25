@@ -49,7 +49,7 @@ class StopTask extends NodeBaseTask
             |    while [ "\$foreverId" != "" ];
             |    do
             |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
-            |        forever stop \$foreverId
+            |        ${ forever() } stop \$foreverId
             |        foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
             |    done
             |fi
@@ -60,6 +60,6 @@ class StopTask extends NodeBaseTask
             |${ killCommands().join( '\n|' )}
             """.stripMargin().readLines())
 
-        [ 'set +e', '', *stopCommands, '', 'set -e' ] // Empty commands correspond to empty lines in a bash script
+        ( List<String> ) [ 'set +e', '', *stopCommands, '', 'set -e' ] // Empty commands correspond to empty lines in a bash script
     }
 }
