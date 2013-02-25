@@ -48,7 +48,8 @@ class StartTask extends NodeBaseTask
         final executable = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
         if ( executable )
         {
-            assert project.file( executable ).canonicalFile.file, "[$executable] is not available"
+            final  executableFile = project.file( executable ).canonicalFile
+            assert executableFile.file, "[$executableFile.canonicalPath] is not available"
         }
 
         [ "${ forever() } start ${ ext.foreverOptions ?: '' } --plain --pidFile \"${ pidFileName( ext.portNumber ) }\" " +

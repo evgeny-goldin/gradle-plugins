@@ -133,8 +133,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Ensures ({ result })
     final String baseBashScript ( String operationTitle )
     {
-        final  binFolder = project.file( MODULES_BIN_DIR )
-        assert binFolder.directory, "[$binFolder] is not available"
+        final  binFolder = project.file( MODULES_BIN_DIR ).canonicalFile
+        assert binFolder.directory, "Directory [$binFolder.canonicalPath] is not available"
         final  q         = '"\\""'
 
         """
