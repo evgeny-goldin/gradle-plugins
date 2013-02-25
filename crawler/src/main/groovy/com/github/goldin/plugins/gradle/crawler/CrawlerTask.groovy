@@ -420,16 +420,18 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         }
         catch( Throwable error )
         {
-            crawlerLog( LogLevel.ERROR, error ){ "Unexpected error while reading [$pageUrl], referrer [$referrerUrl]" }
+            final message = "Unexpected error while reading [$pageUrl], referrer [$referrerUrl]"
+            if ( ext.failOnFailure ) { abortCrawling( message, error ) }
+            else                     { crawlerLog( LogLevel.ERROR, error ){ message }}
         }
     }
 
 
     @Requires({ errorMessage })
-    void abortCrawling ( String errorMessage )
+    void abortCrawling ( String errorMessage, Throwable error = null )
     {
         crawlingAborted = true
-        log( LogLevel.ERROR ){ "! $errorMessage, aborting the crawling process" }
+        log( LogLevel.ERROR, error ){ "! $errorMessage, aborting the crawling process" }
         threadPool.shutdownNow()
     }
 
