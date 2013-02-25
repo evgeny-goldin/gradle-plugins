@@ -253,7 +253,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                 final linkMessage =
                     "[$brokenLink]\n\n" +
                     ( ext.displayLinksPath ? "Path:${ joinLines( linksStorage.linkPath( brokenLink ), '=>\n' )}" : '' ) +
-                    ( "Referred by [${ referrers.size()}] resource${ s( referrers.size()) }:${ joinLines( referrers ) }" )
+                    ( "Referred by [${ referrers.size()}] resource${ s( referrers ) }:${ joinLines( referrers ) }" )
 
                 crawlerLog( logLevel ){ "- ${ linkMessage.readLines().join( '\n  ' )}\n" }
             }

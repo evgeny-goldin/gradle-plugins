@@ -57,7 +57,7 @@ abstract class BaseTask<T> extends DefaultTask
 
     @Requires({ c != null })
     @Ensures({ result != null })
-    final String s( Collection c ){ s( c.size()) }
+    final String s( Collection c, String single = '', String multiple = 's' ){ s( c.size(), single, multiple ) }
 
 
     @Ensures({ result != null })
