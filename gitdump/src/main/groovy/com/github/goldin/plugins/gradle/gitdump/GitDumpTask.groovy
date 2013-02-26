@@ -79,9 +79,9 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Ensures ({ result != null })
     private List<String> gitUrls()
     {
-        final urls = (( ext.urls                                                     ?: [] ) +
-                      (( ext.githubUser || ext.githubOrganization ) ? githubUrls()    : [] ) +
-                      ( ext.bitbucketUser                           ? bitbucketUrls() : [] )).
+        final urls = (( ext.urls                           ?: [] ) +
+                      ( ext.githubUser    ? githubUrls()    : [] ) +
+                      ( ext.bitbucketUser ? bitbucketUrls() : [] )).
                      collect { ext.collectProjects ? ext.collectProjects( it ) : it }.grep()
 
         log { "Urls resolved for dumping: \n* [${ urls.join( ']\n* [' ) }]" }
@@ -89,12 +89,12 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     }
 
 
-    @Requires({ ext.githubUser || ext.githubOrganization })
+    @Requires({ ext.githubUser })
     @Ensures ({ result != null })
     private List<String> githubUrls()
     {
-        final json = responseJson( "https://api.github.com/${ ext.githubUser ? 'users' : 'orgs' }/${ ext.githubUser ?: ext.githubOrganization }/repos?per_page=100000",
-                                   ext.githubUser ?: ext.githubOrganization,
+        final json = responseJson( "https://api.github.com/${ ext.githubOrganization ? 'orgs' : 'users' }/${ ext.githubOrganization ?: ext.githubUser }/repos?per_page=100000",
+                                   ext.githubUser,
                                    ext.githubPassword )
 
         json.collect { Map m -> m.git_url }
