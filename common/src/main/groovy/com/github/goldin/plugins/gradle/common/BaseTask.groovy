@@ -609,6 +609,8 @@ abstract class BaseTask<T> extends DefaultTask
      * @param failOnError          whether execution should fail if sending request fails
      * @param logError             whether an error thrown should be logged
      * @param acceptEncoding       whether "Accept-Encoding: gzip,deflate" header should be added
+     * @param username             username to be used for basic authentication
+     * @param acceptEncoding       password to be used for basic authentication
      * @return http response object
      */
     @Requires({ url && method && ( headers != null ) && ( connectTimeoutMillis > -1 ) && ( readTimeoutMillis > -1 ) })
@@ -622,15 +624,18 @@ abstract class BaseTask<T> extends DefaultTask
                                     Closure             isReadContent        = null,
                                     boolean             failOnError          = true,
                                     boolean             logError             = true,
-                                    boolean             acceptEncoding       = true )
+                                    boolean             acceptEncoding       = true,
+                                    String              username             = '',
+                                    String              password             = '' )
     {
         assert url.with { startsWith( 'http://' ) || startsWith( 'https://' )}, "[$url] - only 'http[s]://' URLs are supported"
 
         final time     = System.currentTimeMillis()
         final response = new HttpResponse( url, method )
 
-        if ( acceptEncoding ) { headers += [ 'Accept-Encoding': 'gzip,deflate' ]}
-
+        if ( acceptEncoding ) { headers +=     [ 'Accept-Encoding': 'gzip,deflate' ] }
+        headers += (( username && password ) ? [ 'Authorization'  : 'Basic ' + "$username:$password".getBytes( 'UTF-8' ).encodeBase64().toString() ] :
+                                               [:] )
         try
         {
             response.connection                = url.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection

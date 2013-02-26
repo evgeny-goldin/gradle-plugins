@@ -79,11 +79,13 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Ensures ({ result != null })
     private List<String> gitUrls()
     {
-        final urls = ( ext.urls                                                     ?: [] ) +
-                     (( ext.githubUser || ext.githubOrganization ) ? githubUrls()    : [] ) +
-                     ( ext.bitbucketUser                           ? bitbucketUrls() : [] )
+        final urls = (( ext.urls                                                     ?: [] ) +
+                      (( ext.githubUser || ext.githubOrganization ) ? githubUrls()    : [] ) +
+                      ( ext.bitbucketUser                           ? bitbucketUrls() : [] )).
+                     collect { ext.collectProjects ? ext.collectProjects( it ) : it }.grep()
 
-        ( List<String> )( ext.collectProjects ? urls.collect { ext.collectProjects( it ) }.grep() : urls )
+        log { "Urls resolved for dumping: \n* [${ urls.join( ']\n* [' ) }]" }
+        ( List<String> ) urls
     }
 
 
@@ -91,8 +93,10 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Ensures ({ result != null })
     private List<String> githubUrls()
     {
-        final url  = "https://api.github.com/${ ext.githubUser ? 'users' : 'orgs' }/${ ext.githubUser ?: ext.githubOrganization }/repos?per_page=100000"
-        final json = responseJson( url, ext.githubUser ?: ext.githubOrganization, ext.githubPassword )
+        final json = responseJson( "https://api.github.com/${ ext.githubUser ? 'users' : 'orgs' }/${ ext.githubUser ?: ext.githubOrganization }/repos?per_page=100000",
+                                   ext.githubUser ?: ext.githubOrganization,
+                                   ext.githubPassword )
+
         json.collect { Map m -> m.git_url }
     }
 
@@ -101,8 +105,9 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Ensures ({ result != null })
     private List<String> bitbucketUrls()
     {
-        final url  = 'https://api.bitbucket.org/1.0/user/repositories'
-        final json = responseJson( url, ext.bitbucketUser, ext.bitbucketPassword )
+        final json = responseJson( 'https://api.bitbucket.org/1.0/user/repositories',
+                                   ext.bitbucketUser,
+                                   ext.bitbucketPassword )
 
         json.collect { Map m              -> m.resource_uri }.
              findAll { String resource    -> resource.contains( "/repositories/${ ext.bitbucketUser }/" ) }.
@@ -115,12 +120,12 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Ensures ({ result != null })
     private List<Map<String,?>> responseJson( String url, String username, String password )
     {
-        final headers  = ( username && password ) ? [ 'Authorization' : 'Basic ' + "$username:$password".getBytes( 'UTF-8' ).encodeBase64().toString() ] :
-                                                    [:]
-        final response = httpRequest( url, 'GET', headers, 15000, 15000, { false }, true, true, false )
+        log { "Reading [$url]" }
+
+        final response = httpRequest( url, 'GET', [:], 15000, 15000, { false }, true, true, false, username, password )
         final object   = response.inputStream.withReader { new JsonSlurper().parse( it ) }
 
-        assert object instanceof List
+        assert (( object instanceof List ) && ( object.every { it instanceof Map } ))
         ( List<Map<String,?>> ) object
     }
 
