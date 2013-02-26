@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.gitdump
 
 import com.github.goldin.plugins.gradle.common.BaseTask
+import groovy.json.JsonSlurper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
@@ -34,8 +35,10 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         assert ext.singleBackupMinSize <= ext.singleBackupMaxSize
         assert ext.totalBackupMinSize  <= ext.totalBackupMaxSize
 
+        assert ( ext.githubUser || ext.githubOrganization || ext.bitbucketUser || ext.urls ), \
+               "GitHub/Bitbucket user or list of git URLs should be specifed in $description"
+
         ext.urls = ext.urls?.grep()?.toSet()?.sort()
-        assert ext.urls, "List of Git URLs should be specifed in $description"
         ext.urls.each { assert ( it =~ ext.gitProjectNamePattern ), "[$it] is not a Git repository URL, doesn't match [$ext.gitProjectNamePattern]" }
 
         ext.outputDirectory = makeEmptyDirectory( ext.outputDirectory?: new File( project.buildDir, 'gitdump' ))
@@ -51,9 +54,9 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         verifyGitAvailable()
         initAboutFile()
 
-        for ( repoUrl in ext.urls )
+        for ( repoUrl in gitUrls())
         {
-            final  projectName  = find( repoUrl, ext.gitProjectNamePattern )
+            final  projectName = find( repoUrl, ext.gitProjectNamePattern )
             assert projectName, "Failed to match a project name in [$repoUrl]"
 
             final repoDirectory = cloneRepository( repoUrl, projectName )
@@ -72,9 +75,59 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     }
 
 
+    @Requires({ ext.githubUser || ext.bitbucketUser || ext.urls })
+    @Ensures ({ result != null })
+    private List<String> gitUrls()
+    {
+        final urls = ( ext.urls                                                     ?: [] ) +
+                     (( ext.githubUser || ext.githubOrganization ) ? githubUrls()    : [] ) +
+                     ( ext.bitbucketUser                           ? bitbucketUrls() : [] )
+
+        ( List<String> )( ext.collectProjects ? urls.collect { ext.collectProjects( it ) }.grep() : urls )
+    }
+
+
+    @Requires({ ext.githubUser || ext.githubOrganization })
+    @Ensures ({ result != null })
+    private List<String> githubUrls()
+    {
+        final url  = "https://api.github.com/${ ext.githubUser ? 'users' : 'orgs' }/${ ext.githubUser ?: ext.githubOrganization }/repos?per_page=100000"
+        final json = responseJson( url, ext.githubUser ?: ext.githubOrganization, ext.githubPassword )
+        json.collect { Map m -> m.git_url }
+    }
+
+
+    @Requires({ ext.bitbucketUser })
+    @Ensures ({ result != null })
+    private List<String> bitbucketUrls()
+    {
+        final url  = 'https://api.bitbucket.org/1.0/user/repositories'
+        final json = responseJson( url, ext.bitbucketUser, ext.bitbucketPassword )
+
+        json.collect { Map m              -> m.resource_uri }.
+             findAll { String resource    -> resource.contains( "/repositories/${ ext.bitbucketUser }/" ) }.
+             collect { String resource    -> find( resource, ~"/repositories/${ ext.bitbucketUser }/([^/]+)" )}.
+             collect { String projectName -> "git@bitbucket.org:${ ext.bitbucketUser }/${ projectName }.git".toString() }
+    }
+
+
+    @Requires({ url })
+    @Ensures ({ result != null })
+    private List<Map<String,?>> responseJson( String url, String username, String password )
+    {
+        final headers  = ( username && password ) ? [ 'Authorization' : 'Basic ' + "$username:$password".getBytes( 'UTF-8' ).encodeBase64().toString() ] :
+                                                    [:]
+        final response = httpRequest( url, 'GET', headers, 15000, 15000, { false }, true, true, false )
+        final object   = response.inputStream.withReader { new JsonSlurper().parse( it ) }
+
+        assert object instanceof List
+        ( List<Map<String,?>> ) object
+    }
+
+
     @Requires({ repoUrl && projectName })
     @Ensures({ result.directory })
-    File cloneRepository ( String repoUrl, String projectName )
+    private File cloneRepository ( String repoUrl, String projectName )
     {
         String  checkoutId      = null
         String  lastCommit      = null
@@ -130,8 +183,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     }
 
 
-
-    void initAboutFile ()
+    private void initAboutFile ()
     {
         if ( ext.aboutFile )
         {
@@ -142,7 +194,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
 
     @Requires({ projectName && repoUrl.endsWith( '.git' ) && commit ==~ /\w{40}/ })
-    void updateAboutFile ( String projectName, String repoUrl, String commit )
+    private void updateAboutFile ( String projectName, String repoUrl, String commit )
     {
         if ( ext.aboutFile )
         {
@@ -156,7 +208,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
     @Requires({ directory.directory && archiveBaseName && ( minSizeLimit > 0 ) && ( maxSizeLimit > 0 ) && ( minSizeLimit <= maxSizeLimit ) })
     @Ensures({ result.file })
-    File archive( File directory, String archiveBaseName, boolean deleteDirectory, long minSizeLimit, long maxSizeLimit )
+    private File archive( File directory, String archiveBaseName, boolean deleteDirectory, long minSizeLimit, long maxSizeLimit )
     {
         final   archive = new File( ext.outputDirectory, "${ archiveBaseName }.${ ext.useZip ? 'zip' : 'tar.gz' }" )
         delete( archive )

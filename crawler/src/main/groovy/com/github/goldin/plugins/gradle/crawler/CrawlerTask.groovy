@@ -565,7 +565,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             crawlerLog{ "[$pageUrl] - sending $requestMethod request .." }
             response = crawlerResponse ( httpRequest( pageUrl,
                                                       requestMethod,
-                                                      [ 'User-Agent' : ext.userAgent, 'Accept-Encoding' : 'gzip,deflate', 'Connection': 'keep-alive' ],
+                                                      [ 'User-Agent' : ext.userAgent, 'Connection': 'keep-alive' ],
                                                       ext.connectTimeout,
                                                       ext.readTimeout,
                                                       { HttpResponse r -> ( readFullContent && ( ! r.isRedirect ))}))

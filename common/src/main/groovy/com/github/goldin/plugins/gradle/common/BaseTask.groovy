@@ -500,7 +500,7 @@ abstract class BaseTask<T> extends DefaultTask
     /**
      * Retrieves first appearance of the first capturing group of the pattern specified in a String or null if not found.
      */
-    @Requires({ s && p && ( groupIndex > -1 ) })
+    @Requires({ s && p && ( groupIndex > 0 ) })
     final String find( String s, Pattern p, int groupIndex = 1 ){ s.find ( p ) { it[ groupIndex ] }}
 
 
@@ -599,40 +599,44 @@ abstract class BaseTask<T> extends DefaultTask
     /**
      * Invokes an HTTP request using the data provided.
      *
-     * @param url            url to send the request to
-     * @param method         HTTP method to use: 'GET' or 'HEAD'
-     * @param headers        HTTP headers to send
-     * @param connectTimeout connection timeout to set (in milliseconds)
-     * @param readTimeout    connection read timeout to set (in milliseconds)
-     * @param isReadContent  closure returning boolean value of whether or not content should be read,
-     *                       passed {@link HttpResponse} when called
-     * @param failOnError    whether execution should fail if sending request fails
-     * @param logError       whether an error thrown should be logged
+     * @param url                  url to send the request to
+     * @param method               HTTP method to use: 'GET' or 'HEAD'
+     * @param headers              HTTP headers to send
+     * @param connectTimeoutMillis connection timeout to set in milliseconds
+     * @param readTimeoutMillis    connection read timeout to set in milliseconds
+     * @param isReadContent        closure returning boolean value of whether or not content should be read,
+     *                             passed {@link HttpResponse} when called
+     * @param failOnError          whether execution should fail if sending request fails
+     * @param logError             whether an error thrown should be logged
+     * @param acceptEncoding       whether "Accept-Encoding: gzip,deflate" header should be added
      * @return http response object
      */
-    @Requires({ url && method && ( headers != null ) && ( connectTimeout > -1 ) && ( readTimeout > -1 ) })
+    @Requires({ url && method && ( headers != null ) && ( connectTimeoutMillis > -1 ) && ( readTimeoutMillis > -1 ) })
     @Ensures ({ result })
-    @SuppressWarnings([ 'GroovyGetterCallCanBePropertyAccess', 'JavaStylePropertiesInvocation', 'GroovyMethodParameterCount' ])
+    @SuppressWarnings([ 'GroovyGetterCallCanBePropertyAccess', 'JavaStylePropertiesInvocation', 'GroovyMethodParameterCount', 'GroovyAssignmentToMethodParameter' ])
     final HttpResponse httpRequest( String              url,
-                                    String              method         = 'GET',
-                                    Map<String, String> headers        = [:],
-                                    int                 connectTimeout = 0,
-                                    int                 readTimeout    = 0,
-                                    Closure             isReadContent  = null,
-                                    boolean             failOnError    = true,
-                                    boolean             logError       = true )
+                                    String              method               = 'GET',
+                                    Map<String, String> headers              = [:],
+                                    int                 connectTimeoutMillis = 0,
+                                    int                 readTimeoutMillis    = 0,
+                                    Closure             isReadContent        = null,
+                                    boolean             failOnError          = true,
+                                    boolean             logError             = true,
+                                    boolean             acceptEncoding       = true )
     {
         assert url.with { startsWith( 'http://' ) || startsWith( 'https://' )}, "[$url] - only 'http[s]://' URLs are supported"
 
         final time     = System.currentTimeMillis()
         final response = new HttpResponse( url, method )
 
+        if ( acceptEncoding ) { headers += [ 'Accept-Encoding': 'gzip,deflate' ]}
+
         try
         {
             response.connection                = url.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection
             response.connection.requestMethod  = method
-            response.connection.connectTimeout = connectTimeout
-            response.connection.readTimeout    = readTimeout
+            response.connection.connectTimeout = connectTimeoutMillis
+            response.connection.readTimeout    = readTimeoutMillis
 
             headers.each { String name, String value -> response.connection.setRequestProperty( name, value )}
 
