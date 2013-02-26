@@ -97,7 +97,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
                                    ext.githubUser,
                                    ext.githubPassword )
 
-        json.collect { Map m -> m.git_url }
+        json.collect { Map m -> m.ssh_url }
     }
 
 
