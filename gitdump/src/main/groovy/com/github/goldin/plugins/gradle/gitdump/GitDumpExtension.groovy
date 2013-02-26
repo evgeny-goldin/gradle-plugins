@@ -19,7 +19,6 @@ class GitDumpExtension
     boolean       runGitGc                = true
     boolean       runAggressiveGitGc      = false
     boolean       addAbout                = true
-    boolean       failIfNotFound          = true
     List<String>  cloneFlags              = []
     boolean       singleArchive           = false
     String        singleArchiveName       = 'gitdump'
