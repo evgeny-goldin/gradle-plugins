@@ -16,6 +16,10 @@ import java.util.concurrent.atomic.AtomicLong
  */
 class CrawlerTask extends BaseTask<CrawlerExtension>
 {
+    @Override
+    Class extensionType (){ CrawlerExtension }
+
+
     private final Queue<Future> futures         = new ConcurrentLinkedQueue<Future>()
     private final AtomicLong    bytesDownloaded = new AtomicLong( 0L )
     private final AtomicLong    linksProcessed  = new AtomicLong( 0L )
@@ -63,19 +67,6 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         }
 
         assert ext.rootLinks && ext.rootLinks.every{ it }
-    }
-
-
-    /**
-     * Passes a new extensions object to the closure specified.
-     * Registers new extension under task's name.
-     */
-    @Requires({ c })
-    void config( Closure c )
-    {
-        this.extensionName = this.name
-        this.ext           = project.extensions.create( this.extensionName, CrawlerExtension )
-        c( this.ext )
     }
 
 

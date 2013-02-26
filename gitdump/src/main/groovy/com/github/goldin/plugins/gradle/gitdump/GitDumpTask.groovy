@@ -10,6 +10,9 @@ import org.gcontracts.annotations.Requires
  */
 class GitDumpTask extends BaseTask<GitDumpExtension>
 {
+    @Override
+    Class extensionType (){ GitDumpExtension }
+
     @Ensures({ result })
     private String lastCommitAllBranches   ( File projectDirectory ){ gitExec( 'log -1 --all --format=format:%H', projectDirectory )}
 

@@ -17,6 +17,10 @@ import org.gradle.api.tasks.bundling.Jar
  */
 class TeamCityTask extends BaseTask<TeamCityExtension>
 {
+    @Override
+    Class extensionType (){ TeamCityExtension }
+
+
     private static final String BSR = 'buildServerResources'
 
     @Override

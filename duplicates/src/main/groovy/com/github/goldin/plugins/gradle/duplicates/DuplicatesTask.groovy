@@ -16,6 +16,10 @@ import java.util.zip.ZipFile
  */
 class DuplicatesTask extends BaseTask<DuplicatesExtension>
 {
+    @Override
+    Class extensionType (){ DuplicatesExtension }
+
+
     /**
      * Cache of file on the disk to classes it contains
      */

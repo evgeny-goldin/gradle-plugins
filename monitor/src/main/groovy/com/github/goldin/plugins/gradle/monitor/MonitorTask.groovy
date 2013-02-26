@@ -18,6 +18,10 @@ import java.util.regex.Pattern
  */
 class MonitorTask extends BaseTask<MonitorExtension>
 {
+    @Override
+    Class extensionType (){ MonitorExtension }
+
+
     // http://stackoverflow.com/questions/10258101/sslhandshakeexception-no-subject-alternative-names-present?answertab=active#tab-top
     static { HttpsURLConnection.defaultHostnameVerifier = { String hostname, SSLSession session -> true } as HostnameVerifier }
 

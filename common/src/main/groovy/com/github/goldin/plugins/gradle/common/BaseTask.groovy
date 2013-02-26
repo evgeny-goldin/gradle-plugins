@@ -30,20 +30,43 @@ abstract class BaseTask<T> extends DefaultTask
     final isLinux            = osName.contains( 'linux'   )
     final isMac              = osName.contains( 'mac os'  )
 
+    /**
+     * Retrieves task's extension type in run-time
+     */
+    @Ensures ({ result })
+    abstract Class extensionType()
 
     /**
      * Extension instance and its name are set by {@link BasePlugin#addTask}
      */
-    T      ext
     String extensionName
+    T      ext
+
+    /**
+     * Configuration closure allowing to configure and use task-named extension when task is called.
+     * This allows to
+     * 1) Configure the task lazily so if any computations are involved they're not executed unless the task is called.
+     * 2) Use several tasks named differently each one configuring its own extension.
+     */
+    Closure config
+    @Requires({ c })
+    void config( Closure c ){ this.config = c }
 
 
     @TaskAction
-    @Requires({ this.project && this.ext && this.extensionName })
-    @SuppressWarnings([ 'GroovyUnusedDeclaration' ])
     final void doTask()
     {
-        assert project.name
+        assert project.name && this.name
+
+        if ( this.config )
+        {
+            this.extensionName = this.name
+            this.ext           = project.extensions.create( this.extensionName, extensionType())
+            this.config( this.ext )
+        }
+
+
+        assert this.ext && this.extensionName
         verifyUpdateExtension( "task [${ this.class.name }], $project => ${ this.extensionName } { .. }" )
         taskAction()
     }

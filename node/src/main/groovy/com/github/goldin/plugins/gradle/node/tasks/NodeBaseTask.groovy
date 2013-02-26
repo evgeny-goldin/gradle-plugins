@@ -16,6 +16,10 @@ import org.gradle.api.logging.LogLevel
  */
 abstract class NodeBaseTask extends BaseTask<NodeExtension>
 {
+    @Override
+    Class extensionType (){ NodeExtension }
+
+
     final NodeHelper nodeHelper = new NodeHelper( logger )
 
     @Ensures({ result })
@@ -28,19 +32,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      *         false otherwise
      */
     protected boolean requiresScriptPath(){ false }
-
-
-    /**
-     * Passes a new extensions object to the closure specified.
-     * Registers new extension under task's name.
-     */
-    @Requires({ c })
-    void config( Closure c )
-    {
-        this.extensionName = this.name
-        this.ext           = project.extensions.create( this.extensionName, NodeExtension )
-        c( this.ext )
-    }
 
 
     /**
