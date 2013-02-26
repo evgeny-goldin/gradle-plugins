@@ -49,7 +49,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Override
     void taskAction ( )
     {
-        log { "Dumping Git repositories $ext.urls to [$ext.outputDirectory.canonicalPath]" }
+        log { "Dumping Git repositories to [$ext.outputDirectory.canonicalPath]" }
 
         verifyGitAvailable()
         initAboutFile()
