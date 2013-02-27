@@ -9,6 +9,7 @@ class GitDumpExtension
     String        githubUser
     String        githubOrganization
     String        githubPassword
+    boolean       githubUseSshUrl         = true
     String        bitbucketUser
     String        bitbucketPassword
     Closure       collectProjects
