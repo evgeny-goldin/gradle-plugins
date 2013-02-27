@@ -93,7 +93,14 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Ensures ({ result != null })
     private List<String> githubUrls()
     {
-        final json = responseJson( "https://api.github.com/${ ext.githubOrganization ? 'orgs' : 'users' }/${ ext.githubOrganization ?: ext.githubUser }/repos?per_page=100000",
+        /**
+         * http://developer.github.com/v3/repos/
+         */
+        final repos  = ( ext.githubOrganization ) ?               "/orgs/${ ext.githubOrganization }/repos" :
+                       ( ext.githubUser && ext.githubPassword ) ? '/user/repos' :
+                                                                  "/users/${ ext.githubUser }/repos"
+
+        final json = responseJson( "https://api.github.com${ repos }?per_page=100000",
                                    ext.githubUser,
                                    ext.githubPassword )
 
@@ -105,6 +112,9 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Ensures ({ result != null })
     private List<String> bitbucketUrls()
     {
+        /**
+         * https://confluence.atlassian.com/display/BITBUCKET/user+Endpoint#userEndpoint-GETalistofrepositoriesvisibletoanaccount
+         */
         final json = responseJson( 'https://api.bitbucket.org/1.0/user/repositories',
                                    ext.bitbucketUser,
                                    ext.bitbucketPassword )
