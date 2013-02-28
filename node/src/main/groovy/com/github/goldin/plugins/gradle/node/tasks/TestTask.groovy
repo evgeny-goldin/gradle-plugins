@@ -16,7 +16,7 @@ class TestTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        if ( ext.before ) { bashExec( beforeAfterScript( ext.before, 'before test' ), taskScriptFile( true ), false, true, false ) }
+        if ( ext.before ) { bashExec( commandsScript( ext.before, 'before test' ), taskScriptFile( true ), false, true, false ) }
 
         try
         {
@@ -24,7 +24,7 @@ class TestTask extends NodeBaseTask
         }
         finally
         {
-            if ( ext.after ) { bashExec( beforeAfterScript( ext.after, 'after test' ), taskScriptFile( false, true ), false, true, false )}
+            if ( ext.after ) { bashExec( commandsScript( ext.after, 'after test' ), taskScriptFile( false, true ), false, true, false )}
         }
     }
 
@@ -55,7 +55,7 @@ class TestTask extends NodeBaseTask
         final testCommand = "$ext.testCommand ${ (( ! ext.testInput ) || ( ext.testInput == 'test' )) ? '' : ext.testInput } $testArguments"
 
         """
-        |${ baseBashScript( 'test' ) }
+        |${ baseBashScript() }
         |$testCommand""".stripMargin()
     }
 

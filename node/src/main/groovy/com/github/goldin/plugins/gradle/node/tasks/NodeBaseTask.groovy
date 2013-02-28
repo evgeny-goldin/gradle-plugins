@@ -5,7 +5,6 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.node.ConfigHelper
 import com.github.goldin.plugins.gradle.node.NodeExtension
 import com.github.goldin.plugins.gradle.node.NodeHelper
-import groovy.text.SimpleTemplateEngine
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.logging.LogLevel
@@ -122,11 +121,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      */
     @Requires({ operationTitle })
     @Ensures ({ result })
-    final String baseBashScript ( String operationTitle )
+    final String baseBashScript ( String operationTitle = this.name )
     {
         final  binFolder = project.file( MODULES_BIN_DIR ).canonicalFile
         assert binFolder.directory, "Directory [$binFolder.canonicalPath] is not available"
-        final  q         = '"\\""'
 
         """
         |export NODE_ENV=$ext.NODE_ENV
@@ -136,8 +134,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |nvm use $ext.nodeVersion
         |
         |echo ---------------------------------------------
-        |echo Running $q$operationTitle$q in $q`pwd`$q
-        |echo \\\$NODE_ENV = $q$ext.NODE_ENV$q
+        |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
+        |echo "Running   [script-location]"
+        |echo \\\$NODE_ENV = $Q$ext.NODE_ENV$Q
         |echo ---------------------------------------------
         |
         """.stripMargin()
@@ -145,15 +144,15 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
-     * Retrieves script content to be used as before/after execution interceptor.
+     * Generates a script containing the commands specified.
      *
      * @param commands commands to execute
      * @param title    commands title
-     * @return script content to be used as before/after execution interceptor.
+     * @return script content generated
      */
     @Requires({ commands && title })
     @Ensures ({ result })
-    final String beforeAfterScript( List<String> commands, String title )
+    final String commandsScript ( List<String> commands, String title )
     {
         final script = commands.join( '\n' )
 
@@ -223,7 +222,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |${ watchExitCodes ? 'set -o pipefail' : '' }
         |
         |${ scriptContent.readLines().join( '\n|' ) }
-        |""".stripMargin()){
+        |""".stripMargin().
+             replace( '[script-location]', "$Q${ scriptFile.canonicalPath }$Q" )){
             String script, Closure transformer ->
             transformer( script, scriptFile, this ) ?: script
         }

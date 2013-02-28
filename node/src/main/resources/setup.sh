@@ -1,7 +1,8 @@
 #!/bin/bash
 
 echo ---------------------------------------------
-echo Running "\""setup"\"" in "\""`pwd`"\""
+echo "Executing "\""setup"\"" task in "\""`pwd`"\"""
+echo "Running   [script-location]"
 echo ---------------------------------------------
 currentDir=`pwd`
 

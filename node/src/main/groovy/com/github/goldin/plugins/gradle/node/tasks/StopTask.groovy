@@ -22,7 +22,7 @@ class StopTask extends NodeBaseTask
         }
         finally
         {
-            if ( ext.after ) { bashExec( beforeAfterScript( ext.after, 'after stop' ), taskScriptFile( false, true ), false, true, false )}
+            if ( ext.after ) { bashExec( commandsScript( ext.after, 'after stop' ), taskScriptFile( false, true ), false, true, false )}
         }
     }
 
@@ -31,7 +31,7 @@ class StopTask extends NodeBaseTask
     private String stopScript ()
     {
         """
-        |${ baseBashScript( 'stop' ) }
+        |${ baseBashScript() }
         |${ stopCommands().join( '\n|' ) }""".stripMargin()
     }
 

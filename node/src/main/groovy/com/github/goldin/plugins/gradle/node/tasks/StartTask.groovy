@@ -24,7 +24,7 @@ class StartTask extends NodeBaseTask
             ext.after   = after
         }
 
-        if ( ext.before          ) { bashExec( beforeAfterScript( ext.before, 'before start' ), taskScriptFile( true ), false, true, false ) }
+        if ( ext.before          ) { bashExec( commandsScript( ext.before, 'before start' ), taskScriptFile( true ), false, true, false ) }
         bashExec( startScript(), taskScriptFile())
         if ( ext.checkAfterStart ) { runTask ( CHECK_STARTED_TASK )}
         if ( ext.printUrl        ) { printApplicationUrls() }
@@ -35,7 +35,7 @@ class StartTask extends NodeBaseTask
     private String startScript()
     {
         """
-        |${ baseBashScript( 'start' ) }
+        |${ baseBashScript() }
         |export BUILD_ID=JenkinsLetMeSpawn
         |${ startCommands().grep().join( '\n|' ) }""".stripMargin()
     }
