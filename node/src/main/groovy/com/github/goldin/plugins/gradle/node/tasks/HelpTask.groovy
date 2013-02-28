@@ -19,6 +19,7 @@ class HelpTask extends NodeBaseTask
         System.out.println( "- gradle $CLEAN_MODULES : deletes '$NODE_MODULES_DIR' folder" )
         System.out.println( "- gradle $SETUP_TASK        : installs Node.js and all application dependencies, " +
                             "runs automatically" )
+        System.out.println( "- gradle $RUN_TASK            : only runs commands specified, does nothing else" )
         System.out.println( "- gradle $TEST_TASK         : runs application unit tests" )
         System.out.println( "- gradle $START_TASK        : starts an application with 'forever'" )
         System.out.println( "- gradle $RESTART_ALL_TASK   : restarts all currently running applications" )

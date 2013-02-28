@@ -29,6 +29,7 @@ class NodeExtension
     String        foreverOptions          = ''    // Additional command-line 'forever' options, such as '-w -v'
     String        scriptPath
     String        scriptArguments         = ''    // Additional script arguments when run by 'forever'
+    List<String>  run                     = []    // Commands to execute by 'run' task
     List<String>  before                  = []    // Commands to execute before running unit tests or starting the application
     List<String>  after                   = []    // Commands to execute after running unit tests or stopping the application
     int           redisPort               = -1    // Local Redis instance port number to start and stop
