@@ -35,8 +35,8 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         assert ext.singleBackupMinSize <= ext.singleBackupMaxSize
         assert ext.totalBackupMinSize  <= ext.totalBackupMaxSize
 
-        assert ( ext.githubUser || ext.githubOrganization || ext.bitbucketUser || ext.urls ), \
-               "GitHub/Bitbucket user or list of git URLs should be specifed in $description"
+        assert ( ext.urls || ext.githubUser || ext.bitbucketUser ), \
+               "Git URLs, GitHub or Bitbucket user should be specifed in $description"
 
         ext.urls = ext.urls?.grep()?.toSet()?.sort()
         ext.urls.each { assert ( it =~ ext.gitProjectNamePattern ), "[$it] is not a Git repository URL, doesn't match [$ext.gitProjectNamePattern]" }
@@ -47,7 +47,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
 
     @Override
-    void taskAction ( )
+    void taskAction ()
     {
         log { "Dumping Git repositories to [$ext.outputDirectory.canonicalPath]" }
 
@@ -187,7 +187,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
             {
                 gitExec( 'fsck --unreachable --strict', targetDirectory )
                 gitExec( 'prune',                       targetDirectory )
-                gitExec( 'gc',                          targetDirectory )
+                gitExec( "gc${ ext.runAggressiveGitGc ? ' --aggressive' : '' }", targetDirectory )
             }
 
             assert targetDirectory.list(), "[$targetDirectory.canonicalPath] contains no files"
