@@ -223,7 +223,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |
         |${ scriptContent.readLines().join( '\n|' ) }
         |""".stripMargin().
-             replace( '[script-location]', "$Q${ scriptFile.canonicalPath }$Q" )){
+             replace( '[script-location]', "${Q}file:${ scriptFile.canonicalPath }${Q}" )){
             String script, Closure transformer ->
             transformer( script, scriptFile, this ) ?: script
         }
