@@ -69,7 +69,7 @@ task groovydocAll ( type: org.gradle.api.tasks.javadoc.Groovydoc ) {
     link 'http://www.gradle.org/docs/current/javadoc/', 'org.gradle.api.'
     link 'http://docs.oracle.com/javase/7/docs/api/',   'java.'
 
-    docTitle            = 'Gradle Plugins'
+    docTitle            = 'Gradle Plugins ' + project.version
     groovyClasspath     = configurations.compile // http://issues.gradle.org/browse/GRADLE-1391
     classpath           = configurations.compile
     use                 = true
