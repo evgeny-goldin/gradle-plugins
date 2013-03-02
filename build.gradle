@@ -66,10 +66,11 @@ task groovydocAll ( type: org.gradle.api.tasks.javadoc.Groovydoc ) {
     final date          = new SimpleDateFormat( 'MMMM dd, yyyy',    new Locale( 'en' )).format( d )
 
     subprojects*.name.each{ source( "$it/src/main/groovy" ) }
-    link( 'http://www.gradle.org/docs/current/javadoc/', 'org.gradle.api.' )
-    link( 'http://docs.oracle.com/javase/7/docs/api/',   'java.' )
+    link 'http://www.gradle.org/docs/current/javadoc/', 'org.gradle.api.'
+    link 'http://docs.oracle.com/javase/7/docs/api/',   'java.'
 
     docTitle            = 'Gradle Plugins'
+    groovyClasspath     = configurations.compile // http://issues.gradle.org/browse/GRADLE-1391
     classpath           = configurations.compile
     use                 = true
     destinationDir      = file ( groovydocDir + ( project.version.contains( '-SNAPSHOT' ) ? '' : project.version ))
