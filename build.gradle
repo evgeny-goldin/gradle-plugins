@@ -1,3 +1,7 @@
+import org.codehaus.groovy.ant.Groovydoc
+
+import java.text.SimpleDateFormat
+
 apply plugin: 'idea'
 
 
@@ -21,6 +25,24 @@ buildscript {
 }
 
 
+allprojects {
+    apply plugin: 'groovy'
+
+    repositories {
+        maven { url 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
+        maven { url 'http://repository.jetbrains.com/kotlin/' }
+    }
+
+    dependencies {
+        compile     gradleApi(),
+                    'org.gcontracts:gcontracts-core:1.2.10',
+                    'org.codehaus.gpars:gpars:1.0.0'
+        testCompile 'junit:junit:4.11'
+        testRuntime 'ch.qos.logback:logback-classic:1.0.9'
+    }
+}
+
+
 idea.project {
     jdkName = '1.7'
     ipr.withXml { provider -> provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git' }
@@ -36,6 +58,39 @@ idea.module {
 }
 
 
+task groovydocAll ( type: org.gradle.api.tasks.javadoc.Groovydoc ) {
+
+    final  groovydocDir = System.getProperty( 'groovydocDir', 'build/groovydoc/' )
+    final d             = new Date()
+    final time          = new SimpleDateFormat( "HH:mm '(GMT'Z')'", new Locale( 'en' )).format( d )
+    final date          = new SimpleDateFormat( 'MMMM dd, yyyy',    new Locale( 'en' )).format( d )
+
+    subprojects*.name.each{ source( "$it/src/main/groovy" ) }
+    link( 'http://www.gradle.org/docs/current/javadoc/', 'org.gradle.api.' )
+    link( 'http://docs.oracle.com/javase/7/docs/api/',   'java.' )
+
+    docTitle            = 'Gradle Plugins'
+    classpath           = configurations.compile
+    use                 = true
+    destinationDir      = file ( groovydocDir + ( project.version.contains( '-SNAPSHOT' ) ? '' : project.version ))
+    header              = '<a href="http://evgeny-goldin.com/wiki/Gradle_Plugins">evgeny-goldin.com/wiki/Gradle_Plugins</a>'
+    footer              = """
+                          <a href="http://evgeny-goldin.com/">Evgeny Goldin</a>. GrovyDoc was generated at $time on $date.
+                          <script type="text/javascript">
+                              var _gaq = _gaq || [];
+                              _gaq.push(['_setAccount', 'UA-7925869-2']);
+                              _gaq.push(['_setDomainName', 'none']);
+                              _gaq.push(['_setAllowLinker', true]);
+                              _gaq.push(['_trackPageview']);
+                              (function() {
+                                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+                              })();
+                          </script>""".stripIndent()
+}
+
+
 subprojects {
 
     Project p ->
@@ -46,39 +101,27 @@ subprojects {
     apply plugin: 'about'
     apply plugin: 'duplicates'
 
-
     sourceCompatibility = 1.6
     group               = 'com.github.goldin.plugins.gradle'
-    final extraJars     = ( ! p.hasProperty( 'nj' /* no jars */ ))
+    final extraFiles    = ( ! p.hasProperty( 'nef' /* no extra files */ ))
 
     clean { delete( "$rootDir/out", "$rootDir/build" ) }
-
-    repositories {
-        maven { url 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
-        maven { url 'http://repository.jetbrains.com/kotlin/' }
-    }
 
     about        { includeDependencies = [ 'compile', 'runtime' ]
                    prefix              = '/' }
     duplicates   { configurations      = [ 'compile', 'runtime' ]
                    verbose             = true }
 
-    dependencies {
-        compile     gradleApi(),
-                    'org.gcontracts:gcontracts-core:1.2.10',
-                    'org.codehaus.gpars:gpars:1.0.0'
-        testCompile 'junit:junit:4.11'
-        testRuntime 'ch.qos.logback:logback-classic:1.0.9'
-    }
-
-    jar {
-        dependsOn 'about', 'createPom'
-        from new File(( File ) project.rootProject.projectDir, 'license.txt' )
-    }
-
     idea.module {
         downloadSources = true
         downloadJavadoc = false
+    }
+
+    if ( extraFiles ) {
+        jar {
+            dependsOn 'about', 'createPom'
+            from new File(( File ) project.rootProject.projectDir, 'license.txt' )
+        }
     }
 
     /**
@@ -86,7 +129,7 @@ subprojects {
      */
 
     task sourcesJar( type: Jar, dependsOn: classes ) {
-        onlyIf { extraJars }
+        onlyIf { extraFiles }
         dependsOn 'about'
         classifier = 'sources'
         from sourceSets.main.allSource
@@ -94,14 +137,14 @@ subprojects {
     }
 
     task groovydocJar( type: Jar, dependsOn: groovydoc ) {
-        onlyIf { extraJars }
+        onlyIf { extraFiles }
         dependsOn 'about'
         classifier = 'javadoc'
         from groovydoc.destinationDir
         from files( "${ project.rootProject.projectDir }/license.txt" )
     }
 
-    if ( extraJars )
+    if ( extraFiles )
     {
         artifacts {
              archives sourcesJar
