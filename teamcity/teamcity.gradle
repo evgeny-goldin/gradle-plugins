@@ -29,7 +29,7 @@ buildscript {
      * Has no effect when applied from external resource, this section should appear in master "build.gradle".
      */
     repositories { mavenCentral() }
-    dependencies { classpath 'com.github.goldin.plugins.gradle:teamcity:0.2' }
+    dependencies { classpath 'com.github.goldin.plugins.gradle:teamcity:0.2.1' }
 }
 
 
