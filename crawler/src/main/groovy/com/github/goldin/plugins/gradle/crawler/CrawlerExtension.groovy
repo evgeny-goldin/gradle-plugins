@@ -6,14 +6,14 @@ import java.util.regex.Pattern
 class CrawlerExtension
 {
     /**
-     * Internal properties, set in {@link CrawlerTask#verifyUpdateExtension(java.lang.String)}
+     * Internal properties
      */
 
     String  rootUrl
     Pattern internalLinkPattern
 
     /**
-     * Other properties, verified in {@link CrawlerTask#verifyUpdateExtension(java.lang.String)}
+     * Other properties
      */
 
     String        baseUrl
