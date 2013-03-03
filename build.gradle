@@ -77,8 +77,8 @@ task groovydocAll ( type: org.gradle.api.tasks.javadoc.Groovydoc ) {
     link 'http://evgeny-goldin.org/javadoc/spock/',      'spock.'
 
     docTitle            = 'Gradle Plugins ' + project.version
-    groovyClasspath     = configurations.compile // http://issues.gradle.org/browse/GRADLE-1391
-    classpath           = configurations.compile
+    classpath           = configurations.compile + project( ':common' ).configurations.compile
+    groovyClasspath     = classpath // http://issues.gradle.org/browse/GRADLE-1391
     use                 = true
     destinationDir      = file ( groovydocDir + ( project.version.contains( '-SNAPSHOT' ) ? '' : project.version ))
     header              = '<a href="http://evgeny-goldin.com/wiki/Gradle_Plugins">evgeny-goldin.com/wiki/Gradle_Plugins</a>'
