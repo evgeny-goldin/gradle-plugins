@@ -1,5 +1,4 @@
 import org.codehaus.groovy.ant.Groovydoc
-
 import java.text.SimpleDateFormat
 
 apply plugin: 'idea'
@@ -83,7 +82,7 @@ task groovydocAll ( type: org.gradle.api.tasks.javadoc.Groovydoc ) {
     classpath           = configurations.compile + project( ':common' ).configurations.compile
     groovyClasspath     = classpath // http://issues.gradle.org/browse/GRADLE-1391
     use                 = true
-    destinationDir      = file ( groovydocDir + ( project.version.contains( '-SNAPSHOT' ) ? '' : project.version ))
+    destinationDir      = file ( groovydocDir + ( project.version.contains( '-SNAPSHOT' ) ? '' : '/' + project.version ))
     header              = '<a href="http://evgeny-goldin.com/wiki/Gradle_Plugins">evgeny-goldin.com/wiki/Gradle_Plugins</a>'
     footer              = """
                           <a href="http://evgeny-goldin.com/">Evgeny Goldin</a>. GrovyDoc generated at $time on $date.
@@ -99,6 +98,8 @@ task groovydocAll ( type: org.gradle.api.tasks.javadoc.Groovydoc ) {
                                 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
                               })();
                           </script>""".stripIndent()
+
+    doLast { logger.warn( "Done, open file:${ destinationDir.canonicalPath }/index.html" ) }
 }
 
 
