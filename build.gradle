@@ -74,6 +74,7 @@ task groovydocAll ( type: org.gradle.api.tasks.javadoc.Groovydoc ) {
     link 'http://www.gradle.org/docs/current/javadoc/',  'org.gradle.api.'
     link 'http://evgeny-goldin.org/javadoc/gcontracts/', 'org.gcontracts.'
     link 'http://docs.oracle.com/javase/7/docs/api/',    'java.'
+    link 'http://evgeny-goldin.org/javadoc/spock/',      'spock.'
 
     docTitle            = 'Gradle Plugins ' + project.version
     groovyClasspath     = configurations.compile // http://issues.gradle.org/browse/GRADLE-1391
