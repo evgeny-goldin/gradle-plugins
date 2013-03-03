@@ -17,8 +17,8 @@ apply from: 'https://raw.github.com/evgeny-goldin/scripts/master/src/main/gradle
 
 buildscript {
     repositories {
-        maven { url 'http://dl.bintray.com/content/evgenyg/BuildTools'   }
-        maven { url 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
+        maven { url 'http://jcenter.bintray.com' }
+        maven { url 'http://dl.bintray.com/content/evgenyg/BuildTools' }
     }
     dependencies {
         classpath 'com.github.goldin.plugins.gradle:about:0.2.1',
@@ -31,7 +31,7 @@ allprojects {
     apply plugin: 'groovy'
 
     repositories {
-        maven { url 'http://evgenyg.artifactoryonline.com/evgenyg/repo/' }
+        maven { url 'http://jcenter.bintray.com' }
         maven { url 'http://repository.jetbrains.com/kotlin/' }
     }
 
