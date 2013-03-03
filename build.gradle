@@ -60,10 +60,10 @@ idea.module {
 
 task groovydocAll ( type: org.gradle.api.tasks.javadoc.Groovydoc ) {
 
-    final  groovydocDir = System.getProperty( 'groovydocDir', 'build/groovydoc/' )
-    final d             = new Date()
-    final time          = new SimpleDateFormat( "HH:mm '(GMT'Z')'", new Locale( 'en' )).format( d )
-    final date          = new SimpleDateFormat( 'MMMM dd, yyyy',    new Locale( 'en' )).format( d )
+    final groovydocDir = System.getProperty( 'groovydocDir', 'build/groovydoc' )
+    final d            = new Date()
+    final time         = new SimpleDateFormat( "HH:mm '(GMT'Z')'", new Locale( 'en' )).format( d )
+    final date         = new SimpleDateFormat( 'MMMM dd, yyyy',    new Locale( 'en' )).format( d )
 
     /**
      * http://www.gradle.org/docs/current/dsl/org.gradle.api.tasks.javadoc.Groovydoc.html
