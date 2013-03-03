@@ -71,7 +71,7 @@ task groovydocAll ( type: org.gradle.api.tasks.javadoc.Groovydoc ) {
 
     subprojects*.name.each{ source( "$it/src/main/groovy" ) }
 
-    link 'http://www.gradle.org/docs/current/javadoc/',  'org.gradle.api.'
+    link 'http://www.gradle.org/docs/current/javadoc/',  'org.gradle.'
     link 'http://evgeny-goldin.org/javadoc/gcontracts/', 'org.gcontracts.'
     link 'http://docs.oracle.com/javase/7/docs/api/',    'java.'
     link 'http://evgeny-goldin.org/javadoc/spock/',      'spock.'
