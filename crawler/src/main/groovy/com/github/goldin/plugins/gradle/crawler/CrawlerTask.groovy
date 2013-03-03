@@ -133,7 +133,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     void printStartBanner ()
     {
         crawlerLog {
-            final ipAddress     = (( ext.rootUrl ==~ /^\d+\.\d+\.\d+\.\d+$/ ) ? '' : " (${ InetAddress.getByName( ext.rootUrl ).hostAddress })" )
+            final ipAddress     = (( ext.rootUrl ==~ /^\d+\.\d+\.\d+\.\d+$/ ) ? '' : " (${ InetAddress.getByName( ext.rootUrl.replaceFirst( /:\d+$/, '' )).hostAddress })" )
             final bannerMessage = "Checking [$ext.baseUrl]${ ipAddress } links with [${ ext.threadPoolSize }] thread${ s( ext.threadPoolSize ) }"
             final bannerLine    = "-" * ( bannerMessage.size() + 2 )
             final os            = new ByteArrayOutputStream()
