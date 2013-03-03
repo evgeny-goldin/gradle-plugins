@@ -5,16 +5,12 @@ import java.util.regex.Pattern
 
 class CrawlerExtension
 {
-    /**
-     * Internal properties
-     */
+     // Internal properties
 
     String  rootUrl
     Pattern internalLinkPattern
 
-    /**
-     * Other properties
-     */
+    // Other properties
 
     String        baseUrl
 
