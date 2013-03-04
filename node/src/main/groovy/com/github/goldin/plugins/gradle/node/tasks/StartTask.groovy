@@ -58,11 +58,12 @@ class StartTask extends NodeBaseTask
     }
 
 
+    @Requires({ ext.printUrl })
     void printApplicationUrls ()
     {
         final String externalIp  = (( Map ) new JsonSlurper().parseText( 'http://jsonip.com/'.toURL().text )).ip
-        final String internalUrl = "http://127.0.0.1:${ ext.portNumber }${ ext.printUrl }"
-        final String externalUrl = "http://$externalIp:${ ext.portNumber }${ ext.printUrl }"
+        final String internalUrl = "http://127.0.0.1:${ ext.portNumber }${   ext.printUrl == '/' ? '' : ext.printUrl }"
+        final String externalUrl = "http://$externalIp:${ ext.portNumber }${ ext.printUrl == '/' ? '' : ext.printUrl }"
 
         println( "The application is up and running at [$internalUrl] / [$externalUrl]" )
     }
