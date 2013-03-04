@@ -20,7 +20,7 @@ List codenarcRuleSetFilesConverted = codenarcRuleSetFiles.findAll{ it }.collect 
 }
 
 
-repositories   { mavenCentral()}
+repositories   { maven { url 'http://jcenter.bintray.com/' }}
 configurations { codenarc }
 dependencies   { codenarc ( "org.codenarc:CodeNarc:$codenarcVersion" ){ exclude group: 'ant' }}
 
