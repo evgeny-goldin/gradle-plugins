@@ -66,7 +66,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Requires({ line })
     String processResourceLine( String line )
     {
-        def ( String title, String resource ) = line.contains( ' => ' ) ? line.tokenize( ' => ' ) : [ '', line ]
+        def ( String title, String resource ) = line.contains( '=>' ) ? line.split( /\s*=>\s*/ ) : [ '', line ]
 
         final isHttpResource = resource.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }
         final isNmapResource = resource.toLowerCase().startsWith( 'nmap://' )
