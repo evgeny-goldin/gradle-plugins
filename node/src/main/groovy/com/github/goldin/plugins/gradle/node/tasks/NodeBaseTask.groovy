@@ -41,7 +41,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     String forever()
     {
         final  foreverExecutable = project.file( FOREVER_EXECUTABLE ).canonicalFile
-        assert foreverExecutable.file, "[$foreverExecutable.canonicalPath] is not available"
+        assert foreverExecutable.file, \
+               "[$foreverExecutable.canonicalPath] is not available, make sure \"forever\" dependency appears in \"package.json\" => \"devDependencies\""
         FOREVER_EXECUTABLE
     }
 
