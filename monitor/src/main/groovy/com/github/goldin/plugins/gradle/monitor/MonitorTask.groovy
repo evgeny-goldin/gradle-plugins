@@ -47,6 +47,8 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         assert resourceLines, 'No resources found to monitor'
 
+        log { "Resources to monitor:\n* [${ resourceLines.join( ']\n* [' )}]\n\n" }
+
         final lineProcessor = {
             String line ->
             final failureMessage = processResourceLine( line )
@@ -80,7 +82,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Requires({ resource && resource.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }})
     private String processHttpResource ( String title, String resource )
     {
-        def ( String checkUrl, String checkStatusCode, String checkContent, String timeLimit ) = resource.tokenize( '|' )
+        def ( String checkUrl, String checkStatusCode, String checkContent, String timeLimit ) = resource.tokenize( '|' )*.trim()
 
         assert checkUrl
         checkStatusCode = checkStatusCode ?: '200'
@@ -119,7 +121,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Requires({ resource && resource.toLowerCase().startsWith( 'nmap://' ) })
     private String processNmapResource ( String title, String resource )
     {
-        def ( String address, String ports ) = resource.tokenize( '|' )
+        def ( String address, String ports ) = resource.tokenize( '|' )*.trim()
 
         address         = address[ 'nmap://'.length() .. -1 ]
         final sortList  = { List<String> l -> l.collect { it as int }.toSet().sort() }
