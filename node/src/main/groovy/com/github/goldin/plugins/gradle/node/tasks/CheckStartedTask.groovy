@@ -19,9 +19,8 @@ class CheckStartedTask extends NodeBaseTask
         final content        = response.content ? new String( response.content, 'UTF-8' ) : ''
         final isGoodResponse = ( response.statusCode == ext.checkStatusCode ) && ( content.contains( ext.checkContent ))
         final resultMessage  = "Connecting to [$ext.checkUrl] resulted in " +
-                               (( response.statusCode instanceof Integer ) ?
-                                  "status code [$response.statusCode]" + ( ext.checkContent ? ", content [$content]" : '' ) :
-                                  "'$response.statusCode'" ) //  If not Integer then it's an error
+                               (( response.statusCode instanceof Integer ) ? "status code [$response.statusCode]" :
+                                                                             "'$response.statusCode'" ) //  If not Integer then it's an error
         if ( isGoodResponse )
         {
             log{ "$resultMessage - good!" }

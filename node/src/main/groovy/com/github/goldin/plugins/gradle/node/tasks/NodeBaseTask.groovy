@@ -129,6 +129,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         """
         |export NODE_ENV=$ext.NODE_ENV
+        |export PORT=$ext.portNumber
         |export PATH=$binFolder:\$PATH
         |
         |. "\$HOME/.nvm/nvm.sh"
