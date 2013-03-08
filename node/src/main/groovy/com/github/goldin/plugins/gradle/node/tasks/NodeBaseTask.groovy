@@ -131,6 +131,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |export NODE_ENV=$ext.NODE_ENV
         |export PORT=$ext.portNumber
         |export PATH=$binFolder:\$PATH
+        |export BUILD_ID=JenkinsLetMeSpawn
         |
         |. "\$HOME/.nvm/nvm.sh"
         |nvm use $ext.nodeVersion
@@ -138,7 +139,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |echo ---------------------------------------------
         |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
         |echo "Running   [script-location]"
-        |echo \\\$NODE_ENV = $Q$ext.NODE_ENV$Q
+        |echo \"\\\$NODE_ENV = $Q$ext.NODE_ENV$Q\"
+        |echo \"\\\$PORT     = $Q$ext.portNumber$Q\"
+        |echo \"\\\$PATH     = $Q$binFolder:\$PATH$Q\"
         |echo ---------------------------------------------
         |
         """.stripMargin()

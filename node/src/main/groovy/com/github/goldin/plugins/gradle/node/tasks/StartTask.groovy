@@ -36,7 +36,7 @@ class StartTask extends NodeBaseTask
     {
         """
         |${ baseBashScript() }
-        |export BUILD_ID=JenkinsLetMeSpawn
+        |
         |${ startCommands().grep().join( '\n|' ) }""".stripMargin()
     }
 
@@ -45,7 +45,12 @@ class StartTask extends NodeBaseTask
     @Ensures ({ result })
     private List<String> startCommands()
     {
-        final executable = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
+        final executable  = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
+        final pidFileName = pidFileName( ext.portNumber )
+        final pidFilePath = new File( "${ System.getProperty( 'user.home' )}/.forever/pids/$pidFileName" ).canonicalPath
+        final command     = "${ forever() } start ${ ext.foreverOptions ?: '' } --plain --pidFile \"${ pidFileName }\" " +
+                            "${ executable ? '"' + executable + '"' : '' } \"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }"
+
         if ( executable )
         {
             final  executableFile = project.file( executable ).canonicalFile
@@ -53,8 +58,9 @@ class StartTask extends NodeBaseTask
                    "[$executableFile.canonicalPath] is not available, make sure \"coffee-script\" dependency appears in \"package.json\" => \"devDependencies\"\""
         }
 
-        [ "${ forever() } start ${ ext.foreverOptions ?: '' } --plain --pidFile \"${ pidFileName( ext.portNumber ) }\" " +
-          "${ executable ? '"' + executable + '"' : '' } \"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }",
+        [ "echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q (file:$Q${pidFilePath}$Q)\"",
+          "echo \"Running   $Q$command$Q\"",
+          command,
           "${ forever() } list --plain" ]
     }
 
