@@ -22,7 +22,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     final NodeHelper nodeHelper = new NodeHelper( logger )
 
     @Ensures({ result })
-    final File scriptsFolder(){ project.buildDir }
+    final File buildDir (){ project.buildDir }
 
 
     /**
@@ -58,6 +58,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.checkWait    >= 0,   "'checkWait' should not be negative in $description"
         assert ext.checkTimeout >= 0,   "'checkTimeout' should not be negative in $description"
         assert ext.redisWait    >= 0,   "'redisWait' should not be negative in $description"
+        assert ext.mongoWait    >= 0,   "'mongoWait' should not be negative in $description"
         assert ext.configsNewKeys,      "'configsNewKeys' should be defined in $description"
 
         ext.checkUrl   = ext.checkUrl   ?: "http://127.0.0.1:${ ext.portNumber }"
@@ -69,20 +70,59 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                "'scriptPath' should be defined in $description or use 'server.[js|coffee]' script to auto-discover it"
 
         ext.nodeVersion = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
+
+        addRedis()
+        addMongo()
+    }
+
+
+    /**
+     * Adds Redis before/after steps, if needed.
+     */
+    private void addRedis()
+    {
         final addRedis  = (( ! ext.redisAddedAlready ) && (( ext.redisPort > 0 ) || ext.redisPortConfigKey ))
         if (  addRedis )
         {
             final redisPort    = ( ext.redisPort > 0 ) ? ext.redisPort as String : '${ config.' + ext.redisPortConfigKey + ' }'
             final isStartRedis = (( ext.redisStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopRedis  = (( ext.redisStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
-            final redisRunning = '"`redis-cli -p ' + redisPort + ' ping 2> /dev/null`" = "PONG"'
+            final redisRunning = "\"`redis-cli -p $redisPort ping 2> /dev/null`\" = \"PONG\""
             final getScript    = { String scriptName -> getResourceText( scriptName ).
-                                                        replace( '${redisPort}',    redisPort ).
-                                                        replace( '${redisRunning}', redisRunning ).
-                                                        replace( '${sleep}',        ext.redisWait as String )}
+                                                        replace( '${redisPort}',        redisPort ).
+                                                        replace( '${redisRunning}',     redisRunning ).
+                                                        replace( '${redisCommandLine}', ext.redisCommandLine ?: '' ).
+                                                        replace( '${sleep}',            ext.redisWait as String )}
             ext.before            = ( isStartRedis ? getScript( 'redis-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
             ext.after             = ( isStopRedis  ? getScript( 'redis-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
             ext.redisAddedAlready = true
+        }
+    }
+
+
+    /**
+     * Adds MongoDB before/after steps, if needed.
+     */
+    private void addMongo()
+    {
+        final addMongo  = (( ! ext.mongoAddedAlready ) && (( ext.mongoPort > 0 ) || ext.mongoPortConfigKey ))
+        if (  addMongo )
+        {
+            final mongoPort    = ( ext.mongoPort > 0 ) ? ext.mongoPort as String : '${ config.' + ext.mongoPortConfigKey + ' }'
+            final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
+            final isStopMongo  = (( ext.mongoStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
+            final mongoRunning = "\"`mongo --eval ${Q}db${Q} --port $mongoPort 2> /dev/null | tail -1`\" = \"test\""
+            final getScript    = { String scriptName -> getResourceText( scriptName ).
+                                                        replace( '${mongoPort}',        mongoPort ).
+                                                        replace( '${mongoRunning}',     mongoRunning ).
+                                                        replace( '${mongoCommandLine}', ext.mongoCommandLine ?: '' ).
+                                                        replace( '${mongoLogpath}',     ext.mongoLogpath     ?: 'mongod.log' ).
+                                                        replace( '${mongoDBPath}',      ext.mongoDBPath      ?: '/data/db/' ).
+                                                        replace( '${sleep}',            ext.mongoWait as String )}
+
+            ext.before            = ( isStartMongo ? getScript( 'mongo-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
+            ext.after             = ( isStopMongo  ? getScript( 'mongo-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
+            ext.mongoAddedAlready = true
         }
     }
 
@@ -95,7 +135,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                            after  ? 'after-'  :
                                     '' ) + this.name + '.sh'
 
-        new File( scriptsFolder(), fileName )
+        new File( buildDir(), fileName )
     }
 
 

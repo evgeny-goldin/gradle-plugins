@@ -11,8 +11,7 @@ if [ ${redisRunning} ];
 then
     echo "Redis [127.0.0.1:${redisPort}] is already running"
 else
-    export BUILD_ID=JenkinsLetMeSpawn
-    redis-server --port ${redisPort} &
+    redis-server --port ${redisPort} ${redisCommandLine} &
     sleep ${sleep}
 
     if [ ${redisRunning} ];

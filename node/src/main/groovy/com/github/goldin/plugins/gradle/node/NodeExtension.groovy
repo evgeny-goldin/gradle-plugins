@@ -6,6 +6,10 @@ class NodeExtension
 {
     List<String> cleanWorkspaceCommands   = [ 'git checkout -f', 'git clean -dff' ]
     boolean      cleanWorkspace           = false // Whether to run cleanWorkspaceCommands before running tasks
+    String       NODE_ENV                 = 'development'
+    String       nodeVersion              = 'latest'
+    String       testCommand              = 'mocha'
+    String       testInput                = 'test'
     boolean      configMergePreserveOrder = true  // Whether configs merge should preserve keys order (more risky, some nasty regexes are involved)
     boolean      xUnitReport              = true  // Whether xUnit report should be created when tests are run
     boolean      failIfTestsFail          = true  // Whether to fail execution if tests fail
@@ -32,16 +36,25 @@ class NodeExtension
     List<String>  run                     = []    // Commands to execute by 'run' task
     List<String>  before                  = []    // Commands to execute before running unit tests or starting the application
     List<String>  after                   = []    // Commands to execute after running unit tests or stopping the application
+
     int           redisPort               = -1    // Local Redis instance port number to start and stop
-    String        redisPortConfigKey      = ''    // Config key holding local Redis instance port number to start and stop
+    String        redisPortConfigKey              // Config key holding Redis port number to start and stop
+    String        redisCommandLine                // Additional Redis command-line arguments
     boolean       redisStartInProduction  = false // Whether Redis should be started when NODE_ENV=production
     boolean       redisStopInProduction   = false // Whether Redis should be stopped when NODE_ENV=production
     int           redisWait               = 3     // Seconds to wait after Redis has started or stopped and checking it
     boolean       redisAddedAlready       = false // Internal property, whether Redis commands are already added to before/after
-    String        NODE_ENV                = 'development'
-    String        nodeVersion             = 'latest'
-    String        testCommand             = 'mocha'
-    String        testInput               = 'test'
+
+    int           mongoPort               = -1    // Local MongoDB instance port number to start and stop
+    String        mongoPortConfigKey      = ''    // Config key holding MongoDB port number to start and stop
+    String        mongoCommandLine                // Additional Mongo command-line arguments
+    String        mongoLogpath
+    String        mongoDBPath
+    boolean       mongoStartInProduction  = false // Whether MongoDB should be started when NODE_ENV=production
+    boolean       mongoStopInProduction   = false // Whether MongoDB should be stopped when NODE_ENV=production
+    int           mongoWait               = 3     // Seconds to wait after MongoDB has started or stopped and checking it
+    boolean       mongoAddedAlready       = false // Internal property, whether MongoDB commands are already added to before/after
+
 
     List <Map<String, ?>> configs            = []     // List of config maps to update project files with. Every map is:
                                                       // Key   - path of destination JSON config file to update or create
