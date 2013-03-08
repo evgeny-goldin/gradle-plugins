@@ -4,8 +4,9 @@ class MonitorExtension
 {
     File                resourcesFile
     List<String>        resourcesList
-    Map<String, String> headers        = [:]
-    int                 connectTimeout = 30000
-    int                 readTimeout    = 30000
-    boolean             runInParallel  = true
+    String              matchersDelimiter = '*'
+    Map<String, String> headers           = [:]
+    int                 connectTimeout    = 30000
+    int                 readTimeout       = 30000
+    boolean             runInParallel     = true
 }

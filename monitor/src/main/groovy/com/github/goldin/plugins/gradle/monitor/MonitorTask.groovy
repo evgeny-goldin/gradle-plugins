@@ -149,17 +149,23 @@ class MonitorTask extends BaseTask<MonitorExtension>
     }
 
 
-    @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
-    @Requires({ ( content != null ) && ( pattern != null ) })
-    static boolean contentMatches( String content, String pattern )
+    @SuppressWarnings([ 'GroovyAssignmentToForLoopParameter' ])
+    @Requires({ ( content != null ) && ( patterns != null ) })
+    boolean contentMatches( String content, String patterns )
     {
-        final positiveMatch = ( ! pattern.startsWith( '-' ))
-        pattern             = positiveMatch ? pattern : pattern[ 1 .. -1 ]
-        final regexMatch    = pattern.with { startsWith( '/' ) && endsWith( '/' ) }
-        pattern             = regexMatch    ? pattern[ 1 .. -2 ] : pattern
-        final isMatch       = regexMatch    ? Pattern.compile ( pattern ).matcher( content ).find() :
-                                              content.contains( pattern )
+        final matchersList = ext.matchersDelimiter ? patterns.tokenize( ext.matchersDelimiter ) : [ patterns ]
+        for ( matcher in matchersList*.trim())
+        {
+            final positiveMatch = ( ! matcher.startsWith( '-' ))
+            matcher             = positiveMatch ? matcher : matcher[ 1 .. -1 ]
+            final regexMatch    = matcher.with { startsWith( '/' ) && endsWith( '/' ) }
+            matcher             = regexMatch    ? matcher[ 1 .. -2 ] : matcher
+            final isMatch       = regexMatch    ? Pattern.compile ( matcher ).matcher( content ).find() :
+                                                  content.contains( matcher )
 
-        ( positiveMatch ? isMatch : ( ! isMatch ))
+            if ( positiveMatch ? ( ! isMatch ) : isMatch ) { return false }
+        }
+
+        true
     }
 }
