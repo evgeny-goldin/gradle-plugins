@@ -23,13 +23,14 @@ class CheckStartedTask extends NodeBaseTask
                                                                              "'$response.statusCode'" ) //  If not Integer then it's an error
         if ( isGoodResponse )
         {
-            log{ "$resultMessage - good!" }
+            log{ "$resultMessage${ ext.checkContent ? ', content contains [' + ext.checkContent + ']' : '' } - good!" }
         }
         else
         {
             log( LogLevel.ERROR ) { 'The application has failed to start properly' }
             if ( ext.stopIfFailsToStart ){ runTask( STOP_TASK )}
-            throw new GradleException( "$resultMessage and not as expected: status code [$ext.checkStatusCode]" +
+            throw new GradleException( "$resultMessage${ ext.checkContent ? ', content [' + content + ']' : '' } " +
+                                       "while we expected status code [$ext.checkStatusCode]" +
                                        ( ext.checkContent ? ", content contains [$ext.checkContent]" : '' ))
         }
     }

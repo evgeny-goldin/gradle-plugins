@@ -1,4 +1,3 @@
-import org.codehaus.groovy.ant.Groovydoc
 import java.text.SimpleDateFormat
 
 apply plugin: 'idea'
