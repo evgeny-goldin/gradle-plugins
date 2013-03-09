@@ -9,14 +9,14 @@ echo "mongo  --version" : [`mongo --version`]
 
 mkdir -p ${mongoDBPath}
 
-if [ ${mongoRunning} ];
+if [[ ${mongoRunning} ]];
 then
     echo "Mongo [127.0.0.1:${mongoPort}] is already running"
 else
-    mongod --fork --port ${mongoPort} --logpath ${mongoLogpath} --dbpath ${mongoDBPath}
+    mongod --fork --port ${mongoPort} --logpath ${mongoLogpath} --dbpath ${mongoDBPath} ${mongoCommandLine}
     sleep ${sleep}
 
-    if [ ${mongoRunning} ];
+    if [[ ${mongoRunning} ]];
     then
         echo "Mongo [127.0.0.1:${mongoPort}] has started"
     else

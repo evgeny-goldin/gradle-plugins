@@ -85,9 +85,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         if (  addRedis )
         {
             final redisPort    = ( ext.redisPort > 0 ) ? ext.redisPort as String : '${ config.' + ext.redisPortConfigKey + ' }'
+            final redisRunning = "\"`redis-cli -p $redisPort ping 2> /dev/null`\" = \"PONG\""
             final isStartRedis = (( ext.redisStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopRedis  = (( ext.redisStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
-            final redisRunning = "\"`redis-cli -p $redisPort ping 2> /dev/null`\" = \"PONG\""
             final getScript    = { String scriptName -> getResourceText( scriptName ).
                                                         replace( '${redisPort}',        redisPort ).
                                                         replace( '${redisRunning}',     redisRunning ).
@@ -109,9 +109,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         if (  addMongo )
         {
             final mongoPort    = ( ext.mongoPort > 0 ) ? ext.mongoPort as String : '${ config.' + ext.mongoPortConfigKey + ' }'
+            final mongoRunning = """ ! "`mongo --eval ${Q}db${Q} --port 27017 2> /dev/null | tail -1`" =~ "couldn't connect to server" """
             final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopMongo  = (( ext.mongoStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
-            final mongoRunning = "\"`mongo --eval ${Q}db${Q} --port $mongoPort 2> /dev/null | tail -1`\" = \"test\""
             final getScript    = { String scriptName -> getResourceText( scriptName ).
                                                         replace( '${mongoPort}',        mongoPort ).
                                                         replace( '${mongoRunning}',     mongoRunning ).
