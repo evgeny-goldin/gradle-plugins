@@ -49,7 +49,8 @@ class StartTask extends NodeBaseTask
         final pidFileName = pidFileName( ext.portNumber )
         final pidFilePath = new File( "${ System.getProperty( 'user.home' )}/.forever/pids/$pidFileName" ).canonicalPath
         final command     = "${ forever() } start ${ ext.foreverOptions ?: '' } --plain --pidFile \"${ pidFileName }\" " +
-                            "${ executable ? '"' + executable + '"' : '' } \"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }"
+                            "${ executable ? '"' + executable + '"' : '' } \"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }".
+                            trim()
 
         if ( executable )
         {
