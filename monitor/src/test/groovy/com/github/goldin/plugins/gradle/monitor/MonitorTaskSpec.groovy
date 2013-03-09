@@ -8,10 +8,10 @@ import com.github.goldin.plugins.gradle.common.BaseSpecification
  */
 class MonitorTaskSpec extends BaseSpecification
 {
-    def 'Content matching' ()
+    def 'Content matches single matcher' ()
     {
         expect:
-        MonitorTask.contentMatches( content, pattern )
+        MonitorTask.contentMatches( content, pattern, '' )
 
         where:
         content | pattern
@@ -31,5 +31,19 @@ class MonitorTaskSpec extends BaseSpecification
         'aaaaa' | '-/\\d/'
         'aaaaa' | '/\\w/'
         'aaaaa' | '/\\w{5}/'
+    }
+
+
+    def 'Content matches multiple matchers' ()
+    {
+        expect:
+        MonitorTask.contentMatches( content, pattern, '*' )
+
+        where:
+        content | pattern
+        'aaaaa' | 'a*-b*-c*/a/*-/c/'
+        'aaaaa' | '-b*-1234*/^a+$/*'
+        'aaaaa' | '/^a{5}$/*-/^b{5}$/*-/\\d/'
+        'aaaaa' | '/\\w/*/\\w{5}/'
     }
 }

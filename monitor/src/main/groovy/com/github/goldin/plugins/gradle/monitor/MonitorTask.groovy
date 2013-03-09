@@ -95,7 +95,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, null, false, false )
         final responseStatusCode = response.statusCode.toString()
         final responseContent    = response.content ? new String( response.content, 'UTF-8' ) : ''
-        final isMatch            = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent )
+        final isMatch            = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent, ext.matchersDelimiter )
         final isTimeMatch        = ( response.timeMillis <= ( timeLimit as long ))
 
         log { "$url - [${ response.timeMillis }] ms" }
@@ -151,9 +151,9 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
     @SuppressWarnings([ 'GroovyAssignmentToForLoopParameter' ])
     @Requires({ ( content != null ) && ( patterns != null ) })
-    boolean contentMatches( String content, String patterns )
+    static boolean contentMatches( String content, String patterns, String matchersDelimiter )
     {
-        final matchersList = ext.matchersDelimiter ? patterns.tokenize( ext.matchersDelimiter ) : [ patterns ]
+        final matchersList = matchersDelimiter ? patterns.tokenize( matchersDelimiter ) : [ patterns ]
         for ( matcher in matchersList*.trim())
         {
             final positiveMatch = ( ! matcher.startsWith( '-' ))
