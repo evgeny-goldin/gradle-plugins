@@ -6,7 +6,7 @@ import org.gradle.api.artifacts.maven.MavenPom
 apply plugin: 'idea'
 apply plugin: 'maven'
 apply plugin: 'java'
-apply from:   'https://raw.github.com/evgeny-goldin/scripts/master/src/main/gradle/wrapper.gradle'
+apply from:   'http://evgenyg.artifactoryonline.com/evgenyg/libs-releases-local/wrapper.gradle'
 
 /**
  * Gradle script deploying TeamCity artifacts to Artifactory repository
