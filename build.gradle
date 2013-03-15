@@ -231,6 +231,13 @@ project( ':kotlin' ) {
 }
 
 
+project( ':node' ) {
+    dependencies {
+        compile 'com.fasterxml.jackson.core:jackson-databind:2.1.4'
+    }
+}
+
+
 project( ':teamcity' ) {
     idea.module {
         excludeDirs += file( 'deploy-teamcity-artifacts/.gradle' )

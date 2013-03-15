@@ -1,12 +1,10 @@
 package com.github.goldin.plugins.gradle.node
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.goldin.plugins.gradle.common.BaseTask
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
-import java.util.regex.Matcher
 
 
 /**
@@ -17,6 +15,7 @@ class ConfigHelper
     private final NodeExtension ext
     private final BaseTask      task
 
+
     @Requires({ ext && task })
     @Ensures ({ this.ext && this.task })
     ConfigHelper ( NodeExtension ext, BaseTask task )
@@ -26,21 +25,23 @@ class ConfigHelper
     }
 
 
+    @SuppressWarnings([ 'GroovyEmptyStatementBody' ])
     @Requires({ s })
     @Ensures ({ result != null })
-    private static Map<String,?> parseJsonToMap ( String s )
+    private static Map<String,?> fromJson ( String s )
     {
-        try { ( Map ) new JsonSlurper().parseText( s )}
-        catch ( e ){ throw new GradleException( "Failed to parse and convert to map JSON [$s]", e )}
+        try { new ObjectMapper().readValue( s, Map )}
+        catch ( e ){ throw new GradleException(
+                     "Failed to parse the following JSON\n---------------\n$s\n---------------", e )}
     }
 
 
-    @Requires({ map != null })
+    @Requires({ o != null })
     @Ensures ({ result })
-    private static String stringifyMapToJson ( Map<String,?> map )
+    private static String toJson ( Object o )
     {
-        try { JsonOutput.prettyPrint( JsonOutput.toJson( map )) }
-        catch ( e ) { throw new GradleException( "Failed to stringify and convert to JSON map $map", e )}
+        try { new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString( o ) }
+        catch ( e ) { throw new GradleException( "Failed to convert [$o] to JSON", e )}
     }
 
 
@@ -70,7 +71,7 @@ class ConfigHelper
 
         if ( configText.with{ startsWith( '{' ) and endsWith( '}' ) })
         {
-            final  jsonMap = parseJsonToMap( configText )
+            final  jsonMap = fromJson( configText )
             assert jsonMap, "No configuration data was read from [$configFile.canonicalPath]"
             jsonMap
         }
@@ -110,7 +111,7 @@ class ConfigHelper
             }
 
             final configContent            = ( configFile.file ? configFile.getText( 'UTF-8' )   : ''  )
-            final Map<String,?> configData = ( configFile.file ? parseJsonToMap( configContent ) : [:] )
+            final Map<String,?> configData = ( configFile.file ? fromJson( configContent ) : [:] )
             assert ( configData || ( ! configFile.file )), "No configuration data was read from [$configFile.canonicalPath]"
 
             newConfigData.each {
@@ -118,9 +119,9 @@ class ConfigHelper
                 updateConfigMap( configData, key, value )
             }
 
-            writeConfigFile( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
+            task.write( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
                                          mergeConfig ( configContent, configData ) :
-                                         stringifyMapToJson ( configData ))
+                                         toJson ( configData ))
             configData
         }
         catch ( Throwable error )
@@ -131,34 +132,37 @@ class ConfigHelper
     }
 
 
-    @Requires({ configFile && content })
-    private void writeConfigFile( File configFile, String content )
-    {
-        assert parseJsonToMap( content ), "No configuration data was read from [$content]"
-        task.write( configFile, content )
-    }
-
-
     @Requires({ configContent && ( keys != null ) && ( configData != null ) })
-    private String mergeConfig ( String configContent, List<String> keys = [], Map<String, ?> configData )
+    private String mergeConfig ( String         configContent,
+                                 Map<String, ?> configData,
+                                 List<String>   keys             = [],
+                                 Map<String, ?> parentConfigData = configData )
     {
-        configData.inject( configContent ){
-            String content, String key, Object value ->
-
-            ( value instanceof Map ) ? mergeConfig          ( content, ( List<String> )( keys + key ), ( Map ) value ) :
-                                       mergeConfigPlainValue( content, ( List<String> )( keys + key ), value )
+        final String content = configData.values().any { it instanceof List } ?
+            toJson( parentConfigData ) : // Merging of list values is not supported
+            configData.inject( configContent ){
+               String content, String key, Object value ->
+               ( value instanceof Map  ) ? mergeConfig          ( content, value, ( List<String> )( keys + key ), parentConfigData ) :
+                                           mergeConfigPlainValue( content, value, ( List<String> )( keys + key ))
         }
+
+        assert fromJson( content )       // To make sure the data can be parsed back
+        content
     }
 
 
     @SuppressWarnings([ 'GroovyContinue' ])
     @Requires({ configContent && keys && ( ! ( value instanceof Map )) })
-    private String mergeConfigPlainValue ( String configContent, List<String> keys, Object value, int startPosition = 0, int keyIndex = 0 )
+    private String mergeConfigPlainValue ( String       configContent,
+                                           Object       value,
+                                           List<String> keys,
+                                           int          startPosition = 0,
+                                           int          keyIndex      = 0 )
     {
         final currentContent = configContent.substring( startPosition )
         assert currentContent.trim().startsWith( '{' )
 
-        final keyPattern = ~/("\Q${ keys[ keyIndex ] }\E"\s*:\s*)(.*?)(?=(,|\s|\}))/
+        final keyPattern = ~/("\Q${ keys[ keyIndex ] }\E"\s*:\s*)(.*?)(?=(,|\r|\n|\}))/
         final matcher    = keyPattern.matcher( currentContent )
 
         while ( matcher.find())
@@ -171,9 +175,11 @@ class ConfigHelper
                 return ( keyIndex == ( keys.size() - 1 )) ?
                     // Last key, recursion stops, replacement made
                     configContent.substring( 0, startPosition ) + currentContent.substring( 0, position ) +
-                    prefix + valueStringified( value ) + currentContent.substring( matcher.end()) :
+                    prefix + toJson( value ) + currentContent.substring( matcher.end()) :
                     // Recursion continues with the next key
-                    mergeConfigPlainValue( configContent, keys, value,
+                    mergeConfigPlainValue( configContent,
+                                           value,
+                                           keys,
                                            startPosition + position + prefix.size(),
                                            keyIndex + 1 )
             }
@@ -183,7 +189,7 @@ class ConfigHelper
         {
             case 'fail'   : throw new GradleException( "Unable to merge config keys $keys with [$configContent], creating new keys is not allowed" )
             case 'ignore' : return configContent
-            default       : return stringifyMapToJson( updateConfigMap( parseJsonToMap( configContent ), keys.join( ext.configsKeyDelimiter ), value ))
+            default       : return toJson( updateConfigMap( fromJson( configContent ), keys.join( ext.configsKeyDelimiter ), value ))
         }
     }
 
@@ -199,18 +205,6 @@ class ConfigHelper
                                         0
         }
         counter
-    }
-
-
-    @Ensures({ result != null })
-    private String valueStringified( Object o )
-    {
-        final asIs = ( o == null            ) ||
-                     ( o instanceof Number  ) ||
-                     ( o instanceof Boolean ) ||
-                     ( o as String ).with { startsWith( '"' ) || endsWith( '"' ) }
-
-        ( asIs ? String.valueOf( o ) : ( '"' +  o + '"' ))
     }
 
 
