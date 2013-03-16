@@ -597,6 +597,21 @@ abstract class BaseTask<T> extends DefaultTask
 
 
     /**
+     * Retrieves a full path of the path provided. If relative - taken relatively to {@link org.gradle.api.Project#getProjectDir()}.
+     * @param path        path to make a full path from
+     * @param defaultPath default path to use if path is undefined
+     * @return full path
+     */
+    @Requires({ path || defaultPath })
+    @Ensures ({ result })
+    final String fullPath( String path, String defaultPath = '' )
+    {
+        path ? new File( path ).with{ File f -> f.absolute ? f : new File( project.projectDir, path ) }.canonicalPath :
+               fullPath( defaultPath )
+    }
+
+
+    /**
      * Invokes an HTTP request using the data provided.
      *
      * @param url                  url to send the request to

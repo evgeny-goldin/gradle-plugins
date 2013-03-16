@@ -86,10 +86,14 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      */
     private void addRedis()
     {
-        final addRedis  = (( ! ext.redisAddedAlready ) && (( ext.redisPort > 0 ) || ext.redisPortConfigKey ))
+        final addRedis  = (( ! ext.redisAddedAlready ) &&
+                           (( ext.redisPort > 0 ) || ext.redisPortConfigKey || ext.redisCommandLine ))
         if (  addRedis )
         {
-            final redisPort    = ( ext.redisPort > 0 ) ? ext.redisPort as String : '${ config.' + ext.redisPortConfigKey + ' }'
+            final redisPort    = ( ext.redisPort > 0      ) ? ext.redisPort.toString() :
+                                 ( ext.redisPortConfigKey ) ? '${ config.' + ext.redisPortConfigKey + ' }' :
+                                                              '6379'
+
             final redisRunning = "\"`redis-cli -p $redisPort ping 2> /dev/null`\" = \"PONG\""
             final isStartRedis = (( ext.redisStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopRedis  = (( ext.redisStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
@@ -110,22 +114,23 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      */
     private void addMongo()
     {
-        final addMongo  = (( ! ext.mongoAddedAlready ) && (( ext.mongoPort > 0 ) || ext.mongoPortConfigKey ))
+        final addMongo  = (( ! ext.mongoAddedAlready ) &&
+                           (( ext.mongoPort > 0 ) || ext.mongoPortConfigKey || ext.mongoCommandLine || ext.mongoLogpath || ext.mongoDBPath ))
         if (  addMongo )
         {
-            final mongoPort    = ( ext.mongoPort > 0 ) ? ext.mongoPort as String : '${ config.' + ext.mongoPortConfigKey + ' }'
+            final mongoPort    = ( ext.mongoPort > 0      ) ? ext.mongoPort.toString() :
+                                 ( ext.mongoPortConfigKey ) ? '${ config.' + ext.mongoPortConfigKey + ' }' :
+                                                              '27017'
+
             final mongoRunning = """ ! "`mongo --eval ${Q}db${Q} --port $mongoPort 2> /dev/null | tail -1`" =~ "couldn't connect to server" """
-            final mongoDBPath  = ext.mongoDBPath ?
-                new File( ext.mongoDBPath ).with{ File f -> f.absolute ? f : new File( project.projectDir, ext.mongoDBPath ) }.canonicalPath :
-                '/data/db/'
             final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopMongo  = (( ext.mongoStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
             final getScript    = { String scriptName -> getResourceText( scriptName ).
                                                         replace( '${mongoPort}',        mongoPort ).
                                                         replace( '${mongoRunning}',     mongoRunning ).
-                                                        replace( '${mongoDBPath}',      mongoDBPath ).
+                                                        replace( '${mongoDBPath}',      fullPath( ext.mongoDBPath,  '/data/db/'  )).
+                                                        replace( '${mongoLogpath}',     fullPath( ext.mongoLogpath, 'mongod.log' )).
                                                         replace( '${mongoCommandLine}', ext.mongoCommandLine ?: '' ).
-                                                        replace( '${mongoLogpath}',     ext.mongoLogpath     ?: 'mongod.log' ).
                                                         replace( '${sleep}',            ext.mongoWait as String )}
 
             ext.before            = ( isStartMongo ? getScript( 'mongo-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
@@ -180,6 +185,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |export PORT=$ext.portNumber
         |export PATH=$binFolder:\$PATH
         |export BUILD_ID=JenkinsLetMeSpawn
+        |${ ext.env ? ext.env.collect { String variable, Object value -> 'export ' + variable + '=' + value }.join( '\n|' ) : '' }
         |
         |. "\$HOME/.nvm/nvm.sh"
         |nvm use $ext.nodeVersion

@@ -23,6 +23,7 @@ class NodeExtension
     String       pidFileName              = ''    // PID file name
     int          portNumber               = 1337  // Port the application starts on (becomes part of .pid file name)
 
+    Map<String,?> env                     = [:]   // Environment variables to set before application is started
     String       printUrl                 = '/'   // The URL to print after the application has started. Nothing is displayed if set to '' or null
     String       checkUrl                 = '/'   // The URL to check after application has started, "http://127.0.0.1:$portNumber" by default
     String       checkContent             = ''    // Response to expect when making a request
