@@ -61,9 +61,14 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.mongoWait    >= 0,   "'mongoWait' should not be negative in $description"
         assert ext.configsNewKeys,      "'configsNewKeys' should be defined in $description"
 
-        ext.checkUrl   = ext.checkUrl   ?: "http://127.0.0.1:${ ext.portNumber }"
+        ext.checkUrl   = ext.checkUrl.startsWith( 'http' ) ?
+                         ext.checkUrl :
+                         "http://127.0.0.1:${ ext.portNumber }" + ( ext.checkUrl ? "/${ ext.checkUrl.replaceFirst( '^/', '' ) }"  : '' )
+
         ext.scriptPath = ext.scriptPath ?: ( new File( project.projectDir, 'server.js'     ).file ? 'server.js'     :
                                              new File( project.projectDir, 'server.coffee' ).file ? 'server.coffee' :
+                                             new File( project.projectDir, 'app.js'        ).file ? 'app.js'     :
+                                             new File( project.projectDir, 'app.js'        ).file ? 'app.coffee' :
                                                                                                     null )
         assert ext.checkUrl
         assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \

@@ -24,7 +24,7 @@ class NodeExtension
     int          portNumber               = 1337  // Port the application starts on (becomes part of .pid file name)
 
     String       printUrl                 = '/'   // The URL to print after the application has started. Nothing is displayed if set to '' or null
-    String       checkUrl                         // The URL to check after application has started, "http://127.0.0.1:$portNumber" by default
+    String       checkUrl                 = '/'   // The URL to check after application has started, "http://127.0.0.1:$portNumber" by default
     String       checkContent             = ''    // Response to expect when making a request
     int          checkStatusCode          = 200   // Response code to expect when making a request
     int          checkWait                = 3     // Seconds to wait after starting/stopping the application and checking it
