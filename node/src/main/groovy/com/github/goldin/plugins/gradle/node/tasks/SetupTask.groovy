@@ -75,7 +75,7 @@ class SetupTask extends NodeBaseTask
     {
         for ( configFile in ext.configs*.keySet().flatten().toSet().collect { file( it )})
         {
-            println ( "[$configFile.canonicalPath]:\n-----\n${ configFile.getText( 'UTF-8' )}\n-----" )
+            log{ "[$configFile.canonicalPath]:\n-----\n${ configFile.getText( 'UTF-8' )}\n-----" }
         }
     }
 
