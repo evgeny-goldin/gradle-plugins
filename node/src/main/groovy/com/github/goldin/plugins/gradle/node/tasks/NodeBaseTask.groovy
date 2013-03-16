@@ -198,7 +198,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |echo ---------------------------------------------
         |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
         |echo "Running   [script-location]"
-        |${ allEnv.collect { 'echo "\\\$' + it.padRight( padSize ) + " = $Q\$$it$Q\"" }.join( '\n|' ) }
+        |${ allEnv.collect { 'echo "\\\$' + it.padRight( padSize ) + " = \$$it\"" }.join( '\n|' ) }
         |echo ---------------------------------------------
         |
         """.stripMargin()
