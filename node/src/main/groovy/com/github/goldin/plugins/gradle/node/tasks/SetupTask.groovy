@@ -95,20 +95,20 @@ class SetupTask extends NodeBaseTask
                 log{ "Updating [$replaceFile.canonicalPath] using replacements Map $replaces" }
 
                 final String content = replaces.inject( replaceFile.getText( 'UTF-8' )) {
-                    String content, String replacePattern, String replaceContent ->
+                    String content, String replacePattern, Object replaceContent ->
 
-                    assert content && replacePattern && replaceContent, \
+                    assert content && replacePattern && ( replaceContent != null ), \
                            'Content to replace, matching pattern and replacement content should be defined'
 
                     if ( replacePattern.with { startsWith( '/' ) && endsWith( '/' ) })
                     {
                         final  pattern = replacePattern[ 1 .. -2 ]
                         assert pattern, 'Empty regex replace patterns are not allowed'
-                        content.replaceAll( Pattern.compile( pattern ), replaceContent )
+                        content.replaceAll( Pattern.compile( pattern ), replaceContent.toString())
                     }
                     else
                     {
-                        content.replace( replacePattern, replaceContent )
+                        content.replace( replacePattern, replaceContent.toString())
                     }
                 }
 
