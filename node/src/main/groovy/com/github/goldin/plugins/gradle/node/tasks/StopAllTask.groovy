@@ -33,6 +33,7 @@ class StopAllTask extends NodeBaseTask
         |${ baseBashScript() }
         |set +e
         |
+        |echo ${ forever() } stopall
         |${ forever() } stopall
         |${ forever() } list --plain
         |

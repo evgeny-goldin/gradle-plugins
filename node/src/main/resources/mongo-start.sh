@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-echo "Starting MongoDB [127.0.0.1:${mongoPort}], dbpath [${mongoDBPath}], logpath [${mongoLogpath}], command line [${mongoCommandLine}]"
+echo "Starting MongoDB [127.0.0.1:${mongoPort}]"
 echo "mongod --version" : [`mongod --version | head -1`]
 echo "mongo  --version" : [`mongo --version`]
 
@@ -13,7 +13,9 @@ if [[ ${mongoRunning} ]];
 then
     echo "Mongo [127.0.0.1:${mongoPort}] is already running"
 else
+    echo mongod --fork --port ${mongoPort} --dbpath ${mongoDBPath} --logpath ${mongoLogpath} ${mongoCommandLine}
     mongod --fork --port ${mongoPort} --dbpath ${mongoDBPath} --logpath ${mongoLogpath} ${mongoCommandLine}
+
     sleep ${sleep}
 
     if [[ ${mongoRunning} ]];

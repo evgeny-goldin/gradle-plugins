@@ -62,7 +62,7 @@ class StartTask extends NodeBaseTask
         }
 
         [ "echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q (file:$Q${pidFilePath}$Q)\"",
-          "echo \"Running   $Q$command$Q\"",
+          "echo $command",
           command,
           "${ forever() } list --plain" ]
     }

@@ -3,13 +3,15 @@
 set -e
 set -o pipefail
 
-echo "Stopping Mongo [127.0.0.1:${mongoPort}], dbpath [${mongoDBPath}], logpath [${mongoLogpath}], command line [${mongoCommandLine}]"
+echo "Stopping Mongo [127.0.0.1:${mongoPort}]"
 echo "mongod --version" : [`mongod --version | head -1`]
 echo "mongo  --version" : [`mongo --version`]
 
 if [[ ${mongoRunning} ]];
 then
+    echo mongo  --eval "db.getSiblingDB('admin').shutdownServer()" --port ${mongoPort}
     mongo  --eval "db.getSiblingDB('admin').shutdownServer()" --port ${mongoPort}
+
     sleep ${sleep}
 
     if [[ ${mongoRunning} ]];

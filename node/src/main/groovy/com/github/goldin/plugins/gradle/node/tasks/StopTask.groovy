@@ -51,6 +51,7 @@ class StopTask extends NodeBaseTask
             |    while [ "\$foreverId" != "" ];
             |    do
             |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
+            |        echo ${ forever() } stop \$foreverId
             |        ${ forever() } stop \$foreverId
             |        foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
             |    done
