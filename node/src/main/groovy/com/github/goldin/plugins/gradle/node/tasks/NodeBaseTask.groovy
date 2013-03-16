@@ -109,7 +109,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         if (  addMongo )
         {
             final mongoPort    = ( ext.mongoPort > 0 ) ? ext.mongoPort as String : '${ config.' + ext.mongoPortConfigKey + ' }'
-            final mongoRunning = """ ! "`mongo --eval ${Q}db${Q} --port 27017 2> /dev/null | tail -1`" =~ "couldn't connect to server" """
+            final mongoRunning = """ ! "`mongo --eval ${Q}db${Q} --port $mongoPort 2> /dev/null | tail -1`" =~ "couldn't connect to server" """
             final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopMongo  = (( ext.mongoStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
             final getScript    = { String scriptName -> getResourceText( scriptName ).
