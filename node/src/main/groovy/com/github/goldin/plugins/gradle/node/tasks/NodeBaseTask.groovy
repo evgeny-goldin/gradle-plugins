@@ -66,7 +66,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                                              new File( project.projectDir, 'server.coffee' ).file ? 'server.coffee' :
                                                                                                     null )
         assert ext.checkUrl
-        assert ( ext.scriptPath || ( ! requiresScriptPath())), \
+        assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \
                "'scriptPath' should be defined in $description or use 'server.[js|coffee]' script to auto-discover it"
 
         ext.nodeVersion = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
