@@ -52,10 +52,13 @@ class TestTask extends NodeBaseTask
     private String testScript( String testArguments )
     {
         assert ext.testCommand.startsWith( 'mocha' ), "Only 'mocha' test runner is currently supported"
-        final testCommand = "$ext.testCommand ${ (( ! ext.testInput ) || ( ext.testInput == 'test' )) ? '' : ext.testInput } $testArguments"
+        final testCommand = "$ext.testCommand ${ (( ! ext.testInput ) || ( ext.testInput == 'test' )) ? '' : ext.testInput } $testArguments".
+                            trim()
 
         """
         |${ baseBashScript() }
+        |
+        |echo "Running $Q$testCommand$Q"
         |$testCommand""".stripMargin()
     }
 
