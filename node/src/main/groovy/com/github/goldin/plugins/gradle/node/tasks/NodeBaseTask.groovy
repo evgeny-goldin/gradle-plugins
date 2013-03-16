@@ -180,6 +180,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         final  binFolder = project.file( MODULES_BIN_DIR ).canonicalFile
         assert binFolder.directory, "Directory [$binFolder.canonicalPath] is not available"
 
+        final isJenkins     = System.getenv( 'JENKINS_URL' ) != null
+        final predefinedEnv = ( 'NODE_ENV PORT PATH' + ( isJenkins ? ' BUILD_ID' : '' )).tokenize()
+        final allEnv        = predefinedEnv + ( ext.env ? ext.env.keySet() : [] )
+        final padSize       = allEnv*.length().max()
+
         """
         |export NODE_ENV=$ext.NODE_ENV
         |export PORT=$ext.portNumber
@@ -193,9 +198,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |echo ---------------------------------------------
         |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
         |echo "Running   [script-location]"
-        |echo \"\\\$NODE_ENV = $Q$ext.NODE_ENV$Q\"
-        |echo \"\\\$PORT     = $Q$ext.portNumber$Q\"
-        |echo \"\\\$PATH     = $Q$binFolder:\$PATH$Q\"
+        |${ allEnv.collect { 'echo "\\\$' + it.padRight( padSize ) + " = $Q\$$it$Q\"" }.join( '\n|' ) }
         |echo ---------------------------------------------
         |
         """.stripMargin()
