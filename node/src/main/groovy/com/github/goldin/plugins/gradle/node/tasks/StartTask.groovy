@@ -16,6 +16,8 @@ class StartTask extends NodeBaseTask
     @Override
     void taskAction()
     {
+        if ( ext.run ) { log{ 'Doing nothing - "run" commands specified' }; return }
+
         if ( ext.stopBeforeStart )
         {   // "after" interceptor is not run when application is stopped before starting it
             final after = ext.after

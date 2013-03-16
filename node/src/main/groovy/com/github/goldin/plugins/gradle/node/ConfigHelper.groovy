@@ -36,7 +36,6 @@ class ConfigHelper
     }
 
 
-    @Requires({ o != null })
     @Ensures ({ result })
     private static String toJson ( Object o )
     {

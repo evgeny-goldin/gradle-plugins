@@ -12,6 +12,8 @@ class RestartAllTask extends NodeBaseTask
     @Override
     void taskAction()
     {
+        if ( ext.run ) { log{ 'Doing nothing - "run" commands specified' }; return }
+
         bashExec( restartallScript(), taskScriptFile())
         if ( ext.checkAfterRestartall ) { runTask ( CHECK_STARTED_TASK )}
     }

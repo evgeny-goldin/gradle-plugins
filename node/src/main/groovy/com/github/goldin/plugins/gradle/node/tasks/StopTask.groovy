@@ -15,6 +15,8 @@ class StopTask extends NodeBaseTask
     @Override
     void taskAction()
     {
+        if ( ext.run ) { log{ 'Doing nothing - "run" commands specified' }; return }
+
         try
         {
             bashExec( stopScript(), taskScriptFile())
