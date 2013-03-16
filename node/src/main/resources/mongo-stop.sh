@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-echo "Stopping Mongo [127.0.0.1:${mongoPort}]"
+echo "Stopping Mongo [127.0.0.1:${mongoPort}], DB path [${mongoDBPath}]"
 echo "mongod --version" : [`mongod --version | head -1`]
 echo "mongo  --version" : [`mongo --version`]
 

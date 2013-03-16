@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-echo "Stopping Redis [127.0.0.1:${redisPort}]"
+echo "Stopping Redis [127.0.0.1:${redisPort}], command line [${redisCommandLine}]"
 echo "redis-server --version" : [`redis-server --version`]
 echo "redis-cli    --version" : [`redis-cli    --version`]
 

@@ -115,14 +115,17 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         {
             final mongoPort    = ( ext.mongoPort > 0 ) ? ext.mongoPort as String : '${ config.' + ext.mongoPortConfigKey + ' }'
             final mongoRunning = """ ! "`mongo --eval ${Q}db${Q} --port $mongoPort 2> /dev/null | tail -1`" =~ "couldn't connect to server" """
+            final mongoDBPath  = ext.mongoDBPath ?
+                new File( ext.mongoDBPath ).with{ File f -> f.absolute ? f : new File( project.projectDir, ext.mongoDBPath ) }.canonicalPath :
+                '/data/db/'
             final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopMongo  = (( ext.mongoStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
             final getScript    = { String scriptName -> getResourceText( scriptName ).
                                                         replace( '${mongoPort}',        mongoPort ).
                                                         replace( '${mongoRunning}',     mongoRunning ).
+                                                        replace( '${mongoDBPath}',      mongoDBPath ).
                                                         replace( '${mongoCommandLine}', ext.mongoCommandLine ?: '' ).
                                                         replace( '${mongoLogpath}',     ext.mongoLogpath     ?: 'mongod.log' ).
-                                                        replace( '${mongoDBPath}',      ext.mongoDBPath      ?: '/data/db/' ).
                                                         replace( '${sleep}',            ext.mongoWait as String )}
 
             ext.before            = ( isStartMongo ? getScript( 'mongo-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
