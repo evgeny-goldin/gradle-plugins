@@ -154,7 +154,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      */
     @Requires({ port > 0 })
     @Ensures ({ result   })
-    final String pidFileName( int port ){ "${ project.name }-${ port }.pid" }
+    final String pidFileName( int port ){ ext.pidFileName ?: "${ project.projectDir.name }-${ port }.pid" }
 
 
     /**
@@ -287,11 +287,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      * Retrieves commands to be used for killing the project's running processes.
      * @return commands to be used for killing the project's running processes
      */
-    @Requires({ project.name && ext.scriptPath })
+    @Requires({ ext.scriptPath })
     @Ensures ({ result })
     final List<String> killCommands ()
     {
-        final  killProcesses = "forever,${ project.name }|${ ext.scriptPath },${ project.name }"
+        final  killProcesses = "forever,${ project.projectDir.name }|${ ext.scriptPath },${ project.projectDir.name }"
         killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
             String process ->
 
