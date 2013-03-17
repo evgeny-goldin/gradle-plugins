@@ -58,7 +58,7 @@ class TestTask extends NodeBaseTask
         """
         |${ baseBashScript() }
         |
-        |echo $testCommand"
+        |echo $testCommand
         |$testCommand""".stripMargin()
     }
 
