@@ -180,25 +180,26 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         final  binFolder = project.file( MODULES_BIN_DIR ).canonicalFile
         assert binFolder.directory, "Directory [$binFolder.canonicalPath] is not available"
 
-        final isJenkins     = System.getenv( 'JENKINS_URL' ) != null
-        final predefinedEnv = ( 'NODE_ENV PORT PATH' + ( isJenkins ? ' BUILD_ID' : '' )).tokenize()
-        final allEnv        = predefinedEnv + ( ext.env ? ext.env.keySet() : [] )
-        final padSize       = allEnv*.length().max()
+        final isJenkins    = System.getenv( 'JENKINS_URL' ) != null
+        final envVariables = [ 'NODE_ENV', 'PORT', 'PATH' ] +
+                             ( isJenkins ? [ 'BUILD_ID' ]   : [] ) +
+                             ( ext.env   ? ext.env.keySet() : [] )
+        final padSize      = envVariables*.length().max()
 
         """
         |export NODE_ENV=$ext.NODE_ENV
         |export PORT=$ext.portNumber
         |export PATH=$binFolder:\$PATH
-        |export BUILD_ID=JenkinsLetMeSpawn
-        |${ ext.env ? ext.env.collect { String variable, Object value -> 'export ' + variable + '=' + value }.join( '\n|' ) : '' }
+        |${ isJenkins ? 'export BUILD_ID=JenkinsLetMeSpawn' : '' }
+        |${ ext.env   ? ext.env.collect { String variable, Object value -> "export $variable=$value" }.join( '\n|' ) : '' }
         |
         |. "\$HOME/.nvm/nvm.sh"
         |nvm use $ext.nodeVersion
         |
         |echo ---------------------------------------------
         |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
-        |echo "Running   [script-location]"
-        |${ allEnv.collect { 'echo "\\\$' + it.padRight( padSize ) + " = \$$it\"" }.join( '\n|' ) }
+        |echo "Running   $SCRIPT_LOCATION"
+        |${ envVariables.collect { "echo \"\\\$${ it.padRight( padSize )} = \$$it\"" }.join( '\n|' ) }
         |echo ---------------------------------------------
         |
         """.stripMargin()
@@ -285,7 +286,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |
         |${ scriptContent.readLines().join( '\n|' ) }
         |""".stripMargin().
-             replace( '[script-location]', "${Q}file:${ scriptFile.canonicalPath }${Q}" )){
+             replace( SCRIPT_LOCATION, "${Q}file:${ scriptFile.canonicalPath }${Q}" )){
             String script, Closure transformer ->
             transformer( script, scriptFile, this ) ?: script
         }

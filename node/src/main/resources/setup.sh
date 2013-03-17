@@ -2,7 +2,7 @@
 
 echo ---------------------------------------------
 echo "Executing "\""setup"\"" task in "\""`pwd`"\"""
-echo "Running   [script-location]"
+echo "Running   ${SCRIPT_LOCATION}"
 echo ---------------------------------------------
 currentDir=`pwd`
 

@@ -14,6 +14,7 @@ class NodeConstants
     // https://github.com/creationix/nvm/commits/master
     final static String NVM_COMMIT             = '01189e144c8c5fcc03ca2b00af2860171f20d8f8'
 
+    final static String SCRIPT_LOCATION        = '[script-location]'
     final static String NODE_EXTENSION         = 'node'
     final static String HELP_TASK              = 'help'
     final static String CLEAN_TASK             = 'clean'
