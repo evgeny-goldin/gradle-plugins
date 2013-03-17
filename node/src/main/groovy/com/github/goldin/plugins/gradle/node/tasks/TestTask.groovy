@@ -66,9 +66,7 @@ class TestTask extends NodeBaseTask
     @Ensures({ result.directory })
     private File testResultsDir()
     {
-        final  testTask       = project.tasks.findByName( 'test' )
-        final  testResultsDir = ( testTask instanceof Test ) ? (( Test ) testTask ).testResultsDir :
-                                                               new File( 'build/test-results' )
+        final  testResultsDir = new File( buildDir(), 'test-results' )
         assert testResultsDir.with { directory || mkdirs() }
         testResultsDir
     }
