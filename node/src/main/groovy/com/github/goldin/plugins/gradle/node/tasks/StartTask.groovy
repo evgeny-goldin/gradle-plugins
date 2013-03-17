@@ -75,6 +75,6 @@ class StartTask extends NodeBaseTask
         final String internalUrl = "http://127.0.0.1:${ ext.portNumber }${   ext.printUrl == '/' ? '' : ext.printUrl }"
         final String externalUrl = "http://$externalIp:${ ext.portNumber }${ ext.printUrl == '/' ? '' : ext.printUrl }"
 
-        println( "The application is up and running at [$internalUrl] / [$externalUrl]" )
+        println( "The application is up and running at $internalUrl / $externalUrl" )
     }
 }

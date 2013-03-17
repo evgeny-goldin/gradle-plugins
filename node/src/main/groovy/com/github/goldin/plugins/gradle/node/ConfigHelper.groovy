@@ -32,7 +32,7 @@ class ConfigHelper
     {
         try { new ObjectMapper().readValue( s, Map )}
         catch ( e ){ throw new GradleException(
-                     "Failed to parse the following JSON\n---------------\n$s\n---------------", e )}
+                     "Failed to parse the following JSON\n---------------\n$s\n---------------\nConsult http://jsonlint.com/.", e )}
     }
 
 
