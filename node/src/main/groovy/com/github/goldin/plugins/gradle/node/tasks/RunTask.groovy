@@ -7,6 +7,7 @@ package com.github.goldin.plugins.gradle.node.tasks
 class RunTask extends NodeBaseTask
 {
     @Override
+    @SuppressWarnings([ 'UseCollectMany' ])
     void taskAction()
     {
         assert ext.run, 'No commands to run are specified'
