@@ -67,7 +67,7 @@ abstract class BaseTask<T> extends DefaultTask
 
 
         assert this.ext && this.extensionName
-        verifyUpdateExtension( "task [${ this.class.name }], $project => ${ this.extensionName } { .. }" )
+        verifyUpdateExtension( "$project => ${ this.extensionName } { .. }" )
         taskAction()
     }
 

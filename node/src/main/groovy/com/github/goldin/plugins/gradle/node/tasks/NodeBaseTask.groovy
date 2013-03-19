@@ -62,17 +62,14 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.configsNewKeys,      "'configsNewKeys' should be defined in $description"
 
         ext.checkUrl   = ext.checkUrl.startsWith( 'http' ) ?
-                         ext.checkUrl :
-                         "http://127.0.0.1:${ ext.portNumber }" + ( ext.checkUrl ? "/${ ext.checkUrl.replaceFirst( '^/', '' ) }"  : '' )
-
-        ext.scriptPath = ext.scriptPath ?: ( new File( project.projectDir, 'server.js'     ).file ? 'server.js'     :
-                                             new File( project.projectDir, 'server.coffee' ).file ? 'server.coffee' :
-                                             new File( project.projectDir, 'app.js'        ).file ? 'app.js'     :
-                                             new File( project.projectDir, 'app.js'        ).file ? 'app.coffee' :
-                                                                                                    null )
+            ext.checkUrl :
+            "http://127.0.0.1:${ ext.portNumber }" + ( ext.checkUrl ? "/${ ext.checkUrl.replaceFirst( '^/', '' ) }"  : '' )
         assert ext.checkUrl
+
+        ext.scriptPath = ext.scriptPath ?: ( ext.knownScriptPaths ?: [] ).find { new File( project.projectDir, it ).file }
         assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \
-               "'scriptPath' should be defined in $description or use 'server.[js|coffee]' script to auto-discover it"
+               "Couldn't find an application script to run! Specify 'scriptPath' in $description or use " +
+               "'${ ( ext.knownScriptPaths ?: [] ).join( "', '" ) }'"
 
         ext.nodeVersion = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
 
