@@ -9,6 +9,8 @@ import java.util.regex.Pattern
 @SuppressWarnings([ 'PropertyName' ])
 class NodeConstants
 {
+    final static String REMOVE_COLOR_CODES     = "cat -v | sed 's/\\^\\[\\[[0-9]*m//g'" // sed-only solution didn't work on Mac :(
+
     final static String NODE_VERSION_URL       = 'http://nodejs.org/'
     final static String NVM_GIT_REPO           = 'git://github.com/creationix/nvm.git'
     // https://github.com/creationix/nvm/commits/master

@@ -71,7 +71,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                "Couldn't find an application script to run! Specify 'scriptPath' in $description or use " +
                "'${ ( ext.knownScriptPaths ?: [] ).join( "', '" ) }'"
 
-        ext.nodeVersion = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
+        ext.nodeVersion      = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
+        ext.removeColorCodes = ( ext.foreverColor ? '' : " | $REMOVE_COLOR_CODES" )
 
         addRedis()
         addMongo()

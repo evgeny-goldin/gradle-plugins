@@ -10,6 +10,8 @@ class NodeExtension
     String       nodeVersion              = 'latest'
     String       testCommand              = 'mocha'
     String       testInput                = 'test'
+    boolean      foreverColor             = true  // Whether color codes should be left in 'forever' output
+    String       removeColorCodes                 // Internal property
     boolean      configMergePreserveOrder = true  // Whether configs merge should preserve keys order (more risky, some nasty regexes are involved)
     boolean      xUnitReport              = true  // Whether xUnit report should be created when tests are run
     boolean      failIfTestsFail          = true  // Whether to fail execution if tests fail

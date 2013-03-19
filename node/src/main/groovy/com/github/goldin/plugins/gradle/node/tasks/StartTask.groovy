@@ -50,7 +50,7 @@ class StartTask extends NodeBaseTask
         final executable  = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
         final pidFileName = pidFileName( ext.portNumber )
         final pidFilePath = new File( "${ System.getProperty( 'user.home' )}/.forever/pids/$pidFileName" ).canonicalPath
-        final command     = "${ forever() } start ${ ext.foreverOptions ?: '' } --plain --pidFile \"${ pidFileName }\" " +
+        final command     = "${ forever() } start ${ ext.foreverOptions ?: '' } --pidFile \"${ pidFileName }\" " +
                             "${ executable ? '"' + executable + '"' : '' } \"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }".
                             trim()
 
@@ -63,8 +63,8 @@ class StartTask extends NodeBaseTask
 
         [ "echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q (file:$Q${pidFilePath}$Q)\"",
           "echo $command",
-          command,
-          "${ forever() } list --plain" ]
+          "$command${ ext.removeColorCodes }",
+          "${ forever() } list${ ext.removeColorCodes }" ]
     }
 
 
