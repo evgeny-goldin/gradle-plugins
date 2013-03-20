@@ -16,7 +16,7 @@ NVM_HOME="$HOME/.nvm"
 NVM_SH="$NVM_HOME/nvm.sh"
 
 . "$NVM_SH"
-nvm ls
+nvm ls | cat -v | sed 's/\^\[\[[0-9]*m//g'
 
 if [ $? -ne 0 ] || [ ! -f "$NVM_SH" ]; then
     rm -rf "$NVM_HOME"
