@@ -33,7 +33,7 @@ class CheckStartedTask extends NodeBaseTask
             throw new GradleException( "$resultMessage${ ext.checkContent ? ', content [' + content + ']' : '' } " +
                                        "while we expected status code [$ext.checkStatusCode]" +
                                        ( ext.checkContent ? ", content contains [$ext.checkContent]" : '' ) +
-                                       ". See above for log output." )
+                                       ". See 'Showing logs' above." )
         }
     }
 
