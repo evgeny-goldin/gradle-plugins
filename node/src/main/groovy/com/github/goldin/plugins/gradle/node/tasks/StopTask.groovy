@@ -41,13 +41,13 @@ class StopTask extends NodeBaseTask
         |pid=`cat "\$HOME/.forever/pids/${ pidFileName( ext.portNumber ) }"`
         |if [ "\$pid" != "" ];
         |then
-        |    foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
+        |    foreverId=`${ forever() } list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
         |    while [ "\$foreverId" != "" ];
         |    do
         |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
         |        echo ${ forever() } stop \$foreverId
         |        ${ forever() } stop \$foreverId${ ext.removeColorCodes }
-        |        foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
+        |        foreverId=`${ forever() } list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
         |    done
         |fi
         |
