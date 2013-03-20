@@ -27,11 +27,11 @@ class CheckStartedTask extends NodeBaseTask
         }
         else
         {
-            log( LogLevel.ERROR ) { """
+            log( LogLevel.ERROR ) { '''
                                     |-----------------------------------------------------------
                                     |  -=-= The application has failed to start properly! =-=-
                                     |-----------------------------------------------------------
-                                    """.stripMargin() }
+                                    '''.stripMargin() }
 
             bashExec( tailLogScript(), taskScriptFile( false, false, 'tail-log-' ), false, false, true, LogLevel.ERROR )
             if ( ext.stopIfFailsToStart ){ runTask( STOP_TASK )}
