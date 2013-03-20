@@ -27,11 +27,7 @@ class RestartAllTask extends NodeBaseTask
         |
         |echo ${ forever() } restartall
         |${ forever() } restartall${ ext.removeColorCodes }
-        |echo $LOG_DELIMITER
-        |${ forever() } list${ ext.removeColorCodes }
-        |echo $LOG_DELIMITER
-        |ps -Af | grep node | grep -v grep
-        |echo $LOG_DELIMITER
+        |${ listProcesses() }
         """.stripMargin()
     }
 }

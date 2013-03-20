@@ -57,11 +57,7 @@ class StartTask extends NodeBaseTask
         |echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q (file:$Q${pidFilePath}$Q)\"
         |echo $command
         |$command${ ext.removeColorCodes }
-        |echo $LOG_DELIMITER
-        |${ forever() } list${ ext.removeColorCodes }
-        |echo $LOG_DELIMITER
-        |ps -Af | grep node | grep -v grep
-        |echo $LOG_DELIMITER
+        |${ listProcesses() }
         """.stripMargin()
     }
 

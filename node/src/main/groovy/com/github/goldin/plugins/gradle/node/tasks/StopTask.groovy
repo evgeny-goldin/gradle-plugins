@@ -62,6 +62,7 @@ class StopTask extends NodeBaseTask
             """
             |
             |${ killCommands().join( '\n|' )}
+            |${ listProcesses() }
             """.stripMargin().readLines())
 
         ( List<String> ) [ 'set +e', '', *stopCommands, '', 'set -e' ] // Empty commands correspond to empty lines in a bash script

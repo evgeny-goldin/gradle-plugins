@@ -205,6 +205,22 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
+     * Retrieves script commands for listing currently running Node.js processes.
+     */
+    @Ensures ({ result })
+    final String listProcesses()
+    {
+        """
+        |echo $LOG_DELIMITER
+        |${ forever() } list${ ext.removeColorCodes }
+        |echo $LOG_DELIMITER
+        |ps -Af | grep node | grep -v grep
+        |echo $LOG_DELIMITER
+        """.stripMargin()
+    }
+
+
+    /**
      * Generates a script containing the commands specified.
      *
      * @param commands commands to execute
