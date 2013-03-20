@@ -75,7 +75,12 @@ class SetupTask extends NodeBaseTask
     {
         for ( configFile in ext.configs*.keySet().flatten().toSet().collect { file( it )})
         {
-            log{ "[$configFile.canonicalPath]:\n-----\n${ configFile.getText( 'UTF-8' )}\n-----" }
+            log{ """
+                 |[$configFile.canonicalPath]:
+                 |$LOG_DELIMITER
+                 |${ configFile.getText( 'UTF-8' )}
+                 |$LOG_DELIMITER
+                 """.stripMargin() }
         }
     }
 
@@ -121,12 +126,13 @@ class SetupTask extends NodeBaseTask
 
     private void runSetupScript()
     {
-        final setupScript = getResourceText( 'setup.sh' ).replace( '${nvmRepo}',            NVM_GIT_REPO    ).
-                                                          replace( '${nvmCommit}',          NVM_COMMIT      ).
-                                                          replace( '${SCRIPT_LOCATION}',    SCRIPT_LOCATION ).
-                                                          replace( '${REMOVE_COLOR_CODES}', REMOVE_COLOR_CODES ).
-                                                          replace( '${nodeVersion}',        ext.nodeVersion )
-        assert ( ! setupScript.contains( '${' ))
+        final setupScript = getResourceText( 'setup.sh' ).replace( '@{nvmRepo}',            NVM_GIT_REPO    ).
+                                                          replace( '@{nvmCommit}',          NVM_COMMIT      ).
+                                                          replace( '@{LOG_DELIMITER}',      LOG_DELIMITER   ).
+                                                          replace( '@{SCRIPT_LOCATION}',    SCRIPT_LOCATION ).
+                                                          replace( '@{REMOVE_COLOR_CODES}', REMOVE_COLOR_CODES ).
+                                                          replace( '@{nodeVersion}',        ext.nodeVersion )
+        assert ( ! setupScript.contains( '@{' ))
         bashExec( setupScript, taskScriptFile(), false )
     }
 }

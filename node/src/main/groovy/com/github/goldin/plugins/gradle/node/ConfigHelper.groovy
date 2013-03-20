@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.node
 
+import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
@@ -33,7 +34,13 @@ class ConfigHelper
     {
         try { new ObjectMapper().readValue( s, Map )}
         catch ( e ){ throw new GradleException(
-                     "Failed to parse the following JSON\n---------------\n$s\n---------------\nConsult http://jsonlint.com/.", e )}
+                     """
+                     |Failed to parse the following JSON
+                     |$LOG_DELIMITER
+                     |$s
+                     |$LOG_DELIMITER
+                     |Consult http://jsonlint.com/.
+                     """.stripMargin().toString(), e )}
     }
 
 

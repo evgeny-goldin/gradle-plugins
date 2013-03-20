@@ -41,9 +41,11 @@ class CheckStartedTask extends NodeBaseTask
     @SuppressWarnings([ 'LineLength' ])
     String tailLogScript()
     {
-        // Sorting "forever list" output by uptime, taking first element and listing its log.
+        // Sorting "forever list" output by processes uptime, taking first element with a minimal uptime and listing its log.
         """
+        |echo $LOG_DELIMITER
         |${ forever() } logs `forever list | $REMOVE_COLOR_CODES | grep -E '\\[[0-9]+\\]' | awk '{print \$NF,\$2}' | sort -n | head -1 | awk '{print \$2}' | tr -d '[]'`${ ext.removeColorCodes }
+        |echo $LOG_DELIMITER
         """.stripMargin()
     }
 }

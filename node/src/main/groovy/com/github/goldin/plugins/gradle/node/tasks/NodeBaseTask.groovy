@@ -194,11 +194,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |. "\$HOME/.nvm/nvm.sh"
         |nvm use $ext.nodeVersion
         |
-        |echo ---------------------------------------------
+        |echo $LOG_DELIMITER
         |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
         |echo "Running   $SCRIPT_LOCATION"
         |${ envVariables.collect { "echo \"\\\$${ it.padRight( padSize )} = \$$it\"" }.join( '\n|' ) }
-        |echo ---------------------------------------------
+        |echo $LOG_DELIMITER
         |
         """.stripMargin()
     }

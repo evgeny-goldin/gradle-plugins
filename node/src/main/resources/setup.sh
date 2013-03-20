@@ -1,9 +1,9 @@
 #!/bin/bash
 
-echo ---------------------------------------------
+echo @{LOG_DELIMITER}
 echo "Executing "\""setup"\"" task in "\""`pwd`"\"""
-echo "Running   ${SCRIPT_LOCATION}"
-echo ---------------------------------------------
+echo "Running   @{SCRIPT_LOCATION}"
+echo @{LOG_DELIMITER}
 currentDir=`pwd`
 
 if [ ! -d "$HOME" ];
@@ -16,13 +16,13 @@ NVM_HOME="$HOME/.nvm"
 NVM_SH="$NVM_HOME/nvm.sh"
 
 . "$NVM_SH"
-nvm ls | ${REMOVE_COLOR_CODES}
+nvm ls | @{REMOVE_COLOR_CODES}
 
 if [ $? -ne 0 ] || [ ! -f "$NVM_SH" ]; then
     rm -rf "$NVM_HOME"
-    git clone    ${nvmRepo} "$NVM_HOME"
+    git clone    @{nvmRepo} "$NVM_HOME"
     cd  "$NVM_HOME"
-    git checkout ${nvmCommit}
+    git checkout @{nvmCommit}
     cd  "$currentDir"
 fi
 
@@ -37,8 +37,8 @@ set -o pipefail
 
 . "$NVM_SH"
 
-nvm install ${nodeVersion}
-nvm use     ${nodeVersion}
+nvm install @{nodeVersion}
+nvm use     @{nodeVersion}
 
 echo "npm  : [`which npm`][`npm --version`]"
 echo "node : [`which node`][`node --version`]"
