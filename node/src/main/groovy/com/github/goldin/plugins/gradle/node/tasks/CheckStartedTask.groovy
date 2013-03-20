@@ -28,9 +28,9 @@ class CheckStartedTask extends NodeBaseTask
         else
         {
             log( LogLevel.ERROR ) { """
-                                    |$LOG_DELIMITER
-                                    |-=-= The application has failed to start properly! =-=-
-                                    |$LOG_DELIMITER
+                                    |-----------------------------------------------------------
+                                    |  -=-= The application has failed to start properly! =-=-
+                                    |-----------------------------------------------------------
                                     """.stripMargin() }
 
             bashExec( tailLogScript(), taskScriptFile( false, false, 'tail-log-' ), false, false, true, LogLevel.ERROR )
