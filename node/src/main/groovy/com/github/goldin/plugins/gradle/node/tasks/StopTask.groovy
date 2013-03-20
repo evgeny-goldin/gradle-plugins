@@ -34,6 +34,7 @@ class StopTask extends NodeBaseTask
     {
         """
         |${ baseBashScript() }
+        |
         |${ stopCommands().join( '\n|' ) }""".stripMargin()
     }
 

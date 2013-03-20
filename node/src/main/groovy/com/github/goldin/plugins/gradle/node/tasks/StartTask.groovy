@@ -33,19 +33,9 @@ class StartTask extends NodeBaseTask
     }
 
 
-    @Ensures({ result })
-    private String startScript()
-    {
-        """
-        |${ baseBashScript() }
-        |
-        |${ startCommands().grep().join( '\n|' ) }""".stripMargin()
-    }
-
-
     @Requires({ ext.scriptPath })
     @Ensures ({ result })
-    private List<String> startCommands()
+    private String startScript()
     {
         final executable  = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
         final pidFileName = pidFileName( ext.portNumber )
@@ -61,10 +51,18 @@ class StartTask extends NodeBaseTask
                    "[$executableFile.canonicalPath] is not available, make sure \"coffee-script\" dependency appears in \"package.json\" => \"devDependencies\"\""
         }
 
-        [ "echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q (file:$Q${pidFilePath}$Q)\"",
-          "echo $command",
-          "$command${ ext.removeColorCodes }",
-          "${ forever() } list${ ext.removeColorCodes }" ]
+        """
+        |${ baseBashScript() }
+        |
+        |echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q (file:$Q${pidFilePath}$Q)\"
+        |echo $command
+        |$command${ ext.removeColorCodes }
+        |echo $LOG_DELIMITER
+        |${ forever() } list${ ext.removeColorCodes }
+        |echo $LOG_DELIMITER
+        |ps -Af | grep node | grep -v grep
+        |echo $LOG_DELIMITER
+        """.stripMargin()
     }
 
 

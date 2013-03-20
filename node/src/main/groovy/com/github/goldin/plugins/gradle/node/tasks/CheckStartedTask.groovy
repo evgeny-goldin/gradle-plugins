@@ -27,7 +27,12 @@ class CheckStartedTask extends NodeBaseTask
         }
         else
         {
-            log( LogLevel.ERROR ) { 'The application has failed to start properly' }
+            log( LogLevel.ERROR ) { """
+                                    |$LOG_DELIMITER
+                                    |-=-= The application has failed to start properly! =-=-
+                                    |$LOG_DELIMITER
+                                    """.stripMargin() }
+
             bashExec( tailLogScript(), taskScriptFile( false, false, 'tail-log-' ), false, false, true, LogLevel.ERROR )
             if ( ext.stopIfFailsToStart ){ runTask( STOP_TASK )}
             throw new GradleException( "$resultMessage${ ext.checkContent ? ', content [' + content + ']' : '' } " +
@@ -44,7 +49,7 @@ class CheckStartedTask extends NodeBaseTask
         // Sorting "forever list" output by processes uptime, taking first element with a minimal uptime and listing its log.
         """
         |echo $LOG_DELIMITER
-        |${ forever() } logs `forever list | $REMOVE_COLOR_CODES | grep -E '\\[[0-9]+\\]' | awk '{print \$NF,\$2}' | sort -n | head -1 | awk '{print \$2}' | tr -d '[]'`${ ext.removeColorCodes }
+        |${ forever() } logs `${ forever() } list | $REMOVE_COLOR_CODES | grep -E '\\[[0-9]+\\]' | awk '{print \$NF,\$2}' | sort -n | head -1 | awk '{print \$2}' | tr -d '[]'`${ ext.removeColorCodes }
         |echo $LOG_DELIMITER
         """.stripMargin()
     }

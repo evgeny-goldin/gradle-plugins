@@ -37,7 +37,7 @@ class NodeExtension
     List<Closure> transformers            = []    // Callbacks to invoke after every bash script is generated
     String        scriptPath
     List<String>  knownScriptPaths        = 'server.js server.coffee app.js app.coffee'.tokenize().asImmutable()
-    String        scriptArguments         = ''    // Additional script arguments when run by 'forever'
+    String        scriptArguments         = ''    // Additional script arguments
     List<String>  run                     = []    // Commands to execute by 'run' task, if defined application is not started or stopped
     List<String>  before                  = []    // Commands to execute before running unit tests or starting the application
     List<String>  after                   = []    // Commands to execute after running unit tests or stopping the application
