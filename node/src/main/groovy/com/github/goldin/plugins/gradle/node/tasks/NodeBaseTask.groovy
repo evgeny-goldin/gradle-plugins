@@ -140,11 +140,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
     @Requires({ this.name })
     @Ensures ({ result })
-    final File taskScriptFile ( boolean before = false, boolean after = false )
+    final File taskScriptFile ( boolean before = false, boolean after = false, String name = null )
     {
-        final fileName = ( before ? 'before-' :
-                           after  ? 'after-'  :
-                                    '' ) + this.name + '.sh'
+        final fileName = ( before ?  'before-' :
+                           after  ?  'after-'  :
+                           name   ?: '' ) + this.name + '.sh'
 
         new File( buildDir(), fileName )
     }
@@ -261,17 +261,19 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      * @param watchExitCodes whether script exit codes need to be monitored (by adding set -e/set -o pipefail)
      * @param failOnError    whether execution should fail if bash execution results in non-zero value
      * @param useGradleExec  whether Gradle (true) or Ant (false) exec is used
+     * @param logLevel       log level to use for bash output
      *
      * @return bash output or empty String if bash was generated but not executed or
      */
     @Requires({ scriptContent && scriptFile })
     @Ensures ({ result != null })
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
-    final String bashExec( String  scriptContent,
-                           File    scriptFile,
-                           boolean watchExitCodes = true,
-                           boolean failOnError    = true,
-                           boolean useGradleExec  = true )
+    final String bashExec( String   scriptContent,
+                           File     scriptFile     = taskScriptFile(),
+                           boolean  watchExitCodes = true,
+                           boolean  failOnError    = true,
+                           boolean  useGradleExec  = true,
+                           LogLevel logLevel       = LogLevel.INFO )
     {
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
         delete( scriptFile )
@@ -295,7 +297,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ]) }
 
-        exec ( 'bash', [ scriptFile.canonicalPath ], project.projectDir, failOnError, useGradleExec )
+        exec ( 'bash', [ scriptFile.canonicalPath ], project.projectDir, failOnError, useGradleExec, logLevel )
     }
 
 

@@ -19,7 +19,7 @@ class StopTask extends NodeBaseTask
 
         try
         {
-            bashExec( stopScript(), taskScriptFile())
+            bashExec( stopScript())
             if ( ext.checkAfterStop ) { runTask ( CHECK_STOPPED_TASK )}
         }
         finally

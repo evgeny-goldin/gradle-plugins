@@ -28,10 +28,21 @@ class CheckStartedTask extends NodeBaseTask
         else
         {
             log( LogLevel.ERROR ) { 'The application has failed to start properly' }
+            bashExec( tailLogScript(), taskScriptFile( false, false, 'tail-log-' ), false, false, true, LogLevel.ERROR )
             if ( ext.stopIfFailsToStart ){ runTask( STOP_TASK )}
             throw new GradleException( "$resultMessage${ ext.checkContent ? ', content [' + content + ']' : '' } " +
                                        "while we expected status code [$ext.checkStatusCode]" +
-                                       ( ext.checkContent ? ", content contains [$ext.checkContent]" : '' ))
+                                       ( ext.checkContent ? ", content contains [$ext.checkContent]" : '' ) +
+                                       ". See above for log output." )
         }
+    }
+
+
+    String tailLogScript ()
+    {
+        // Sorting "forever list" output by uptime, taking first element and listing its log.
+        """
+        |forever logs `forever list | $REMOVE_COLOR_CODES | grep -E '\\[[0-9]+\\]' | awk '{print \$NF,\$2}' | sort -n | head -1 | awk '{print \$2}' | tr -d '[]'`
+        """.stripMargin()
     }
 }

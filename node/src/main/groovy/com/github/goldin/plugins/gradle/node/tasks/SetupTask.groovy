@@ -126,6 +126,6 @@ class SetupTask extends NodeBaseTask
                                                           replace( '${SCRIPT_LOCATION}', SCRIPT_LOCATION ).
                                                           replace( '${nodeVersion}',     ext.nodeVersion )
         assert ( ! setupScript.contains( '${' ))
-        bashExec(  setupScript, taskScriptFile(), false )
+        bashExec( setupScript, taskScriptFile(), false )
     }
 }
