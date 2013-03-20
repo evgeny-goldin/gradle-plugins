@@ -38,7 +38,8 @@ class CheckStartedTask extends NodeBaseTask
     }
 
 
-    String tailLogScript ()
+    @SuppressWarnings([ 'LineLength' ])
+    String tailLogScript()
     {
         // Sorting "forever list" output by uptime, taking first element and listing its log.
         """

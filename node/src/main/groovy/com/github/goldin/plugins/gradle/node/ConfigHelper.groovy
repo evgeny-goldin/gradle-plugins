@@ -190,7 +190,7 @@ class ConfigHelper
             case 'fail'   : throw new GradleException( "Unable to merge config key [${ keys.join( ext.configsKeyDelimiter )}] with [$configContent], " +
                                                        "creating new keys is not allowed" )
             case 'ignore' : task.log( LogLevel.WARN ){ "Config key [${ keys.join( ext.configsKeyDelimiter )}] is ignored - " +
-                                                       "not available in destination map" };
+                                                       "not available in destination map" }
                             return configContent
             default       : return toJson( updateConfigMap( fromJson( configContent ), keys.join( ext.configsKeyDelimiter ), value ))
         }
