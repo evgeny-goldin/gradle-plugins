@@ -11,6 +11,7 @@ class NodeExtension
     String       testCommand              = 'mocha'
     String       testInput                = 'test'
     boolean      foreverColor             = true  // Whether color codes should be left in 'forever' output
+    String       foreverOptions           = ''    // Additional command-line 'forever' options, such as '-w -v'
     String       removeColorCodes                 // Internal property
     boolean      configMergePreserveOrder = true  // Whether configs merge should preserve keys order (more risky, some nasty regexes are involved)
     boolean      xUnitReport              = true  // Whether xUnit report should be created when tests are run
@@ -34,7 +35,6 @@ class NodeExtension
     int          checkTimeout             = 10    // Seconds to wait for check test to succeed or fail (timeout)
 
     List<Closure> transformers            = []    // Callbacks to invoke after every bash script is generated
-    String        foreverOptions          = ''    // Additional command-line 'forever' options, such as '-w -v'
     String        scriptPath
     List<String>  knownScriptPaths        = 'server.js server.coffee app.js app.coffee'.tokenize().asImmutable()
     String        scriptArguments         = ''    // Additional script arguments when run by 'forever'
