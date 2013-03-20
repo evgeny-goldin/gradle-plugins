@@ -54,7 +54,7 @@ class StartTask extends NodeBaseTask
         """
         |${ baseBashScript() }
         |
-        |echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q (file:$Q${pidFilePath}$Q)\"
+        |echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q, file:$Q${ pidFilePath }$Q\"
         |echo $command
         |$command${ ext.removeColorCodes }
         |${ listProcesses() }
