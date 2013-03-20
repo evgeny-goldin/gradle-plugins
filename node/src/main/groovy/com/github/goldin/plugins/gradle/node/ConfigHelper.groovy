@@ -5,6 +5,7 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
+import org.gradle.api.logging.LogLevel
 
 
 /**
@@ -48,7 +49,7 @@ class ConfigHelper
     @Ensures ({ result })
     private String noNewKeysErrorMessage( Map map, String key, Object value )
     {
-        "Config Map $map contains no key \"$key\" to update it with [$value] - new config keys can't be created. " +
+        "Config Map $map contains no key \"$key\" to update it with [$value] - new config keys can't be created according to 'configsNewKeys'. " +
         "Make sure there's no typo in \"$key\" and that config file being updated already contains a value for it."
     }
 
@@ -186,8 +187,11 @@ class ConfigHelper
 
         switch ( ext.configsNewKeys )
         {
-            case 'fail'   : throw new GradleException( "Unable to merge config keys $keys with [$configContent], creating new keys is not allowed" )
-            case 'ignore' : return configContent
+            case 'fail'   : throw new GradleException( "Unable to merge config key [${ keys.join( ext.configsKeyDelimiter )}] with [$configContent], " +
+                                                       "creating new keys is not allowed" )
+            case 'ignore' : task.log( LogLevel.WARN ){ "Config key [${ keys.join( ext.configsKeyDelimiter )}] is ignored - " +
+                                                       "not available in destination map" };
+                            return configContent
             default       : return toJson( updateConfigMap( fromJson( configContent ), keys.join( ext.configsKeyDelimiter ), value ))
         }
     }
@@ -238,7 +242,8 @@ class ConfigHelper
             switch ( ext.configsNewKeys )
             {
                 case 'fail'   : throw new GradleException( noNewKeysErrorMessage( map, key, value ))
-                case 'ignore' : break
+                case 'ignore' : task.log( LogLevel.WARN ){ noNewKeysErrorMessage( map, key, value )}
+                                return map
                 default       : map[ key ] = value
             }
         }
@@ -282,7 +287,8 @@ class ConfigHelper
             switch ( ext.configsNewKeys )
             {
                 case 'fail'   : throw new GradleException( noNewKeysErrorMessage( map, key, value ))
-                case 'ignore' : return
+                case 'ignore' : task.log( LogLevel.WARN ){ noNewKeysErrorMessage( map, key, value )}
+                                return
                 default       : map[ key ] = [:]
             }
         }
