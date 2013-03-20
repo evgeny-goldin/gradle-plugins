@@ -29,42 +29,33 @@ class StopTask extends NodeBaseTask
     }
 
 
+    @Requires({ ext.pidOnlyToStop || ext.scriptPath })
     @Ensures({ result })
-    private String stopScript ()
+    private String stopScript()
     {
         """
         |${ baseBashScript() }
         |
-        |${ stopCommands().join( '\n|' ) }""".stripMargin()
-    }
-
-
-    @Requires({ ext.pidOnlyToStop || ext.scriptPath })
-    @Ensures({ result })
-    private List<String> stopCommands()
-    {
-        final List<String> stopCommands =
-            """
-            |pid=`cat "\$HOME/.forever/pids/${ pidFileName( ext.portNumber ) }"`
-            |if [ "\$pid" != "" ];
-            |then
-            |    foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
-            |    while [ "\$foreverId" != "" ];
-            |    do
-            |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
-            |        echo ${ forever() } stop \$foreverId
-            |        ${ forever() } stop \$foreverId${ ext.removeColorCodes }
-            |        foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
-            |    done
-            |fi
-            """.stripMargin().readLines() +
-            ( ext.pidOnlyToStop ? [] :
-            """
-            |
-            |${ killCommands().join( '\n|' )}
-            |${ listProcesses() }
-            """.stripMargin().readLines())
-
-        ( List<String> ) [ 'set +e', '', *stopCommands, '', 'set -e' ] // Empty commands correspond to empty lines in a bash script
+        |set +e
+        |
+        |pid=`cat "\$HOME/.forever/pids/${ pidFileName( ext.portNumber ) }"`
+        |if [ "\$pid" != "" ];
+        |then
+        |    foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
+        |    while [ "\$foreverId" != "" ];
+        |    do
+        |        echo "Stopping forever process [\$foreverId], pid [\$pid]"
+        |        echo ${ forever() } stop \$foreverId
+        |        ${ forever() } stop \$foreverId${ ext.removeColorCodes }
+        |        foreverId=`forever list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
+        |    done
+        |fi
+        |
+        |${ ext.pidOnlyToStop ? '' : killProcesses() }
+        |
+        |${ listProcesses() }
+        |
+        |set -e
+        """.stripMargin()
     }
 }

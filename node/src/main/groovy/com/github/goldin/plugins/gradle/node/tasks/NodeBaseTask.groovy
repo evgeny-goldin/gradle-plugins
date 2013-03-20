@@ -189,7 +189,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |export PORT=$ext.portNumber
         |export PATH=$binFolder:\$PATH
         |${ isJenkins ? 'export BUILD_ID=JenkinsLetMeSpawn' : '' }
-        |${ ext.env   ? ext.env.collect { String variable, Object value -> "export $variable=$value" }.join( '\n|' ) : '' }
+        |${ ext.env   ? ext.env.collect { String variable, Object value -> "export $variable=$value" }.join( '\n' ) : '' }
         |
         |. "\$HOME/.nvm/nvm.sh"
         |nvm use $ext.nodeVersion
@@ -197,7 +197,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |echo $LOG_DELIMITER
         |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
         |echo "Running   $SCRIPT_LOCATION"
-        |${ envVariables.collect { "echo \"\\\$${ it.padRight( padSize )} = \$$it\"" }.join( '\n|' ) }
+        |${ envVariables.collect { "echo \"\\\$${ it.padRight( padSize )} = \$$it\"" }.join( '\n' ) }
         |echo $LOG_DELIMITER
         |
         """.stripMargin()
@@ -217,6 +217,35 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |ps -Af | grep node | grep -v grep
         |echo $LOG_DELIMITER
         """.stripMargin()
+    }
+
+
+    /**
+     * Retrieves commands to be used for killing the project's running processes.
+     * @return commands to be used for killing the project's running processes
+     */
+    @Requires({ ext.scriptPath })
+    @Ensures ({ result })
+    final String killProcesses ()
+    {
+        final  killProcesses = "forever,${ project.projectDir.name }|${ ext.scriptPath },${ project.projectDir.name }"
+        killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
+            String process ->
+
+            final processGrepSteps = process.tokenize( ',' )*.replace( "'", "'\\''" ).collect { "grep '$it'" }.join( ' | ' )
+            final listProcesses    = "ps -Af | $processGrepSteps | grep -v 'grep'"
+            final pids             = "$listProcesses | awk '{print \$2}'"
+            final killAll          = "$pids | while read pid; do echo \"kill \$pid\"; kill \$pid; done"
+            final forceKillAll     = "$pids | while read pid; do echo \"kill -9 \$pid\"; kill -9 \$pid; done"
+            final ifStillRunning   = "if [ \"`$pids`\" != \"\" ]; then"
+
+            """
+            |$ifStillRunning $killAll; fi
+            |$ifStillRunning sleep 5; $forceKillAll; fi
+            |$ifStillRunning echo 'Failed to kill process [$process]:'; $listProcesses; exit 1; fi
+            """.stripMargin()
+
+        }.join( '\n' )
     }
 
 
@@ -300,9 +329,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |${ watchExitCodes ? 'set -e'          : '' }
         |${ watchExitCodes ? 'set -o pipefail' : '' }
         |
-        |${ scriptContent.readLines().join( '\n|' ) }
-        |""".stripMargin().
-             replace( SCRIPT_LOCATION, "${Q}file:${ scriptFile.canonicalPath }${Q}" )){
+        |${ scriptContent }
+        """.stripMargin().toString().
+            replace( SCRIPT_LOCATION, "${Q}file:${ scriptFile.canonicalPath }${Q}" )) {
             String script, Closure transformer ->
             transformer( script, scriptFile, this ) ?: script
         }
@@ -314,31 +343,5 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ]) }
 
         exec ( 'bash', [ scriptFile.canonicalPath ], project.projectDir, failOnError, useGradleExec, logLevel )
-    }
-
-
-    /**
-     * Retrieves commands to be used for killing the project's running processes.
-     * @return commands to be used for killing the project's running processes
-     */
-    @Requires({ ext.scriptPath })
-    @Ensures ({ result })
-    final List<String> killCommands ()
-    {
-        final  killProcesses = "forever,${ project.projectDir.name }|${ ext.scriptPath },${ project.projectDir.name }"
-        killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
-            String process ->
-
-            final processGrepSteps = process.tokenize( ',' )*.replace( "'", "'\\''" ).collect { "grep '$it'" }.join( ' | ' )
-            final listProcesses    = "ps -Af | $processGrepSteps | grep -v 'grep'"
-            final pids             = "$listProcesses | awk '{print \$2}'"
-            final killAll          = "$pids | while read pid; do echo \"kill \$pid\"; kill \$pid; done"
-            final forceKillAll     = "$pids | while read pid; do echo \"kill -9 \$pid\"; kill -9 \$pid; done"
-            final ifStillRunning   = "if [ \"`$pids`\" != \"\" ]; then"
-
-            [ "$ifStillRunning $killAll; fi",
-              "$ifStillRunning sleep 5; $forceKillAll; fi",
-              "$ifStillRunning echo 'Failed to kill process [$process]:'; $listProcesses; exit 1; fi" ]
-        }.flatten()
     }
 }

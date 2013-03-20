@@ -37,8 +37,10 @@ class StopAllTask extends NodeBaseTask
         |${ forever() } stopall${ ext.removeColorCodes }
         |${ forever() } list${ ext.removeColorCodes }
         |
-        |${ ext.pidOnlyToStop ? '' : killCommands().join( '\n|' ) }
+        |${ ext.pidOnlyToStop ? '' : killProcesses() }
+        |
         |${ listProcesses() }
+        |
         |set -e""".stripMargin()
     }
 }
