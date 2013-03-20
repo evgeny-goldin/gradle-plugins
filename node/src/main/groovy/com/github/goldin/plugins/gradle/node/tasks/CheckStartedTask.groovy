@@ -42,7 +42,7 @@ class CheckStartedTask extends NodeBaseTask
     {
         // Sorting "forever list" output by uptime, taking first element and listing its log.
         """
-        |forever logs `forever list | $REMOVE_COLOR_CODES | grep -E '\\[[0-9]+\\]' | awk '{print \$NF,\$2}' | sort -n | head -1 | awk '{print \$2}' | tr -d '[]'`
+        |${ forever() } logs `forever list | $REMOVE_COLOR_CODES | grep -E '\\[[0-9]+\\]' | awk '{print \$NF,\$2}' | sort -n | head -1 | awk '{print \$2}' | tr -d '[]'`${ ext.removeColorCodes }
         """.stripMargin()
     }
 }
