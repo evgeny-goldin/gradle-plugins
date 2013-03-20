@@ -49,7 +49,7 @@ class ConfigHelper
     @Ensures ({ result })
     private String noNewKeysErrorMessage( Map map, String key, Object value )
     {
-        "Config Map $map contains no key \"$key\" to update it with [$value] - new config keys can't be created according to 'configsNewKeys'. " +
+        ">> Config Map $map contains no key \"$key\" to update it with [$value] - new config keys can't be created according to 'configsNewKeys'. " +
         "Make sure there's no typo in \"$key\" and that config file being updated already contains a value for it."
     }
 
