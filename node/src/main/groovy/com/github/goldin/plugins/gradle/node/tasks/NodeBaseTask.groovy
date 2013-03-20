@@ -336,7 +336,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
             transformer( script, scriptFile, this ) ?: script
         }
 
-        write( scriptFile, scriptContent )
+        write( scriptFile, scriptContent.trim())
 
         log( LogLevel.INFO ){ "Bash script created at [$scriptFile.canonicalPath], size [${ scriptFile.length() }] bytes" }
 
