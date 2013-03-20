@@ -28,16 +28,16 @@ class ConfigHelper
 
 
     @SuppressWarnings([ 'GroovyEmptyStatementBody' ])
-    @Requires({ s })
+    @Requires({ content })
     @Ensures ({ result != null })
-    private static Map<String,?> fromJson ( String s )
+    private static Map<String,?> fromJsonToMap ( String content, String origin = null )
     {
-        try { new ObjectMapper().readValue( s, Map )}
+        try { new ObjectMapper().readValue( content, Map )}
         catch ( e ){ throw new GradleException(
                      """
-                     |Failed to parse the following JSON
+                     |Failed to parse the following JSON content${ origin ? ' coming from file:' + origin : '' }
                      |$LOG_DELIMITER
-                     |$s
+                     |$content
                      |$LOG_DELIMITER
                      |Consult http://jsonlint.com/.
                      """.stripMargin().toString(), e )}
@@ -45,7 +45,7 @@ class ConfigHelper
 
 
     @Ensures ({ result })
-    private static String toJson ( Object o )
+    private static String objectToJson ( Object o )
     {
         try { new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString( o ) }
         catch ( e ) { throw new GradleException( "Failed to convert [$o] to JSON", e )}
@@ -78,7 +78,7 @@ class ConfigHelper
 
         if ( configText.with{ startsWith( '{' ) and endsWith( '}' ) })
         {
-            final  jsonMap = fromJson( configText )
+            final  jsonMap = fromJsonToMap( configText, configFile.canonicalPath )
             assert jsonMap, "No configuration data was read from [$configFile.canonicalPath]"
             jsonMap
         }
@@ -118,7 +118,7 @@ class ConfigHelper
             }
 
             final configContent            = ( configFile.file ? configFile.getText( 'UTF-8' )   : ''  )
-            final Map<String,?> configData = ( configFile.file ? fromJson( configContent ) : [:] )
+            final Map<String,?> configData = ( configFile.file ? fromJsonToMap( configContent, configFile.canonicalPath ) : [:] )
             assert ( configData || ( ! configFile.file )), "No configuration data was read from [$configFile.canonicalPath]"
 
             newConfigData.each {
@@ -128,7 +128,7 @@ class ConfigHelper
 
             task.write( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
                                          mergeConfig ( configContent, configData ) :
-                                         toJson ( configData ))
+                                         objectToJson ( configData ))
             configData
         }
         catch ( Throwable error )
@@ -146,14 +146,14 @@ class ConfigHelper
                                  Map<String, ?> parentConfigData = configData )
     {
         final String content = configData.values().any { it instanceof List } ?
-            toJson( parentConfigData ) : // Merging of list values is not supported
+            objectToJson( parentConfigData ) : // Merging of list values is not supported
             configData.inject( configContent ){
                String content, String key, Object value ->
                ( value instanceof Map  ) ? mergeConfig          ( content, value, ( List<String> )( keys + key ), parentConfigData ) :
                                            mergeConfigPlainValue( content, value, ( List<String> )( keys + key ))
         }
 
-        assert fromJson( content )       // To make sure the data can be parsed back
+        assert fromJsonToMap( content )       // To make sure the data can be parsed back
         content
     }
 
@@ -182,7 +182,7 @@ class ConfigHelper
                 return ( keyIndex == ( keys.size() - 1 )) ?
                     // Last key, recursion stops, replacement made
                     configContent.substring( 0, startPosition ) + currentContent.substring( 0, position ) +
-                    prefix + toJson( value ) + currentContent.substring( matcher.end()) :
+                    prefix + objectToJson( value ) + currentContent.substring( matcher.end()) :
                     // Recursion continues with the next key
                     mergeConfigPlainValue( configContent,
                                            value,
@@ -199,7 +199,7 @@ class ConfigHelper
             case 'ignore' : task.log( LogLevel.WARN ){ "Config key [${ keys.join( ext.configsKeyDelimiter )}] is ignored - " +
                                                        "not available in destination map" }
                             return configContent
-            default       : return toJson( updateConfigMap( fromJson( configContent ), keys.join( ext.configsKeyDelimiter ), value ))
+            default       : return objectToJson( updateConfigMap( fromJsonToMap( configContent ), keys.join( ext.configsKeyDelimiter ), value ))
         }
     }
 
