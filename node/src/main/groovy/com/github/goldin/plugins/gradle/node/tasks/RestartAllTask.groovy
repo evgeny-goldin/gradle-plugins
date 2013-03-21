@@ -26,6 +26,7 @@ class RestartAllTask extends NodeBaseTask
         |${ baseBashScript() }
         |
         |echo ${ forever() } restartall
+        |echo
         |${ forever() } restartall${ ext.removeColorCodes }
         |${ listProcesses() }
         """.stripMargin()

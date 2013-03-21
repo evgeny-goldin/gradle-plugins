@@ -34,6 +34,7 @@ class StopAllTask extends NodeBaseTask
         |set +e
         |
         |echo ${ forever() } stopall
+        |echo
         |${ forever() } stopall${ ext.removeColorCodes }
         |
         |${ ext.pidOnlyToStop ? '' : killProcesses() }
