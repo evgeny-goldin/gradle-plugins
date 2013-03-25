@@ -214,6 +214,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |echo $LOG_DELIMITER
         |${ forever() } list${ ext.removeColorCodes }
         |echo $LOG_DELIMITER
+        |echo \"ps -Af | grep node | grep -v grep\"
+        |echo
         |ps -Af | grep node | grep -v grep
         |echo $LOG_DELIMITER
         """.stripMargin()
