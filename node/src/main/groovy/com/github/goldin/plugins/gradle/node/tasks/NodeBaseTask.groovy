@@ -72,7 +72,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                "'${ ( ext.knownScriptPaths ?: [] ).join( "', '" ) }'"
 
         ext.nodeVersion      = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
-        ext.removeColorCodes = ( ext.foreverColor ? '' : " | $REMOVE_COLOR_CODES" )
+        ext.removeColorCodes = ( ext.removeColor ? " | $REMOVE_COLOR_CODES" : '' )
+        ext.before           = ext.before?.collect { "$it${ ext.removeColorCodes }" }
+        ext.after            = ext.after?. collect { "$it${ ext.removeColorCodes }" }
 
         addRedis()
         addMongo()

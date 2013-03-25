@@ -10,7 +10,7 @@ class NodeExtension
     String       nodeVersion              = 'latest'
     String       testCommand              = 'mocha'
     String       testInput                = 'test'
-    boolean      foreverColor             = true  // Whether color codes should be left in 'forever' output
+    boolean      removeColor              = false // Whether color codes should be removed from command outputs.
     String       foreverOptions           = ''    // Additional command-line 'forever' options, such as '-w -v'
     String       removeColorCodes                 // Internal property
     boolean      configMergePreserveOrder = true  // Whether configs merge should preserve keys order (more risky, some nasty regexes are involved)
