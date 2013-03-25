@@ -167,7 +167,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      */
     @Requires({ port > 0 })
     @Ensures ({ result   })
-    final String pidFileName( int port ){ ext.pidFileName ?: "${ project.projectDir.name }-${ port }.pid" }
+    final String pidFileName( int port ){ ext.pidFileName ?: "${ project.name.replaceAll( ~/^.*\//, '' ) }-${ port }.pid" }
 
 
     /**
