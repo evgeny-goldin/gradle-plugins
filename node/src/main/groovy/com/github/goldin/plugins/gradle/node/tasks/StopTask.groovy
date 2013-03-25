@@ -36,6 +36,7 @@ class StopTask extends NodeBaseTask
         """
         |${ baseBashScript() }
         |
+        |${ listProcesses() }
         |set +e
         |
         |pid=`cat "\$HOME/.forever/pids/${ pidFileName( ext.portNumber ) }"`
