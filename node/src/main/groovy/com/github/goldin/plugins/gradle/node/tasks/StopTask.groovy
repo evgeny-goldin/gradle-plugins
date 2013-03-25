@@ -33,15 +33,18 @@ class StopTask extends NodeBaseTask
     @Ensures({ result })
     private String stopScript()
     {
+        final pidFilePath = "\$HOME/.forever/pids/${ pidFileName( ext.portNumber ) }"
+
         """
         |${ baseBashScript() }
         |
-        |${ listProcesses() }
         |set +e
+        |${ listProcesses( false ) }
         |
-        |pid=`cat "\$HOME/.forever/pids/${ pidFileName( ext.portNumber ) }"`
+        |pid=`cat "$pidFilePath"`
         |if [ "\$pid" != "" ];
         |then
+        |    echo file:$pidFilePath is found, pid is [\$pid]
         |    foreverId=`${ forever() } list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
         |    while [ "\$foreverId" != "" ];
         |    do
@@ -51,10 +54,11 @@ class StopTask extends NodeBaseTask
         |        ${ forever() } stop \$foreverId${ ext.removeColorCodes }
         |        foreverId=`${ forever() } list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
         |    done
+        |else
+        |    echo file:$pidFilePath is not found
         |fi
         |
         |${ ext.pidOnlyToStop ? '' : killProcesses() }
-        |
         |${ listProcesses() }
         |
         |set -e

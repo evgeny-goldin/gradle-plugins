@@ -210,10 +210,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      * Retrieves script commands for listing currently running Node.js processes.
      */
     @Ensures ({ result })
-    final String listProcesses()
+    final String listProcesses( boolean startWithDelimiterLine = true )
     {
         """
-        |echo $LOG_DELIMITER
+        |${ startWithDelimiterLine ? "echo $LOG_DELIMITER" : '' }
         |${ forever() } list${ ext.removeColorCodes }
         |echo $LOG_DELIMITER
         |echo \"ps -Af | grep node | grep -v grep\"

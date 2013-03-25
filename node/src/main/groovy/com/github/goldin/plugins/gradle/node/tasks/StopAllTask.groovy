@@ -31,16 +31,18 @@ class StopAllTask extends NodeBaseTask
     {
         """
         |${ baseBashScript() }
+        |
         |set +e
+        |${ listProcesses( false ) }
         |
         |echo ${ forever() } stopall
         |echo
         |${ forever() } stopall${ ext.removeColorCodes }
         |
         |${ ext.pidOnlyToStop ? '' : killProcesses() }
-        |
         |${ listProcesses() }
         |
-        |set -e""".stripMargin()
+        |set -e
+        """.stripMargin()
     }
 }
