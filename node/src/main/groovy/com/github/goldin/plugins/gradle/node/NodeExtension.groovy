@@ -18,6 +18,7 @@ class NodeExtension
     boolean      failIfTestsFail          = true  // Whether to fail execution if tests fail
     boolean      stopIfFailsToStart       = true  // Whether the app should be stopped if it fails to start
     boolean      stopBeforeStart          = true  // Whether 'stop' should run before 'start'
+    boolean      stopallBeforeStart       = false // Whether 'stopall' should run before 'start'
     boolean      checkAfterStart          = true  // Whether 'checkStarted' should run after 'start'
     boolean      checkAfterRestartall     = true  // Whether 'checkStarted' should run after 'restartall'
     boolean      checkAfterStop           = true  // Whether 'checkStopped' should run after 'stop'
