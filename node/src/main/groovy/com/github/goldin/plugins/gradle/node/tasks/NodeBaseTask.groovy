@@ -61,23 +61,28 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.mongoWait    >= 0,   "'mongoWait' should not be negative in $description"
         assert ext.configsNewKeys,      "'configsNewKeys' should be defined in $description"
 
-        ext.checkUrl   = ext.checkUrl.startsWith( 'http' ) ?
-            ext.checkUrl :
-            "http://127.0.0.1:${ ext.portNumber }" + ( ext.checkUrl ? "/${ ext.checkUrl.replaceFirst( '^/', '' ) }"  : '' )
-        assert ext.checkUrl
+        if ( ! ext.updated )
+        {
+            ext.checkUrl   = ext.checkUrl.startsWith( 'http' ) ?
+                ext.checkUrl :
+                "http://127.0.0.1:${ ext.portNumber }" + ( ext.checkUrl ? "/${ ext.checkUrl.replaceFirst( '^/', '' ) }"  : '' )
+            assert ext.checkUrl
 
-        ext.scriptPath = ext.scriptPath ?: ( ext.knownScriptPaths ?: [] ).find { new File( project.projectDir, it ).file }
-        assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \
-               "Couldn't find an application script to run! Specify 'scriptPath' in $description or use " +
-               "'${ ( ext.knownScriptPaths ?: [] ).join( "', '" ) }'"
+            ext.scriptPath = ext.scriptPath ?: ( ext.knownScriptPaths ?: [] ).find { new File( project.projectDir, it ).file }
+            assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \
+                   "Couldn't find an application script to run! Specify 'scriptPath' in $description or use " +
+                   "'${ ( ext.knownScriptPaths ?: [] ).join( "', '" ) }'"
 
-        ext.nodeVersion      = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
-        ext.removeColorCodes = ( ext.removeColor ? " | $REMOVE_COLOR_CODES" : '' )
-        ext.before           = ext.before?.collect { "$it${ ext.removeColorCodes }" }
-        ext.after            = ext.after?. collect { "$it${ ext.removeColorCodes }" }
+            ext.nodeVersion      = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
+            ext.removeColorCodes = ( ext.removeColor ? " | $REMOVE_COLOR_CODES" : '' )
+            ext.before           = ext.before?.collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten()
+            ext.after            = ext.after?. collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten()
 
-        addRedis()
-        addMongo()
+            addRedis()
+            addMongo()
+
+            ext.updated = true
+        }
     }
 
 
@@ -86,8 +91,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      */
     private void addRedis()
     {
-        final addRedis  = (( ! ext.redisAddedAlready ) &&
-                           (( ext.redisPort > 0 ) || ext.redisPortConfigKey || ext.redisCommandLine ))
+        final addRedis  = (( ext.redisPort > 0 ) || ext.redisPortConfigKey || ext.redisCommandLine )
         if (  addRedis )
         {
             final redisPort    = ( ext.redisPort > 0      ) ? ext.redisPort.toString() :
@@ -102,9 +106,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                                                         replace( '${redisRunning}',     redisRunning ).
                                                         replace( '${redisCommandLine}', ext.redisCommandLine ?: '' ).
                                                         replace( '${sleep}',            ext.redisWait as String )}
-            ext.before            = ( isStartRedis ? getScript( 'redis-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
-            ext.after             = ( isStopRedis  ? getScript( 'redis-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
-            ext.redisAddedAlready = true
+            ext.before = ( isStartRedis ? getScript( 'redis-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
+            ext.after  = ( isStopRedis  ? getScript( 'redis-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
         }
     }
 
@@ -114,8 +117,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      */
     private void addMongo()
     {
-        final addMongo  = (( ! ext.mongoAddedAlready ) &&
-                           (( ext.mongoPort > 0 ) || ext.mongoPortConfigKey || ext.mongoCommandLine || ext.mongoLogpath || ext.mongoDBPath ))
+        final addMongo = (( ext.mongoPort > 0 ) || ext.mongoPortConfigKey || ext.mongoCommandLine || ext.mongoLogpath || ext.mongoDBPath )
         if (  addMongo )
         {
             final mongoPort    = ( ext.mongoPort > 0      ) ? ext.mongoPort.toString() :
@@ -133,9 +135,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                                                         replace( '${mongoCommandLine}', ext.mongoCommandLine ?: '' ).
                                                         replace( '${sleep}',            ext.mongoWait as String )}
 
-            ext.before            = ( isStartMongo ? getScript( 'mongo-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
-            ext.after             = ( isStopMongo  ? getScript( 'mongo-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
-            ext.mongoAddedAlready = true
+            ext.before = ( isStartMongo ? getScript( 'mongo-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
+            ext.after  = ( isStopMongo  ? getScript( 'mongo-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
         }
     }
 

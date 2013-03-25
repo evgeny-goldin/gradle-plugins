@@ -4,6 +4,7 @@ package com.github.goldin.plugins.gradle.node
 @SuppressWarnings([ 'GroovyInstanceVariableNamingConvention', 'PropertyName' ])
 class NodeExtension
 {
+    boolean      updated                  = false // Internal property, set to 'true' after extension is updated
     List<String> cleanWorkspaceCommands   = [ 'git checkout -f', 'git clean -dff' ]
     boolean      cleanWorkspace           = false // Whether to run cleanWorkspaceCommands before running tasks
     String       NODE_ENV                 = 'development'
@@ -49,7 +50,6 @@ class NodeExtension
     boolean       redisStartInProduction  = false // Whether Redis should be started when NODE_ENV=production
     boolean       redisStopInProduction   = false // Whether Redis should be stopped when NODE_ENV=production
     int           redisWait               = 3     // Seconds to wait after Redis has started or stopped and checking it
-    boolean       redisAddedAlready       = false // Internal property, whether Redis commands are already added to before/after
 
     int           mongoPort               = -1    // Local MongoDB instance port number to start and stop
     String        mongoPortConfigKey      = ''    // Config key holding MongoDB port number to start and stop
@@ -59,7 +59,6 @@ class NodeExtension
     boolean       mongoStartInProduction  = false // Whether MongoDB should be started when NODE_ENV=production
     boolean       mongoStopInProduction   = false // Whether MongoDB should be stopped when NODE_ENV=production
     int           mongoWait               = 3     // Seconds to wait after MongoDB has started or stopped and checking it
-    boolean       mongoAddedAlready       = false // Internal property, whether MongoDB commands are already added to before/after
 
 
     List <Map<String, ?>> configs            = []     // List of config maps to update project files with. Every map is:
