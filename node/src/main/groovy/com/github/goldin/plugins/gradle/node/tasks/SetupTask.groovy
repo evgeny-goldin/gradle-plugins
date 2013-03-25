@@ -75,10 +75,15 @@ class SetupTask extends NodeBaseTask
     {
         for ( configFile in ext.configs*.keySet().flatten().toSet().collect { file( it )})
         {
+            final configContent = ( ext.printConfigsMask ?: [] ).inject( configFile.getText( 'UTF-8' )){
+                String content, String maskProperty ->
+                content.replaceAll( ~/("\Q$maskProperty\E"\s*:\s*)([^,\r\n\}]+)/ ){ "${ it[ 1 ]}\"...\"" }
+            }
+
             log{ """
                  |file:$configFile.canonicalPath
                  |$LOG_DELIMITER
-                 |${ configFile.getText( 'UTF-8' )}
+                 |$configContent
                  |$LOG_DELIMITER
                  """.stripMargin() }
         }

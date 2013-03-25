@@ -67,6 +67,7 @@ class NodeExtension
     String               configsNewKeys      = 'fail' // 'fail', 'ignore' or 'create' - action to be taken when configs merge brings new keys into destination file
     String               configsKeyDelimiter = '.'
     boolean              printConfigs        = false  // Whether resulting configs should be printed after merge operation
+    List<String>         printConfigsMask    = [ 'password' ] // Config properties to mask when printed
 
     List <Map<String, ?>> configsResult             // Internal property, configs resulting from merging external configs with those of the project
 
