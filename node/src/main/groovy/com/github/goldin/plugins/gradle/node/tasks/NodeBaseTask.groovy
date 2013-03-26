@@ -123,7 +123,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                                                               '27017'
 
             final mongoEval    = """ "`mongo --eval ${Q}db${Q} --port $mongoPort 2>&1 | tail -1`" """.trim()
-            final mongoRunning = """ ! $mongoEval =~ (command not found|couldn\'t connect to server) """.trim()
+            final mongoRunning = """ ! $mongoEval =~ (command not found|couldn\\'t connect to server) """.trim()
             final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopMongo  = (( ext.mongoStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
             final getScript    = { String scriptName -> getResourceText( scriptName ).
