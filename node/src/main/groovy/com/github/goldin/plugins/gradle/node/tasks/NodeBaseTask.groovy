@@ -61,26 +61,31 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         if ( ! ext.updated )
         {
-            ext.checkUrl   = ext.checkUrl.startsWith( 'http' ) ?
-                ext.checkUrl :
-                "http://127.0.0.1:${ ext.portNumber }" + ( ext.checkUrl ? "/${ ext.checkUrl.replaceFirst( '^/', '' ) }"  : '' )
-            assert ext.checkUrl
-
-            ext.scriptPath = ext.scriptPath ?: ( ext.knownScriptPaths ?: [] ).find { new File( project.projectDir, it ).file }
-            assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \
-                   "Couldn't find an application script to run! Specify 'scriptPath' in $description or use " +
-                   "'${ ( ext.knownScriptPaths ?: [] ).join( "', '" ) }'"
-
-            ext.nodeVersion      = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
-            ext.removeColorCodes = ( ext.removeColor ? " | $REMOVE_COLOR_CODES" : '' )
-            ext.before           = ext.before?.collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten()
-            ext.after            = ext.after?. collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten()
-
-            addRedis()
-            addMongo()
-
+            updateExtension()
             ext.updated = true
         }
+    }
+
+
+    private void updateExtension()
+    {
+        ext.checkUrl   = ext.checkUrl.startsWith( 'http' ) ?
+            ext.checkUrl :
+            "http://127.0.0.1:${ ext.portNumber }" + ( ext.checkUrl ? "/${ ext.checkUrl.replaceFirst( '^/', '' ) }"  : '' )
+        assert ext.checkUrl
+
+        ext.scriptPath = ext.scriptPath ?: ( ext.knownScriptPaths ?: [] ).find { new File( project.projectDir, it ).file }
+        assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \
+               "Couldn't find an application script to run! Specify 'scriptPath' in $description or use " +
+               "'${ ( ext.knownScriptPaths ?: [] ).join( "', '" ) }'"
+
+        ext.nodeVersion      = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
+        ext.removeColorCodes = ( ext.removeColor ? " | $REMOVE_COLOR_CODES" : '' )
+        ext.before           = ext.before?.collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten()
+        ext.after            = ext.after?. collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten()
+
+        addRedis()
+        addMongo()
     }
 
 
@@ -96,7 +101,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                                  ( ext.redisPortConfigKey ) ? '${ config.' + ext.redisPortConfigKey + ' }' :
                                                               '6379'
 
-            final redisRunning = "\"`redis-cli -p $redisPort ping 2> /dev/null`\" = \"PONG\""
+            final redisRunning = """ "`redis-cli -p $redisPort ping 2>&1`" = "PONG"  """.trim()
             final isStartRedis = (( ext.redisStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopRedis  = (( ext.redisStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
             final getScript    = { String scriptName -> getResourceText( scriptName ).
@@ -123,7 +128,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                                                               '27017'
 
             final mongoEval    = """ "`mongo --eval ${Q}db${Q} --port $mongoPort 2>&1 | tail -1`" """.trim()
-            final mongoRunning = """ ! $mongoEval =~ (command not found|couldn\\'t connect to server) """.trim()
+            final mongoRunning = """ ! $mongoEval =~ (command not found|connect failed|couldn\\'t connect to server) """.trim()
             final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopMongo  = (( ext.mongoStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
             final getScript    = { String scriptName -> getResourceText( scriptName ).
