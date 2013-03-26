@@ -45,3 +45,10 @@ echo "node : [`which node`][`node --version`]"
 
 echo npm install
 npm install
+
+if [ ! -f "@{forever}" ];
+then
+    echo "npm install forever@@{foreverVersion}"
+    npm install forever@@{foreverVersion}
+fi
+

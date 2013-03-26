@@ -136,7 +136,9 @@ class SetupTask extends NodeBaseTask
                                                           replace( '@{LOG_DELIMITER}',      LOG_DELIMITER   ).
                                                           replace( '@{SCRIPT_LOCATION}',    SCRIPT_LOCATION ).
                                                           replace( '@{REMOVE_COLOR_CODES}', REMOVE_COLOR_CODES ).
-                                                          replace( '@{nodeVersion}',        ext.nodeVersion )
+                                                          replace( '@{nodeVersion}',        ext.nodeVersion ).
+                                                          replace( '@{forever}',            FOREVER_EXECUTABLE ).
+                                                          replace( '@{foreverVersion}',     FOREVER_VERSION )
         assert ( ! setupScript.contains( '@{' ))
         bashExec( setupScript, taskScriptFile(), false )
     }

@@ -34,13 +34,14 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
-     * Retrieves 'forever' executable path, installing it if needed.
+     * Retrieves 'forever' executable path.
      */
     @Ensures ({ result })
     String forever()
     {
         final  foreverExecutable = project.file( FOREVER_EXECUTABLE ).canonicalFile
-        (( foreverExecutable.file ) ? '' : "npm install forever@$FOREVER_VERSION; " ) + FOREVER_EXECUTABLE
+        assert foreverExecutable.file
+        FOREVER_EXECUTABLE
     }
 
 
