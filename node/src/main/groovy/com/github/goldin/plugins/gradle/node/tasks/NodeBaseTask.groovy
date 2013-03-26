@@ -99,10 +99,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
             final isStartRedis = (( ext.redisStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopRedis  = (( ext.redisStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
             final getScript    = { String scriptName -> getResourceText( scriptName ).
-                                                        replace( '${redisPort}',        redisPort ).
-                                                        replace( '${redisRunning}',     redisRunning ).
-                                                        replace( '${redisCommandLine}', ext.redisCommandLine ?: '' ).
-                                                        replace( '${sleep}',            ext.redisWait as String )}
+                                                        replace( '@{redisPort}',        redisPort ).
+                                                        replace( '@{redisRunning}',     redisRunning ).
+                                                        replace( '@{redisCommandLine}', ext.redisCommandLine ?: '' ).
+                                                        replace( '@{sleep}',            ext.redisWait as String )}
             ext.before = ( isStartRedis ? getScript( 'redis-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
             ext.after  = ( isStopRedis  ? getScript( 'redis-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
         }
@@ -121,16 +121,17 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                                  ( ext.mongoPortConfigKey ) ? '${ config.' + ext.mongoPortConfigKey + ' }' :
                                                               '27017'
 
-            final mongoRunning = """ ! "`mongo --eval ${Q}db${Q} --port $mongoPort 2> /dev/null | tail -1`" =~ "couldn't connect to server" """
+            final mongoEval    = """ "`mongo --eval ${Q}db${Q} --port $mongoPort 2>&1 | tail -1`" """.trim()
+            final mongoRunning = """ ! $mongoEval =~ (command not found|couldn\'t connect to server) """.trim()
             final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopMongo  = (( ext.mongoStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
             final getScript    = { String scriptName -> getResourceText( scriptName ).
-                                                        replace( '${mongoPort}',        mongoPort ).
-                                                        replace( '${mongoRunning}',     mongoRunning ).
-                                                        replace( '${mongoDBPath}',      fullPath( ext.mongoDBPath,  '/data/db/'  )).
-                                                        replace( '${mongoLogpath}',     fullPath( ext.mongoLogpath, 'mongod.log' )).
-                                                        replace( '${mongoCommandLine}', ext.mongoCommandLine ?: '' ).
-                                                        replace( '${sleep}',            ext.mongoWait as String )}
+                                                        replace( '@{mongoPort}',        mongoPort ).
+                                                        replace( '@{mongoRunning}',     mongoRunning ).
+                                                        replace( '@{mongoDBPath}',      fullPath( ext.mongoDBPath,  '/data/db/'  )).
+                                                        replace( '@{mongoLogpath}',     fullPath( ext.mongoLogpath, 'mongod.log' )).
+                                                        replace( '@{mongoCommandLine}', ext.mongoCommandLine ?: '' ).
+                                                        replace( '@{sleep}',            ext.mongoWait as String )}
 
             ext.before = ( isStartMongo ? getScript( 'mongo-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
             ext.after  = ( isStopMongo  ? getScript( 'mongo-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )

@@ -3,26 +3,26 @@
 set -e
 set -o pipefail
 
-echo "Starting Redis [127.0.0.1:${redisPort}]"
+echo "Starting Redis [127.0.0.1:@{redisPort}]"
 echo "redis-server --version" : [`redis-server --version`]
 echo "redis-cli    --version" : [`redis-cli    --version`]
 
-if [ ${redisRunning} ];
+if [ @{redisRunning} ];
 then
-    echo "Redis [127.0.0.1:${redisPort}] is already running"
+    echo "Redis [127.0.0.1:@{redisPort}] is already running"
 else
-    echo redis-server --port ${redisPort} ${redisCommandLine} &
-    redis-server --port ${redisPort} ${redisCommandLine} &
+    echo redis-server --port @{redisPort} @{redisCommandLine} &
+    redis-server --port @{redisPort} @{redisCommandLine} &
 
-    sleep ${sleep}
+    sleep @{sleep}
 
-    if [ ${redisRunning} ];
+    if [ @{redisRunning} ];
     then
-        echo "Redis [127.0.0.1:${redisPort}] has started"
+        echo "Redis [127.0.0.1:@{redisPort}] has started"
     else
-        echo "Redis [127.0.0.1:${redisPort}] has failed to start"
+        echo "Redis [127.0.0.1:@{redisPort}] has failed to start"
         exit 1
     fi
 fi
 
-redis-cli -p ${redisPort} info
+redis-cli -p @{redisPort} info
