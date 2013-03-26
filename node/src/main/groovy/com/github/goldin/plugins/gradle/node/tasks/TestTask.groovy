@@ -1,11 +1,10 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
-import org.gradle.api.GradleException
-
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import org.gradle.api.GradleException
+import org.gradle.api.logging.LogLevel
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
-import org.gradle.api.tasks.testing.Test
 
 
 /**
@@ -31,7 +30,13 @@ class TestTask extends NodeBaseTask
 
     private void runTests ()
     {
-        final testReport = bashExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), taskScriptFile(), true, ( ! ext.xUnitReport ))
+        final testReport = bashExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), taskScriptFile(), true, false )
+
+        if ( testReport.contains( 'no such file or directory \'test.js\'' ))
+        {
+            log( LogLevel.WARN ){ "No 'mocha' tests found" }
+            return
+        }
 
         if ( ! ext.xUnitReport ) { return }
 

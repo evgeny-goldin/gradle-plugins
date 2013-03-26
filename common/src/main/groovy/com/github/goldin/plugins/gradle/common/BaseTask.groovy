@@ -189,8 +189,6 @@ abstract class BaseTask<T> extends DefaultTask
                 throw new GradleException( "Failed to execute $commandDescription, stdout is [$stdout], stderr is [$stderr]",
                                            error )
             }
-
-            if ( ! ( stdout || stderr )) { error.printStackTrace( new PrintStream( stderrStream, true )) }
         }
 
         useGradleExec ? stdoutStream.toString().trim() + stderrStream.toString().trim() :
