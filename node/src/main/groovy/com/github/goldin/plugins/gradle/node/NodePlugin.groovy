@@ -13,9 +13,10 @@ import org.gradle.api.Project
  */
 class NodePlugin extends BasePlugin
 {
+    @SuppressWarnings([' GroovyAssignmentToMethodParameter' ])
     @Requires({ project })
     @Override
-    Map<String , Class<? extends BaseTask>> tasks ( Project project )
+    Map<String, Class<? extends BaseTask>> tasks ( Project project )
     {
         [
           ( HELP_TASK          ) : HelpTask,
@@ -33,7 +34,19 @@ class NodePlugin extends BasePlugin
           ( STOP_TASK          ) : StopTask,
           ( STOP_ALL_TASK      ) : StopAllTask,
           ( CHECK_STOPPED_TASK ) : CheckStoppedTask
-        ]
+        ].
+        collectEntries {
+            String taskName, Class<? extends BaseTask> taskClass ->
+            final otherTask = project.tasks.findByName( taskName )
+
+            if ( otherTask )
+            {
+                taskName += 'Node'
+                otherTask.dependsOn taskName
+            }
+
+            [ taskName, taskClass ]
+        } as Map<String , Class<? extends BaseTask>>
     }
 
     @Override
