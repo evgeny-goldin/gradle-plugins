@@ -60,7 +60,8 @@ class TestTask extends NodeBaseTask
         |
         |echo $testCommand
         |echo
-        |$testCommand""".stripMargin()
+        |$testCommand
+        """.stripMargin()
     }
 
 
