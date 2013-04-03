@@ -56,8 +56,8 @@ class SetupTask extends NodeBaseTask
                        "Config value for [$configFile.canonicalPath] is of type [${ configValue?.getClass()?.name }], " +
                        "should be of type [$File.name] or [$Map.name]"
 
-                log{ "Updating JSON config [$configFile.canonicalPath] using " +
-                     ( isValueFile ? "[${ (( File ) configValue ).canonicalPath }]" : "config Map $configValue" ) }
+                log{ "Merging JSON config [$configFile.canonicalPath] with " +
+                     ( isValueFile ? "[${ (( File ) configValue ).canonicalPath }]" : configValue.toString() ) }
 
                 configs << configHelper.updateConfigFile (
                     configFile,
