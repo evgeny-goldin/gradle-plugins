@@ -29,6 +29,7 @@ abstract class BaseTask<T> extends DefaultTask
     final isWindows          = osName.contains( 'windows' )
     final isLinux            = osName.contains( 'linux'   )
     final isMac              = osName.contains( 'mac os'  )
+    final projectName        = project.name.replaceAll( ~/^.*\//, '' )
 
     /**
      * Retrieves task's extension type in run-time
@@ -541,9 +542,14 @@ abstract class BaseTask<T> extends DefaultTask
      */
     @Requires({ resourcePath && charset })
     @Ensures ({ result != null })
-    final String getResourceText( String resourcePath, String charset = 'UTF-8' )
+    final String getResourceText( String resourcePath, Map<String, String> replacements = [:], String charset = 'UTF-8' )
     {
-        getResource( resourcePath ).getText( charset )
+        final String result = replacements.inject( getResource( resourcePath ).getText( charset )){
+            String text, String pattern, String replacement -> text.replace( "@{$pattern}", replacement )
+        }
+
+        assert ( ! result.contains( '@{' ))
+        result
     }
 
 

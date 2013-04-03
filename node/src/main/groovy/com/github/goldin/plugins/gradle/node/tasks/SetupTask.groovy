@@ -131,15 +131,17 @@ class SetupTask extends NodeBaseTask
 
     private void runSetupScript()
     {
-        final setupScript = getResourceText( 'setup.sh' ).replace( '@{nvmRepo}',            NVM_GIT_REPO    ).
-                                                          replace( '@{nvmCommit}',          NVM_COMMIT      ).
-                                                          replace( '@{LOG_DELIMITER}',      LOG_DELIMITER   ).
-                                                          replace( '@{SCRIPT_LOCATION}',    SCRIPT_LOCATION ).
-                                                          replace( '@{REMOVE_COLOR_CODES}', REMOVE_COLOR_CODES ).
-                                                          replace( '@{nodeVersion}',        ext.nodeVersion ).
-                                                          replace( '@{forever}',            FOREVER_EXECUTABLE ).
-                                                          replace( '@{foreverVersion}',     FOREVER_VERSION )
-        assert ( ! setupScript.contains( '@{' ))
+        final setupScript = getResourceText( 'setup.sh', [
+            nvmRepo            : NVM_GIT_REPO,
+            nvmCommit          : NVM_COMMIT,
+            LOG_DELIMITER      : LOG_DELIMITER,
+            SCRIPT_LOCATION    : SCRIPT_LOCATION,
+            REMOVE_COLOR_CODES : REMOVE_COLOR_CODES,
+            nodeVersion        : ext.nodeVersion,
+            forever            : FOREVER_EXECUTABLE,
+            foreverVersion     : FOREVER_VERSION
+        ])
+
         bashExec( setupScript, taskScriptFile(), false )
     }
 }

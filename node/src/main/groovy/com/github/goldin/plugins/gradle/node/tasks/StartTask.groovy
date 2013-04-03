@@ -28,8 +28,10 @@ class StartTask extends NodeBaseTask
 
         if ( ext.before ) { bashExec( commandsScript( ext.before, 'before start' ), taskScriptFile( true ), false, true, false ) }
         bashExec( startScript())
-        if ( ext.checkAfterStart ) { runTask ( CHECK_STARTED_TASK )}
-        if ( ext.printUrl ) { printApplicationUrls() }
+
+        if ( ext.checkAfterStart  ) { runTask ( CHECK_STARTED_TASK )}
+        if ( ext.printUrl         ) { printApplicationUrls() }
+        if ( ext.addStartupScript ) { addStartupScript() }
     }
 
 
@@ -71,5 +73,19 @@ class StartTask extends NodeBaseTask
         final String externalUrl = "http://$externalIp:${ ext.portNumber }${ ext.printUrl == '/' ? '' : ext.printUrl }"
 
         println( "The application is up and running at $internalUrl / $externalUrl" )
+    }
+
+
+    @Requires({ ext.addStartupScript })
+    void addStartupScript()
+    {
+        final initD = new File( '/etc/init.d/' )
+        assert initD.directory, "[$initD] is not available"
+
+        new File( initD, "${projectName}.sh" ).write( """#!/bin/bash
+        |
+        |${ ext.before ? taskScriptFile( true ).canonicalPath : '' }
+        |${ taskScriptFile().canonicalPath }
+        """.stripMargin())
     }
 }

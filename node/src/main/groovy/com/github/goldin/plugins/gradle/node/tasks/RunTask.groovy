@@ -11,6 +11,10 @@ class RunTask extends NodeBaseTask
     void taskAction()
     {
         assert ext.run, 'No commands to run are specified'
-        bashExec( commandsScript( ext.run.collect{[ "echo $it", "$it${ ext.removeColorCodes }".toString() ]}.flatten(), 'run' ), taskScriptFile(), false, true, false )
+        bashExec( commandsScript( ext.run.collect{[ "echo $it", "$it${ ext.removeColorCodes }".toString() ]}.flatten(), 'run' ),
+                  taskScriptFile(),
+                  false,
+                  true,
+                  false )
     }
 }

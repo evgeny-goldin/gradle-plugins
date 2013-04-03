@@ -24,6 +24,7 @@ class NodeExtension
     boolean      checkAfterRestartall     = true  // Whether 'checkStarted' should run after 'restartall'
     boolean      checkAfterStop           = true  // Whether 'checkStopped' should run after 'stop'
     boolean      checkAfterStopall        = true  // Whether 'checkStopped' should run after 'stopall'
+    boolean      addStartupScript         = false // Whether a startup script should be added (will restart the application if machine is rebooted)
     boolean      pidOnlyToStop            = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
     String       pidFileName              = ''    // PID file name
     int          portNumber               = 1337  // Port the application starts on (becomes part of .pid file name)

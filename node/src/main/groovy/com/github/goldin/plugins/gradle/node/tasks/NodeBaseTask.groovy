@@ -104,11 +104,13 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
             final redisRunning = """ "`redis-cli -p $redisPort ping 2>&1`" = "PONG"  """.trim()
             final isStartRedis = (( ext.redisStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopRedis  = (( ext.redisStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
-            final getScript    = { String scriptName -> getResourceText( scriptName ).
-                                                        replace( '@{redisPort}',        redisPort ).
-                                                        replace( '@{redisRunning}',     redisRunning ).
-                                                        replace( '@{redisCommandLine}', ext.redisCommandLine ?: '' ).
-                                                        replace( '@{sleep}',            ext.redisWait as String )}
+            final getScript    = { String scriptName -> getResourceText( scriptName,
+            [
+                redisPort        : redisPort,
+                redisRunning     : redisRunning,
+                redisCommandLine : ext.redisCommandLine ?: '',
+                sleep            : ext.redisWait as String
+            ])}
             ext.before = ( isStartRedis ? getScript( 'redis-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
             ext.after  = ( isStopRedis  ? getScript( 'redis-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
         }
@@ -131,13 +133,15 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
             final mongoRunning = """ ! $mongoEval =~ (command not found|connect failed|couldn\\'t connect to server) """.trim()
             final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopMongo  = (( ext.mongoStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
-            final getScript    = { String scriptName -> getResourceText( scriptName ).
-                                                        replace( '@{mongoPort}',        mongoPort ).
-                                                        replace( '@{mongoRunning}',     mongoRunning ).
-                                                        replace( '@{mongoDBPath}',      fullPath( ext.mongoDBPath,  '/data/db/'  )).
-                                                        replace( '@{mongoLogpath}',     fullPath( ext.mongoLogpath, 'mongod.log' )).
-                                                        replace( '@{mongoCommandLine}', ext.mongoCommandLine ?: '' ).
-                                                        replace( '@{sleep}',            ext.mongoWait as String )}
+            final getScript    = { String scriptName -> getResourceText( scriptName,
+            [
+                mongoPort        : mongoPort,
+                mongoRunning     : mongoRunning,
+                mongoDBPath      : fullPath( ext.mongoDBPath,  '/data/db/'  ),
+                mongoLogpath     : fullPath( ext.mongoLogpath, 'mongod.log' ),
+                mongoCommandLine : ext.mongoCommandLine ?: '',
+                sleep            : ext.mongoWait as String
+            ])}
 
             ext.before = ( isStartMongo ? getScript( 'mongo-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
             ext.after  = ( isStopMongo  ? getScript( 'mongo-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
@@ -172,7 +176,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      */
     @Requires({ port > 0 })
     @Ensures ({ result   })
-    final String pidFileName( int port ){ ext.pidFileName ?: "${ project.name.replaceAll( ~/^.*\//, '' ) }-${ port }.pid" }
+    final String pidFileName( int port ){ ext.pidFileName ?: "${ projectName }-${ port }.pid" }
 
 
     /**
