@@ -12,7 +12,7 @@ version=`cat gradle.properties | grep 'version' | cut -d '=' -f 2`
 command="mvn -B -e org.apache.maven.plugins:maven-gpg-plugin:1.4:sign-and-deploy-file -Durl=https://oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=sonatype-nexus-staging -Dgpg.passphrase=$gpgPassphrase"
 rootDir=`pwd`
 
-for module in 'about' 'common' 'crawler' 'duplicates' 'gitdump' 'kotlin' 'monitor' 'node' 'teamcity'
+for module in 'about' 'common' 'crawler' 'duplicates' 'gitdump' 'monitor' 'node' 'teamcity'
 do
     cd "$rootDir/$module"
     echo "[<===[`pwd`]===>]"
