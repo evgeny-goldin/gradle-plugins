@@ -86,8 +86,8 @@ class StartTask extends NodeBaseTask
         """#!/bin/bash
         |
         |${ taskScriptFile( false, false, SETUP_TASK ).canonicalPath }
-        |${ ext.stopBeforeStart ? taskScriptFile( false, false, STOP_TASK ).canonicalPath : '' }
-        |${ ext.before          ? taskScriptFile( true ).canonicalPath                    : '' }
+        |${ ext.stopallBeforeStart ? taskScriptFile( false, false, STOP_ALL_TASK ).canonicalPath : ext.stopBeforeStart ? taskScriptFile( false, false, STOP_TASK ).canonicalPath : '' }
+        |${ ext.before             ? taskScriptFile( true ).canonicalPath : '' }
         |${ taskScriptFile().canonicalPath }
         """.stripMargin().toString())
 
