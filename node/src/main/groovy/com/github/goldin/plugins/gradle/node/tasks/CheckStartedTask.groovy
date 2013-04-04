@@ -33,7 +33,7 @@ class CheckStartedTask extends NodeBaseTask
                                     |-----------------------------------------------------------
                                     '''.stripMargin() }
 
-            bashExec( tailLogScript(), taskScriptFile( false, false, 'tail-log-' ), false, false, true, LogLevel.ERROR )
+            bashExec( tailLogScript(), taskScriptFile( false, false, 'tail-log' ), false, false, true, LogLevel.ERROR )
             if ( ext.stopIfFailsToStart ){ runTask( STOP_TASK )}
             throw new GradleException( "$resultMessage${ ext.checkContent ? ', content [' + content + ']' : '' } " +
                                        "while we expected status code [$ext.checkStatusCode]" +

@@ -155,7 +155,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     {
         final fileName = ( before ?  'before-' :
                            after  ?  'after-'  :
-                           name   ?: '' ) + this.name + '.sh'
+                                     '' ) + ( name ?: this.name ) + '.sh'
 
         new File( buildDir(), fileName )
     }
@@ -342,6 +342,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |${ watchExitCodes ? 'set -e'          : '' }
         |${ watchExitCodes ? 'set -o pipefail' : '' }
         |
+        |cd "${ project.projectDir.canonicalPath }"
         |${ scriptContent }
         """.stripMargin().toString().
             replace( SCRIPT_LOCATION, "${Q}file:${ scriptFile.canonicalPath }${Q}" )) {

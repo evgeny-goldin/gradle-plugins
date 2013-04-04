@@ -29,9 +29,9 @@ class StartTask extends NodeBaseTask
         if ( ext.before ) { bashExec( commandsScript( ext.before, 'before start' ), taskScriptFile( true ), false, true, false ) }
         bashExec( startScript())
 
-        if ( ext.checkAfterStart  ) { runTask ( CHECK_STARTED_TASK )}
-        if ( ext.printUrl         ) { printApplicationUrls() }
-        if ( ext.addStartupScript ) { addStartupScript() }
+        if ( ext.checkAfterStart        ) { runTask ( CHECK_STARTED_TASK )}
+        if ( ext.printUrl               ) { printApplicationUrls() }
+        if ( ext.startupScriptDirectory ) { addStartupScript( ext.startupScriptDirectory ) }
     }
 
 
@@ -76,16 +76,22 @@ class StartTask extends NodeBaseTask
     }
 
 
-    @Requires({ ext.addStartupScript })
-    void addStartupScript()
+    @Requires({ directory })
+    void addStartupScript( File directory )
     {
-        final initD = new File( '/etc/init.d/' )
-        assert initD.directory, "[$initD] is not available"
+        assert ( directory.directory || directory.mkdirs()), "Failed to create [$directory.canonicalPath]"
+        final startupScript = new File( directory, "${ projectName }-${ ext.portNumber }.sh" )
 
-        new File( initD, "${projectName}.sh" ).write( """#!/bin/bash
-        |
-        |${ ext.before ? taskScriptFile( true ).canonicalPath : '' }
+        startupScript.write(
+        """#!/bin/bash
+        |${ taskScriptFile( false, false, SETUP_TASK ).canonicalPath }
+        |${ ext.stopBeforeStart ? taskScriptFile( false, false, STOP_TASK ).canonicalPath : '' }
+        |${ ext.before          ? taskScriptFile( true ).canonicalPath                    : '' }
         |${ taskScriptFile().canonicalPath }
-        """.stripMargin())
+        """.stripMargin().toString())
+
+        if ( isLinux || isMac ) { exec( 'chmod', [ '+x', startupScript.canonicalPath ]) }
+
+        log { "file:${startupScript.canonicalPath} is created" }
     }
 }
