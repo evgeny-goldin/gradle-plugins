@@ -85,16 +85,8 @@ class StartTask extends NodeBaseTask
         startupScript.write(
         """#!/bin/bash
         |
-        |### BEGIN INIT INFO
-        |# Provides: ${projectName}
-        |# Required-Start: \$remote_fs \$syslog
-        |# Required-Stop: \$remote_fs \$syslog
-        |# Default-Start: 2 3 4 5
-        |# Default-Stop: 0 1 6
-        |# Short-Description: ${projectName}
-        |# Description: ${projectName}
-        |### END INIT INFO
-        |
+        |su `whoami`
+        |cd
         |${ ext.stopallBeforeStart ? taskScriptFile( false, false, STOP_ALL_TASK ).canonicalPath : ext.stopBeforeStart ? taskScriptFile( false, false, STOP_TASK ).canonicalPath : '' }
         |${ ext.before             ? taskScriptFile( true ).canonicalPath : '' }
         |${ taskScriptFile().canonicalPath }
