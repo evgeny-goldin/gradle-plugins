@@ -80,7 +80,7 @@ class StartTask extends NodeBaseTask
     void addStartupScript( File directory )
     {
         assert ( directory.directory || directory.mkdirs()), "Failed to create [$directory.canonicalPath]"
-        final startupScript = new File( directory, "start-${ projectName }-${ ext.portNumber }.sh" )
+        final startupScript = new File( directory, "startup-${ projectName }-${ ext.portNumber }.sh" )
 
         startupScript.write(
         """#!/bin/bash
