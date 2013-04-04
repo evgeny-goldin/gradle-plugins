@@ -342,7 +342,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |${ watchExitCodes ? 'set -e'          : '' }
         |${ watchExitCodes ? 'set -o pipefail' : '' }
         |
+        |echo "cd $Q${ project.projectDir.canonicalPath }$Q"
         |cd "${ project.projectDir.canonicalPath }"
+        |
         |${ scriptContent }
         """.stripMargin().toString().
             replace( SCRIPT_LOCATION, "${Q}file:${ scriptFile.canonicalPath }${Q}" )) {
