@@ -86,9 +86,9 @@ class StartTask extends NodeBaseTask
         startupScript.write(
         """#!/bin/bash
         |
-        |su - $currentUser -c $Q${ ext.stopallBeforeStart ? taskScriptFile( false, false, STOP_ALL_TASK ).canonicalPath : ext.stopBeforeStart ? taskScriptFile( false, false, STOP_TASK ).canonicalPath : '' }$Q
-        |su - $currentUser -c $Q${ ext.before             ? taskScriptFile( true ).canonicalPath : '' }$Q
-        |su - $currentUser -c $Q${ taskScriptFile().canonicalPath }$Q
+        |su - $currentUser -c "${ ext.stopallBeforeStart ? taskScriptFile( false, false, STOP_ALL_TASK ).canonicalPath : ext.stopBeforeStart ? taskScriptFile( false, false, STOP_TASK ).canonicalPath : '' }"
+        |su - $currentUser -c "${ ext.before             ? taskScriptFile( true ).canonicalPath : '' }"
+        |su - $currentUser -c "${ taskScriptFile().canonicalPath }"
         """.stripMargin().toString().trim())
 
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', startupScript.canonicalPath ]) }
