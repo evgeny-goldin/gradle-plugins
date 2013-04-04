@@ -81,15 +81,14 @@ class StartTask extends NodeBaseTask
     {
         assert ( directory.directory || directory.mkdirs()), "Failed to create [$directory.canonicalPath]"
         final startupScript = new File( directory, "startup-${ projectName }-${ ext.portNumber }.sh" )
+        final currentUser   = exec( 'whoami' )
 
         startupScript.write(
         """#!/bin/bash
         |
-        |su ${ exec( 'whoami' ) }
-        |cd
-        |${ ext.stopallBeforeStart ? taskScriptFile( false, false, STOP_ALL_TASK ).canonicalPath : ext.stopBeforeStart ? taskScriptFile( false, false, STOP_TASK ).canonicalPath : '' }
-        |${ ext.before             ? taskScriptFile( true ).canonicalPath : '' }
-        |${ taskScriptFile().canonicalPath }
+        |su - $currentUser -c $Q${ ext.stopallBeforeStart ? taskScriptFile( false, false, STOP_ALL_TASK ).canonicalPath : ext.stopBeforeStart ? taskScriptFile( false, false, STOP_TASK ).canonicalPath : '' }$Q
+        |su - $currentUser -c $Q${ ext.before             ? taskScriptFile( true ).canonicalPath : '' }$Q
+        |su - $currentUser -c $Q${ taskScriptFile().canonicalPath }$Q
         """.stripMargin().toString().trim())
 
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', startupScript.canonicalPath ]) }
