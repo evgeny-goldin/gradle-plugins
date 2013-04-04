@@ -40,7 +40,7 @@ class ConfigHelper
                      |$content
                      |$LOG_DELIMITER
                      |Consult http://jsonlint.com/.
-                     """.stripMargin().toString(), e )}
+                     """.stripMargin().toString().trim(), e )}
     }
 
 

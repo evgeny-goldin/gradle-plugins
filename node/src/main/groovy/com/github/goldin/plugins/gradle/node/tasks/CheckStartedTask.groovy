@@ -51,6 +51,6 @@ class CheckStartedTask extends NodeBaseTask
         |echo $LOG_DELIMITER
         |${ forever() } logs `${ forever() } list | $REMOVE_COLOR_CODES | grep -E '\\[[0-9]+\\]' | awk '{print \$NF,\$2}' | sort -n | head -1 | awk '{print \$2}' | tr -d '[]'`${ ext.removeColorCodes }
         |echo $LOG_DELIMITER
-        """.stripMargin()
+        """.stripMargin().toString().trim()
     }
 }

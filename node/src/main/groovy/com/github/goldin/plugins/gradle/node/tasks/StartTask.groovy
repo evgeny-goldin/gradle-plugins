@@ -61,7 +61,7 @@ class StartTask extends NodeBaseTask
         |echo
         |$command${ ext.removeColorCodes }
         |${ listProcesses() }
-        """.stripMargin()
+        """.stripMargin().toString().trim()
     }
 
 
@@ -89,7 +89,7 @@ class StartTask extends NodeBaseTask
         |${ ext.stopallBeforeStart ? taskScriptFile( false, false, STOP_ALL_TASK ).canonicalPath : ext.stopBeforeStart ? taskScriptFile( false, false, STOP_TASK ).canonicalPath : '' }
         |${ ext.before             ? taskScriptFile( true ).canonicalPath : '' }
         |${ taskScriptFile().canonicalPath }
-        """.stripMargin().toString())
+        """.stripMargin().toString().trim())
 
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', startupScript.canonicalPath ]) }
 

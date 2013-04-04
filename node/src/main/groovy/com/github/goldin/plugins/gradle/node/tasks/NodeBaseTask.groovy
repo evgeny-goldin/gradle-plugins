@@ -211,7 +211,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |${ envVariables.collect { "echo \"\\\$${ it.padRight( padSize )} = \$$it\"" }.join( '\n' ) }
         |echo $LOG_DELIMITER
         |
-        """.stripMargin()
+        """.stripMargin().toString().trim()
     }
 
 
@@ -229,7 +229,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |echo
         |ps -Af | grep node | grep -v grep
         |echo $LOG_DELIMITER
-        """.stripMargin()
+        """.stripMargin().toString().trim()
     }
 
 
@@ -256,7 +256,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
             |$ifStillRunning $killAll; fi
             |$ifStillRunning sleep 5; $forceKillAll; fi
             |$ifStillRunning echo 'Failed to kill process [$process]:'; $listProcesses; exit 1; fi
-            """.stripMargin()
+            """.stripMargin().toString().trim()
 
         }.join( '\n' )
     }
@@ -346,7 +346,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |cd "${ project.projectDir.canonicalPath }"
         |
         |${ scriptContent }
-        """.stripMargin().toString().
+        """.stripMargin().toString().trim().
             replace( SCRIPT_LOCATION, "${Q}file:${ scriptFile.canonicalPath }${Q}" )) {
             String script, Closure transformer ->
             transformer( script, scriptFile, this ) ?: script

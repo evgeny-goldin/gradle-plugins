@@ -62,6 +62,6 @@ class StopTask extends NodeBaseTask
         |${ listProcesses() }
         |
         |set -e
-        """.stripMargin()
+        """.stripMargin().toString().trim()
     }
 }

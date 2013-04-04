@@ -85,7 +85,7 @@ class SetupTask extends NodeBaseTask
                  |$LOG_DELIMITER
                  |$configContent
                  |$LOG_DELIMITER
-                 """.stripMargin() }
+                 """.stripMargin().toString().trim() }
         }
     }
 
