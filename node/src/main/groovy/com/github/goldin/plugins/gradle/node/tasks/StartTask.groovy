@@ -83,7 +83,7 @@ class StartTask extends NodeBaseTask
         final startupScript = new File( directory, "startup-${ projectName }-${ ext.portNumber }.sh" )
 
         startupScript.write(
-        """#!/bin/sh
+        """#!/bin/bash
         |
         |### BEGIN INIT INFO
         |# Provides: ${projectName}
