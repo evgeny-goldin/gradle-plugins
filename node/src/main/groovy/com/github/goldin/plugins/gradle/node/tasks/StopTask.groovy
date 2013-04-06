@@ -24,7 +24,7 @@ class StopTask extends NodeBaseTask
         }
         finally
         {
-            if ( ext.after ) { bashExec( commandsScript( ext.after, 'after stop' ), taskScriptFile( false, true ), false, true, false )}
+            if ( ext.after ) { bashExec( commandsScript( ext.after ), taskScriptFile( false, true ), false, true, true, false, 'after stop' )}
         }
     }
 
@@ -36,8 +36,6 @@ class StopTask extends NodeBaseTask
         final pidFilePath = "\$HOME/.forever/pids/${ pidFileName( ext.portNumber ) }"
 
         """
-        |${ baseBashScript() }
-        |
         |set +e
         |${ listProcesses( false ) }
         |

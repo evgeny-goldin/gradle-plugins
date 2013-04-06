@@ -15,7 +15,7 @@ class TestTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        if ( ext.before ) { bashExec( commandsScript( ext.before, 'before test' ), taskScriptFile( true ), false, true, false ) }
+        if ( ext.before ) { bashExec( commandsScript( ext.before ), taskScriptFile( true ), false, true, true, false, 'before test' ) }
 
         try
         {
@@ -23,14 +23,14 @@ class TestTask extends NodeBaseTask
         }
         finally
         {
-            if ( ext.after ) { bashExec( commandsScript( ext.after, 'after test' ), taskScriptFile( false, true ), false, true, false )}
+            if ( ext.after ) { bashExec( commandsScript( ext.after ), taskScriptFile( false, true ), false, true, true, false, 'after test' )}
         }
     }
 
 
     private void runTests ()
     {
-        final testReport = bashExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), taskScriptFile(), true, false )
+        final testReport = bashExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), taskScriptFile(), true, true, false )
 
         if ( testReport.contains( 'no such file or directory \'test.js\'' ))
         {
@@ -57,12 +57,9 @@ class TestTask extends NodeBaseTask
     private String testScript( String testArguments )
     {
         assert ext.testCommand.startsWith( 'mocha' ), "Only 'mocha' test runner is currently supported"
-        final testCommand = "$ext.testCommand ${ (( ! ext.testInput ) || ( ext.testInput == 'test' )) ? '' : ext.testInput } $testArguments".
-                            trim()
+        final testCommand = "$ext.testCommand ${ (( ! ext.testInput ) || ( ext.testInput == 'test' )) ? '' : ext.testInput } $testArguments".trim()
 
         """
-        |${ baseBashScript() }
-        |
         |echo $testCommand
         |echo
         |$testCommand

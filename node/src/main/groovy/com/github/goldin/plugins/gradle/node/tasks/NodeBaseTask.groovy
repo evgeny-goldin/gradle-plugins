@@ -180,42 +180,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
-     * Retrieves base part of the bash script to be used by various tasks.
-     */
-    @Requires({ operationTitle })
-    @Ensures ({ result })
-    final String baseBashScript ( String operationTitle = this.name )
-    {
-        final  binFolder = project.file( MODULES_BIN_DIR ).canonicalFile
-        assert binFolder.directory, "Directory [$binFolder.canonicalPath] is not available"
-
-        final isJenkins    = System.getenv( 'JENKINS_URL' ) != null
-        final envVariables = [ 'NODE_ENV', 'PORT', 'PATH' ] +
-                             ( isJenkins ? [ 'BUILD_ID' ]   : [] ) +
-                             ( ext.env   ? ext.env.keySet() : [] )
-        final padSize      = envVariables*.length().max()
-
-        """
-        |export NODE_ENV=$ext.NODE_ENV
-        |export PORT=$ext.portNumber
-        |export PATH=$binFolder:\$PATH
-        |${ isJenkins ? 'export BUILD_ID=JenkinsLetMeSpawn' : '' }
-        |${ ext.env   ? ext.env.collect { String variable, Object value -> "export $variable=$value" }.join( '\n' ) : '' }
-        |
-        |. "\$HOME/.nvm/nvm.sh"
-        |nvm use $ext.nodeVersion
-        |
-        |echo $LOG_DELIMITER
-        |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
-        |echo "Running   $SCRIPT_LOCATION"
-        |${ envVariables.collect { "echo \"\\\$${ it.padRight( padSize )} = \$$it\"" }.join( '\n' ) }
-        |echo $LOG_DELIMITER
-        |
-        """.stripMargin().toString().trim()
-    }
-
-
-    /**
      * Retrieves script commands for listing currently running Node.js processes.
      */
     @Ensures ({ result })
@@ -266,12 +230,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      * Generates a script containing the commands specified.
      *
      * @param commands commands to execute
-     * @param title    commands title
      * @return script content generated
      */
-    @Requires({ commands && title })
+    @Requires({ commands })
     @Ensures ({ result })
-    final String commandsScript ( List<String> commands, String title )
+    final String commandsScript ( List<String> commands )
     {
         final script = commands.join( '\n' )
 
@@ -279,14 +242,12 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         {
             if ( ext.configsResult == null ) { ext.configsResult = readConfigs() }
             assert ( ext.configsResult != null )
-
             final Map binding = [ configs : ext.configsResult ] + ( ext.configsResult ? [ config : ext.configsResult.head() ] : [:] )
-
-            baseBashScript( title ) + '\n' + renderTemplate( script, binding )
+            renderTemplate( script, binding )
         }
         else
         {
-            baseBashScript( title ) + '\n' + script
+            script
         }
     }
 
@@ -314,24 +275,28 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     /**
      * Executes the script specified as bash command.
      *
-     * @param scriptContent  content to run as bash script
-     * @param scriptFile     script file to create
-     * @param watchExitCodes whether script exit codes need to be monitored (by adding set -e/set -o pipefail)
-     * @param failOnError    whether execution should fail if bash execution results in non-zero value
-     * @param useGradleExec  whether Gradle (true) or Ant (false) exec is used
-     * @param logLevel       log level to use for bash output
+     * @param scriptContent     content to run as bash script
+     * @param scriptFile        script file to create
+     * @param watchExitCodes    whether script exit codes need to be monitored (by adding set -e/set -o pipefail)
+     * @param addBaseBashScript whether a base bash script should be added (sets up environment variables)
+     * @param failOnError       whether execution should fail if bash execution results in non-zero value
+     * @param useGradleExec     whether Gradle (true) or Ant (false) exec is used
+     * @param operationTitle    title to display before the operation starts (if addBaseBashScript is true)
+     * @param logLevel          log level to use for bash output
      *
      * @return bash output or empty String if bash was generated but not executed or
      */
     @Requires({ scriptContent && scriptFile })
     @Ensures ({ result != null })
-    @SuppressWarnings([ 'GroovyAssignmentToMethodParameter' ])
+    @SuppressWarnings([ 'GroovyAssignmentToMethodParameter', 'GroovyMethodParameterCount' ])
     final String bashExec( String   scriptContent,
-                           File     scriptFile     = taskScriptFile(),
-                           boolean  watchExitCodes = true,
-                           boolean  failOnError    = true,
-                           boolean  useGradleExec  = true,
-                           LogLevel logLevel       = LogLevel.INFO )
+                           File     scriptFile        = taskScriptFile(),
+                           boolean  watchExitCodes    = true,
+                           boolean  addBaseBashScript = true,
+                           boolean  failOnError       = true,
+                           boolean  useGradleExec     = true,
+                           String   operationTitle    = this.name,
+                           LogLevel logLevel          = LogLevel.INFO )
     {
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
         delete( scriptFile )
@@ -339,11 +304,13 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         scriptContent = ( ext.transformers ?: [] ).inject(
         """#!/bin/bash
         |
-        |${ watchExitCodes ? 'set -e'          : '' }
-        |${ watchExitCodes ? 'set -o pipefail' : '' }
+        |${ watchExitCodes    ? 'set -e'          : '' }
+        |${ watchExitCodes    ? 'set -o pipefail' : '' }
         |
         |echo "cd $Q${ project.projectDir.canonicalPath }$Q"
         |cd "${ project.projectDir.canonicalPath }"
+        |
+        |${ addBaseBashScript ? baseBashScript( operationTitle ) : '' }
         |
         |${ scriptContent }
         """.stripMargin().toString().trim().
@@ -359,5 +326,41 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ]) }
 
         exec ( 'bash', [ scriptFile.canonicalPath ], project.projectDir, failOnError, useGradleExec, logLevel )
+    }
+
+
+    /**
+     * Retrieves base part of the bash script to be used by various tasks.
+     */
+    @Requires({ operationTitle })
+    @Ensures ({ result })
+    private String baseBashScript ( String operationTitle )
+    {
+        final  binFolder = project.file( MODULES_BIN_DIR ).canonicalFile
+        assert binFolder.directory, "Directory [$binFolder.canonicalPath] is not available"
+
+        final isJenkins    = System.getenv( 'JENKINS_URL' ) != null
+        final envVariables = [ 'NODE_ENV', 'PORT', 'PATH' ] +
+                             ( isJenkins ? [ 'BUILD_ID' ]   : [] ) +
+                             ( ext.env   ? ext.env.keySet() : [] )
+        final padSize      = envVariables*.length().max()
+
+        """
+        |export NODE_ENV=$ext.NODE_ENV
+        |export PORT=$ext.portNumber
+        |export PATH=$binFolder:\$PATH
+        |${ isJenkins ? 'export BUILD_ID=JenkinsLetMeSpawn' : '' }
+        |${ ext.env   ? ext.env.collect { String variable, Object value -> "export $variable=$value" }.join( '\n' ) : '' }
+        |
+        |. "\$HOME/.nvm/nvm.sh"
+        |nvm use $ext.nodeVersion
+        |
+        |echo $LOG_DELIMITER
+        |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
+        |echo "Running   $SCRIPT_LOCATION"
+        |${ envVariables.collect { "echo \"\\\$${ it.padRight( padSize )} = \$$it\"" }.join( '\n' ) }
+        |echo $LOG_DELIMITER
+        |
+        """.stripMargin().toString().trim()
     }
 }

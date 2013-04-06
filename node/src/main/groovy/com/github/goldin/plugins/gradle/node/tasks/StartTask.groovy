@@ -26,7 +26,7 @@ class StartTask extends NodeBaseTask
             ext.after   = after
         }
 
-        if ( ext.before ) { bashExec( commandsScript( ext.before, 'before start' ), taskScriptFile( true ), false, true, false ) }
+        if ( ext.before ) { bashExec( commandsScript( ext.before ), taskScriptFile( true ), false, true, true, false, 'before start' ) }
         bashExec( startScript())
 
         if ( ext.checkAfterStart        ) { runTask ( CHECK_STARTED_TASK )}
@@ -54,8 +54,6 @@ class StartTask extends NodeBaseTask
         }
 
         """
-        |${ baseBashScript() }
-        |
         |echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q, file:$Q${ pidFilePath }$Q\"
         |echo $command
         |echo

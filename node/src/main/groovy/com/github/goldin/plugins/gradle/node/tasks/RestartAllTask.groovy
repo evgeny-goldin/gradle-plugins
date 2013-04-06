@@ -13,7 +13,6 @@ class RestartAllTask extends NodeBaseTask
     void taskAction()
     {
         if ( ext.run ) { log{ 'Doing nothing - "run" commands specified' }; return }
-
         bashExec( restartallScript())
         if ( ext.checkAfterRestartall ) { runTask ( CHECK_STARTED_TASK )}
     }
@@ -23,8 +22,6 @@ class RestartAllTask extends NodeBaseTask
     private String restartallScript ()
     {
         """
-        |${ baseBashScript() }
-        |
         |echo ${ forever() } restartall
         |echo
         |${ forever() } restartall${ ext.removeColorCodes }

@@ -142,6 +142,6 @@ class SetupTask extends NodeBaseTask
             foreverVersion     : FOREVER_VERSION
         ])
 
-        bashExec( setupScript, taskScriptFile(), false )
+        bashExec( setupScript, taskScriptFile(), false, false )
     }
 }
