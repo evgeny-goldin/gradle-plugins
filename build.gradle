@@ -30,10 +30,10 @@ buildscript {
 allprojects {
     apply plugin: 'groovy'
 
-    repositories { maven { url 'http://jcenter.bintray.com' }}
+    repositories { mavenCentral(); maven { url 'http://jcenter.bintray.com' }}
     dependencies {
         compile     gradleApi(),
-                    'org.gcontracts:gcontracts-core:1.2.10',
+                    'org.gcontracts:gcontracts-core:1.2.12',
                     'org.codehaus.gpars:gpars:1.0.0'
         testCompile 'junit:junit:4.11'
         testRuntime 'ch.qos.logback:logback-classic:1.0.10'
