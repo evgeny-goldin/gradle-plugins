@@ -43,7 +43,7 @@ class TestTask extends NodeBaseTask
         final teamCityReportLines = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity[' )}
         if ( ! teamCityReportLines ) { throw new GradleException( "Running tests produced no test report:\n$testReport" )}
 
-        final xUnitReportFile = new File( testResultsDir(), 'TEST-node.xml' )
+        final xUnitReportFile = new File( testResultsDir(), ext.xUnitReportFile )
         final failures        = writeXUnitReport( teamCityReportLines, xUnitReportFile )
 
         if ( failures )
