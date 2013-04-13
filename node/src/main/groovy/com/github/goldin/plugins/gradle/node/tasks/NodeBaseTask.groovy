@@ -58,6 +58,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.redisWait    >= 0,   "'redisWait' should not be negative in $description"
         assert ext.mongoWait    >= 0,   "'mongoWait' should not be negative in $description"
         assert ext.configsNewKeys,      "'configsNewKeys' should be defined in $description"
+        assert ext.xUnitReportFile,     "'xUnitReportFile' should be defined in $description"
 
         if ( ! ext.updated )
         {
