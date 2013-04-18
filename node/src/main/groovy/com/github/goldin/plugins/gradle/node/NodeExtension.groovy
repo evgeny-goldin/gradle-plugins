@@ -35,7 +35,7 @@ class NodeExtension
     String       checkUrl                 = '/'   // The URL to check after application has started, "http://127.0.0.1:$portNumber" by default
     String       checkContent             = ''    // Response to expect when making a request
     int          checkStatusCode          = 200   // Response code to expect when making a request
-    int          checkWait                = 3     // Seconds to wait after starting/stopping the application and checking it
+    int          checkWait                = 5     // Seconds to wait after starting/stopping the application and checking it
     int          checkTimeout             = 10    // Seconds to wait for check test to succeed or fail (timeout)
 
     List<Closure> transformers            = []    // Callbacks to invoke after every bash script is generated
