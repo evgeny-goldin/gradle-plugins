@@ -44,6 +44,7 @@ echo "npm  : [`which npm`][`npm --version`]"
 echo "node : [`which node`][`node --version`]"
 
 echo npm install
+chown -R `whoami`:`whoami` "$HOME/.npm"
 npm install
 
 if [ ! -f "@{forever}" ];
