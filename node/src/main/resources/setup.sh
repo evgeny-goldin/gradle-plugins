@@ -5,6 +5,8 @@ echo "Executing "\""setup"\"" task in "\""`pwd`"\"""
 echo "Running   @{SCRIPT_LOCATION}"
 echo @{LOG_DELIMITER}
 currentDir=`pwd`
+user=`whoami`
+group=`id -g -n $user`
 
 if [ ! -d "$HOME" ];
 then
@@ -44,7 +46,8 @@ echo "npm  : [`which npm`][`npm --version`]"
 echo "node : [`which node`][`node --version`]"
 
 echo npm install
-chown -R `whoami`:`whoami` "$HOME/.npm"
+mkdir -p              "$HOME/.npm"
+chown -R $user:$group "$HOME/.npm"
 npm install
 
 if [ ! -f "@{forever}" ];
