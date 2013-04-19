@@ -46,8 +46,8 @@ echo "npm  : [`which npm`][`npm --version`]"
 echo "node : [`which node`][`node --version`]"
 
 echo npm install
-#mkdir -p              "$HOME/.npm"
-#chown -R $user:$group "$HOME/.npm"
+mkdir -p              "$HOME/.npm"
+chown -R $user:$group "$HOME/.npm"
 npm install
 
 if [ ! -f "@{forever}" ];
