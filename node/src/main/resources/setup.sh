@@ -5,8 +5,6 @@ echo "Executing "\""setup"\"" task in "\""`pwd`"\"""
 echo "Running   @{SCRIPT_LOCATION}"
 echo @{LOG_DELIMITER}
 currentDir=`pwd`
-user=`whoami`
-group=`id -g -n $user`
 
 if [ ! -d "$HOME" ];
 then
@@ -45,9 +43,16 @@ nvm use     @{nodeVersion}
 echo "npm  : [`which npm`][`npm --version`]"
 echo "node : [`which node`][`node --version`]"
 
+if [ "`sudo -n chown 2>&1 | grep "sorry" | wc -l | awk '{print $1}'`" == "0" ];
+then
+    user=`whoami`
+    group=`id -g -n $user`
+    mkdir -p "$HOME/.npm"
+    echo sudo chown -R $user:$group "$HOME/.npm"
+    sudo chown -R $user:$group "$HOME/.npm"
+fi
+
 echo npm install
-mkdir -p              "$HOME/.npm"
-chown -R $user:$group "$HOME/.npm"
 npm install
 
 if [ ! -f "@{forever}" ];
@@ -55,4 +60,3 @@ then
     echo "npm install forever@@{foreverVersion}"
     npm install forever@@{foreverVersion}
 fi
-
