@@ -19,7 +19,7 @@ if [ "`sudo -n chown 2>&1 | grep "sorry" | wc -l | awk '{print $1}'`" == "0" ];
 then
     # Good, 'sudo chown' may run without asking for a password
     sudoCommand="sudo"
-else
+fi
 
 NVM_HOME="$HOME/.nvm"
 NVM_SH="$NVM_HOME/nvm.sh"
