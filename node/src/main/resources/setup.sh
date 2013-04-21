@@ -5,12 +5,21 @@ echo "Executing "\""setup"\"" task in "\""`pwd`"\"""
 echo "Running   @{SCRIPT_LOCATION}"
 echo @{LOG_DELIMITER}
 currentDir=`pwd`
+user=`whoami`
+group=`id -g -n $user`
+sudoCommand=""
 
 if [ ! -d "$HOME" ];
 then
     echo "[\$HOME] is not defined"
     exit 1
 fi
+
+if [ "`sudo -n chown 2>&1 | grep "sorry" | wc -l | awk '{print $1}'`" == "0" ];
+then
+    # Good, 'sudo chown' may run without asking for a password
+    sudoCommand="sudo"
+else
 
 NVM_HOME="$HOME/.nvm"
 NVM_SH="$NVM_HOME/nvm.sh"
@@ -43,14 +52,12 @@ nvm use     @{nodeVersion}
 echo "npm  : [`which npm`][`npm --version`]"
 echo "node : [`which node`][`node --version`]"
 
-if [ "`sudo -n chown 2>&1 | grep "sorry" | wc -l | awk '{print $1}'`" == "0" ];
-then
-    user=`whoami`
-    group=`id -g -n $user`
-    mkdir -p "$HOME/.npm"
-    echo sudo chown -R $user:$group "$HOME/.npm"
-    sudo chown -R $user:$group "$HOME/.npm"
-fi
+mkdir -p "$HOME/.npm"
+
+set +e
+echo $sudoCommand chown -R $user:$group "$HOME/.npm"
+$sudoCommand chown -R $user:$group "$HOME/.npm"
+set -e
 
 echo npm install
 npm install
