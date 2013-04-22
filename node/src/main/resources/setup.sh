@@ -1,13 +1,14 @@
 #!/bin/bash
 
-echo @{LOG_DELIMITER}
-echo "Executing "\""setup"\"" task in "\""`pwd`"\"""
-echo "Running   @{SCRIPT_LOCATION}"
-echo @{LOG_DELIMITER}
 currentDir=`pwd`
 user=`whoami`
 group=`id -g -n $user`
 sudoCommand=""
+
+echo @{LOG_DELIMITER}
+echo "Executing "\""setup"\"" task in "\""$currentDir"\""" as "\""$user:$group"\""
+echo "Running   @{SCRIPT_LOCATION}"
+echo @{LOG_DELIMITER}
 
 if [ ! -d "$HOME" ];
 then
