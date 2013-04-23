@@ -36,7 +36,7 @@ allprojects {
                     'org.gcontracts:gcontracts-core:1.2.12',
                     'org.codehaus.gpars:gpars:1.0.0'
         testCompile 'junit:junit:4.11'
-        testRuntime 'ch.qos.logback:logback-classic:1.0.10'
+        testRuntime 'ch.qos.logback:logback-classic:1.0.11'
     }
 }
 
