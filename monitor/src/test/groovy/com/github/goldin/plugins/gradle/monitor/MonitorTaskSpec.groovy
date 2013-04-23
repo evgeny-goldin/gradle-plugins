@@ -48,6 +48,7 @@ class MonitorTaskSpec extends BaseSpecification
     }
 
 
+    @SuppressWarnings([ 'LineLength' ])
     def 'Content matches JSON matchers' ()
     {
         expect:
