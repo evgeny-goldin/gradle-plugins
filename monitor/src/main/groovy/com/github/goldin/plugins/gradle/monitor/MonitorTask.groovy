@@ -195,20 +195,23 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
 
     @Requires({ matcher && ( content != null ) })
-    static boolean isJsonMapMatch( Map<String,?> matcher, Map<String,?> content )
+    static boolean isJsonMapMatch( Map<String,?> matcherMap, Map<String,?> contentMap )
     {
-
+        matcherMap.every {
+            String matcherKey, Object matcherValue ->
+            true
+        }
     }
 
 
-    @Requires({ matcher && ( content != null ) })
-    static boolean isJsonListMatch( List<?> matcher, List<?> content )
+    @Requires({ matcherList && ( contentList != null ) })
+    static boolean isJsonListMatch( List<?> matcherList, List<?> contentList )
     {
-        matcher.every{
-            Object o ->
-            isList( o ) ? isJsonListMatch(( List ) o, []  ) :
-            isMap ( o ) ? isJsonMapMatch (( Map ) o, [:] ) :
-                          content.contains( o )
+        matcherList.every {
+            Object matcherObject ->
+            isList( matcherObject ) ? contentList.any { contentObject -> isList( contentObject ) && isJsonListMatch(( List ) matcherObject, ( List ) contentObject )} :
+            isMap ( matcherObject ) ? contentList.any { contentObject -> isMap ( contentObject ) && isJsonMapMatch(( Map ) matcherObject, ( Map ) contentObject )} :
+                                      contentList.contains( matcherObject )
         }
     }
 }
