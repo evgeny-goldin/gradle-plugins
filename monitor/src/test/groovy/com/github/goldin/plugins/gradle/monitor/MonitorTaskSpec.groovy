@@ -46,4 +46,18 @@ class MonitorTaskSpec extends BaseSpecification
         'aaaaa' | '/^a{5}$/*-/^b{5}$/*-/\\d/'
         'aaaaa' | '/\\w/*/\\w{5}/'
     }
+
+
+    def 'Content matches JSON matchers' ()
+    {
+        expect:
+        MonitorTask.contentMatches( content, pattern, '*' )
+
+        where:
+        content | pattern
+        'aaaaa' | '{}'
+        'aaaaa' | '[]'
+        'aaaaa' | '{}*{}'
+        'aaaaa' | '[]*[]'
+    }
 }

@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.monitor
 
 import com.github.goldin.plugins.gradle.common.BaseTask
+import groovy.json.JsonSlurper
 import groovyx.gpars.GParsPool
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
@@ -159,13 +160,55 @@ class MonitorTask extends BaseTask<MonitorExtension>
             final positiveMatch = ( ! matcher.startsWith( '-' ))
             matcher             = positiveMatch ? matcher : matcher[ 1 .. -1 ]
             final regexMatch    = matcher.with { startsWith( '/' ) && endsWith( '/' ) }
+            final jsonMatch     = matcher.with { startsWith( '{' ) && endsWith( '}' ) }
             matcher             = regexMatch    ? matcher[ 1 .. -2 ] : matcher
             final isMatch       = regexMatch    ? Pattern.compile ( matcher ).matcher( content ).find() :
+                                  jsonMatch     ? isJsonMatch( matcher, content ) :
                                                   content.contains( matcher )
 
             if ( positiveMatch ? ( ! isMatch ) : isMatch ) { return false }
         }
 
         true
+    }
+
+
+    static boolean isMap  ( Object ... o ){ o.every{ it instanceof Map  }}
+    static boolean isList ( Object ... o ){ o.every{ it instanceof List }}
+
+
+    @Requires({ matcher && ( content != null ) })
+    static boolean isJsonMatch( String matcher, String content )
+    {
+        assert matcher.with { startsWith( '{' ) && endsWith( '}' ) }
+
+        final matcherObject = new JsonSlurper().parseText( matcher )
+        final contentObject = new JsonSlurper().parseText( content )
+        final isMap         = isMap ( matcherObject, contentObject )
+        final isList        = isList( matcherObject, contentObject )
+
+        assert ( isMap || isList ), "Only Map or List instances are supported for JSON matchers"
+
+        isMap ? isJsonMapMatch(( Map ) matcherObject, ( Map ) contentObject ) :
+                isJsonListMatch(( List ) matcherObject, ( List ) contentObject )
+    }
+
+
+    @Requires({ matcher && ( content != null ) })
+    static boolean isJsonMapMatch( Map<String,?> matcher, Map<String,?> content )
+    {
+
+    }
+
+
+    @Requires({ matcher && ( content != null ) })
+    static boolean isJsonListMatch( List<?> matcher, List<?> content )
+    {
+        matcher.every{
+            Object o ->
+            isList( o ) ? isJsonListMatch(( List ) o, []  ) :
+            isMap ( o ) ? isJsonMapMatch (( Map ) o, [:] ) :
+                          content.contains( o )
+        }
     }
 }
