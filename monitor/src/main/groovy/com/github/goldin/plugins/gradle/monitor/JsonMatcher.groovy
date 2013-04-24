@@ -38,7 +38,7 @@ class JsonMatcher
     {
         matcherMap.every {
             String matcherKey, Object matcherValue ->
-            final contentValue = contentMap.get( matcherKey )
+            final contentValue = contentMap[ matcherKey ]
             ( contentValue != null ) && containsGeneral( contentValue, matcherValue )
         }
     }
