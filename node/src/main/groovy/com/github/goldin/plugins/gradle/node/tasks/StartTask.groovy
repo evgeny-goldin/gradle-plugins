@@ -42,7 +42,7 @@ class StartTask extends NodeBaseTask
         final executable  = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
         final pidFileName = pidFileName( ext.portNumber )
         final pidFilePath = new File( "${ System.getProperty( 'user.home' )}/.forever/pids/$pidFileName" ).canonicalPath
-        final command     = "${ forever() } start ${ ext.foreverOptions ?: '' } --pidFile \"${ pidFileName }\" " +
+        final command     = "${ forever() } start --minUptime 5000 --spinSleepTime 5000 ${ ext.foreverOptions ?: '' } --pidFile \"${ pidFileName }\" " +
                             "${ executable ? '"' + executable + '"' : '' } \"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }".
                             trim()
 
