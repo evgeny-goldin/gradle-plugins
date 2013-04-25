@@ -80,5 +80,8 @@ class MonitorTaskSpec extends BaseSpecification
         '[ "a", "b", "c" ]' | '-[ "d" ]'
         '[ "aa", "bb", "cc" ]' | '-[ "a" ]*-[ "b" ]*-[ "c" ]*-[ "a", "b", "c" ]'
         '[ "a", "b", { "c": { "d": { "e": [ "f", "g" ] }}} ]' | '-[ "e" ]*-[ "h" ]*-[ { "c": { "d": { "e": [ "f", "g", "u" ] }}} ]*-[ "a", "b", { "c": { "d": { "e": { "f" : ["g"] }}}} ]'
+        '{ "a" : "true", "b" : "false" }' | '{ "a" : "true" }*{ "b" : "false" }*-{ "a" : "false" }*-{ "b" : "true" }*-{ "a" : "false", "b": "true" }'
+        '{ "a" : "true", "b" : "false" }' | '-{ "a" : true }*-{ "b" : false }*-{ "a" : true, "b": false }*-{ "a" : false, "b": true }'
+        '[ "true", "false" ]' | '[ "true" ]*[ "false" ]*-[ true ]*-[ false ]'
     }
 }
