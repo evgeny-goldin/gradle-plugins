@@ -65,6 +65,6 @@ npm install
 
 if [ ! -f "@{forever}" ];
 then
-    echo "npm install forever@@{foreverVersion}"
-    npm install forever@@{foreverVersion}
+    echo "npm install forever"
+    npm install forever
 fi

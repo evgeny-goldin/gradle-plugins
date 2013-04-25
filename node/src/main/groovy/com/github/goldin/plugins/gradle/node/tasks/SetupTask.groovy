@@ -138,8 +138,7 @@ class SetupTask extends NodeBaseTask
             SCRIPT_LOCATION    : SCRIPT_LOCATION,
             REMOVE_COLOR_CODES : REMOVE_COLOR_CODES,
             nodeVersion        : ext.nodeVersion,
-            forever            : FOREVER_EXECUTABLE,
-            foreverVersion     : FOREVER_VERSION
+            forever            : FOREVER_EXECUTABLE
         ])
 
         bashExec( setupScript, taskScriptFile(), false, false )
