@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.common
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.text.SimpleTemplateEngine
 import org.apache.tools.ant.DirectoryScanner
 import org.gcontracts.annotations.Ensures
@@ -9,10 +10,10 @@ import org.gradle.api.GradleException
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecSpec
-
 import javax.xml.XMLConstants
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
+import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.regex.Pattern
 
@@ -690,5 +691,40 @@ abstract class BaseTask<T> extends DefaultTask
 
         response.timeMillis = System.currentTimeMillis() - time
         response
+    }
+
+
+    @Requires({ content })
+    @Ensures ({ result != null })
+    final Map<String,?> jsonToMap ( String content, File origin = null )
+    {
+        try { new ObjectMapper().readValue( content, Map )}
+        catch ( e ){ throw new GradleException(
+                     """
+                     |Failed to parse the following JSON content${ origin ? ' coming from file:' + origin.canonicalPath : '' } into Map
+                     |-----------------------------------------------
+                     |$content
+                     |-----------------------------------------------
+                     |Consult http://jsonlint.com/.
+                     """.stripMargin().toString().trim(), e )}
+    }
+
+
+    @Ensures ({ result })
+    final String objectToJson ( Object o )
+    {
+        try { new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString( o ) }
+        catch ( e ) { throw new GradleException( "Failed to convert [$o] to JSON", e )}
+    }
+
+
+    @Requires({ s && algorithm })
+    final String checksum( String s, String algorithm = 'SHA-1' )
+    {
+        MessageDigest.getInstance( algorithm ).digest( s.getBytes( 'UTF-8' )).
+                                               inject( new StringBuilder()) {
+            StringBuilder builder, byte b ->
+            builder << Integer.toString(( int ) ( b & 0xff ) + 0x100, 16 ).substring( 1 )
+        }
     }
 }

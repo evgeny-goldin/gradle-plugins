@@ -2,8 +2,10 @@ package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.node.ConfigHelper
+import com.github.goldin.plugins.gradle.node.SetupCacheHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
+import org.gradle.api.file.CopySpec
 import java.util.regex.Pattern
 
 
@@ -19,7 +21,9 @@ class SetupTask extends NodeBaseTask
         cleanWorkspace()
         ext.configsResult = updateConfigs()
         makeReplacements()
+        if ( ext.npmInstallCacheLocally ){ restoreNodeModules() }
         runSetupScript()
+        if ( ext.npmInstallCacheLocally ){ createNodeModules() }
     }
 
 
@@ -124,6 +128,47 @@ class SetupTask extends NodeBaseTask
 
                 assert content, 'Resulting content after all replaces are made is empty'
                 write( replaceFile, content )
+            }
+        }
+    }
+
+
+    private void restoreNodeModules()
+    {
+        final nodeModules = new File ( project.projectDir, 'node_modules' )
+        if ( nodeModules.directory ) { return }
+
+        final npmCache = new SetupCacheHelper( this ).localArchive()
+        if (  npmCache?.file )
+        {
+            logger.info( "Unpacking 'npm install' cache [$npmCache.canonicalPath]" )
+
+            project.mkdir( nodeModules )
+            project.copy {
+                CopySpec cs ->
+                cs.from( project.zipTree( npmCache ))
+                cs.into( nodeModules.canonicalPath )
+            }
+        }
+    }
+
+
+    private void createNodeModules()
+    {
+        final nodeModules = new File ( project.projectDir, 'node_modules' )
+        if ( ! nodeModules.directory ) { return }
+
+        final npmCache = new SetupCacheHelper( this ).localArchive()
+        if ( npmCache && ( ! npmCache.file ))
+        {
+            logger.info( "Packing 'npm install' cache [$npmCache.canonicalPath]" )
+
+            ant.zip( destfile : npmCache.canonicalPath,
+                     duplicate: 'fail',
+                     whenempty: 'fail',
+                     level    : 9 ){
+                ant.zipfileset( file: project.file( 'package.json' ))
+                ant.zipfileset( dir : nodeModules.canonicalPath )
             }
         }
     }
