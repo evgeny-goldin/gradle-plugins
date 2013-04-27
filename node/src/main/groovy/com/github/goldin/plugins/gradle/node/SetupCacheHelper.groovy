@@ -48,8 +48,6 @@ class SetupCacheHelper
         if (( npmCacheArchive == null ) || npmCacheArchive.file ) { return }
 
         task.logger.info( "Packing 'npm install' result [$nodeModules.canonicalPath] to [$npmCacheArchive.canonicalPath]" )
-
-        npmCacheArchive.parentFile.with { File f -> assert ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
         final tempFile = task.project.file( npmCacheArchive.name )
 
         task.project.copy { CopySpec cs -> cs.from( PACKAGE_JSON ).into( nodeModules ) }
@@ -71,6 +69,7 @@ class SetupCacheHelper
         if ( ! checksum ) { return null }
 
         final npmCacheArchive = new File( System.getProperty( 'user.home' ), ".npm/${ checksum }.tar.gz" )
+        npmCacheArchive.parentFile.with { File f -> assert ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
 
         if ( ext.npmRemoteCache )
         {
