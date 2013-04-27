@@ -75,7 +75,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
             "http://127.0.0.1:${ ext.portNumber }" + ( ext.checkUrl ? "/${ ext.checkUrl.replaceFirst( '^/', '' ) }"  : '' )
         assert ext.checkUrl
 
-        ext.scriptPath = ext.scriptPath ?: ( ext.knownScriptPaths ?: [] ).find { new File( project.projectDir, it ).file }
+        ext.scriptPath = ext.scriptPath ?: ( ext.knownScriptPaths ?: [] ).find { new File( projectDir, it ).file }
         assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \
                "Couldn't find an application script to run! Specify 'scriptPath' in $description or use " +
                "'${ ( ext.knownScriptPaths ?: [] ).join( "', '" ) }'"
@@ -206,7 +206,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Ensures ({ result })
     final String killProcesses ()
     {
-        final  killProcesses = "forever,${ project.projectDir.name }|${ ext.scriptPath },${ project.projectDir.name }"
+        final  killProcesses = "forever,${ projectDir.name }|${ ext.scriptPath },${ projectDir.name }"
         killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
             String process ->
 
@@ -308,8 +308,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |${ watchExitCodes    ? 'set -e'          : '' }
         |${ watchExitCodes    ? 'set -o pipefail' : '' }
         |
-        |echo "cd $Q${ project.projectDir.canonicalPath }$Q"
-        |cd "${ project.projectDir.canonicalPath }"
+        |echo "cd $Q${ projectDir.canonicalPath }$Q"
+        |cd "${ projectDir.canonicalPath }"
         |
         |${ addBaseBashScript ? baseBashScript( operationTitle ) : '' }
         |
@@ -326,7 +326,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ]) }
 
-        exec ( 'bash', [ scriptFile.canonicalPath ], project.projectDir, failOnError, useGradleExec, logLevel )
+        exec ( 'bash', [ scriptFile.canonicalPath ], projectDir, failOnError, useGradleExec, logLevel )
     }
 
 

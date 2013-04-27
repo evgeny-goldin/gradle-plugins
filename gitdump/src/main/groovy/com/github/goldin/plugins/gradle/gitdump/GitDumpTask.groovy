@@ -158,9 +158,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
             bareClone = false
         }
 
-        exec( 'git',
-              (( List<String> ) [ 'clone', *ext.cloneFlags, ( bareClone ? '--bare' : '' ), repoUrl, targetDirectory.canonicalPath ].grep()),
-              project.rootDir )
+        gitExec([ 'clone', *ext.cloneFlags, ( bareClone ? '--bare' : '' ), repoUrl, targetDirectory.canonicalPath ].grep().join( ' ' ), project.rootDir )
 
         log{ "[$repoUrl] cloned into [$targetDirectory.canonicalPath]" }
 

@@ -31,6 +31,7 @@ abstract class BaseTask<T> extends DefaultTask
     final isLinux            = osName.contains( 'linux'   )
     final isMac              = osName.contains( 'mac os'  )
     final projectName        = project.name.replaceAll( ~/^.*\//, '' )
+    final projectDir         = project.projectDir
 
     /**
      * Retrieves task's extension type in run-time
@@ -611,7 +612,7 @@ abstract class BaseTask<T> extends DefaultTask
     @Ensures ({ result })
     final String fullPath( String path, String defaultPath = '' )
     {
-        path ? new File( path ).with{ File f -> f.absolute ? f : new File( project.projectDir, path ) }.canonicalPath :
+        path ? new File( path ).with{ File f -> f.absolute ? f : new File( projectDir, path ) }.canonicalPath :
                fullPath( defaultPath )
     }
 

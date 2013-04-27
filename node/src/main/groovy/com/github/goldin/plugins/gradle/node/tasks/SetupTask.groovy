@@ -34,7 +34,7 @@ class SetupTask extends NodeBaseTask
             for ( command in ext.cleanWorkspaceCommands )
             {
                 final commandSplit = command.trim().tokenize()
-                exec( commandSplit.head(), commandSplit.tail(), project.projectDir )
+                exec( commandSplit.head(), commandSplit.tail(), projectDir )
             }
         }
     }
@@ -136,15 +136,15 @@ class SetupTask extends NodeBaseTask
     @Requires({ ext.npmLocalCache || ext.npmRemoteCache })
     private void restoreNodeModulesFromCache ()
     {
-        final nodeModules = new File ( project.projectDir, 'node_modules' )
+        final nodeModules = new File ( projectDir, 'node_modules' )
         if ( nodeModules.directory ) { return }
 
         final npmCache = new SetupCacheHelper( this ).localArchive()
         if ( ! npmCache?.file ) { return }
 
-        logger.info( "Unpacking 'npm install' cache [$npmCache.canonicalPath] to [$project.projectDir.canonicalPath]" )
+        logger.info( "Unpacking 'npm install' cache [$npmCache.canonicalPath] to [$projectDir.canonicalPath]" )
 
-        exec( 'tar', [ '-xzf', npmCache.canonicalPath, '-C', project.projectDir.canonicalPath ], project.projectDir )
+        exec( 'tar', [ '-xzf', npmCache.canonicalPath, '-C', projectDir.canonicalPath ], projectDir )
     }
 
 
@@ -152,7 +152,7 @@ class SetupTask extends NodeBaseTask
     @Requires({ ext.npmLocalCache || ext.npmRemoteCache })
     private void createNodeModulesCache ()
     {
-        final nodeModules = new File ( project.projectDir, 'node_modules' )
+        final nodeModules = new File ( projectDir, 'node_modules' )
         if ( ! ( nodeModules.directory && ext.npmCleanInstall )) { return }
 
         final npmCache = new SetupCacheHelper( this ).localArchive()
@@ -162,8 +162,18 @@ class SetupTask extends NodeBaseTask
 
         npmCache.parentFile.with { File f -> assert ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
         final tempFile = project.file( npmCache.name )
+
         project.copy { CopySpec cs -> cs.from( PACKAGE_JSON ).into( nodeModules ) }
-        exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.name ], project.projectDir )
+        final packageJson        = new File( nodeModules, PACKAGE_JSON )
+        final packageJsonMap     = jsonToMap( packageJson.getText( 'UTF-8' ), packageJson )
+        packageJsonMap.timestamp = dateFormatter.format( new Date())
+        packageJsonMap.project   = project.toString()
+        packageJsonMap.directory = projectDir.canonicalPath
+        packageJsonMap.origin    = gitExec( 'remote -v', projectDir ).readLines().find { it.startsWith( 'origin' )}.split()[ 1 ]
+        packageJsonMap.sha       = gitExec( 'log -1 --format=format:%H', projectDir )
+        packageJson.setText( objectToJson( packageJsonMap ), 'UTF-8' )
+
+        exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.name ], projectDir )
         while( ! tempFile.renameTo( npmCache )){ sleep( 1000 ) }
     }
 

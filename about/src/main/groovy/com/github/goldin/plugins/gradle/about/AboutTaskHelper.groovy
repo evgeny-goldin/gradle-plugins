@@ -166,7 +166,7 @@ class AboutTaskHelper
         $SEPARATOR
         | Version       : [${ gradle.gradleVersion }]
         | ${ ext.includePaths ? 'Home          : [' + gradle.gradleHomeDir.canonicalPath + ']' : '' }
-        | ${ ext.includePaths ? 'Project dir   : [' + project.projectDir.canonicalPath + ']': '' }
+        | ${ ext.includePaths ? 'Project dir   : [' + task.projectDir.canonicalPath + ']': '' }
         | ${ ext.includePaths ? 'Build file    : [' + ( project.buildFile ?: project.rootProject.buildFile ).canonicalPath + ']' : '' }
         | GRADLE_OPTS   : [${ env[ 'GRADLE_OPTS' ] ?: '' }]
         | Project       : [${ ext.includePaths ? project.toString() : project.toString().replaceAll( /\s+@.+/, '' )}]
