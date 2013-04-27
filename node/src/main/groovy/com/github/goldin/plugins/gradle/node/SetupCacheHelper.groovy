@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.node
 
+import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -39,7 +40,7 @@ class SetupCacheHelper
     @Ensures({ result != null })
     private String packageJsonChecksum ()
     {
-        final packageJson = new File( task.project.projectDir, 'package.json' )
+        final packageJson = task.project.file( PACKAGE_JSON )
         if ( ! packageJson.file ) { return '' }
 
         final Map<String,?> packageMap      = task.jsonToMap( packageJson.getText( 'UTF-8' ), packageJson )

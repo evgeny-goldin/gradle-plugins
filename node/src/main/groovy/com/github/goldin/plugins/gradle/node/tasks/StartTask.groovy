@@ -50,7 +50,7 @@ class StartTask extends NodeBaseTask
         {
             final  executableFile = project.file( executable ).canonicalFile
             assert executableFile.file, \
-                   "[$executableFile.canonicalPath] is not available, make sure \"coffee-script\" dependency appears in \"package.json\" => \"devDependencies\"\""
+                   "[$executableFile.canonicalPath] is not available, make sure \"coffee-script\" dependency appears in \"${ PACKAGE_JSON }\" => \"devDependencies\"\""
         }
 
         """
