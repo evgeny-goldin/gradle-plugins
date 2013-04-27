@@ -166,7 +166,9 @@ class SetupTask extends NodeBaseTask
         project.copy { CopySpec cs -> cs.from( PACKAGE_JSON ).into( nodeModules ) }
         final packageJson        = new File( nodeModules, PACKAGE_JSON )
         final packageJsonMap     = jsonToMap( packageJson.getText( 'UTF-8' ), packageJson )
+        packageJsonMap.cacheData = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
         packageJsonMap.timestamp = dateFormatter.format( new Date())
+        packageJsonMap.host      = "${ hostname() }/${ InetAddress.localHost.hostAddress }".toString()
         packageJsonMap.project   = project.toString()
         packageJsonMap.directory = projectDir.canonicalPath
         packageJsonMap.origin    = gitExec( 'remote -v', projectDir ).readLines().find { it.startsWith( 'origin' )}.split()[ 1 ]

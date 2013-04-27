@@ -729,4 +729,11 @@ abstract class BaseTask<T> extends DefaultTask
         }.
         toString()
     }
+
+    @Ensures({ result != null })
+    final String hostname()
+    {
+        try { System.getenv( 'COMPUTERNAME' ) ?: System.getenv( 'HOSTNAME' ) ?: exec( 'hostname' ) ?: '' }
+        catch( Throwable ignored ){ 'Unknown' }
+    }
 }

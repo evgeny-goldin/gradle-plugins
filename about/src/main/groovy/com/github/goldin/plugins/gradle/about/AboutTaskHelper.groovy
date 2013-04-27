@@ -130,15 +130,6 @@ class AboutTaskHelper
     }
 
 
-    @Ensures({ result != null })
-    private String hostname()
-    {
-        try { env[ 'COMPUTERNAME' ] ?: env[ 'HOSTNAME' ] ?: task.exec( 'hostname' ) ?: '' }
-        catch( Throwable ignored ){ 'Unknown' }
-    }
-
-
-
     @Ensures({ result })
     String buildContent ()
     {
@@ -155,7 +146,7 @@ class AboutTaskHelper
         $SEPARATOR
         | Build Info
         $SEPARATOR
-        | Host          : [${ hostname() }]/[${ InetAddress.localHost.hostAddress }]
+        | Host          : [${ task.hostname() }]/[${ InetAddress.localHost.hostAddress }]
         | Time          : [$task.startTimeFormatted]
         | User          : [${ properties[ 'user.name' ] }]
         | ${ ext.includePaths ? 'Directory     : [' + properties[ 'user.dir' ] + ']': '' }
