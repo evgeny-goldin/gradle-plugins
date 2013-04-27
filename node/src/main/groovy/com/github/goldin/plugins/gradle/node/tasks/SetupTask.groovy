@@ -166,13 +166,17 @@ class SetupTask extends NodeBaseTask
             logger.info( "Packing 'npm install' cache [$npmCache.canonicalPath]" )
             npmCache.parentFile.with { File f -> assert ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
 
-            ant.zip( destfile : npmCache.canonicalPath,
+            final tempFile = project.file( npmCache.name )
+
+            ant.zip( destfile : tempFile,
                      duplicate: 'fail',
                      whenempty: 'fail',
                      level    : 9 ){
                 ant.zipfileset( file: project.file( PACKAGE_JSON ))
                 ant.zipfileset( dir : nodeModules.canonicalPath )
             }
+
+            tempFile.renameTo( npmCache )
         }
     }
 
