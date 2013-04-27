@@ -21,9 +21,9 @@ class SetupTask extends NodeBaseTask
         cleanWorkspace()
         ext.configsResult = updateConfigs()
         makeReplacements()
-        if ( ext.npmLocalCache ){ restoreNodeModules() }
+        if ( ext.npmLocalCache || ext.npmRemoteCache ){ restoreNodeModulesFromCache() }
         runSetupScript()
-        if ( ext.npmLocalCache ){ createNodeModules() }
+        if ( ext.npmLocalCache || ext.npmRemoteCache ){ createNodeModulesCache() }
     }
 
 
@@ -133,7 +133,8 @@ class SetupTask extends NodeBaseTask
     }
 
 
-    private void restoreNodeModules()
+    @Requires({ ext.npmLocalCache || ext.npmRemoteCache })
+    private void restoreNodeModulesFromCache ()
     {
         final nodeModules = new File ( project.projectDir, 'node_modules' )
         if ( nodeModules.directory ) { return }
@@ -141,20 +142,18 @@ class SetupTask extends NodeBaseTask
         final npmCache = new SetupCacheHelper( this ).localArchive()
         if ( ! npmCache?.file ) { return }
 
-        logger.info( "Unpacking 'npm install' cache [$npmCache.canonicalPath] into [$project.projectDir.canonicalPath]" )
+        logger.info( "Unpacking 'npm install' cache [$npmCache.canonicalPath] to [$project.projectDir.canonicalPath]" )
 
         exec( 'tar', [ '-xzf', npmCache.canonicalPath, '-C', project.projectDir.canonicalPath ], project.projectDir )
     }
 
 
     @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
-    private void createNodeModules()
+    @Requires({ ext.npmLocalCache || ext.npmRemoteCache })
+    private void createNodeModulesCache ()
     {
         final nodeModules = new File ( project.projectDir, 'node_modules' )
-        if ( ! nodeModules.directory ) { return }
-
-        final tasksGraph = project.gradle.taskGraph
-        if ( ! ( tasksGraph.hasTask( CLEAN_MODULES ) && project.tasks[ CLEAN_MODULES ].didWork )) { return }
+        if ( ! ( nodeModules.directory && ext.npmCleanInstall )) { return }
 
         final npmCache = new SetupCacheHelper( this ).localArchive()
         if (( npmCache == null ) || npmCache.file ){ return }
