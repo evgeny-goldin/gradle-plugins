@@ -21,9 +21,9 @@ class SetupTask extends NodeBaseTask
         cleanWorkspace()
         ext.configsResult = updateConfigs()
         makeReplacements()
-        if ( ext.npmInstallCacheLocally ){ restoreNodeModules() }
+        if ( ext.npmLocalCache ){ restoreNodeModules() }
         runSetupScript()
-        if ( ext.npmInstallCacheLocally ){ createNodeModules() }
+        if ( ext.npmLocalCache ){ createNodeModules() }
     }
 
 
@@ -139,44 +139,33 @@ class SetupTask extends NodeBaseTask
         if ( nodeModules.directory ) { return }
 
         final npmCache = new SetupCacheHelper( this ).localArchive()
-        if (  npmCache?.file )
-        {
-            logger.info( "Unpacking 'npm install' cache [$npmCache.canonicalPath]" )
+        if ( ! npmCache?.file ) { return }
 
-            project.copy {
-                CopySpec cs ->
-                cs.from( npmCache )
-                cs.into( project.projectDir )
-            }
+        logger.info( "Unpacking 'npm install' cache [$npmCache.canonicalPath] into [$project.projectDir.canonicalPath]" )
 
-            ant.exec( executable: 'tar' ){ ant.arg( line: "-xzf ${ npmCache.name }" )}
-            project.delete( npmCache.name )
-        }
+        exec( 'tar', [ '-xzf', npmCache.canonicalPath, '-C', project.projectDir.canonicalPath ], project.projectDir )
     }
 
 
+    @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
     private void createNodeModules()
     {
         final nodeModules = new File ( project.projectDir, 'node_modules' )
         if ( ! nodeModules.directory ) { return }
 
+        final tasksGraph = project.gradle.taskGraph
+        if ( ! ( tasksGraph.hasTask( CLEAN_MODULES ) && project.tasks[ CLEAN_MODULES ].didWork )) { return }
+
         final npmCache = new SetupCacheHelper( this ).localArchive()
-        if ( npmCache && ( ! npmCache.file ))
-        {
-            logger.info( "Packing 'npm install' cache [$npmCache.canonicalPath]" )
-            npmCache.parentFile.with { File f -> assert ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
+        if (( npmCache == null ) || npmCache.file ){ return }
 
-            final tempFile = project.file( npmCache.name )
+        logger.info( "Packing 'npm install' result [$nodeModules.canonicalPath] to [$npmCache.canonicalPath]" )
 
-            project.copy {
-                CopySpec cs ->
-                cs.from( PACKAGE_JSON )
-                cs.into( nodeModules )
-            }
-
-            ant.exec( executable: 'tar' ){ ant.arg( line: "-czf ${ tempFile.canonicalPath } ${ nodeModules.name }" )}
-            tempFile.renameTo( npmCache )
-        }
+        npmCache.parentFile.with { File f -> assert ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
+        final tempFile = project.file( npmCache.name )
+        project.copy { CopySpec cs -> cs.from( PACKAGE_JSON ).into( nodeModules ) }
+        exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.name ], project.projectDir )
+        while( ! tempFile.renameTo( npmCache )){ sleep( 1000 ) }
     }
 
 

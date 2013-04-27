@@ -725,6 +725,7 @@ abstract class BaseTask<T> extends DefaultTask
                                                inject( new StringBuilder()) {
             StringBuilder builder, byte b ->
             builder << Integer.toString(( int ) ( b & 0xff ) + 0x100, 16 ).substring( 1 )
-        }
+        }.
+        toString()
     }
 }

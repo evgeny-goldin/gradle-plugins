@@ -22,8 +22,9 @@ class SetupCacheHelper
 
 
     /**
-     * Retrieves "npm install" local cache location, if available.
-     * @return "npm install" local cache or {@code null} if unable to calculate "package.json" dependencies checksum
+     * Retrieves "npm install" local cache archive, if available.
+     * @return "npm install" local cache archive or
+     *         {@code null} if unable to calculate "package.json" dependencies checksum
      */
     File localArchive ()
     {
