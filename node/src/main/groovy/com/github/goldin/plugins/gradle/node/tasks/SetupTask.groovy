@@ -5,7 +5,6 @@ import com.github.goldin.plugins.gradle.node.ConfigHelper
 import com.github.goldin.plugins.gradle.node.SetupCacheHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
-import org.gradle.api.file.CopySpec
 import java.util.regex.Pattern
 
 
@@ -17,13 +16,15 @@ class SetupTask extends NodeBaseTask
     @Override
     void taskAction()
     {
+        final cacheHelper = new SetupCacheHelper( this, ext )
+
         verifyGitAvailable()
         cleanWorkspace()
         ext.configsResult = updateConfigs()
         makeReplacements()
-        if ( ext.npmLocalCache || ext.npmRemoteCache ){ restoreNodeModulesFromCache() }
+        if ( ext.npmLocalCache ){ cacheHelper.restoreNodeModulesFromCache() }
         runSetupScript()
-        if ( ext.npmLocalCache || ext.npmRemoteCache ){ createNodeModulesCache() }
+        if ( ext.npmLocalCache ){ cacheHelper.createNodeModulesCache() }
     }
 
 
@@ -130,53 +131,6 @@ class SetupTask extends NodeBaseTask
                 write( replaceFile, content )
             }
         }
-    }
-
-
-    @Requires({ ext.npmLocalCache || ext.npmRemoteCache })
-    private void restoreNodeModulesFromCache ()
-    {
-        final nodeModules = new File ( projectDir, 'node_modules' )
-        if ( nodeModules.directory ) { return }
-
-        final npmCache = new SetupCacheHelper( this ).localArchive()
-        if ( ! npmCache?.file ) { return }
-
-        logger.info( "Unpacking 'npm install' cache [$npmCache.canonicalPath] to [$projectDir.canonicalPath]" )
-
-        exec( 'tar', [ '-xzf', npmCache.canonicalPath, '-C', projectDir.canonicalPath ], projectDir )
-    }
-
-
-    @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
-    @Requires({ ext.npmLocalCache || ext.npmRemoteCache })
-    private void createNodeModulesCache ()
-    {
-        final nodeModules = new File ( projectDir, 'node_modules' )
-        if ( ! ( nodeModules.directory && ext.npmCleanInstall )) { return }
-
-        final npmCache = new SetupCacheHelper( this ).localArchive()
-        if (( npmCache == null ) || npmCache.file ){ return }
-
-        logger.info( "Packing 'npm install' result [$nodeModules.canonicalPath] to [$npmCache.canonicalPath]" )
-
-        npmCache.parentFile.with { File f -> assert ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
-        final tempFile = project.file( npmCache.name )
-
-        project.copy { CopySpec cs -> cs.from( PACKAGE_JSON ).into( nodeModules ) }
-        final packageJson        = new File( nodeModules, PACKAGE_JSON )
-        final packageJsonMap     = jsonToMap( packageJson.getText( 'UTF-8' ), packageJson )
-        packageJsonMap.cacheData = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-        packageJsonMap.timestamp = dateFormatter.format( new Date())
-        packageJsonMap.host      = "${ hostname() }/${ InetAddress.localHost.hostAddress }".toString()
-        packageJsonMap.project   = project.toString()
-        packageJsonMap.directory = projectDir.canonicalPath
-        packageJsonMap.origin    = gitExec( 'remote -v', projectDir ).readLines().find { it.startsWith( 'origin' )}.split()[ 1 ]
-        packageJsonMap.sha       = gitExec( 'log -1 --format=format:%H', projectDir )
-        packageJson.setText( objectToJson( packageJsonMap ), 'UTF-8' )
-
-        exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.name ], projectDir )
-        while( ! tempFile.renameTo( npmCache )){ sleep( 1000 ) }
     }
 
 

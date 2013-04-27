@@ -647,7 +647,8 @@ abstract class BaseTask<T> extends DefaultTask
                                     boolean             logError             = true,
                                     boolean             acceptEncoding       = true,
                                     String              username             = '',
-                                    String              password             = '' )
+                                    String              password             = '',
+                                    byte[]              data                 = null )
     {
         assert url.with { startsWith( 'http://' ) || startsWith( 'https://' )}, "[$url] - only 'http[s]://' URLs are supported"
 
@@ -659,15 +660,22 @@ abstract class BaseTask<T> extends DefaultTask
                                                [:] )
         try
         {
-            response.connection                = url.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection
-            response.connection.requestMethod  = method
-            response.connection.connectTimeout = connectTimeoutMillis
-            response.connection.readTimeout    = readTimeoutMillis
+            final connection          = url.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection
+            response.connection       = connection
+            connection.requestMethod  = method
+            connection.connectTimeout = connectTimeoutMillis
+            connection.readTimeout    = readTimeoutMillis
 
-            headers.each { String name, String value -> response.connection.setRequestProperty( name, value )}
+            headers.each { String name, String value -> connection.setRequestProperty( name, value )}
 
-            response.inputStream = response.connection.inputStream
-            response.actualUrl   = response.connection.getURL().toString()
+            if ( data )
+            {
+                connection.doOutput = true
+                connection.outputStream.write( data )
+            }
+
+            response.inputStream = connection.inputStream
+            response.actualUrl   = connection.getURL().toString()
         }
         catch ( Throwable error )
         {
