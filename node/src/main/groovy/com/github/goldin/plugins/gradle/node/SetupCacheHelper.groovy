@@ -29,7 +29,7 @@ class SetupCacheHelper
     {
         final checksum = packageJsonChecksum()
         if ( ! checksum ) { return null }
-        new File( System.getProperty( 'user.home' ), ".npm/${ checksum }.zip" )
+        new File( System.getProperty( 'user.home' ), ".npm/${ checksum }.tar.gz" )
     }
 
 

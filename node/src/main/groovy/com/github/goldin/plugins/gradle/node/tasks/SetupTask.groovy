@@ -142,15 +142,15 @@ class SetupTask extends NodeBaseTask
         if (  npmCache?.file )
         {
             logger.info( "Unpacking 'npm install' cache [$npmCache.canonicalPath]" )
-            assert ( nodeModules.directory || nodeModules.mkdirs()), "Failed to mkdir [$nodeModules.canonicalPath]"
 
             project.copy {
                 CopySpec cs ->
-                cs.from( project.zipTree( npmCache ))
-                cs.into( nodeModules.canonicalPath )
+                cs.from( npmCache )
+                cs.into( project.projectDir )
             }
 
-            new File( nodeModules, PACKAGE_JSON ).delete()
+            ant.exec( executable: 'tar' ){ ant.arg( line: "-xzf ${ npmCache.name }" )}
+            project.delete( npmCache.name )
         }
     }
 
@@ -168,14 +168,13 @@ class SetupTask extends NodeBaseTask
 
             final tempFile = project.file( npmCache.name )
 
-            ant.zip( destfile : tempFile,
-                     duplicate: 'fail',
-                     whenempty: 'fail',
-                     level    : 9 ){
-                ant.zipfileset( file: project.file( PACKAGE_JSON ))
-                ant.zipfileset( dir : nodeModules.canonicalPath )
+            project.copy {
+                CopySpec cs ->
+                cs.from( PACKAGE_JSON )
+                cs.into( nodeModules )
             }
 
+            ant.exec( executable: 'tar' ){ ant.arg( line: "-czf ${ tempFile.canonicalPath } ${ nodeModules.name }" )}
             tempFile.renameTo( npmCache )
         }
     }
