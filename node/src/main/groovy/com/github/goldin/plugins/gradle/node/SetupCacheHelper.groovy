@@ -159,8 +159,6 @@ class SetupCacheHelper
     }
 
 
-
-
     /**
      * Updates "package.json" specified with cache-related data.
      *
