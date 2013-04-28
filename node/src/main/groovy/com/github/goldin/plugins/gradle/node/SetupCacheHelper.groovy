@@ -30,7 +30,7 @@ class SetupCacheHelper
         final nodeModules = new File ( task.projectDir, 'node_modules' )
         if ( nodeModules.directory ) { return }
 
-        final npmCacheArchive = localArchive()
+        final npmCacheArchive = localArchive( true )
         if ( ! npmCacheArchive?.file ) { return }
 
         task.logger.info( "Unpacking 'npm install' cache [$npmCacheArchive.canonicalPath] to [$task.projectDir.canonicalPath]" )
@@ -44,7 +44,7 @@ class SetupCacheHelper
         final nodeModules = new File ( task.projectDir, 'node_modules' )
         if ( ! ( nodeModules.directory && ext.npmCleanInstall )) { return }
 
-        final npmCacheArchive = localArchive()
+        final npmCacheArchive = localArchive( false )
         if (( npmCacheArchive == null ) || npmCacheArchive.file ) { return }
 
         task.logger.info( "Packing 'npm install' result [$nodeModules.canonicalPath] to [$npmCacheArchive.canonicalPath]" )
@@ -54,7 +54,10 @@ class SetupCacheHelper
         updatePackageJson( new File( nodeModules, PACKAGE_JSON ))
 
         task.exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.name ], task.projectDir )
-        assert tempFile.renameTo( npmCacheArchive ), "Failed to rename [$tempFile.canonicalPath] to [$npmCacheArchive.canonicalPath]"
+        assert tempFile.renameTo( npmCacheArchive ) && npmCacheArchive.file, \
+               "Failed to rename [$tempFile.canonicalPath] to [$npmCacheArchive.canonicalPath]"
+
+        if ( ext.npmRemoteCache ){ uploadLocalArchive( npmCacheArchive ) }
     }
 
 
@@ -63,17 +66,19 @@ class SetupCacheHelper
      * @return "npm install" local cache archive or
      *         {@code null} if unable to calculate "package.json" dependencies checksum
      */
-    private File localArchive ()
+    private File localArchive ( boolean attemptDownloading )
     {
         final checksum = packageJsonChecksum()
         if ( ! checksum ) { return null }
 
-        final npmCacheArchive = new File( System.getProperty( 'user.home' ), ".npm/${ checksum }.tar.gz" )
+        final npmCacheArchive = new File( System.getProperty( 'user.home' ), ".npm/node_modules_${ checksum }.tar.gz" )
         npmCacheArchive.parentFile.with { File f -> assert ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
 
         if ( ext.npmRemoteCache )
         {
-            npmCacheArchive.file ? uploadLocalArchive( npmCacheArchive ) : downloadRemoteArchive( npmCacheArchive )
+            npmCacheArchive.file ? uploadLocalArchive( npmCacheArchive ) :
+            attemptDownloading   ? downloadRemoteArchive( npmCacheArchive ) :
+                                   null
         }
 
         npmCacheArchive
