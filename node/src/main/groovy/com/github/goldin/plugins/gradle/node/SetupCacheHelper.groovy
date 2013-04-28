@@ -94,8 +94,8 @@ class SetupCacheHelper
         final Map<String,?> dependenciesMap = ( packageMap.dependencies ?: [:] ) + ( packageMap.devDependencies ?: [:] )
         if ( ! dependenciesMap ){ return '' }
 
-        final dependenciesString = dependenciesMap.keySet().sort().
-                                   collect { "${ it.toLowerCase()  }:${ dependenciesMap[ it ].toString().toLowerCase() }" }.
+        final dependenciesString = dependenciesMap.keySet()*.toLowerCase().sort().
+                                   collect { "$it:${ dependenciesMap[ it ].toString().toLowerCase() }" }.
                                    join( '\n' )
 
         task.checksum( dependenciesString )
