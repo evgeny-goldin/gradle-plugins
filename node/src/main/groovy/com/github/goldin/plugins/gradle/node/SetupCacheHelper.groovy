@@ -148,7 +148,7 @@ class SetupCacheHelper
     @Ensures ({ result })
     private Map<String, String> readRemoteRepoUrl( File npmCacheArchive )
     {
-        // ext.npmRemoteCache = "deployer:password@http://evgenyg.artifactoryonline.com/evgenyg/npm/"
+        // ext.npmRemoteCache = "user:password@http://evgenyg.artifactoryonline.com/evgenyg/npm/"
 
         final user       = ext.npmRemoteCache.find( /^(.+?):/         ){ it[1] } ?: ''
         final password   = ext.npmRemoteCache.find( /^.+?:(.+?)@/     ){ it[1] } ?: ''
