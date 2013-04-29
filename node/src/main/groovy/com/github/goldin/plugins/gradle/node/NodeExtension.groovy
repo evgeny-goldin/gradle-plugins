@@ -48,6 +48,10 @@ class NodeExtension
     List<String>  run                     = []    // Commands to execute by 'run' task, if defined application is not started or stopped
     List<String>  before                  = []    // Commands to execute before running unit tests or starting the application
     List<String>  after                   = []    // Commands to execute after running unit tests or stopping the application
+    List<String>  beforeStart             = []    // Commands to execute before starting the application
+    List<String>  afterStop               = []    // Commands to execute after stopping the application
+    List<String>  beforeTest              = []    // Commands to execute before running unit tests
+    List<String>  afterTest               = []    // Commands to execute after running unit tests
 
     int           redisPort               = -1    // Local Redis instance port number to start and stop
     String        redisPortConfigKey              // Config key holding Redis port number to start and stop

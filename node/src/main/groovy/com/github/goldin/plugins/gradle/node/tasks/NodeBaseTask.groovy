@@ -82,8 +82,14 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         ext.nodeVersion      = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
         ext.removeColorCodes = ( ext.removeColor ? " | $REMOVE_COLOR_CODES" : '' )
-        ext.before           = ext.before?.collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten()
-        ext.after            = ext.after?. collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten()
+
+        final echo      = { List<String> l -> l?.collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten() }
+        ext.before      = echo( ext.before )
+        ext.after       = echo( ext.after  )
+        ext.beforeStart = echo( ext.beforeStart )
+        ext.beforeTest  = echo( ext.beforeTest )
+        ext.afterStop   = echo( ext.afterStop )
+        ext.afterTest   = echo( ext.afterTest )
 
         addRedis()
         addMongo()
@@ -363,5 +369,13 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |echo $LOG_DELIMITER
         |
         """.stripMargin().toString().trim()
+    }
+
+
+    @Requires({ lists  != null })
+    @Ensures ({ result != null })
+    final List<String> add( List<String> ... lists )
+    {
+        lists.inject( [] ){ List<String> sum, List<String> l -> sum + ( l ?: [] ) }
     }
 }

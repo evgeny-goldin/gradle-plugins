@@ -20,13 +20,17 @@ class StartTask extends NodeBaseTask
 
         if ( ext.stopallBeforeStart || ext.stopBeforeStart )
         {   // "after" interceptor is not run when application is stopped before starting it
-            final after = ext.after
-            ext.after   = []
+            final after     = ext.after
+            final afterStop = ext.afterStop
+            ext.after       = []
+            ext.afterStop   = []
             runTask ( ext.stopallBeforeStart ? STOP_ALL_TASK : STOP_TASK )
-            ext.after   = after
+            ext.after       = after
+            ext.afterStop   = afterStop
         }
 
-        if ( ext.before ) { bashExec( commandsScript( ext.before ), taskScriptFile( true ), false, true, true, false, 'before start' ) }
+        if ( ext.before || ext.beforeStart ) { bashExec( commandsScript( add( ext.before, ext.beforeStart )),
+                                                         taskScriptFile( true ), false, true, true, false, 'before start' ) }
         bashExec( startScript())
 
         if ( ext.checkAfterStart        ) { runTask ( CHECK_STARTED_TASK )}
@@ -94,8 +98,10 @@ class StartTask extends NodeBaseTask
         |# Description:       Start $projectName at boot time
         |### END INIT INFO
         |
-        |su - $currentUser -c "${ ext.stopallBeforeStart ? taskScriptFile( false, false, STOP_ALL_TASK ).canonicalPath : ext.stopBeforeStart ? taskScriptFile( false, false, STOP_TASK ).canonicalPath : '' }"
-        |su - $currentUser -c "${ ext.before             ? taskScriptFile( true ).canonicalPath : '' }"
+        |su - $currentUser -c "${ ext.stopallBeforeStart ? taskScriptFile( false, false, STOP_ALL_TASK ).canonicalPath :
+                                  ext.stopBeforeStart    ? taskScriptFile( false, false, STOP_TASK ).canonicalPath :
+                                                           '' }"
+        |su - $currentUser -c "${ ( ext.before || ext.beforeStart ) ? taskScriptFile( true ).canonicalPath : '' }"
         |su - $currentUser -c "${ taskScriptFile().canonicalPath }"
         """.stripMargin().toString().trim())
 

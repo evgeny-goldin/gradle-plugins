@@ -21,7 +21,8 @@ class StopAllTask extends NodeBaseTask
         }
         finally
         {
-            if ( ext.after ) { bashExec( commandsScript( ext.after ), taskScriptFile( false, true ), false, true, true, false, 'after stopall' )}
+            if ( ext.after || ext.afterStop ) { bashExec( commandsScript( add( ext.after, ext.afterStop )),
+                                                          taskScriptFile( false, true ), false, true, true, false, 'after stopall' )}
         }
     }
 
