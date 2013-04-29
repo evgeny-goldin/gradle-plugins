@@ -548,7 +548,7 @@ abstract class BaseTask<T> extends DefaultTask
     {
         replacements.inject( getResource( resourcePath ).getText( charset )){
             String text, String pattern, String replacement ->
-            text.replace( "@{$pattern", replacement )
+            text.replace( "@{$pattern}", replacement )
         }
     }
 
