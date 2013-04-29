@@ -1,7 +1,6 @@
 package com.github.goldin.plugins.gradle.monitor
 
 import com.github.goldin.plugins.gradle.common.BaseTask
-import groovy.json.JsonSlurper
 import groovyx.gpars.GParsPool
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
@@ -83,7 +82,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Requires({ resource && resource.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }})
     private String processHttpResource ( String title, String resource )
     {
-        def ( String checkUrl, String checkStatusCode, String checkContent, String timeLimit ) = resource.tokenize( '|' )*.trim()
+        def ( String checkUrl, String checkStatusCode, String checkContent, String timeLimit, String user, String password ) = resource.tokenize( '|' )*.trim()
 
         assert checkUrl
         checkStatusCode = checkStatusCode ?: '200'
@@ -93,7 +92,9 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         log { "$url - expecting status code [$checkStatusCode] and content matching [$checkContent]" }
 
-        final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, null, false, false )
+        final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, null, false, false, true,
+                                                user ?: ext.user, password ?: ext.password )
+
         final responseStatusCode = response.statusCode.toString()
         final responseContent    = response.content ? new String( response.content, 'UTF-8' ) : ''
         final isMatch            = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent, ext.matchersDelimiter )

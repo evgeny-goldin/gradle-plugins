@@ -2,6 +2,8 @@ package com.github.goldin.plugins.gradle.monitor
 
 class MonitorExtension
 {
+    String              user
+    String              password
     File                resourcesFile
     List<String>        resourcesList
     String              matchersDelimiter = '*'
