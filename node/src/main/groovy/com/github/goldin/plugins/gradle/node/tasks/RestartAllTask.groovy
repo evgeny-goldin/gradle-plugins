@@ -24,7 +24,7 @@ class RestartAllTask extends NodeBaseTask
         """
         |echo ${ forever() } restartall
         |echo
-        |${ forever() } restartall${ ext.removeColorCodes }
+        |${ forever() } restartall ${ ext.removeColor ? '--plain' : '--colors' }${ ext.removeColorCodes }
         |${ listProcesses() }
         """.stripMargin().toString().trim()
     }

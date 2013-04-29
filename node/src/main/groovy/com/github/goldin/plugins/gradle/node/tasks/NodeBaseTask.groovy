@@ -195,7 +195,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     {
         """
         |${ startWithDelimiterLine ? "echo $LOG_DELIMITER" : '' }
-        |${ forever() } list${ ext.removeColorCodes }
+        |echo ${ forever() } list
+        |echo
+        |${ forever() } list ${ ext.removeColor ? '--plain' : '--colors' }${ ext.removeColorCodes }
         |echo $LOG_DELIMITER
         |echo \"ps -Af | grep node | grep -v grep\"
         |echo
