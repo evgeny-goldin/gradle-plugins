@@ -10,7 +10,7 @@ import org.gradle.api.file.CopySpec
 /**
  * {@link com.github.goldin.plugins.gradle.node.tasks.SetupTask} helper.
  */
-class SetupCacheHelper
+class NpmCacheHelper
 {
     private final BaseTask      task
     private final NodeExtension ext
@@ -18,7 +18,7 @@ class SetupCacheHelper
 
     @Requires({ task && ext })
     @Ensures ({ this.task && this.ext })
-    SetupCacheHelper ( BaseTask task, NodeExtension ext )
+    NpmCacheHelper ( BaseTask task, NodeExtension ext )
     {
         this.task = task
         this.ext  = ext
@@ -115,11 +115,14 @@ class SetupCacheHelper
 
         task.logger.info( "Downloading [$archiveUrl] to [$npmCacheArchive.canonicalPath] .." )
 
-        final response   = task.httpRequest( archiveUrl, 'GET', [:], 0, 0, null, false, true, true, map.user, map.password )
-
+        final response = task.httpRequest( archiveUrl, 'GET', [:], 0, 0, null, false, true, true, map.user, map.password )
         if ( ! (( response.statusCode == 200 ) && response.data )){ return }
 
-        npmCacheArchive.withOutputStream { OutputStream os -> os.write( response.data )}
+        final tempFile = task.project.file( npmCacheArchive.name )
+        tempFile.withOutputStream { OutputStream os -> os.write( response.data )}
+        assert tempFile.renameTo( npmCacheArchive ) && npmCacheArchive.file, \
+               "Failed to rename [$tempFile.canonicalPath] to [$npmCacheArchive.canonicalPath]"
+
         task.logger.info( "Downloaded [$archiveUrl] to [$npmCacheArchive.canonicalPath]" )
     }
 
@@ -130,15 +133,15 @@ class SetupCacheHelper
         final map        = readRemoteRepoUrl( npmCacheArchive )
         final archiveUrl = map.archiveUrl
 
-        if ( task.httpRequest( archiveUrl, 'HEAD', [:], 0, 0, null, false, false ).statusCode != 404 ) { return }
+        if ( task.httpRequest( archiveUrl, 'HEAD', [:], 0, 0, null, false, false, true, map.user, map.password ).
+             statusCode != 404 ) { return }
 
         task.logger.info( "Uploading [$npmCacheArchive.canonicalPath] to [$archiveUrl] .." )
 
-        task.httpRequest( archiveUrl, 'PUT', [:], 0, 0, null, true, true, true,
-                          map.user, map.password, npmCacheArchive.bytes )
+        task.httpRequest( archiveUrl, 'PUT', [:], 0, 0, null, true, true, true, map.user, map.password, npmCacheArchive.bytes )
 
-        assert ( task.httpRequest( archiveUrl, 'HEAD' ).statusCode == 200 ), \
-               "Failed to upload [$npmCacheArchive.canonicalPath] to [$archiveUrl]"
+        assert ( task.httpRequest( archiveUrl, 'HEAD', [:], 0, 0, null, false, true, true, map.user, map.password ).
+                 statusCode == 200 ), "Failed to upload [$npmCacheArchive.canonicalPath] to [$archiveUrl]"
 
         task.logger.info( "Uploaded [$npmCacheArchive.canonicalPath] to [$archiveUrl]" )
     }

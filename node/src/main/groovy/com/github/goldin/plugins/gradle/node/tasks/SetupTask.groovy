@@ -2,7 +2,7 @@ package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.node.ConfigHelper
-import com.github.goldin.plugins.gradle.node.SetupCacheHelper
+import com.github.goldin.plugins.gradle.node.NpmCacheHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import java.util.regex.Pattern
@@ -16,7 +16,7 @@ class SetupTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        final cacheHelper = new SetupCacheHelper( this, ext )
+        final cacheHelper = new NpmCacheHelper( this, ext )
 
         verifyGitAvailable()
         cleanWorkspace()
