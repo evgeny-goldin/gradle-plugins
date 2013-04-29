@@ -1,4 +1,4 @@
-#!/bin/bash
+#!@{shell}
 
 currentDir=`pwd`
 user=`whoami`

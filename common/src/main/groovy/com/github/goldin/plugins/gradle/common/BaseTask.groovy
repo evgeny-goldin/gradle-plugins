@@ -542,16 +542,14 @@ abstract class BaseTask<T> extends DefaultTask
      * @param charset to use when reading resource text content
      * @return resource text
      */
-    @Requires({ resourcePath && charset })
-    @Ensures ({ result != null })
+    @Requires({ resourcePath && ( replacements != null ) && charset })
+    @Ensures ({ ! (( result == null ) || result.contains( '@{' )) })
     final String getResourceText( String resourcePath, Map<String, String> replacements = [:], String charset = 'UTF-8' )
     {
-        final String result = replacements.inject( getResource( resourcePath ).getText( charset )){
-            String text, String pattern, String replacement -> text.replace( "@{$pattern}", replacement )
+        replacements.inject( getResource( resourcePath ).getText( charset )){
+            String text, String pattern, String replacement ->
+            text.replace( "@{$pattern", replacement )
         }
-
-        assert ( ! result.contains( '@{' ))
-        result
     }
 
 

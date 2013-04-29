@@ -7,6 +7,7 @@ class NodeExtension
     boolean      updated                  = false // Internal property, set to 'true' after extension is updated
     List<String> cleanWorkspaceCommands   = [ 'git checkout -f', 'git clean -dff' ]
     boolean      cleanWorkspace           = false // Whether to run cleanWorkspaceCommands before running tasks
+    String       shell                    = '/bin/bash'
     String       NODE_ENV                 = 'development'
     String       nodeVersion              = 'latest'
     String       testCommand              = 'mocha'

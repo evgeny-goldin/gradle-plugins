@@ -136,7 +136,7 @@ class SetupTask extends NodeBaseTask
 
     private void runSetupScript()
     {
-        final setupScript = getResourceText( 'setup.sh', [
+        final setupScript = resourceText( 'setup.sh', [
             nvmRepo            : NVM_GIT_REPO,
             nvmCommit          : NVM_COMMIT,
             LOG_DELIMITER      : LOG_DELIMITER,

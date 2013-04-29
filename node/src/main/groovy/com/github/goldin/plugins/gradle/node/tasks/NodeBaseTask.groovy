@@ -49,6 +49,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     void verifyUpdateExtension ( String description )
     {
         assert ext.NODE_ENV,            "'NODE_ENV' should be defined in $description"
+        assert ext.shell,               "'shell' should be defined in $description"
         assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
         assert ext.testCommand,         "'testCommand' should be defined in $description"
         assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
@@ -111,7 +112,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
             final redisRunning = """ "`redis-cli -p $redisPort ping 2>&1`" = "PONG"  """.trim()
             final isStartRedis = (( ext.redisStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopRedis  = (( ext.redisStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
-            final getScript    = { String scriptName -> getResourceText( scriptName,
+            final getScript    = { String scriptName -> resourceText( scriptName,
             [
                 redisPort        : redisPort,
                 redisRunning     : redisRunning,
@@ -140,7 +141,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
             final mongoRunning = """ ! $mongoEval =~ (command not found|connect failed|couldn\\'t connect to server) """.trim()
             final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopMongo  = (( ext.mongoStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
-            final getScript    = { String scriptName -> getResourceText( scriptName,
+            final getScript    = { String scriptName -> resourceText( scriptName,
             [
                 mongoPort        : mongoPort,
                 mongoRunning     : mongoRunning,
@@ -309,7 +310,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         delete( scriptFile )
 
         scriptContent = ( ext.transformers ?: [] ).inject(
-        """#!/bin/bash
+        """#!${ ext.shell }
         |
         |${ watchExitCodes    ? 'set -e'          : '' }
         |${ watchExitCodes    ? 'set -o pipefail' : '' }
@@ -370,6 +371,14 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |
         """.stripMargin().toString().trim()
     }
+
+
+    @Requires({ resourcePath && ( replacements != null ) })
+    final resourceText( String resourcePath, Map<String, String> replacements = [:] )
+    {
+        getResourceText( resourcePath, replacements + [ shell : ext.shell ])
+    }
+
 
 
     @Requires({ lists  != null })

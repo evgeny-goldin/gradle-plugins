@@ -86,7 +86,7 @@ class StartTask extends NodeBaseTask
         final currentUser   = exec( 'whoami' )
 
         startupScript.write(
-        """#!/bin/bash
+        """#!${ ext.shell }
         |
         |### BEGIN INIT INFO
         |# Provides:          $projectName
