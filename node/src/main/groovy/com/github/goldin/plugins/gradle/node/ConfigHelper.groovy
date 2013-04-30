@@ -92,7 +92,7 @@ class ConfigHelper
                 }
             }
 
-            final configContent            = ( configFile.file ? configFile.getText( 'UTF-8' )   : ''  )
+            final configContent            = ( configFile.file ? configFile.getText( 'UTF-8' )               : ''  )
             final Map<String,?> configData = ( configFile.file ? task.jsonToMap( configContent, configFile ) : [:] )
             assert ( configData || ( ! configFile.file )), "No configuration data was read from [$configFile.canonicalPath]"
 

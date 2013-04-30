@@ -701,30 +701,65 @@ abstract class BaseTask<T> extends DefaultTask
     }
 
 
+    /**
+     * Converts file provided to Json {@code Map}.
+     */
+    @Requires({ file.file })
+    @Ensures ({ result != null })
+    final Map<String,?> jsonToMap ( File file )
+    {
+        jsonToMap( file.getText( 'UTF-8' ).trim(), file )
+    }
+
+
+    /**
+     * Converts content provided to Json {@code Map}.
+     */
     @Requires({ content })
     @Ensures ({ result != null })
     final Map<String,?> jsonToMap ( String content, File origin = null )
     {
-        try { new ObjectMapper().readValue( content, Map )}
-        catch ( e ){ throw new GradleException(
-                     """
-                     |Failed to parse the following JSON content${ origin ? ' coming from file:' + origin.canonicalPath : '' } into Map
-                     |-----------------------------------------------
-                     |$content
-                     |-----------------------------------------------
-                     |Consult http://jsonlint.com/.
-                     """.stripMargin().toString().trim(), e )}
+        try
+        {
+            assert content.trim().with { startsWith( '{' ) && endsWith( '}' ) }
+            new ObjectMapper().readValue( content, Map )
+        }
+        catch ( Throwable e ){ throw new GradleException(
+            """
+            |Failed to parse the following JSON content${ origin ? ' coming from file:' + origin.canonicalPath : '' } into Map
+            |-----------------------------------------------
+            |$content
+            |-----------------------------------------------
+            |Consult http://jsonlint.com/.
+            """.stripMargin().toString().trim(), e )}
     }
 
 
+    /**
+     * Converts object provided to Json {@code String} writing it to file, if specified.
+     */
     @Ensures ({ result })
-    final String objectToJson ( Object o )
+    final String objectToJson ( Object o, File file = null )
     {
-        try { new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString( o ) }
+        try
+        {
+            final json = new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString( o )
+
+            if ( file )
+            {
+                file.parentFile.with { File f -> assert  ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
+                file.write( json, 'UTF-8' )
+            }
+
+            json
+        }
         catch ( e ) { throw new GradleException( "Failed to convert [$o] to JSON", e )}
     }
 
 
+    /**
+     * Calculates checksum of content provided.
+     */
     @Requires({ s && algorithm })
     final String checksum( String s, String algorithm = 'SHA-1' )
     {
@@ -736,6 +771,10 @@ abstract class BaseTask<T> extends DefaultTask
         toString()
     }
 
+
+    /**
+     * Retrieves machine's local host name.
+     */
     @Ensures({ result != null })
     final String hostname()
     {

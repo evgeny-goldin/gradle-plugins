@@ -28,6 +28,7 @@ class NodeExtension
     boolean      checkAfterStopall        = true  // Whether 'checkStopped' should run after 'stopall'
     boolean      npmCleanInstall          = false // Internal property, whether 'npm install' was run on a clean directory
     boolean      npmLocalCache            = false // Whether results of 'npm install' are cached locally
+    boolean      npmInstallDevDependencies = true // Whether 'devDependencies' should be installed when "npm install" is running
     String       npmRemoteCache           = ''    // Remote repo URL for storing 'npm install' cache archives
     File         startupScriptDirectory           // A directory to store the startup script that will restart the application upon reboot
     boolean      pidOnlyToStop            = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations

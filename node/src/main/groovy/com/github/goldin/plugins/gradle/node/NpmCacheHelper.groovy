@@ -25,8 +25,11 @@ class NpmCacheHelper
     }
 
 
+    @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
     void restoreNodeModulesFromCache ()
     {
+        if ( ! ext.npmLocalCache ){ return }
+
         final nodeModules = new File ( task.projectDir, 'node_modules' )
         if ( nodeModules.directory ) { return }
 
@@ -41,6 +44,8 @@ class NpmCacheHelper
     @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
     void createNodeModulesCache ()
     {
+        if ( ! ext.npmLocalCache ){ return }
+
         final nodeModules = new File ( task.projectDir, 'node_modules' )
         if ( ! ( nodeModules.directory && ext.npmCleanInstall )) { return }
 
@@ -95,7 +100,7 @@ class NpmCacheHelper
         final packageJson = task.project.file( PACKAGE_JSON )
         if ( ! packageJson.file ) { return '' }
 
-        final Map<String,?> packageMap      = task.jsonToMap( packageJson.getText( 'UTF-8' ), packageJson )
+        final Map<String,?> packageMap      = task.jsonToMap( packageJson )
         final Map<String,?> dependenciesMap = ( packageMap.dependencies ?: [:] ) + ( packageMap.devDependencies ?: [:] )
         if ( ! dependenciesMap ){ return '' }
 
@@ -107,7 +112,7 @@ class NpmCacheHelper
     }
 
 
-    @Requires({ npmCacheArchive && ( ! npmCacheArchive.file ) && ext.npmRemoteCache })
+    @Requires({ npmCacheArchive && ( ! npmCacheArchive.file ) && ext.npmLocalCache && ext.npmRemoteCache })
     private void downloadRemoteArchive( File npmCacheArchive )
     {
         final map        = readRemoteRepoUrl( npmCacheArchive )
@@ -127,7 +132,7 @@ class NpmCacheHelper
     }
 
 
-    @Requires({ npmCacheArchive && npmCacheArchive.file && ext.npmRemoteCache })
+    @Requires({ npmCacheArchive && npmCacheArchive.file && ext.npmLocalCache && ext.npmRemoteCache })
     private void uploadLocalArchive ( File npmCacheArchive )
     {
         final map        = readRemoteRepoUrl( npmCacheArchive )
@@ -170,7 +175,7 @@ class NpmCacheHelper
     @Requires({ packageJson.file })
     private void updatePackageJson( File packageJson )
     {
-        final packageJsonMap     = task.jsonToMap( packageJson.getText( 'UTF-8' ), packageJson )
+        final packageJsonMap     = task.jsonToMap( packageJson )
 
         packageJsonMap.cacheData = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
         packageJsonMap.timestamp = task.dateFormatter.format( new Date())
@@ -180,6 +185,6 @@ class NpmCacheHelper
         packageJsonMap.origin    = task.gitExec( 'remote -v', task.projectDir ).readLines().find { it.startsWith( 'origin' )}.split()[ 1 ]
         packageJsonMap.sha       = task.gitExec( 'log -1 --format=format:%H', task.projectDir )
 
-        packageJson.setText( task.objectToJson( packageJsonMap ), 'UTF-8' )
+        task.objectToJson( packageJsonMap, packageJson )
     }
 }

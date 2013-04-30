@@ -16,27 +16,43 @@ class SetupTask extends NodeBaseTask
     @Override
     void taskAction()
     {
+        verifyToolsAvailable([ 'git --version', 'tar --version', "$ext.shell --version", 'whoami' ])
+
+        cleanWorkspace()
+
+        ext.configsResult = updateConfigs()
+
+        makeReplacements()
+
+        removeDevDependencies( project.file( PACKAGE_JSON ))
+
         final cacheHelper = new NpmCacheHelper( this, ext )
 
-        verifyGitAvailable()
-        cleanWorkspace()
-        ext.configsResult = updateConfigs()
-        makeReplacements()
-        if ( ext.npmLocalCache ){ cacheHelper.restoreNodeModulesFromCache() }
+        cacheHelper.restoreNodeModulesFromCache()
+
         runSetupScript()
-        if ( ext.npmLocalCache ){ cacheHelper.createNodeModulesCache() }
+
+        cacheHelper.createNodeModulesCache()
     }
 
 
-    private cleanWorkspace()
+    @Requires({ tools })
+    private void verifyToolsAvailable( List<String> tools )
     {
-        if ( ext.cleanWorkspace )
+        for ( tool in tools )
         {
-            for ( command in ext.cleanWorkspaceCommands )
-            {
-                final commandSplit = command.trim().tokenize()
-                exec( commandSplit.head(), commandSplit.tail(), projectDir )
-            }
+            tool.trim().tokenize().with { List<String> l -> exec( l.head(), l.tail(), projectDir ) }
+        }
+    }
+
+
+    private void cleanWorkspace()
+    {
+        if ( ! ext.cleanWorkspace ){ return }
+
+        for ( command in ext.cleanWorkspaceCommands )
+        {
+            command.trim().tokenize().with{ List<String> l -> exec( l.head(), l.tail(), projectDir ) }
         }
     }
 
@@ -131,6 +147,19 @@ class SetupTask extends NodeBaseTask
                 write( replaceFile, content )
             }
         }
+    }
+
+
+    @Requires({ packageJson })
+    private void removeDevDependencies( File packageJson )
+    {
+        if ( ext.npmInstallDevDependencies || ( ! packageJson.file )){ return }
+
+        final  packageJsonMap = jsonToMap( packageJson )
+        if ( ! packageJsonMap.containsKey( 'devDependencies' )){ return }
+
+        packageJsonMap.remove( 'devDependencies' )
+        objectToJson( packageJsonMap, packageJson )
     }
 
 
