@@ -283,30 +283,30 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
-     * Executes the script specified as bash command.
+     * Executes the script specified as shell command.
      *
-     * @param scriptContent     content to run as bash script
-     * @param scriptFile        script file to create
-     * @param watchExitCodes    whether script exit codes need to be monitored (by adding set -e/set -o pipefail)
-     * @param addBaseBashScript whether a base bash script should be added (sets up environment variables)
-     * @param failOnError       whether execution should fail if bash execution results in non-zero value
-     * @param useGradleExec     whether Gradle (true) or Ant (false) exec is used
-     * @param operationTitle    title to display before the operation starts (if addBaseBashScript is true)
-     * @param logLevel          log level to use for bash output
+     * @param scriptContent  content to run as shell script
+     * @param scriptFile     script file to create
+     * @param watchExitCodes whether script exit codes need to be monitored (by adding set -e/set -o pipefail)
+     * @param addBaseScript  whether a base script should be added (sets up environment variables)
+     * @param failOnError    whether execution should fail if shell execution results in non-zero value
+     * @param useGradleExec  whether Gradle (true) or Ant (false) exec is used
+     * @param operationTitle title to display before the operation starts (if addBaseScript is true)
+     * @param logLevel       log level to use for shell output
      *
-     * @return bash output or empty String if bash was generated but not executed or
+     * @return shell output
      */
     @Requires({ scriptContent && scriptFile })
     @Ensures ({ result != null })
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter', 'GroovyMethodParameterCount' ])
-    final String bashExec( String   scriptContent,
-                           File     scriptFile        = taskScriptFile(),
-                           boolean  watchExitCodes    = true,
-                           boolean  addBaseBashScript = true,
-                           boolean  failOnError       = true,
-                           boolean  useGradleExec     = true,
-                           String   operationTitle    = this.name,
-                           LogLevel logLevel          = LogLevel.INFO )
+    final String shellExec ( String   scriptContent,
+                             File     scriptFile     = taskScriptFile(),
+                             boolean  watchExitCodes = true,
+                             boolean  addBaseScript  = true,
+                             boolean  failOnError    = true,
+                             boolean  useGradleExec  = true,
+                             String   operationTitle = this.name,
+                             LogLevel logLevel       = LogLevel.INFO )
     {
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
         delete( scriptFile )
@@ -320,7 +320,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         |echo "cd $Q${ projectDir.canonicalPath }$Q"
         |cd "${ projectDir.canonicalPath }"
         |
-        |${ addBaseBashScript ? baseBashScript( operationTitle ) : '' }
+        |${ addBaseScript ? baseScript( operationTitle ) : '' }
         |
         |${ scriptContent }
         """.stripMargin().toString().trim().
@@ -331,7 +331,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         write( scriptFile, scriptContent.trim())
 
-        log( LogLevel.INFO ){ "Bash script created at [$scriptFile.canonicalPath], size [${ scriptFile.length() }] bytes" }
+        log( LogLevel.INFO ){ "Shell script created at [$scriptFile.canonicalPath], size [${ scriptFile.length() }] bytes" }
 
         if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ]) }
 
@@ -340,11 +340,11 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
-     * Retrieves base part of the bash script to be used by various tasks.
+     * Retrieves base part of the shell script to be used by various tasks.
      */
     @Requires({ operationTitle })
     @Ensures ({ result })
-    private String baseBashScript ( String operationTitle )
+    private String baseScript ( String operationTitle )
     {
         final  binFolder = project.file( MODULES_BIN_DIR ).canonicalFile
         assert binFolder.directory, "Directory [$binFolder.canonicalPath] is not available"

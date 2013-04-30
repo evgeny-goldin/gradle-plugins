@@ -16,13 +16,13 @@ class StopAllTask extends NodeBaseTask
 
         try
         {
-            bashExec( stopallScript())
+            shellExec( stopallScript())
             if ( ext.checkAfterStopall ) { runTask ( CHECK_STOPPED_TASK )}
         }
         finally
         {
-            if ( ext.after || ext.afterStop ) { bashExec( commandsScript( add( ext.after, ext.afterStop )),
-                                                          taskScriptFile( false, true ), false, true, true, false, 'after stopall' )}
+            if ( ext.after || ext.afterStop ) { shellExec( commandsScript( add( ext.after, ext.afterStop )),
+                                                           taskScriptFile( false, true ), false, true, true, false, 'after stopall' )}
         }
     }
 

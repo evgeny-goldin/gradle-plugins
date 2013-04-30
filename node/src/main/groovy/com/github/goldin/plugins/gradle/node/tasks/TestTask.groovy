@@ -15,8 +15,8 @@ class TestTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        if ( ext.before || ext.beforeTest ) { bashExec( commandsScript( add( ext.before, ext.beforeTest )),
-                                                        taskScriptFile( true ), false, true, true, false, 'before test' ) }
+        if ( ext.before || ext.beforeTest ) { shellExec( commandsScript( add( ext.before, ext.beforeTest )),
+                                                         taskScriptFile( true ), false, true, true, false, 'before test' ) }
 
         try
         {
@@ -24,15 +24,15 @@ class TestTask extends NodeBaseTask
         }
         finally
         {
-            if ( ext.after || ext.afterTest ) { bashExec( commandsScript( add ( ext.after, ext.afterTest )),
-                                                          taskScriptFile( false, true ), false, true, true, false, 'after test' )}
+            if ( ext.after || ext.afterTest ) { shellExec( commandsScript( add ( ext.after, ext.afterTest )),
+                                                           taskScriptFile( false, true ), false, true, true, false, 'after test' )}
         }
     }
 
 
     private void runTests ()
     {
-        final testReport = bashExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), taskScriptFile(), true, true, false )
+        final testReport = shellExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), taskScriptFile(), true, true, false )
 
         if ( testReport.contains( 'no such file or directory \'test.js\'' ))
         {

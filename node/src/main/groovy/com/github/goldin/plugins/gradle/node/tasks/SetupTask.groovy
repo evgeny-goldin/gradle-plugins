@@ -175,6 +175,6 @@ class SetupTask extends NodeBaseTask
             forever            : FOREVER_EXECUTABLE
         ])
 
-        bashExec( setupScript, taskScriptFile(), false, false )
+        shellExec( setupScript, taskScriptFile(), false, false )
     }
 }

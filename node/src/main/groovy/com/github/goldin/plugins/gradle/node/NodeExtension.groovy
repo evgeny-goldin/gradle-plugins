@@ -43,7 +43,7 @@ class NodeExtension
     int          checkWait                = 5     // Seconds to wait after starting/stopping the application and checking it
     int          checkTimeout             = 10    // Seconds to wait for check test to succeed or fail (timeout)
 
-    List<Closure> transformers            = []    // Callbacks to invoke after every bash script is generated
+    List<Closure> transformers            = []    // Callbacks to invoke after every shell script is generated
     String        scriptPath
     List<String>  knownScriptPaths        = 'server.js server.coffee app.js app.coffee'.tokenize().asImmutable()
     String        scriptArguments         = ''    // Additional script arguments

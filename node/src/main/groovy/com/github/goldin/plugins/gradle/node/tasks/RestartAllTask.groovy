@@ -13,7 +13,7 @@ class RestartAllTask extends NodeBaseTask
     void taskAction()
     {
         if ( ext.run ) { log{ 'Doing nothing - "run" commands specified' }; return }
-        bashExec( restartallScript())
+        shellExec( restartallScript())
         if ( ext.checkAfterRestartall ) { runTask ( CHECK_STARTED_TASK )}
     }
 
