@@ -24,10 +24,6 @@ _p_.logger.info( "TeamCity version is [$_teamCityVersion_]" )
 
 
 buildscript {
-    /**
-     * Gradle repositories and plugin coordinates.
-     * Has no effect when applied from external resource, this section should appear in master "build.gradle".
-     */
     repositories {
         maven { url 'http://jcenter.bintray.com' }
         maven { url 'http://dl.bintray.com/content/evgenyg/BuildTools' }
