@@ -23,7 +23,7 @@ List codenarcRuleSetFilesConverted = codenarcRuleSetFiles.findAll{ it }.collect 
 repositories   { maven { url 'http://jcenter.bintray.com/' }}
 configurations { codenarc }
 dependencies   {
-    codenarc 'org.apache.ant:ant-launcher:1.9.0',
+    codenarc 'org.apache.ant:ant:1.9.0',
              'org.codehaus.groovy:groovy-all:2.1.3',
              'org.gmetrics:GMetrics:0.6',
              'junit:junit:4.11',
