@@ -49,7 +49,7 @@ abstract class BasePlugin implements Plugin<Project>
 
         final extension    = project.extensions.findByName( extensionName ) ?:
                              project.extensions.create    ( extensionName, extensionClass )
-        final task         = project.tasks.create( taskName, taskClass )
+        final task         = project.tasks.add( taskName, taskClass )
         task.ext           = extension
         task.extensionName = extensionName
 
