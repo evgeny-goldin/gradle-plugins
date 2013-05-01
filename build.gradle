@@ -21,8 +21,8 @@ buildscript {
         maven { url 'http://dl.bintray.com/content/evgenyg/BuildTools' }
     }
     dependencies {
-        classpath 'com.github.goldin.plugins.gradle:about:0.2.4',
-                  'com.github.goldin.plugins.gradle:duplicates:0.2.4'
+        classpath 'com.github.goldin.plugins.gradle:about:0.2.6',
+                  'com.github.goldin.plugins.gradle:duplicates:0.2.6'
     }
 }
 
