@@ -12,7 +12,7 @@ ext.codenarcSources      = project.subprojects.collect{ Project p -> [ "${ p.pro
                                                                        "${ p.projectDir.name }/src/test/groovy" ]}.flatten()
 
 apply from: 'file:codenarc/CodeNarc.gradle'
-apply from: 'http://evgenyg.artifactoryonline.com/evgenyg/libs-releases-local/wrapper.gradle'
+apply from: 'file:wrapper.gradle'
 
 
 buildscript {
