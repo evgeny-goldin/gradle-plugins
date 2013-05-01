@@ -22,7 +22,21 @@ List codenarcRuleSetFilesConverted = codenarcRuleSetFiles.findAll{ it }.collect 
 
 repositories   { maven { url 'http://jcenter.bintray.com/' }}
 configurations { codenarc }
-dependencies   { codenarc ( "org.codenarc:CodeNarc:$codenarcVersion" ){ exclude group: 'ant' }}
+dependencies   {
+    codenarc 'org.apache.ant:ant-launcher:1.9.0',
+             'org.codehaus.groovy:groovy-all:2.1.3',
+             'org.gmetrics:GMetrics:0.6',
+             'junit:junit:4.11',
+             'log4j:log4j:1.2.17',
+    codenarc ( "org.codenarc:CodeNarc:$codenarcVersion" ){
+        exclude group: 'log4j'
+        exclude group: 'junit'
+        exclude group: 'ant'
+        exclude group: 'org.apache.ant'
+        exclude group: 'org.codehaus.groovy'
+        exclude group: 'org.gmetrics'
+    }
+}
 
 
 /**
