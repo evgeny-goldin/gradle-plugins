@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.gitdump
 
 import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.common.JsonHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
@@ -99,7 +100,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
                        ( ext.githubUser && ext.githubPassword ) ? '/user/repos' :
                                                                   "/users/${ ext.githubUser }/repos"
 
-        final json = jsonMap( "https://api.github.com${ repos }?per_page=100000", ext.githubUser, ext.githubPassword )
+        final json = jsonMaps( "https://api.github.com${ repos }?per_page=100000", ext.githubUser, ext.githubPassword )
         json.collect { Map m -> ext.githubUseSshUrl ? m.ssh_url : m.git_url }
     }
 
@@ -111,7 +112,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         /**
          * https://confluence.atlassian.com/display/BITBUCKET/user+Endpoint#userEndpoint-GETalistofrepositoriesvisibletoanaccount
          */
-        final json = jsonMap( 'https://api.bitbucket.org/1.0/user/repositories', ext.bitbucketUser, ext.bitbucketPassword )
+        final json = jsonMaps( 'https://api.bitbucket.org/1.0/user/repositories', ext.bitbucketUser, ext.bitbucketPassword )
 
         json.collect { Map m              -> m.resource_uri }.
              findAll { String resource    -> resource.contains( "/repositories/${ ext.bitbucketUser }/" ) }.
@@ -122,15 +123,14 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 
     @Requires({ url })
     @Ensures ({ result != null })
-    private List<Map<String,?>> jsonMap ( String url, String username, String password )
+    private List<Map<String,?>> jsonMaps ( String url, String username, String password )
     {
         log { "Reading [$url]" }
 
         final response = httpRequest( url, 'GET', [:], 15000, 15000, { false }, true, true, false, username, password )
-        final object   = jsonToMap( response.inputStream.getText( 'UTF-8' ))
-
-        assert (( object instanceof List ) && ( object.every { it instanceof Map } ))
-        ( List<Map<String,?>> ) object
+        final list     = new JsonHelper().jsonToObject( response.inputStream.getText( 'UTF-8' ), List )
+        assert list.every { it instanceof Map }
+        list
     }
 
 
