@@ -10,7 +10,6 @@ import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLSession
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.regex.Pattern
 
 
 /**
@@ -97,7 +96,8 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         final responseStatusCode = response.statusCode.toString()
         final responseContent    = response.content ? new String( response.content, 'UTF-8' ) : ''
-        final isMatch            = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent, ext.matchersDelimiter )
+        final isMatch            = ( responseStatusCode == checkStatusCode ) &&
+                                   contentMatches( responseContent, checkContent, ext.matchersDelimiter )
         final isTimeMatch        = ( response.timeMillis <= ( timeLimit as long ))
 
         log { "$url - [${ response.timeMillis }] ms" }
@@ -148,29 +148,5 @@ class MonitorTask extends BaseTask<MonitorExtension>
         {
             ''
         }
-    }
-
-
-    @SuppressWarnings([ 'GroovyAssignmentToForLoopParameter' ])
-    @Requires({ ( content != null ) && ( patterns != null ) })
-    static boolean contentMatches( String content, String patterns, String matchersDelimiter )
-    {
-        final matchersList = matchersDelimiter ? patterns.tokenize( matchersDelimiter ) : [ patterns ]
-        for ( matcher in matchersList*.trim())
-        {
-            final positiveMatch = ( ! matcher.startsWith( '-' ))
-            matcher             = positiveMatch ? matcher : matcher[ 1 .. -1 ]
-            final regexMatch    = matcher.with { startsWith( '/' ) && endsWith( '/' ) }
-            final jsonMatch     = matcher.with { startsWith( '{' ) && endsWith( '}' ) } ||
-                                  matcher.with { startsWith( '[' ) && endsWith( ']' ) }
-            matcher             = regexMatch    ? matcher[ 1 .. -2 ] : matcher
-            final isMatch       = regexMatch    ? Pattern.compile ( matcher ).matcher( content ).find() :
-                                  jsonMatch     ? new JsonMatcher().contains( content, matcher ) :
-                                                  content.contains( matcher )
-
-            if ( positiveMatch ? ( ! isMatch ) : isMatch ) { return false }
-        }
-
-        true
     }
 }

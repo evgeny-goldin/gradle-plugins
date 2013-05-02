@@ -32,6 +32,8 @@ abstract class BaseTask<T> extends DefaultTask
     final isMac              = osName.contains( 'mac os'  )
     final projectName        = project.name.replaceAll( ~/^.*\//, '' )
     final projectDir         = project.projectDir
+    final jsonHelper         = new JsonHelper()
+    final matcherHelper      = new MatcherHelper()
 
     /**
      * Retrieves task's extension type in run-time
@@ -702,62 +704,6 @@ abstract class BaseTask<T> extends DefaultTask
 
 
     /**
-     * Converts file provided to Json {@code Map}.
-     */
-    @Requires({ file.file })
-    @Ensures ({ result != null })
-    final Map<String,?> jsonToMap ( File file )
-    {
-        jsonToMap( file.getText( 'UTF-8' ).trim(), file )
-    }
-
-
-    /**
-     * Converts content provided to Json {@code Map}.
-     */
-    @Requires({ content })
-    @Ensures ({ result != null })
-    final Map<String,?> jsonToMap ( String content, File origin = null )
-    {
-        try
-        {
-            assert content.trim().with { startsWith( '{' ) && endsWith( '}' ) }
-            new ObjectMapper().readValue( content, Map )
-        }
-        catch ( Throwable e ){ throw new GradleException(
-            """
-            |Failed to parse the following JSON content${ origin ? ' coming from file:' + origin.canonicalPath : '' } into Map
-            |-----------------------------------------------
-            |$content
-            |-----------------------------------------------
-            |Consult http://jsonlint.com/.
-            """.stripMargin().toString().trim(), e )}
-    }
-
-
-    /**
-     * Converts object provided to Json {@code String} writing it to file, if specified.
-     */
-    @Ensures ({ result })
-    final String objectToJson ( Object o, File file = null )
-    {
-        try
-        {
-            final json = new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString( o )
-
-            if ( file )
-            {
-                file.parentFile.with { File f -> assert  ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
-                file.write( json, 'UTF-8' )
-            }
-
-            json
-        }
-        catch ( e ) { throw new GradleException( "Failed to convert [$o] to JSON", e )}
-    }
-
-
-    /**
      * Calculates checksum of content provided.
      */
     @Requires({ s && algorithm })
@@ -780,5 +726,17 @@ abstract class BaseTask<T> extends DefaultTask
     {
         try { System.getenv( 'COMPUTERNAME' ) ?: System.getenv( 'HOSTNAME' ) ?: exec( 'hostname' ) ?: '' }
         catch( Throwable ignored ){ 'Unknown' }
+    }
+
+
+    final Map<String,?> jsonToMap ( File file ) { jsonHelper.jsonToMap( file )}
+
+    final Map<String,?> jsonToMap ( String content, File origin = null ) { jsonHelper.jsonToMap( content, origin )}
+
+    final String objectToJson ( Object o, File file = null ){ jsonHelper.objectToJson ( o, file )}
+
+    final boolean contentMatches( String content, String patterns, String matchersDelimiter )
+    {
+        matcherHelper.contentMatches( content, patterns, matchersDelimiter )
     }
 }

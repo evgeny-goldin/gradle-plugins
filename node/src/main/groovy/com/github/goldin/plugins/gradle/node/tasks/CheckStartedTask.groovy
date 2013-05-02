@@ -17,7 +17,7 @@ class CheckStartedTask extends NodeBaseTask
 
         final response       = httpRequest( ext.checkUrl, 'GET', [:], ext.checkTimeout * 500, ext.checkTimeout * 500, null, false )
         final content        = response.content ? new String( response.content, 'UTF-8' ) : ''
-        final isGoodResponse = ( response.statusCode == ext.checkStatusCode ) && ( content.contains( ext.checkContent ))
+        final isGoodResponse = ( response.statusCode == ext.checkStatusCode ) && contentMatches( content, ext.checkContent, '*' )
         final resultMessage  = "Connecting to [$ext.checkUrl] resulted in " +
                                (( response.statusCode instanceof Integer ) ? "status code [$response.statusCode]" :
                                                                              "'$response.statusCode'" ) //  If not Integer then it's an error

@@ -1,7 +1,6 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
-import groovy.json.JsonSlurper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
@@ -54,7 +53,7 @@ class StartTask extends NodeBaseTask
         {
             final  executableFile = project.file( executable ).canonicalFile
             assert executableFile.file, \
-                   "[$executableFile.canonicalPath] is not available, make sure \"coffee-script\" dependency appears in \"${ PACKAGE_JSON }\" => \"devDependencies\"\""
+                   "[$executableFile.canonicalPath] is not available, make sure \"coffee-script\" dependency appears in \"${ PACKAGE_JSON }\""
         }
 
         """
@@ -70,7 +69,7 @@ class StartTask extends NodeBaseTask
     @Requires({ ext.printUrl })
     void printApplicationUrls ()
     {
-        final String externalIp  = (( Map ) new JsonSlurper().parseText( 'http://jsonip.com/'.toURL().text )).ip
+        final String externalIp  = jsonToMap ( 'http://jsonip.com/'.toURL().text ).ip
         final String internalUrl = "http://127.0.0.1:${ ext.portNumber }${   ext.printUrl == '/' ? '' : ext.printUrl }"
         final String externalUrl = "http://$externalIp:${ ext.portNumber }${ ext.printUrl == '/' ? '' : ext.printUrl }"
 

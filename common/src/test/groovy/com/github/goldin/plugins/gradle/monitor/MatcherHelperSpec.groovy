@@ -1,20 +1,23 @@
 package com.github.goldin.plugins.gradle.monitor
 
 import com.github.goldin.plugins.gradle.common.BaseSpecification
+import com.github.goldin.plugins.gradle.common.MatcherHelper
 
 
 /**
- * {@link MonitorTask} test spec.
+ * {@link MatcherHelper} test spec.
  */
-class MonitorTaskSpec extends BaseSpecification
+class MatcherHelperSpec extends BaseSpecification
 {
     def 'Content matches single matcher' ()
     {
         expect:
-        MonitorTask.contentMatches( content, pattern, '' )
+        new MatcherHelper().contentMatches( content, pattern, '' )
 
         where:
         content | pattern
+        ''      | ''
+        'aaaaa' | ''
         'aaaaa' | 'a'
         'aaaaa' | 'aa'
         'aaaaa' | 'aaa'
@@ -37,10 +40,12 @@ class MonitorTaskSpec extends BaseSpecification
     def 'Content matches multiple matchers' ()
     {
         expect:
-        MonitorTask.contentMatches( content, pattern, '*' )
+        new MatcherHelper().contentMatches( content, pattern, '*' )
 
         where:
         content | pattern
+        ''      | '*******'
+        'aaaaa' | '*******'
         'aaaaa' | 'a*-b*-c*/a/*-/c/'
         'aaaaa' | '-b*-1234*/^a+$/*'
         'aaaaa' | '/^a{5}$/*-/^b{5}$/*-/\\d/'
@@ -52,7 +57,7 @@ class MonitorTaskSpec extends BaseSpecification
     def 'Content matches JSON matchers' ()
     {
         expect:
-        MonitorTask.contentMatches( content, pattern, '*' )
+        new MatcherHelper().contentMatches( content, pattern, '*' )
 
         where:
         content | pattern
