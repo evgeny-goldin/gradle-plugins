@@ -4,6 +4,7 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import java.lang.reflect.Method
 
 
 /**
@@ -37,8 +38,8 @@ abstract class BasePlugin implements Plugin<Project>
     }
 
 
-    @Requires({ project && taskName && taskClass })
-    <T extends BaseTask> T addTask( Project project, String taskName, Class<T> taskClass )
+    @Requires({ project && taskName && taskType })
+    <T extends BaseTask> T addTask( Project project, String taskName, Class<T> taskType )
     {
         final  extensions = extensions( project )
         assert extensions.size() == 1
@@ -49,7 +50,8 @@ abstract class BasePlugin implements Plugin<Project>
 
         final extension    = project.extensions.findByName( extensionName ) ?:
                              project.extensions.create    ( extensionName, extensionClass )
-        final task         = project.tasks.add( taskName, taskClass )
+        final isCreate     = project.tasks.class.methods.any { Method m -> ( m.name == 'create' ) && ( m.parameterTypes == [ String, Class ] )}
+        final task         = ( T ) project.tasks."${ isCreate ? 'create' : 'add' }"( taskName, taskType )
         task.ext           = extension
         task.extensionName = extensionName
 
