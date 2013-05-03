@@ -1,7 +1,6 @@
 package com.github.goldin.plugins.gradle.gitdump
 
 import com.github.goldin.plugins.gradle.common.BaseTask
-import com.github.goldin.plugins.gradle.common.JsonHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
@@ -13,6 +12,16 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
 {
     @Override
     Class extensionType (){ GitDumpExtension }
+
+
+    @Requires({ dir })
+    @Ensures({ ( result == dir ) && ( result.directory ) && ( ! result.list())})
+    private File makeEmptyDirectory( File dir )
+    {
+        delete( dir )
+        project.mkdir( dir )
+    }
+
 
     @Ensures({ result })
     private String lastCommitAllBranches   ( File projectDirectory ){ gitExec( 'log -1 --all --format=format:%H', projectDirectory )}
@@ -127,8 +136,8 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     {
         log { "Reading [$url]" }
 
-        final response = httpRequest( url, 'GET', [:], 15000, 15000, { false }, true, true, false, username, password )
-        final list     = new JsonHelper().jsonToObject( response.inputStream.getText( 'UTF-8' ), List )
+        final  response = httpRequest( url, 'GET', [:], 15000, 15000, { false }, true, true, false, username, password )
+        final  list     = jsonToList ( new String( response.content, 'UTF-8' ))
         assert list.every { it instanceof Map }
         list
     }

@@ -121,7 +121,7 @@ class SetupTask extends NodeBaseTask
             replacesMap.each {
                 String replacePath, Map replaces ->
 
-                final replaceFile    = file( replacePath )
+                final replaceFile = file( replacePath )
 
                 log{ "Updating [$replaceFile.canonicalPath] using replacements Map $replaces" }
 

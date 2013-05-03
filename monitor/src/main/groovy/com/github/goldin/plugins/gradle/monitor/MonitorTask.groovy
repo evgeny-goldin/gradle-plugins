@@ -69,12 +69,14 @@ class MonitorTask extends BaseTask<MonitorExtension>
     {
         def ( String title, String resource ) = line.contains( '=>' ) ? line.split( /\s*=>\s*/ ) : [ '', line ]
 
-        final isHttpResource = resource.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }
-        final isNmapResource = resource.toLowerCase().startsWith( 'nmap://' )
+        final isHttpResource       = resource.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }
+        final isNmapResource       = resource.toLowerCase().startsWith( 'nmap://' )
+        final isStatusCakeResource = resource.toLowerCase().startsWith( 'statuscake://' )
 
-        isHttpResource ? processHttpResource( title, resource ) :
-        isNmapResource ? processNmapResource( title, resource ) :
-                         ''
+        isHttpResource       ? processHttpResource      ( title, resource ) :
+        isNmapResource       ? processNmapResource      ( title, resource ) :
+        isStatusCakeResource ? processStatusCakeResource( title, resource ) :
+                               ''
     }
 
 
@@ -93,7 +95,6 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, null, false, false, true,
                                                 user ?: ext.user, password ?: ext.password )
-
         final responseStatusCode = response.statusCode.toString()
         final responseContent    = response.content ? new String( response.content, 'UTF-8' ) : ''
         final isMatch            = ( responseStatusCode == checkStatusCode ) &&
@@ -123,9 +124,8 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Requires({ resource && resource.toLowerCase().startsWith( 'nmap://' ) })
     private String processNmapResource ( String title, String resource )
     {
-        def ( String address, String ports ) = resource.tokenize( '|' )*.trim()
+        def ( String address, String ports ) = resource[ 'nmap://'.length() .. -1 ].tokenize( '|' )*.trim()
 
-        address         = address[ 'nmap://'.length() .. -1 ]
         final sortList  = { List<String> l -> l.collect { it as int }.toSet().sort() }
         final portsList = sortList( ports.tokenize( ',' )*.trim().grep())
         final url       = "${ title ? "'$title' " : '' }[nmap://$address]"
@@ -140,13 +140,46 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         log { "$url - found open ports: $openPorts" }
 
-        if ( portsList != openPorts )
-        {
-            "Scanning $url for open ports we found $openPorts open ports while we expected $portsList"
+        ( portsList != openPorts ) ? "Scanning $url for open ports we found $openPorts open ports while we expected $portsList" :
+                                     ''
+    }
+
+
+    @Requires({ resource && resource.toLowerCase().startsWith( 'statuscake://' ) })
+    private String processStatusCakeResource ( String title, String resource )
+    {
+        final list = resource[ 'statuscake://'.length() .. -1 ].tokenize( '|' )*.trim()
+        final size = list.size()
+
+        assert ( size == 2 ) || ( size == 3 ), "StatusCake resource [$resource] should contain 2 or 3 elements"
+
+        final testName = ( size == 3 ) ? list.first() : ''
+        final username = list[ -2 ]
+        final apiKey   = list[ -1 ]
+        final line     = "${ title ? "'$title' " : '' }[statuscake://${ testName ?: 'all tests' }]"
+
+        final read     = {
+            String url ->
+            final response = httpRequest( "https://www.statuscake.com/API/$url", 'GET', [ API : apiKey, Username : username ])
+            new String( response.content, 'UTF-8' )
         }
-        else
-        {
-            ''
-        }
+
+        log { "$line - expecting ${ testName ? testName + ' test' : 'all tests' } to be up" }
+
+        // http://kb.statuscake.com/api/The%20Basics/Authentication.md
+
+        final  authMap = jsonToMap( read ( 'Auth' ))
+        assert authMap.Success && authMap[ 'Details' ][ 'Username' ]
+        log { "$line - logged in successfully as [${ authMap[ 'Details' ][ 'Username' ] }]" }
+
+        // http://kb.statuscake.com/api/Tests/Get%20All%20Tests.md
+
+        final tests       = jsonToList( read( 'Tests' )).findAll { Map m -> ( testName ? m.WebsiteName == testName : true ) }
+        final failedTests = tests.findAll{ Map m -> m.Status != 'Up' }
+
+        log { "$line - found [${ tests.size() }] test${ s( tests )}, [${ failedTests.size() }] failed" }
+
+        failedTests ? "StatusCake failed tests: ${ failedTests.collect{ Map m -> m.WebsiteName }}" :
+                      ''
     }
 }

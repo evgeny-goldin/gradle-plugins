@@ -1,19 +1,21 @@
-package com.github.goldin.plugins.gradle.common
+package com.github.goldin.plugins.gradle.common.helper
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import groovy.transform.InheritConstructors
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 
 
-final class JsonHelper
+@InheritConstructors
+final class JsonHelper extends BaseHelper
 {
     /**
      * Converts file provided to Json {@code Map}.
      */
     @Requires({ file.file })
     @Ensures ({ result != null })
-    final Map<String,?> jsonToMap ( File file )
+    Map<String,?> jsonToMap ( File file )
     {
         jsonToObject( file.getText( 'UTF-8' ).trim(), Map, file )
     }
@@ -24,10 +26,22 @@ final class JsonHelper
      */
     @Requires({ content })
     @Ensures ({ result != null })
-    final Map<String,?> jsonToMap ( String content, File origin = null )
+    Map<String,?> jsonToMap ( String content, File origin = null )
     {
         assert content.trim().with { startsWith( '{' ) && endsWith( '}' ) }
         jsonToObject( content, Map, origin )
+    }
+
+
+    /**
+     * Converts content provided to Json {@code List}.
+     */
+    @Requires({ content })
+    @Ensures ({ result != null })
+    List<?> jsonToList ( String content, File origin = null )
+    {
+        assert content.trim().with { startsWith( '[' ) && endsWith( ']' ) }
+        jsonToObject( content, List, origin )
     }
 
 
@@ -36,7 +50,7 @@ final class JsonHelper
      */
     @Requires({ content && type })
     @Ensures ({ result != null })
-    final <T> T jsonToObject ( String content, Class<T> type, File origin = null )
+    <T> T jsonToObject ( String content, Class<T> type, File origin = null )
     {
         try
         {
@@ -57,7 +71,7 @@ final class JsonHelper
      * Converts object provided to Json {@code String} writing it to file, if specified.
      */
     @Ensures ({ result })
-    final String objectToJson ( Object o, File file = null )
+    String objectToJson ( Object o, File file = null )
     {
         try
         {

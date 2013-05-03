@@ -1,7 +1,7 @@
 package com.github.goldin.plugins.gradle.monitor
 
 import com.github.goldin.plugins.gradle.common.BaseSpecification
-import com.github.goldin.plugins.gradle.common.MatcherHelper
+import com.github.goldin.plugins.gradle.common.helper.MatcherHelper
 
 
 /**
@@ -12,7 +12,7 @@ class MatcherHelperSpec extends BaseSpecification
     def 'Content matches single matcher' ()
     {
         expect:
-        new MatcherHelper().contentMatches( content, pattern, '' )
+        new MatcherHelper( null ).contentMatches( content, pattern, '' )
 
         where:
         content | pattern
@@ -40,7 +40,7 @@ class MatcherHelperSpec extends BaseSpecification
     def 'Content matches multiple matchers' ()
     {
         expect:
-        new MatcherHelper().contentMatches( content, pattern, '*' )
+        new MatcherHelper( null ).contentMatches( content, pattern, '*' )
 
         where:
         content | pattern
@@ -57,7 +57,7 @@ class MatcherHelperSpec extends BaseSpecification
     def 'Content matches JSON matchers' ()
     {
         expect:
-        new MatcherHelper().contentMatches( content, pattern, '*' )
+        new MatcherHelper( null ).contentMatches( content, pattern, '*' )
 
         where:
         content | pattern

@@ -20,6 +20,19 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
     @Override
     Class extensionType (){ TeamCityExtension }
 
+    /**
+     * Verifies resources specified can be found in files provided.
+     *
+     * @param files     files to check
+     * @param resources resources to locate in the files provided
+     */
+    @Requires({ files && resources })
+    private void checkResourcesAvailable ( Collection<File> files, String ... resources )
+    {
+        final cl = new URLClassLoader( files*.toURI()*.toURL() as URL[] )
+        resources.each { assert cl.getResource( it ), "No '$it' resource found in $files" }
+    }
+
 
     private static final String BSR = 'buildServerResources'
 
@@ -146,13 +159,13 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
             if ( agentJars  )
             {
                 addFileToArchive( pluginArchive, agentArchive, 'agent' )
-                checkResourcesAreAvailable( agentJars, "META-INF/build-agent-plugin-${ ext.name }.xml" )
+                checkResourcesAvailable( agentJars, "META-INF/build-agent-plugin-${ ext.name }.xml" )
             }
 
             if ( serverJars )
             {
                 addFilesToArchive( pluginArchive, serverJars, 'server' )
-                checkResourcesAreAvailable( serverJars, BSR, "META-INF/build-server-plugin-${ ext.name }.xml" )
+                checkResourcesAvailable( serverJars, BSR, "META-INF/build-server-plugin-${ ext.name }.xml" )
             }
 
             ext.resources.each {
