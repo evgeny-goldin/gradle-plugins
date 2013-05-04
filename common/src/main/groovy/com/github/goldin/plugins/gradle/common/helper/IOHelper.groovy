@@ -411,7 +411,7 @@ final class IOHelper extends BaseHelper
                               byte[]              data           = null )
     {
         assert url.with { startsWith( 'http://' ) || startsWith( 'https://' )}, "[$url] - only 'http[s]://' URLs are supported"
-        assert ( ! data ) || ( method == 'POST' ) || ( method == 'PUT' ), "Data can only be sent for POST and PUT requests"
+        assert ( ! data ) || ( method == 'POST' ) || ( method == 'PUT' ), "HTTP [$method] request - data can only be sent for POST and PUT requests"
 
         final time     = System.currentTimeMillis()
         final response = new HttpResponse( url, method )
