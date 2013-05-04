@@ -96,7 +96,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, false, false,
                                                 user ?: ext.user, password ?: ext.password )
         final responseStatusCode = response.statusCode.toString()
-        final responseContent    = response.content ? new String( response.content, 'UTF-8' ) : ''
+        final responseContent    = response.content ? response.contentAsString() : ''
         final isMatch            = ( responseStatusCode == checkStatusCode ) &&
                                    contentMatches( responseContent, checkContent, ext.matchersDelimiter )
         final isTimeMatch        = ( response.timeMillis <= ( timeLimit as long ))
@@ -160,8 +160,8 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         final read     = {
             String url ->
-            final response = httpRequest( "https://www.statuscake.com/API/$url", 'GET', [ API : apiKey, Username : username ])
-            new String( response.content, 'UTF-8' )
+            httpRequest( "https://www.statuscake.com/API/$url", 'GET', [ API : apiKey, Username : username ]).
+            contentAsString()
         }
 
         log { "$line - expecting ${ testName ? testName + ' test' : 'all tests' } to be up" }
@@ -174,7 +174,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         // http://kb.statuscake.com/api/Tests/Get%20All%20Tests.md
 
-        final tests       = jsonToList( read( 'Tests' )).findAll { Map m -> ( testName ? m.WebsiteName == testName : true ) }
+        final tests       = jsonToList( read( 'Tests' ), Map ).findAll { Map m -> ( testName ? m.WebsiteName == testName : true ) }
         final failedTests = tests.findAll{ Map m -> m.Status != 'Up' }
 
         log { "$line - found [${ tests.size() }] test${ s( tests )}, [${ failedTests.size() }] failed" }

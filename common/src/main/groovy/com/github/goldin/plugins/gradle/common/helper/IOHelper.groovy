@@ -451,10 +451,9 @@ final class IOHelper extends BaseHelper
         if (( isReadContent == null ) || isReadContent( response ))
         {
             final inputStream = ( response.inputStream ?: response.errorStream )
-            if (  inputStream )
+            if ( inputStream )
             {
-                response.data    = inputStream.bytes
-                response.content = HttpResponse.decodeContent( response )
+                response.data = inputStream.bytes
             }
             response.inputStream?.close()
             response.errorStream?.close()

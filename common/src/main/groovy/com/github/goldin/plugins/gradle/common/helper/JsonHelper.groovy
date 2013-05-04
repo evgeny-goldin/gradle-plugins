@@ -13,11 +13,11 @@ final class JsonHelper extends BaseHelper
     /**
      * Converts file provided to Json {@code Map}.
      */
-    @Requires({ file.file })
+    @Requires({ file.file && encoding })
     @Ensures ({ result != null })
-    Map<String,?> jsonToMap ( File file )
+    Map<String,?> jsonToMap ( File file, String encoding = 'UTF-8' )
     {
-        jsonToObject( file.getText( 'UTF-8' ).trim(), Map, file )
+        jsonToMap( file.getText( encoding ).trim(), file )
     }
 
 
@@ -29,19 +29,25 @@ final class JsonHelper extends BaseHelper
     Map<String,?> jsonToMap ( String content, File origin = null )
     {
         assert content.trim().with { startsWith( '{' ) && endsWith( '}' ) }
-        jsonToObject( content, Map, origin )
+
+        final Map<?,?> map = jsonToObject( content, Map, origin )
+        map.keySet().each { assert it instanceof String }
+        map
     }
 
 
     /**
      * Converts content provided to Json {@code List}.
      */
-    @Requires({ content })
+    @Requires({ content && type })
     @Ensures ({ result != null })
-    List<?> jsonToList ( String content, File origin = null )
+    <T> List<T> jsonToList ( String content, Class<T> type, File origin = null )
     {
         assert content.trim().with { startsWith( '[' ) && endsWith( ']' ) }
-        jsonToObject( content, List, origin )
+
+        final List<?> list = jsonToObject( content, List, origin )
+        list.each{ assert type.isInstance( it )}
+        list
     }
 
 

@@ -4,6 +4,7 @@ import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Invariant
 import org.gcontracts.annotations.Requires
 
+import java.nio.charset.Charset
 import java.util.zip.Deflater
 import java.util.zip.DeflaterInputStream
 import java.util.zip.GZIPInputStream
@@ -53,17 +54,25 @@ class HttpResponse
     }
 
 
-    @Requires({ response && response.connection && ( response.data != null ) })
-    @Ensures ({ result != null })
-    static byte[] decodeContent ( HttpResponse response )
+    @Requires({ data != null })
+    void setData ( byte[] data )
     {
-        final contentEncoding = response.connection.getHeaderField( 'Content-Encoding' )
+        this.data    = data
+        this.content = decodeContent()
+    }
 
-        if ( ! ( contentEncoding && response.data )) { return response.data }
 
-        final contentLength      = Integer.valueOf( response.connection.getHeaderField( 'Content-Length' ) ?: '-1' )
+    @Requires({ connection && ( data != null ) })
+    @Ensures ({ result != null })
+    private byte[] decodeContent ()
+    {
+        final contentEncoding = connection.getHeaderField( 'Content-Encoding' )
+
+        if ( ! ( contentEncoding && data )) { return data }
+
+        final contentLength      = Integer.valueOf( connection.getHeaderField( 'Content-Length' ) ?: '-1' )
         final bufferSize         = ((( contentLength > 0 ) && ( contentLength < ( 100 * 1024 ))) ? contentLength : 10 * 1024 )
-        final contentInputStream = new ByteArrayInputStream( response.data ).with {
+        final contentInputStream = new ByteArrayInputStream( data ).with {
             InputStream is ->
             ( 'gzip'    == contentEncoding ) ? new GZIPInputStream( is, bufferSize ) :
             ( 'deflate' == contentEncoding ) ? new DeflaterInputStream( is, new Deflater(), bufferSize ) :
@@ -72,6 +81,14 @@ class HttpResponse
 
         assert contentInputStream, "Unknown response content encoding [$contentEncoding]"
         contentInputStream.bytes
+    }
+
+
+    @Requires({ ( content != null ) && encoding })
+    @Ensures ({ result != null })
+    String contentAsString( String encoding = 'UTF-8' )
+    {
+        new String( content, Charset.forName( encoding ))
     }
 
 

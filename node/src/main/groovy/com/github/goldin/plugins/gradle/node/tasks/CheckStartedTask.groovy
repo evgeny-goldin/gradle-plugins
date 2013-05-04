@@ -16,7 +16,7 @@ class CheckStartedTask extends NodeBaseTask
         delay( ext.checkWait * 1000 )
 
         final response       = httpRequest( ext.checkUrl, 'GET', [:], ext.checkTimeout * 500, ext.checkTimeout * 500, false )
-        final content        = response.content ? new String( response.content, 'UTF-8' ) : ''
+        final content        = response.content ? response.contentAsString() : ''
         final isGoodResponse = ( response.statusCode == ext.checkStatusCode ) && contentMatches( content, ext.checkContent, '*' )
         final resultMessage  = "Connecting to [$ext.checkUrl] resulted in " +
                                (( response.statusCode instanceof Integer ) ? "status code [$response.statusCode]" :
