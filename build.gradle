@@ -21,8 +21,8 @@ buildscript {
         maven { url 'http://dl.bintray.com/content/evgenyg/BuildTools' }
     }
     dependencies {
-        classpath 'com.github.goldin.plugins.gradle:about:0.2.6',
-                  'com.github.goldin.plugins.gradle:duplicates:0.2.6'
+        classpath 'com.github.goldin.plugins.gradle:about:0.2.8',
+                  'com.github.goldin.plugins.gradle:duplicates:0.2.8'
     }
 }
 
@@ -30,10 +30,7 @@ buildscript {
 allprojects {
     apply plugin: 'groovy'
 
-    repositories {
-//        mavenCentral()
-        maven { url 'http://jcenter.bintray.com' }
-    }
+    repositories { maven { url 'http://jcenter.bintray.com' }}
     dependencies {
         compile     gradleApi(),
                     'org.gcontracts:gcontracts-core:1.2.12',
