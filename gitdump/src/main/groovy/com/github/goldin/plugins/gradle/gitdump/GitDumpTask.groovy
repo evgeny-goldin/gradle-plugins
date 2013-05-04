@@ -136,7 +136,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     {
         log { "Reading [$url]" }
 
-        final  response = httpRequest( url, 'GET', [:], 15000, 15000, { false }, true, true, false, username, password )
+        final  response = httpRequest( url, 'GET', [:], 15000, 15000, true, true, username, password )
         final  list     = jsonToList ( new String( response.content, 'UTF-8' ))
         assert list.every { it instanceof Map }
         list

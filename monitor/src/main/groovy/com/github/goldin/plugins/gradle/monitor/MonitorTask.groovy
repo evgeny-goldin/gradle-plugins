@@ -93,7 +93,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         log { "$url - expecting status code [$checkStatusCode] and content matching [$checkContent]" }
 
-        final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, null, false, false, true,
+        final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, false, false,
                                                 user ?: ext.user, password ?: ext.password )
         final responseStatusCode = response.statusCode.toString()
         final responseContent    = response.content ? new String( response.content, 'UTF-8' ) : ''

@@ -380,51 +380,53 @@ final class IOHelper extends BaseHelper
     /**
      * Invokes an HTTP request using the data provided.
      *
-     * @param url                  url to send the request to
-     * @param method               HTTP method to use: 'GET' or 'HEAD'
-     * @param headers              HTTP headers to send
-     * @param connectTimeoutMillis connection timeout to set in milliseconds
-     * @param readTimeoutMillis    connection read timeout to set in milliseconds
-     * @param isReadContent        closure returning boolean value of whether or not content should be read,
-     *                             passed {@link com.github.goldin.plugins.gradle.common.HttpResponse} when called
-     * @param failOnError          whether execution should fail if sending request fails
-     * @param logError             whether an error thrown should be logged
-     * @param acceptEncoding       whether "Accept-Encoding: gzip,deflate" header should be added
-     * @param username             username to be used for basic authentication
-     * @param acceptEncoding       password to be used for basic authentication
+     * @param url            url to send the request to
+     * @param method         HTTP method to use: 'GET' or 'HEAD'
+     * @param headers        HTTP headers to send
+     * @param connectTimeout connection timeout to set (in milliseconds)
+     * @param readTimeout    connection read timeout to set (in milliseconds)
+     * @param failOnError    whether execution should fail if sending request fails
+     * @param logError       whether an error thrown should be logged
+     * @param username       username to authenticate with using Basic authentication
+     * @param password       userame to authenticate with using Basic authentication
+     * @param isReadContent  closure returning boolean value of whether or not content should be read,
+     *                       passed {@link com.github.goldin.plugins.gradle.common.HttpResponse} when called
+     * @param data           data to send if method is POST or PUT
+     *
      * @return http response object
      */
-    @Requires({ url && method && ( headers != null ) && ( connectTimeoutMillis > -1 ) && ( readTimeoutMillis > -1 ) })
+    @Requires({ url && method && ( headers != null ) && ( connectTimeout > -1 ) && ( readTimeout > -1 ) })
     @Ensures ({ result })
     @SuppressWarnings([ 'GroovyGetterCallCanBePropertyAccess', 'JavaStylePropertiesInvocation', 'GroovyMethodParameterCount', 'GroovyAssignmentToMethodParameter' ])
     HttpResponse httpRequest( String              url,
-                              String              method               = 'GET',
-                              Map<String, String> headers              = [:],
-                              int                 connectTimeoutMillis = 0,
-                              int                 readTimeoutMillis    = 0,
-                              Closure             isReadContent        = null,
-                              boolean             failOnError          = true,
-                              boolean             logError             = true,
-                              boolean             acceptEncoding       = true,
-                              String              username             = '',
-                              String              password             = '',
-                              byte[]              data                 = null )
+                              String              method         = 'GET',
+                              Map<String, String> headers        = [:],
+                              int                 connectTimeout = 0,
+                              int                 readTimeout    = 0,
+                              boolean             failOnError    = true,
+                              boolean             logError       = true,
+                              String              username       = null,
+                              String              password       = null,
+                              Closure             isReadContent  = null,
+                              byte[]              data           = null )
     {
         assert url.with { startsWith( 'http://' ) || startsWith( 'https://' )}, "[$url] - only 'http[s]://' URLs are supported"
+        assert ( ! data ) || ( method == 'POST' ) || ( method == 'PUT' ), "Data can only be sent for POST and PUT requests"
 
         final time     = System.currentTimeMillis()
         final response = new HttpResponse( url, method )
 
-        if ( acceptEncoding ) { headers +=     [ 'Accept-Encoding': 'gzip,deflate' ] }
-        headers += (( username && password ) ? [ 'Authorization'  : 'Basic ' + "$username:$password".getBytes( 'UTF-8' ).encodeBase64().toString() ] :
-                                               [:] )
+        headers += [ 'Accept-Encoding': 'gzip,deflate' ]
+        headers += (( username && password ) ?
+                   [ 'Authorization'  : 'Basic ' + "$username:$password".getBytes( 'UTF-8' ).encodeBase64().toString() ] :
+                   [:] )
         try
         {
             final connection          = url.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection
             response.connection       = connection
             connection.requestMethod  = method
-            connection.connectTimeout = connectTimeoutMillis
-            connection.readTimeout    = readTimeoutMillis
+            connection.connectTimeout = connectTimeout
+            connection.readTimeout    = readTimeout
 
             headers.each { String name, String value -> connection.setRequestProperty( name, value )}
 

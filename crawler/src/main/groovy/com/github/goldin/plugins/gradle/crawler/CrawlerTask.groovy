@@ -568,6 +568,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                                                       [ 'User-Agent' : ext.userAgent, 'Connection': 'keep-alive' ],
                                                       ext.connectTimeout,
                                                       ext.readTimeout,
+                                                      true, true, null, null,
                                                       { HttpResponse r -> ( readFullContent && ( ! r.isRedirect ))}))
 
             if (( response.data != null ) && ( response.content != null ))

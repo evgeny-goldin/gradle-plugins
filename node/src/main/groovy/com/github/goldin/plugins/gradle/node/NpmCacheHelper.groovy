@@ -120,7 +120,7 @@ class NpmCacheHelper
 
         task.logger.info( "Downloading [$archiveUrl] to [$npmCacheArchive.canonicalPath] .." )
 
-        final response = task.httpRequest( archiveUrl, 'GET', [:], 0, 0, null, false, true, true, map.user, map.password )
+        final response = task.httpRequest( archiveUrl, 'GET', [:], 0, 0, false, true, map.user, map.password )
         if ( ! (( response.statusCode == 200 ) && response.data )){ return }
 
         final tempFile = task.project.file( npmCacheArchive.name )
@@ -138,14 +138,14 @@ class NpmCacheHelper
         final map        = readRemoteRepoUrl( npmCacheArchive )
         final archiveUrl = map.archiveUrl
 
-        if ( task.httpRequest( archiveUrl, 'HEAD', [:], 0, 0, null, false, false, true, map.user, map.password ).
+        if ( task.httpRequest( archiveUrl, 'HEAD', [:], 0, 0, false, false, map.user, map.password ).
              statusCode != 404 ) { return }
 
         task.logger.info( "Uploading [$npmCacheArchive.canonicalPath] to [$archiveUrl] .." )
 
-        task.httpRequest( archiveUrl, 'PUT', [:], 0, 0, null, true, true, true, map.user, map.password, npmCacheArchive.bytes )
+        task.httpRequest( archiveUrl, 'PUT', [:], 0, 0, true, true, map.user, map.password, null, npmCacheArchive.bytes )
 
-        assert ( task.httpRequest( archiveUrl, 'HEAD', [:], 0, 0, null, false, true, true, map.user, map.password ).
+        assert ( task.httpRequest( archiveUrl, 'HEAD', [:], 0, 0, false, true, map.user, map.password ).
                  statusCode == 200 ), "Failed to upload [$npmCacheArchive.canonicalPath] to [$archiveUrl]"
 
         task.logger.info( "Uploaded [$npmCacheArchive.canonicalPath] to [$archiveUrl]" )
