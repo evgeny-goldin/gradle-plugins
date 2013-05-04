@@ -20,20 +20,6 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
     @Override
     Class extensionType (){ TeamCityExtension }
 
-    /**
-     * Verifies resources specified can be found in files provided.
-     *
-     * @param files     files to check
-     * @param resources resources to locate in the files provided
-     */
-    @Requires({ files && resources })
-    private void checkResourcesAvailable ( Collection<File> files, String ... resources )
-    {
-        final cl = new URLClassLoader( files*.toURI()*.toURL() as URL[] )
-        resources.each { assert cl.getResource( it ), "No '$it' resource found in $files" }
-    }
-
-
     private static final String BSR = 'buildServerResources'
 
     @Override
@@ -155,6 +141,12 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
         zip( pluginArchive ) {
 
             ant.zipfileset( file: pluginXmlFile, fullpath: 'teamcity-plugin.xml' )
+
+            final checkResourcesAvailable = {
+                Collection<File> files, String ... resources ->
+                final cl = new URLClassLoader( files*.toURI()*.toURL() as URL[] )
+                resources.each { assert cl.getResource( it ), "No '$it' resource found in $files" }
+            }
 
             if ( agentJars  )
             {
