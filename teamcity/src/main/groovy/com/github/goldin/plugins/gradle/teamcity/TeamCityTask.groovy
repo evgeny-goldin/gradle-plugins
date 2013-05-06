@@ -28,11 +28,11 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
         ext.name   ( ext.name    ?: project.name )
         ext.version( ext.version ?: project.version.toString())
 
-        assert ext.name,        "'name' hould be defined in $description"
-        assert ext.displayName, "'displayName' hould be defined in $description"
-        assert ext.version,     "'version' hould be defined in $description"
-        assert ext.vendorName,  "'vendorName' hould be defined in $description"
-        assert ext.description, "'description' hould be defined in $description"
+        assert ext.name,        "'name' should be defined in $description"
+        assert ext.displayName, "'displayName' should be defined in $description"
+        assert ext.version,     "'version' should be defined in $description"
+        assert ext.vendorName,  "'vendorName' should be defined in $description"
+        assert ext.description, "'description' should be defined in $description"
     }
 
     /**
