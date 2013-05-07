@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import com.github.goldin.plugins.gradle.common.helper.BaseHelper
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -10,18 +11,18 @@ import org.gradle.api.file.CopySpec
 /**
  * {@link com.github.goldin.plugins.gradle.node.tasks.SetupTask} helper.
  */
-class NpmCacheHelper
+class NpmCacheHelper extends BaseHelper
 {
-    private final BaseTask      task
     private final NodeExtension ext
 
 
+    @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ task && ext })
     @Ensures ({ this.task && this.ext })
     NpmCacheHelper ( BaseTask task, NodeExtension ext )
     {
-        this.task = task
-        this.ext  = ext
+        super( task )
+        this.ext = ext
     }
 
 
@@ -30,14 +31,14 @@ class NpmCacheHelper
     {
         if ( ! ext.npmLocalCache ){ return }
 
-        final nodeModules = new File ( task.projectDir, 'node_modules' )
+        final nodeModules = new File ( projectDir, 'node_modules' )
         if ( nodeModules.directory ) { return }
 
         final npmCacheArchive = localArchive( true )
         if ( ! npmCacheArchive?.file ) { return }
 
-        task.logger.info( "Unpacking 'npm install' cache [$npmCacheArchive.canonicalPath] to [$task.projectDir.canonicalPath]" )
-        task.exec( 'tar', [ '-xzf', npmCacheArchive.canonicalPath, '-C', task.projectDir.canonicalPath ], task.projectDir )
+        logger.info( "Unpacking 'npm install' cache [$npmCacheArchive.canonicalPath] to [$projectDir.canonicalPath]" )
+        exec( 'tar', [ '-xzf', npmCacheArchive.canonicalPath, '-C', projectDir.canonicalPath ], projectDir )
     }
 
 
@@ -46,19 +47,19 @@ class NpmCacheHelper
     {
         if ( ! ext.npmLocalCache ){ return }
 
-        final nodeModules = new File ( task.projectDir, 'node_modules' )
+        final nodeModules = new File ( projectDir, 'node_modules' )
         if ( ! ( nodeModules.directory && ext.npmCleanInstall )) { return }
 
         final npmCacheArchive = localArchive( false )
         if (( npmCacheArchive == null ) || npmCacheArchive.file ) { return }
 
-        task.logger.info( "Packing 'npm install' result [$nodeModules.canonicalPath] to [$npmCacheArchive.canonicalPath]" )
-        final tempFile = task.project.file( npmCacheArchive.name )
+        logger.info( "Packing 'npm install' result [$nodeModules.canonicalPath] to [$npmCacheArchive.canonicalPath]" )
+        final tempFile = project.file( npmCacheArchive.name )
 
-        task.project.copy { CopySpec cs -> cs.from( PACKAGE_JSON ).into( nodeModules ) }
+        project.copy { CopySpec cs -> cs.from( PACKAGE_JSON ).into( nodeModules ) }
         updatePackageJson( new File( nodeModules, PACKAGE_JSON ))
 
-        task.exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.name ], task.projectDir )
+        exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.name ], projectDir )
         assert tempFile.renameTo( npmCacheArchive ) && npmCacheArchive.file, \
                "Failed to rename [$tempFile.canonicalPath] to [$npmCacheArchive.canonicalPath]"
 
@@ -97,10 +98,10 @@ class NpmCacheHelper
     @Ensures({ result != null })
     private String packageJsonChecksum ()
     {
-        final packageJson = task.project.file( PACKAGE_JSON )
+        final packageJson = project.file( PACKAGE_JSON )
         if ( ! packageJson.file ) { return '' }
 
-        final Map<String,?> packageMap      = task.jsonToMap( packageJson )
+        final Map<String,?> packageMap      = jsonToMap( packageJson )
         final Map<String,?> dependenciesMap = ( packageMap.dependencies ?: [:] ) + ( packageMap.devDependencies ?: [:] )
         if ( ! dependenciesMap ){ return '' }
 
@@ -108,7 +109,7 @@ class NpmCacheHelper
                                    collect { "$it:${ dependenciesMap[ it ].toString().toLowerCase() }" }.
                                    join( '\n' )
 
-        task.checksum( dependenciesString )
+        checksum( dependenciesString )
     }
 
 
@@ -118,17 +119,17 @@ class NpmCacheHelper
         final map        = readRemoteRepoUrl( npmCacheArchive )
         final archiveUrl = map.archiveUrl
 
-        task.logger.info( "Downloading [$archiveUrl] to [$npmCacheArchive.canonicalPath] .." )
+        logger.info( "Downloading [$archiveUrl] to [$npmCacheArchive.canonicalPath] .." )
 
-        final response = task.httpRequest( archiveUrl, 'GET', [:], 0, 0, false, true, map.user, map.password )
+        final response = httpRequest( archiveUrl, 'GET', [:], 0, 0, false, true, map.user, map.password )
         if ( ! (( response.statusCode == 200 ) && response.data )){ return }
 
-        final tempFile = task.project.file( npmCacheArchive.name )
+        final tempFile = project.file( npmCacheArchive.name )
         tempFile.withOutputStream { OutputStream os -> os.write( response.data )}
         assert tempFile.renameTo( npmCacheArchive ) && npmCacheArchive.file, \
                "Failed to rename [$tempFile.canonicalPath] to [$npmCacheArchive.canonicalPath]"
 
-        task.logger.info( "Downloaded [$archiveUrl] to [$npmCacheArchive.canonicalPath]" )
+        logger.info( "Downloaded [$archiveUrl] to [$npmCacheArchive.canonicalPath]" )
     }
 
 
@@ -138,17 +139,17 @@ class NpmCacheHelper
         final map        = readRemoteRepoUrl( npmCacheArchive )
         final archiveUrl = map.archiveUrl
 
-        if ( task.httpRequest( archiveUrl, 'HEAD', [:], 0, 0, false, false, map.user, map.password ).
+        if ( httpRequest( archiveUrl, 'HEAD', [:], 0, 0, false, false, map.user, map.password ).
              statusCode != 404 ) { return }
 
-        task.logger.info( "Uploading [$npmCacheArchive.canonicalPath] to [$archiveUrl] .." )
+        logger.info( "Uploading [$npmCacheArchive.canonicalPath] to [$archiveUrl] .." )
 
-        task.httpRequest( archiveUrl, 'PUT', [:], 0, 0, true, true, map.user, map.password, null, npmCacheArchive.bytes )
+        httpRequest( archiveUrl, 'PUT', [:], 0, 0, true, true, map.user, map.password, null, npmCacheArchive.bytes )
 
-        assert ( task.httpRequest( archiveUrl, 'HEAD', [:], 0, 0, false, true, map.user, map.password ).
+        assert ( httpRequest( archiveUrl, 'HEAD', [:], 0, 0, false, true, map.user, map.password ).
                  statusCode == 200 ), "Failed to upload [$npmCacheArchive.canonicalPath] to [$archiveUrl]"
 
-        task.logger.info( "Uploaded [$npmCacheArchive.canonicalPath] to [$archiveUrl]" )
+        logger.info( "Uploaded [$npmCacheArchive.canonicalPath] to [$archiveUrl]" )
     }
 
 
@@ -175,16 +176,16 @@ class NpmCacheHelper
     @Requires({ packageJson.file })
     private void updatePackageJson( File packageJson )
     {
-        final packageJsonMap     = task.jsonToMap( packageJson )
+        final packageJsonMap     = jsonToMap( packageJson )
 
         packageJsonMap.cacheData = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-        packageJsonMap.timestamp = task.dateFormatter.format( new Date())
-        packageJsonMap.host      = "${ task.hostname() }/${ InetAddress.localHost.hostAddress }".toString()
-        packageJsonMap.project   = task.project.toString()
-        packageJsonMap.directory = task.projectDir.canonicalPath
-        packageJsonMap.origin    = task.gitExec( 'remote -v', task.projectDir ).readLines().find { it.startsWith( 'origin' )}.split()[ 1 ]
-        packageJsonMap.sha       = task.gitExec( 'log -1 --format=format:%H', task.projectDir )
+        packageJsonMap.timestamp = format( System.currentTimeMillis())
+        packageJsonMap.host      = "${ hostname() }/${ InetAddress.localHost.hostAddress }".toString()
+        packageJsonMap.project   = project.toString()
+        packageJsonMap.directory = projectDir.canonicalPath
+        packageJsonMap.origin    = gitExec( 'remote -v', projectDir ).readLines().find { it.startsWith( 'origin' )}.split()[ 1 ]
+        packageJsonMap.sha       = gitExec( 'log -1 --format=format:%H', projectDir )
 
-        task.objectToJson( packageJsonMap, packageJson )
+        objectToJson( packageJsonMap, packageJson )
     }
 }

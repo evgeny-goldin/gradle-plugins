@@ -24,6 +24,10 @@ final class GeneralHelper extends BaseHelper
     String s( Number j, String single = '', String multiple = 's' ){ j == 1 ? single : multiple }
 
 
+    @Requires({ ( time > 0 ) && task.dateFormatter })
+    @Ensures ({ result })
+    String format ( long time ){ task.dateFormatter.format( new Date( time ))}
+
     /**
      * Sleeps for amount of milliseconds specified if positive.
      * @param delayInMilliseconds amount of milliseconds to sleep

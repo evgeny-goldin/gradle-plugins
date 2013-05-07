@@ -16,6 +16,8 @@ class SetupTask extends NodeBaseTask
     @Override
     void taskAction()
     {
+        final NpmCacheHelper cacheHelper = new NpmCacheHelper( this, ext )
+
         verifyToolsAvailable([ 'git --version', 'tar --version', "$ext.shell --version", 'whoami' ])
 
         cleanWorkspace()
@@ -25,8 +27,6 @@ class SetupTask extends NodeBaseTask
         makeReplacements()
 
         removeDevDependencies( project.file( PACKAGE_JSON ))
-
-        final cacheHelper = new NpmCacheHelper( this, ext )
 
         cacheHelper.restoreNodeModulesFromCache()
 

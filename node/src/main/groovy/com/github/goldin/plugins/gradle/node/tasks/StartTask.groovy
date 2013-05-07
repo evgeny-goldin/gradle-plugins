@@ -31,19 +31,19 @@ class StartTask extends NodeBaseTask
         if ( ext.before || ext.beforeStart ) { shellExec( commandsScript( add( ext.before, ext.beforeStart )),
                                                           taskScriptFile( true ), false, true, true, false, 'before start' ) }
 
-        final time = System.currentTimeMillis()
-
         shellExec( startScript())
 
         pidFile().with {
             File f ->
             assert f.file, "[$f.canonicalPath] is not available, application has failed to start or 'forever' isn't working properly"
-            final lastModified = f.lastModified()
-            if (  lastModified < time )
-            {
-                logger.warn( "[$f.canonicalPath] last modified is $lastModified [${ dateFormatter.format( new Date( lastModified ))}], " +
-                             "expected it to be no less than $time [${ dateFormatter.format( new Date( time ))}]" )
-            }
+            final lastModified          = f.lastModified()
+            final lastModifiedFormatted = format( lastModified )
+
+            logger.info( "[$f.canonicalPath] - PID is [$f.text], last modified is [$lastModifiedFormatted]" )
+
+            assert ( lastModified > startTime ), \
+                "[$f.canonicalPath] last modified is $lastModified [$lastModifiedFormatted], " +
+                "expected it to be greater than build start time $startTime [$startTimeFormatted]"
         }
 
         if ( ext.checkAfterStart        ) { runTask ( CHECK_STARTED_TASK )}
