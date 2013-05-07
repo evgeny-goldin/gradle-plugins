@@ -34,7 +34,7 @@ class StopTask extends NodeBaseTask
     @Ensures({ result })
     private String stopScript()
     {
-        final pidFilePath = "\$HOME/.forever/pids/${ pidFileName( ext.portNumber ) }"
+        final pidFilePath = pidFile().canonicalPath
 
         """
         |set +e

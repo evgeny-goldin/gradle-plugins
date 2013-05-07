@@ -34,6 +34,28 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     /**
+     * Retrieves PID file path.
+     */
+    @Ensures ({ result })
+    File pidFile(){ new File( foreverHome(), "pids/${ pidFileName( ext.portNumber ) }" )}
+
+
+    /**
+     * Retrieves .pid file name to use when application is started and stopped.
+     */
+    @Requires({ port > 0 })
+    @Ensures ({ result   })
+    final String pidFileName( int port ){ ext.pidFileName ?: "${ projectName }-${ port }.pid" }
+
+
+    /**
+     * Retrieves 'forever' home path for storing logs and PID files.
+     */
+    @Ensures ({ result })
+    File foreverHome() { new File( "${ System.getProperty( 'user.home' )}/.forever" )}
+
+
+    /**
      * Retrieves 'forever' executable path.
      */
     @Ensures ({ result })
@@ -175,16 +197,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         log{ "Running task '$taskName'" }
         (( NodeBaseTask ) project.tasks[ taskName ] ).taskAction()
     }
-
-
-    /**
-     * Retrieves .pid file name to use when application is started and stopped.
-     * @param port application port
-     * @return .pid file name to use when application is started and stopped
-     */
-    @Requires({ port > 0 })
-    @Ensures ({ result   })
-    final String pidFileName( int port ){ ext.pidFileName ?: "${ projectName }-${ port }.pid" }
 
 
     /**

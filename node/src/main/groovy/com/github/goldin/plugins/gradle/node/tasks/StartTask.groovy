@@ -30,7 +30,21 @@ class StartTask extends NodeBaseTask
 
         if ( ext.before || ext.beforeStart ) { shellExec( commandsScript( add( ext.before, ext.beforeStart )),
                                                           taskScriptFile( true ), false, true, true, false, 'before start' ) }
+
+        final time = System.currentTimeMillis()
+
         shellExec( startScript())
+
+        pidFile().with {
+            File f ->
+            assert f.file, "[$f.canonicalPath] is not available, application has failed to start or 'forever' isn't working properly"
+            final lastModified = f.lastModified()
+            if (  lastModified < time )
+            {
+                logger.warn( "[$f.canonicalPath] last modified is $lastModified [${ dateFormatter.format( new Date( lastModified ))}], " +
+                             "expected it to be no less than $time [${ dateFormatter.format( new Date( time ))}]" )
+            }
+        }
 
         if ( ext.checkAfterStart        ) { runTask ( CHECK_STARTED_TASK )}
         if ( ext.printUrl               ) { printApplicationUrls() }
@@ -44,9 +58,10 @@ class StartTask extends NodeBaseTask
     {
         final executable  = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
         final pidFileName = pidFileName( ext.portNumber )
-        final pidFilePath = new File( "${ System.getProperty( 'user.home' )}/.forever/pids/$pidFileName" ).canonicalPath
-        final command     = "${ forever() } start --minUptime 5000 --spinSleepTime 5000 ${ ext.foreverOptions ?: '' } --pidFile \"${ pidFileName }\" " +
-                            "${ executable ? '"' + executable + '"' : '' } \"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }".
+        final command     = "${ forever() } start -p \"${ foreverHome().canonicalPath }\" --pidFile \"$pidFileName\" " +
+                            "--minUptime 5000 --spinSleepTime 5000 ${ ext.foreverOptions ?: '' } " +
+                            "${ executable ? '"' + executable + '"' : '' } " +
+                            "\"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }".
                             trim()
 
         if ( executable )
@@ -57,7 +72,7 @@ class StartTask extends NodeBaseTask
         }
 
         """
-        |echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q, file:$Q${ pidFilePath }$Q\"
+        |echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q"
         |echo $command
         |echo
         |$command ${ ext.removeColor ? '--plain' : '--colors' }${ ext.removeColorCodes }
