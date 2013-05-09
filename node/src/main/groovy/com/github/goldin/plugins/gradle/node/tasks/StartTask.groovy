@@ -56,20 +56,16 @@ class StartTask extends NodeBaseTask
     @Ensures ({ result })
     private String startScript()
     {
-        final executable  = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
+        final coffee  = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
+        if ( coffee ){ checkFile( coffee )}
+
         final pidFileName = pidFileName( ext.portNumber )
         final command     = "${ forever() } start -p \"${ foreverHome().canonicalPath }\" --pidFile \"$pidFileName\" " +
                             "--minUptime 5000 --spinSleepTime 5000 ${ ext.foreverOptions ?: '' } " +
-                            "${ executable ? '"' + executable + '"' : '' } " +
+                            "${ coffee ? '"' + coffee + '"' : '' } " +
                             "\"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }".
                             trim()
 
-        if ( executable )
-        {
-            final  executableFile = project.file( executable ).canonicalFile
-            assert executableFile.file, \
-                   "[$executableFile.canonicalPath] is not available, make sure \"coffee-script\" dependency appears in \"${ PACKAGE_JSON }\""
-        }
 
         """
         |echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q"

@@ -88,7 +88,7 @@ class ConfigHelper extends BaseHelper<NodeExtension>
             }
 
             write( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
-                                     mergeConfig ( configContent, configData ) :
+                                     mergeConfig  ( configContent, configData ) :
                                      objectToJson ( configData ))
             configData
         }

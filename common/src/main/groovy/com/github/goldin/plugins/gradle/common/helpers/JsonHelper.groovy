@@ -80,13 +80,7 @@ final class JsonHelper extends BaseHelper<Object>
         try
         {
             final json = new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString( o )
-
-            if ( file )
-            {
-                file.parentFile.with { File f -> assert  ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
-                file.write( json, 'UTF-8' )
-            }
-
+            if ( file ){ write( file, json )}
             json
         }
         catch ( e ) { throw new GradleException( "Failed to convert [$o] to JSON", e )}

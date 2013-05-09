@@ -99,50 +99,46 @@ final class IOHelper extends BaseHelper<Object>
                          ''
      }
 
+
      /**
       * {@link org.gradle.api.Project#file(java.lang.Object)} wrapper validating the file created exists already.
       */
      @Requires({ path })
      @Ensures ({ result.file })
-     File file( String path )
+     File checkFile( String path )
      {
-         final  f = project.file( path )
+         final  f = project.file( path ).canonicalFile
          assert f.file, "File [$f] is not available"
          f
      }
 
 
      /**
+      * {@link org.gradle.api.Project#file(java.lang.Object)} wrapper validating the file created is directory.
+      */
+     @Requires({ path })
+     @Ensures ({ result.file })
+     File checkDirectory( String path )
+     {
+         final  f = project.file( path ).canonicalFile
+         assert f.directory, "Directory [$f] is not available"
+         f
+     }
+
+
+     /**
       * {@code File.write()} wrapper.
-      *
-      * @param file     file to write to
-      * @param content  content to write
-      * @param encoding encoding to use
-      * @return file written
       */
      @Requires({ file && ( content != null ) && encoding })
      @Ensures ({ result == file })
      File write ( File file, String content, String encoding = 'UTF-8' )
      {
          assert ( ! file.file ) || project.delete( file ), "Unable to delete [${ file.canonicalPath }]"
-         assert file.parentFile.with { directory || mkdirs() }, "Unable to create [${ file.parentFile.canonicalPath }]"
+         assert file.parentFile.with { directory || mkdirs() }, "Unable to mkdir [${ file.parentFile.canonicalPath }]"
 
          file.write( content, encoding )
          assert ( file.file && ( file.size() >= content.size()))
          file
-     }
-
-
-     /**
-      * {@link org.gradle.api.Project#file(java.lang.Object)} wrapper validating the directory created exists already.
-      */
-     @Requires({ path })
-     @Ensures ({ result.directory })
-     File directory( String path )
-     {
-         final  f = project.file( path )
-         assert f.directory, "Directory [$f] is not available"
-         f
      }
 
 

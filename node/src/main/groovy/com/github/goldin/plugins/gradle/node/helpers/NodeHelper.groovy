@@ -45,8 +45,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
     @Ensures ({ result })
     String forever()
     {
-        final  foreverExecutable = project.file( FOREVER_EXECUTABLE ).canonicalFile
-        assert foreverExecutable.file
+        checkFile( FOREVER_EXECUTABLE )
         FOREVER_EXECUTABLE
     }
 
@@ -314,9 +313,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
     @Ensures ({ result })
     String baseScript ( String operationTitle )
     {
-        final  binFolder = project.file( MODULES_BIN_DIR ).canonicalFile
-        assert binFolder.directory, "Directory [$binFolder.canonicalPath] is not available"
-
+        final  binFolder   = checkDirectory( MODULES_BIN_DIR )
         final isJenkins    = System.getenv( 'JENKINS_URL' ) != null
         final envVariables = [ 'NODE_ENV', 'PORT', 'PATH' ] +
                              ( isJenkins ? [ 'BUILD_ID' ]   : [] ) +
@@ -326,7 +323,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
         """
         |export NODE_ENV=$ext.NODE_ENV
         |export PORT=$ext.portNumber
-        |export PATH=$binFolder:\$PATH
+        |export PATH=$binFolder.canonicalPath:\$PATH
         |${ isJenkins ? 'export BUILD_ID=JenkinsLetMeSpawn' : '' }
         |${ ext.env   ? ext.env.collect { String variable, Object value -> "export $variable=$value" }.join( '\n' ) : '' }
         |

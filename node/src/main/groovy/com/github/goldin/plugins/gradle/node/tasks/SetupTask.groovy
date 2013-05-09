@@ -89,7 +89,7 @@ class SetupTask extends NodeBaseTask
     @Requires({ ext.configs })
     private void printConfigs ()
     {
-        for ( configFile in ext.configs*.keySet().flatten()*.toString().toSet().collect{ file( it )})
+        for ( configFile in ext.configs*.keySet().flatten()*.toString().toSet().collect{ checkFile( it )})
         {
             final configContent = ( ext.printConfigsMask ?: [] ).inject( configFile.getText( 'UTF-8' )){
                 String content, String maskProperty ->
@@ -116,7 +116,7 @@ class SetupTask extends NodeBaseTask
             replacesMap.each {
                 String replacePath, Map replaces ->
 
-                final replaceFile = file( replacePath )
+                final replaceFile = checkFile( replacePath )
 
                 log{ "Updating [$replaceFile.canonicalPath] using replacements Map $replaces" }
 
