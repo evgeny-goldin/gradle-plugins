@@ -36,13 +36,13 @@ class StartTask extends NodeBaseTask
         pidFile().with {
             File f ->
             assert f.file, "[$f.canonicalPath] is not available, application has failed to start or 'forever' isn't working properly"
-            final lastModified          = f.lastModified()
-            final lastModifiedFormatted = format( lastModified )
+            final lastModified = f.lastModified()
+            final millisAgo    = System.currentTimeMillis() - lastModified
 
-            logger.info( "[$f.canonicalPath] - PID is [$f.text], last modified is [$lastModifiedFormatted]" )
+            logger.info( "[$f.canonicalPath] - PID is [$f.text], last modified $millisAgo millisecond${ s( millisAgo )} ago." )
 
             assert ( lastModified > startTime ), \
-                "[$f.canonicalPath] last modified is $lastModified [$lastModifiedFormatted], " +
+                "[$f.canonicalPath] last modified is $lastModified [${ format( lastModified ) }], " +
                 "expected it to be greater than build start time $startTime [$startTimeFormatted]"
         }
 
