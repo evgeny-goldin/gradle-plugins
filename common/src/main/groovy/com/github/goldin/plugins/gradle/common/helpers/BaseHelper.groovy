@@ -16,5 +16,5 @@ abstract class BaseHelper<T>
     T        ext
 
 
-    Map<String,?> helperInitMap (){[ task : task, ext : ext, project : project ]}
+    Map<String,?> helperInitMap (){[ task : this.task, ext : this.ext, project : this.project ]}
 }

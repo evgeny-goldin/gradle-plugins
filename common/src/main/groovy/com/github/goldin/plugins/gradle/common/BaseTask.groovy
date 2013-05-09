@@ -57,7 +57,7 @@ abstract class BaseTask<T> extends DefaultTask
     abstract void taskAction()
 
 
-    Map<String,?> helperInitMap (){[ task : this, ext : ext, project : project ]}
+    Map<String,?> helperInitMap (){[ task : this, ext : this.ext, project : this.project ]}
 
 
     @TaskAction

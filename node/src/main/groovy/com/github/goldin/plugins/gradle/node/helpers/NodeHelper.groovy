@@ -144,14 +144,17 @@ class NodeHelper extends BaseHelper<NodeExtension>
     final void runTask( String taskName )
     {
         log{ "Running task '$taskName'" }
-        final task = ( NodeBaseTask ) project.tasks[ taskName ]
+        final t = ( NodeBaseTask ) project.tasks[ taskName ]
 
-        task.generalHelper = generalHelper
-        task.ioHelper      = ioHelper
-        task.jsonHelper    = jsonHelper
-        task.matcherHelper = matcherHelper
+        t.generalHelper = generalHelper
+        t.ioHelper      = ioHelper
+        t.jsonHelper    = jsonHelper
+        t.matcherHelper = matcherHelper
+        t.nodeHelper    = this
+        t.cacheHelper   = (( NodeBaseTask ) task ).cacheHelper
+        t.configHelper  = (( NodeBaseTask ) task ).configHelper
 
-        task.taskAction()
+        t.taskAction()
     }
 
 
