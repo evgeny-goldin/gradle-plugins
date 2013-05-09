@@ -11,21 +11,8 @@ import org.gradle.api.file.CopySpec
 /**
  * {@link com.github.goldin.plugins.gradle.node.tasks.SetupTask} helper.
  */
-class NpmCacheHelper extends BaseHelper
+class NpmCacheHelper extends BaseHelper<NodeExtension>
 {
-    private final NodeExtension ext
-
-
-    @SuppressWarnings([ 'GroovyUntypedAccess' ])
-    @Requires({ task && ext })
-    @Ensures ({ this.task && this.ext })
-    NpmCacheHelper ( BaseTask task, NodeExtension ext )
-    {
-        super( task )
-        this.ext = ext
-    }
-
-
     @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
     void restoreNodeModulesFromCache ()
     {

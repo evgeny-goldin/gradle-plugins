@@ -12,8 +12,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.process.ExecSpec
 
 
-@InheritConstructors
-final class IOHelper extends BaseHelper
+final class IOHelper extends BaseHelper<Object>
 {
     /**
      * Executes 'git' command specified.

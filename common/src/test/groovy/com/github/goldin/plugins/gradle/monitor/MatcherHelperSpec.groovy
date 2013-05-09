@@ -9,10 +9,12 @@ import com.github.goldin.plugins.gradle.common.helper.MatcherHelper
  */
 class MatcherHelperSpec extends BaseSpecification
 {
+    @Delegate final MatcherHelper helper = new MatcherHelper()
+
     def 'Content matches single matcher' ()
     {
         expect:
-        new MatcherHelper( null ).contentMatches( content, pattern, '' )
+        contentMatches( content, pattern, '' )
 
         where:
         content | pattern
@@ -40,7 +42,7 @@ class MatcherHelperSpec extends BaseSpecification
     def 'Content matches multiple matchers' ()
     {
         expect:
-        new MatcherHelper( null ).contentMatches( content, pattern, '*' )
+        contentMatches( content, pattern, '*' )
 
         where:
         content | pattern
@@ -57,7 +59,7 @@ class MatcherHelperSpec extends BaseSpecification
     def 'Content matches JSON matchers' ()
     {
         expect:
-        new MatcherHelper( null ).contentMatches( content, pattern, '*' )
+        contentMatches( content, pattern, '*' )
 
         where:
         content | pattern

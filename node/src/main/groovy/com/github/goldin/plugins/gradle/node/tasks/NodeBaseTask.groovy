@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import com.github.goldin.plugins.gradle.node.NpmCacheHelper
 import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.node.ConfigHelper
 import com.github.goldin.plugins.gradle.node.NodeExtension
@@ -18,8 +19,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Override
     Class extensionType (){ NodeExtension }
 
-
-    final NodeHelper nodeHelper = new NodeHelper( logger )
+    @Delegate NodeHelper     nodeHelper
+    @Delegate NpmCacheHelper cacheHelper
 
     @Ensures({ result })
     final File buildDir (){ project.buildDir }
@@ -70,6 +71,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Override
     void verifyUpdateExtension ( String description )
     {
+        nodeHelper  = new NodeHelper( helperMap())
+        cacheHelper = new NpmCacheHelper( helperMap())
+
         assert ext.NODE_ENV,            "'NODE_ENV' should be defined in $description"
         assert ext.shell,               "'shell' should be defined in $description"
         assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
@@ -103,7 +107,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
                "Couldn't find an application script to run! Specify 'scriptPath' in $description or use " +
                "'${ ( ext.knownScriptPaths ?: [] ).join( "', '" ) }'"
 
-        ext.nodeVersion      = ( ext.nodeVersion == 'latest' ) ? nodeHelper.latestNodeVersion() : ext.nodeVersion
+        ext.nodeVersion      = ( ext.nodeVersion == 'latest' ) ? latestNodeVersion() : ext.nodeVersion
         ext.removeColorCodes = ( ext.removeColor ? " | $REMOVE_COLOR_CODES" : '' )
 
         final echo      = { List<String> l -> l?.collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten() }

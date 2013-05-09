@@ -1,18 +1,17 @@
 package com.github.goldin.plugins.gradle.common.helper
 
 import com.github.goldin.plugins.gradle.common.BaseTask
+import org.gradle.api.Project
 
 
 /**
  * Base helpers class connecting them to {@link BaseTask} methods.
  */
 @SuppressWarnings([ 'AbstractClassWithoutAbstractMethod' ])
-abstract class BaseHelper
+abstract class BaseHelper<T>
 {
-    @Delegate final BaseTask task
-
-    protected BaseHelper ( BaseTask task /* null in tests */ )
-    {
-        this.task = task
-    }
+    Project  project
+    @Delegate
+    BaseTask task
+    T        ext
 }

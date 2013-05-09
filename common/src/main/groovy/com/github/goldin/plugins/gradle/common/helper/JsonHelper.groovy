@@ -1,14 +1,12 @@
 package com.github.goldin.plugins.gradle.common.helper
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import groovy.transform.InheritConstructors
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 
 
-@InheritConstructors
-final class JsonHelper extends BaseHelper
+final class JsonHelper extends BaseHelper<Object>
 {
     /**
      * Converts file provided to Json {@code Map}.

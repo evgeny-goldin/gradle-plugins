@@ -1,9 +1,6 @@
 package com.github.goldin.plugins.gradle.common
 
-import com.github.goldin.plugins.gradle.common.helper.GeneralHelper
-import com.github.goldin.plugins.gradle.common.helper.IOHelper
-import com.github.goldin.plugins.gradle.common.helper.JsonHelper
-import com.github.goldin.plugins.gradle.common.helper.MatcherHelper
+import com.github.goldin.plugins.gradle.common.helper.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
@@ -26,10 +23,10 @@ abstract class BaseTask<T> extends DefaultTask
     final projectName        = project.name.replaceAll( ~/^.*\//, '' )
     final File projectDir    = project.projectDir
 
-    @Delegate final GeneralHelper generalHelper = new GeneralHelper( this )
-    @Delegate final IOHelper      ioHelper      = new IOHelper     ( this )
-    @Delegate final JsonHelper    jsonHelper    = new JsonHelper   ( this )
-    @Delegate final MatcherHelper matcherHelper = new MatcherHelper( this )
+    @Delegate GeneralHelper generalHelper
+    @Delegate IOHelper      ioHelper
+    @Delegate JsonHelper    jsonHelper
+    @Delegate MatcherHelper matcherHelper
 
     /**
      * Retrieves task's extension type in run-time
@@ -59,6 +56,10 @@ abstract class BaseTask<T> extends DefaultTask
     @Requires({ ext && extensionName })
     abstract void taskAction()
 
+
+    Map<String,?> helperMap(){[ task : this, ext : ext, project : project ]}
+
+
     @TaskAction
     final void doTask()
     {
@@ -71,8 +72,13 @@ abstract class BaseTask<T> extends DefaultTask
             this.config( this.ext )
         }
 
-
         assert this.ext && this.extensionName
+
+        generalHelper = new GeneralHelper( helperMap())
+        ioHelper      = new IOHelper     ( helperMap())
+        jsonHelper    = new JsonHelper   ( helperMap())
+        matcherHelper = new MatcherHelper( helperMap())
+
         verifyUpdateExtension( "$project => ${ this.extensionName } { .. }" )
         taskAction()
     }

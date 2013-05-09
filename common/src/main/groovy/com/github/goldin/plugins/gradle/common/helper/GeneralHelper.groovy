@@ -1,6 +1,5 @@
 package com.github.goldin.plugins.gradle.common.helper
 
-import groovy.transform.InheritConstructors
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
@@ -12,8 +11,7 @@ import java.security.MessageDigest
 import java.util.regex.Pattern
 
 
-@InheritConstructors
-final class GeneralHelper extends BaseHelper
+final class GeneralHelper extends BaseHelper<Object>
 {
     @Requires({ c != null })
     @Ensures({ result != null })

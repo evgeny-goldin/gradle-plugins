@@ -1,12 +1,10 @@
 package com.github.goldin.plugins.gradle.common.helper
 
-import groovy.transform.InheritConstructors
 import org.gcontracts.annotations.Requires
 import java.util.regex.Pattern
 
 
-@InheritConstructors
-final class MatcherHelper extends BaseHelper
+final class MatcherHelper extends BaseHelper<Object>
 {
     private boolean isMap  ( Object ... o ){ o.every{ it instanceof Map  }}
     private boolean isList ( Object ... o ){ o.every{ it instanceof List }}
@@ -47,10 +45,9 @@ final class MatcherHelper extends BaseHelper
 
         if ( ! content.with { startsWith( matcher[0] ) && endsWith( matcher[-1] ) }) { return false }
 
-        final jsonHelper = new JsonHelper( task )
-        jsonContainsGeneral( jsonHelper.jsonToObject( content, Object ),
-                             jsonHelper.jsonToObject( matcher, Object ))
-
+        final helper = new JsonHelper()
+        jsonContainsGeneral( helper.jsonToObject( content, Object ),
+                             helper.jsonToObject( matcher, Object ))
     }
 
 
