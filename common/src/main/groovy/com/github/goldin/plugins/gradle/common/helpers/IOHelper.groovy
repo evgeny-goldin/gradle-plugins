@@ -117,7 +117,7 @@ final class IOHelper extends BaseHelper<Object>
       * {@link org.gradle.api.Project#file(java.lang.Object)} wrapper validating the file created is directory.
       */
      @Requires({ path })
-     @Ensures ({ result.file })
+     @Ensures ({ result.directory })
      File checkDirectory( String path )
      {
          final  f = project.file( path ).canonicalFile
