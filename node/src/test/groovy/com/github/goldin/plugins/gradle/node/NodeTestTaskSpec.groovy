@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node
 
 import com.github.goldin.plugins.gradle.common.BaseSpecification
+import com.github.goldin.plugins.gradle.node.helpers.NodeHelper
 
 
 /**

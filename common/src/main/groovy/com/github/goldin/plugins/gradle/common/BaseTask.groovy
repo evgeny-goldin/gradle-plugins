@@ -1,6 +1,6 @@
 package com.github.goldin.plugins.gradle.common
 
-import com.github.goldin.plugins.gradle.common.helper.*
+import com.github.goldin.plugins.gradle.common.helpers.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.DefaultTask
@@ -13,15 +13,15 @@ import java.text.SimpleDateFormat
  */
 abstract class BaseTask<T> extends DefaultTask
 {
-    final dateFormatter      = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
-    final startTime          = System.currentTimeMillis()
-    final startTimeFormatted = this.dateFormatter.format( new Date( this.startTime ))
-    final osName             = System.getProperty( 'os.name', 'unknown' ).toLowerCase()
-    final isWindows          = osName.contains( 'windows' )
-    final isLinux            = osName.contains( 'linux'   )
-    final isMac              = osName.contains( 'mac os'  )
-    final projectName        = project.name.replaceAll( ~/^.*\//, '' )
-    final File projectDir    = project.projectDir
+    final SimpleDateFormat dateFormatter      = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
+    final long             startTime          = System.currentTimeMillis()
+    final String           startTimeFormatted = this.dateFormatter.format( new Date( this.startTime ))
+    final String           osName             = System.getProperty( 'os.name', 'unknown' ).toLowerCase()
+    final boolean          isWindows          = osName.contains( 'windows' )
+    final boolean          isLinux            = osName.contains( 'linux'   )
+    final boolean          isMac              = osName.contains( 'mac os'  )
+    final String           projectName        = project.name.replaceAll( ~/^.*\//, '' )
+    final File             projectDir         = project.projectDir
 
     @Delegate GeneralHelper generalHelper
     @Delegate IOHelper      ioHelper
@@ -57,7 +57,7 @@ abstract class BaseTask<T> extends DefaultTask
     abstract void taskAction()
 
 
-    Map<String,?> helperMap(){[ task : this, ext : ext, project : project ]}
+    Map<String,?> helperInitMap (){[ task : this, ext : ext, project : project ]}
 
 
     @TaskAction
@@ -74,10 +74,10 @@ abstract class BaseTask<T> extends DefaultTask
 
         assert this.ext && this.extensionName
 
-        generalHelper = new GeneralHelper( helperMap())
-        ioHelper      = new IOHelper     ( helperMap())
-        jsonHelper    = new JsonHelper   ( helperMap())
-        matcherHelper = new MatcherHelper( helperMap())
+        generalHelper = new GeneralHelper( helperInitMap())
+        ioHelper      = new IOHelper     ( helperInitMap())
+        jsonHelper    = new JsonHelper   ( helperInitMap())
+        matcherHelper = new MatcherHelper( helperInitMap())
 
         verifyUpdateExtension( "$project => ${ this.extensionName } { .. }" )
         taskAction()

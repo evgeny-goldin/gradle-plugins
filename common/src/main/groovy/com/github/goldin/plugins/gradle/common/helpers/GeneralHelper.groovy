@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.gradle.common.helper
+package com.github.goldin.plugins.gradle.common.helpers
 
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -22,9 +22,9 @@ final class GeneralHelper extends BaseHelper<Object>
     String s( Number j, String single = '', String multiple = 's' ){ j == 1 ? single : multiple }
 
 
-    @Requires({ ( time > 0 ) && task.dateFormatter })
+    @Requires({ ( time > 0 ) && dateFormatter })
     @Ensures ({ result })
-    String format ( long time ){ task.dateFormatter.format( new Date( time ))}
+    String format ( long time ){ dateFormatter.format( new Date( time ))}
 
     /**
      * Sleeps for amount of milliseconds specified if positive.

@@ -1,7 +1,6 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
-import com.github.goldin.plugins.gradle.node.ConfigHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import java.util.regex.Pattern
@@ -58,8 +57,7 @@ class SetupTask extends NodeBaseTask
     @Ensures({ result != null })
     private List<Map<String, ?>> updateConfigs()
     {
-        final configs      = []
-        final configHelper = new ConfigHelper( ext, this )
+        final configs = []
 
         for ( configMap in ( ext.configs ?: [] ))
         {
@@ -77,9 +75,9 @@ class SetupTask extends NodeBaseTask
                 log{ "Merging JSON config [$configFile.canonicalPath] with " +
                      ( isValueFile ? "[${ (( File ) configValue ).canonicalPath }]" : configValue.toString() ) }
 
-                configs << configHelper.updateConfigFile (
+                configs << updateConfigFile (
                     configFile,
-                    ( isValueFile ? configHelper.readConfigFile(( File ) configValue ) : ( Map ) configValue ))
+                    ( isValueFile ? readConfigFile(( File ) configValue ) : ( Map ) configValue ))
             }
         }
 

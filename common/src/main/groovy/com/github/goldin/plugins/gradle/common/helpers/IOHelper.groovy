@@ -1,9 +1,8 @@
-package com.github.goldin.plugins.gradle.common.helper
+package com.github.goldin.plugins.gradle.common.helpers
 
 import com.github.goldin.plugins.gradle.common.HttpResponse
 import com.github.goldin.plugins.gradle.common.LoggingOutputStream
 import groovy.text.SimpleTemplateEngine
-import groovy.transform.InheritConstructors
 import org.apache.tools.ant.DirectoryScanner
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires

@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.gradle.common.helper
+package com.github.goldin.plugins.gradle.common.helpers
 
 import org.gcontracts.annotations.Requires
 import java.util.regex.Pattern

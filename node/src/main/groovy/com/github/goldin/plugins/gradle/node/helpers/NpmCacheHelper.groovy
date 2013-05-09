@@ -1,8 +1,8 @@
-package com.github.goldin.plugins.gradle.node
+package com.github.goldin.plugins.gradle.node.helpers
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
-import com.github.goldin.plugins.gradle.common.helper.BaseHelper
-import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.node.NodeExtension
+import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.file.CopySpec

@@ -1,8 +1,7 @@
-package com.github.goldin.plugins.gradle.node
+package com.github.goldin.plugins.gradle.node.helpers
 
-import static com.github.goldin.plugins.gradle.node.NodeConstants.*
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
+import com.github.goldin.plugins.gradle.node.NodeExtension
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
@@ -12,21 +11,8 @@ import org.gradle.api.logging.LogLevel
 /**
  * Helper class for updating config data
  */
-class ConfigHelper
+class ConfigHelper extends BaseHelper<NodeExtension>
 {
-    private final NodeExtension ext
-    private final BaseTask      task
-
-
-    @Requires({ ext && task })
-    @Ensures ({ this.ext && this.task })
-    ConfigHelper ( NodeExtension ext, BaseTask task )
-    {
-        this.ext  = ext
-        this.task = task
-    }
-
-
     @Requires({ ( map != null ) && key })
     @Ensures ({ result })
     private String noNewKeysErrorMessage( Map map, String key, Object value )
@@ -53,7 +39,7 @@ class ConfigHelper
 
         if ( configText.with{ startsWith( '{' ) and endsWith( '}' ) })
         {
-            final  jsonMap = task.jsonToMap( configText, configFile )
+            final  jsonMap = jsonToMap( configText, configFile )
             assert jsonMap, "No configuration data was read from [$configFile.canonicalPath]"
             jsonMap
         }
@@ -92,8 +78,8 @@ class ConfigHelper
                 }
             }
 
-            final configContent            = ( configFile.file ? configFile.getText( 'UTF-8' )               : ''  )
-            final Map<String,?> configData = ( configFile.file ? task.jsonToMap( configContent, configFile ) : [:] )
+            final configContent            = ( configFile.file ? configFile.getText( 'UTF-8' )          : ''  )
+            final Map<String,?> configData = ( configFile.file ? jsonToMap( configContent, configFile ) : [:] )
             assert ( configData || ( ! configFile.file )), "No configuration data was read from [$configFile.canonicalPath]"
 
             newConfigData.each {
@@ -101,9 +87,9 @@ class ConfigHelper
                 updateConfigMap( configData, key, value )
             }
 
-            task.write( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
-                                         mergeConfig ( configContent, configData ) :
-                                         task.objectToJson ( configData ))
+            write( configFile, ( configFile.file && ext.configMergePreserveOrder ) ?
+                                     mergeConfig ( configContent, configData ) :
+                                     objectToJson ( configData ))
             configData
         }
         catch ( Throwable error )
@@ -121,14 +107,14 @@ class ConfigHelper
                                  Map<String, ?> parentConfigData = configData )
     {
         final String content = configData.values().any { it instanceof List } ?
-            task.objectToJson( parentConfigData ) : // Merging of list values is not supported
+            objectToJson( parentConfigData ) : // Merging of list values is not supported
             configData.inject( configContent ){
                String content, String key, Object value ->
                ( value instanceof Map  ) ? mergeConfig          ( content, value, ( List<String> )( keys + key ), parentConfigData ) :
                                            mergeConfigPlainValue( content, value, ( List<String> )( keys + key ))
         }
 
-        assert task.jsonToMap( content ) // To make sure the data can be parsed back
+        assert jsonToMap( content ) // To make sure the data can be parsed back
         content
     }
 
@@ -157,7 +143,7 @@ class ConfigHelper
                 return ( keyIndex == ( keys.size() - 1 )) ?
                     // Last key, recursion stops, replacement made
                     configContent.substring( 0, startPosition ) + currentContent.substring( 0, position ) +
-                    prefix + task.objectToJson( value ) + currentContent.substring( matcher.end()) :
+                    prefix + objectToJson( value ) + currentContent.substring( matcher.end()) :
                     // Recursion continues with the next key
                     mergeConfigPlainValue( configContent,
                                            value,
@@ -171,12 +157,12 @@ class ConfigHelper
         {
             case 'fail'   : throw new GradleException( "Unable to merge config key [${ keys.join( ext.configsKeyDelimiter )}] with [$configContent], " +
                                                        "creating new keys is not allowed" )
-            case 'ignore' : task.log( LogLevel.WARN ){ "Config key [${ keys.join( ext.configsKeyDelimiter )}] is ignored - " +
-                                                       "not available in destination map" }
+            case 'ignore' : log( LogLevel.WARN ){ "Config key [${ keys.join( ext.configsKeyDelimiter )}] is ignored - " +
+                                                  "not available in destination map" }
                             return configContent
-            default       : return task.objectToJson( updateConfigMap( task.jsonToMap( configContent ),
-                                                                       keys.join( ext.configsKeyDelimiter ),
-                                                                       value ))
+            default       : return objectToJson( updateConfigMap( jsonToMap( configContent ),
+                                                                  keys.join( ext.configsKeyDelimiter ),
+                                                                  value ))
         }
     }
 
@@ -226,7 +212,7 @@ class ConfigHelper
             switch ( ext.configsNewKeys )
             {
                 case 'fail'   : throw new GradleException( noNewKeysErrorMessage( map, key, value ))
-                case 'ignore' : task.log( LogLevel.WARN ){ noNewKeysErrorMessage( map, key, value )}
+                case 'ignore' : log( LogLevel.WARN ){ noNewKeysErrorMessage( map, key, value )}
                                 return map
                 default       : map[ key ] = value
             }
@@ -271,7 +257,7 @@ class ConfigHelper
             switch ( ext.configsNewKeys )
             {
                 case 'fail'   : throw new GradleException( noNewKeysErrorMessage( map, key, value ))
-                case 'ignore' : task.log( LogLevel.WARN ){ noNewKeysErrorMessage( map, key, value )}
+                case 'ignore' : log( LogLevel.WARN ){ noNewKeysErrorMessage( map, key, value )}
                                 return
                 default       : map[ key ] = [:]
             }

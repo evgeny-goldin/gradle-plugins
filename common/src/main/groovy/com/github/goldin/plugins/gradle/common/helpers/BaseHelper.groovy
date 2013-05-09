@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.gradle.common.helper
+package com.github.goldin.plugins.gradle.common.helpers
 
 import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gradle.api.Project
@@ -14,4 +14,7 @@ abstract class BaseHelper<T>
     @Delegate
     BaseTask task
     T        ext
+
+
+    Map<String,?> helperInitMap (){[ task : task, ext : ext, project : project ]}
 }

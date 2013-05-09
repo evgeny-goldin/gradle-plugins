@@ -1,9 +1,8 @@
 package com.github.goldin.plugins.gradle.about
 
+import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
-import org.gradle.api.Project
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ProjectReportsPlugin
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
@@ -12,28 +11,11 @@ import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 /**
  * {@link AboutTask} helper class.
  */
-class AboutTaskHelper
+class AboutHelper extends BaseHelper<AboutExtension>
 {
     private static final String       SEPARATOR = '|==============================================================================='
-    private final AboutTask           task
-    private final Project             project
-    private final Gradle              gradle
-    private final File                rootDir
-    private final AboutExtension      ext
     private final Map<String, String> env        = System.getenv().asImmutable()
     private final Map<String, String> properties = ( Map<String , String> ) System.properties.asImmutable()
-
-
-    @Requires({ task })
-    @Ensures({ this.task && this.project && this.gradle && this.rootDir.directory && this.ext })
-    AboutTaskHelper ( AboutTask task )
-    {
-        this.task    = task
-        this.project = task.project
-        this.gradle  = this.project.gradle
-        this.rootDir = this.project.rootDir
-        this.ext     = task.ext
-    }
 
 
     @Requires({ ( s != null ) && prefix })
@@ -146,8 +128,8 @@ class AboutTaskHelper
         $SEPARATOR
         | Build Info
         $SEPARATOR
-        | Host          : [${ task.hostname() }]/[${ InetAddress.localHost.hostAddress }]
-        | Time          : [$task.startTimeFormatted]
+        | Host          : [${ hostname() }]/[${ InetAddress.localHost.hostAddress }]
+        | Time          : [$startTimeFormatted]
         | User          : [${ properties[ 'user.name' ] }]
         | ${ ext.includePaths ? 'Directory     : [' + properties[ 'user.dir' ] + ']': '' }
         | Java          : [${ properties[ 'java.version' ] }][${ properties[ 'java.vm.vendor' ] }]${ ext.includePaths ? '[' + properties[ 'java.home' ] + ']' : '' }[${ properties[ 'java.vm.name' ] }]
@@ -155,13 +137,13 @@ class AboutTaskHelper
         $SEPARATOR
         | Gradle Info
         $SEPARATOR
-        | Version       : [${ gradle.gradleVersion }]
-        | ${ ext.includePaths ? 'Home          : [' + gradle.gradleHomeDir.canonicalPath + ']' : '' }
-        | ${ ext.includePaths ? 'Project dir   : [' + task.projectDir.canonicalPath + ']': '' }
+        | Version       : [${ project.gradle.gradleVersion }]
+        | ${ ext.includePaths ? 'Home          : [' + project.gradle.gradleHomeDir.canonicalPath + ']' : '' }
+        | ${ ext.includePaths ? 'Project dir   : [' + projectDir.canonicalPath + ']': '' }
         | ${ ext.includePaths ? 'Build file    : [' + ( project.buildFile ?: project.rootProject.buildFile ).canonicalPath + ']' : '' }
         | GRADLE_OPTS   : [${ env[ 'GRADLE_OPTS' ] ?: '' }]
         | Project       : [${ ext.includePaths ? project.toString() : project.toString().replaceAll( /\s+@.+/, '' )}]
-        | Tasks         : ${ gradle.startParameter.taskNames }
+        | Tasks         : ${ project.gradle.startParameter.taskNames }
         | Coordinates   : [$project.group:$project.name:$project.version]
         |${ includeDependencies ? ' Dependencies  : [' + padLines( dependenciesContent(), ' Dependencies  : [' ) + ']' : '' }""" +
 
@@ -202,7 +184,7 @@ class AboutTaskHelper
         final renderer   = asciiReportRenderer()
         final file       = new File( project.buildDir, "${ this.class.name }-dependencies.txt" )
         final line       = '-' * 80
-        task.delete( file )
+        delete( file )
 
         renderer.outputFile = file
         reportTask.renderer = renderer
@@ -210,11 +192,11 @@ class AboutTaskHelper
 
         assert file.file, "File [$file.canonicalPath] was not created by dependency report"
         final String report = ( ext.includeDependencies instanceof List ) ?
-            file.getText( 'UTF-8' ).split( '\n\n' ).findAll { task.find( it, ext.configurationNamePattern ) in ext.includeDependencies }.join( '\n\n' ) :
+            file.getText( 'UTF-8' ).split( '\n\n' ).findAll { find( it, ext.configurationNamePattern ) in ext.includeDependencies }.join( '\n\n' ) :
             file.getText( 'UTF-8' )
 
         report = "$line\n" + report.replaceAll( /(?m)^\s*$/, line ) // Empty lines replaced by $line
-        task.delete( false, file ) // https://github.com/evgeny-goldin/gradle-plugins/issues/6
+        delete( false, file ) // https://github.com/evgeny-goldin/gradle-plugins/issues/6
         report
     }
 
@@ -244,8 +226,8 @@ class AboutTaskHelper
          * Trying Git
          */
 
-        final String gitVersion = task.gitExec( '--version', rootDir, false )
-        final String gitStatus  = gitVersion.contains( 'git version' ) ? task.gitExec( 'status', rootDir, false ) : ''
+        final String gitVersion = gitExec( '--version', project.rootDir, false )
+        final String gitStatus  = gitVersion.contains( 'git version' ) ? gitExec( 'status', project.rootDir, false ) : ''
 
         if ( gitStatus && ( ! gitStatus.with { startsWith( 'fatal:' ) || startsWith( 'error:' ) }))
         {
@@ -257,15 +239,15 @@ class AboutTaskHelper
              * evgenyg@gmail.com
              * CodeNarc fix
              */
-            final gitLog = task.gitExec( 'log -1 --format=format:%h%n%H%n%cD%n%cN%n%ce%n%B', rootDir ).readLines()*.trim()
+            final gitLog = gitExec( 'log -1 --format=format:%h%n%H%n%cD%n%cN%n%ce%n%B', project.rootDir ).readLines()*.trim()
 
             """
             $SEPARATOR
             | Git Info
             $SEPARATOR
             | Version        : [${ gitVersion.replace( 'git version', '' ).trim() }]
-            | Repositories   : [${ padLines( task.gitExec( 'remote -v', rootDir ), ' Repositories   : [' ) }]
-            | Branch         : [${ task.find( gitStatus.readLines(), '# On branch' ) }]
+            | Repositories   : [${ padLines( gitExec( 'remote -v', project.rootDir ), ' Repositories   : [' ) }]
+            | Branch         : [${ find( gitStatus.readLines(), '# On branch' ) }]
             | Status         : [${ padLines( gitStatus, ' Status         : [' ) }]
             | Commit         : [${ gitLog[ 0 ] }][${ gitLog[ 1 ] }]
             | Commit Date    : [${ gitLog[ 2 ] }]

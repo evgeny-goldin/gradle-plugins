@@ -1,7 +1,7 @@
 package com.github.goldin.plugins.gradle.monitor
 
 import com.github.goldin.plugins.gradle.common.BaseSpecification
-import com.github.goldin.plugins.gradle.common.helper.MatcherHelper
+import com.github.goldin.plugins.gradle.common.helpers.MatcherHelper
 
 
 /**

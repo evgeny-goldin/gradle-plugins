@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.gradle.common.helper
+package com.github.goldin.plugins.gradle.common.helpers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.gcontracts.annotations.Ensures

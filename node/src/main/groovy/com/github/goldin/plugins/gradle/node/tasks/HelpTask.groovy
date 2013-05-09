@@ -1,7 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
-
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+
 
 /**
  * Displays a help message with all tasks available.
