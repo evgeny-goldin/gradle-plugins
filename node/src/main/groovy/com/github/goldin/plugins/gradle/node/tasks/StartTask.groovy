@@ -39,7 +39,7 @@ class StartTask extends NodeBaseTask
             final lastModified = f.lastModified()
             final millisAgo    = System.currentTimeMillis() - lastModified
 
-            logger.info( "[$f.canonicalPath] - PID is [$f.text], last modified $millisAgo millisecond${ s( millisAgo )} ago." )
+            logger.info( "[$f.canonicalPath] is found, pid is [$f.text], last modified $millisAgo millisecond${ s( millisAgo )} ago." )
 
             assert ( lastModified > startTime ), \
                 "[$f.canonicalPath] last modified is $lastModified [${ format( lastModified ) }], " +
@@ -80,11 +80,11 @@ class StartTask extends NodeBaseTask
     @Requires({ ext.printUrl })
     void printApplicationUrls ()
     {
-        final String externalIp  = jsonToMap ( httpRequest( 'http://jsonip.com/' ).contentAsString()).ip
         final String internalUrl = "http://127.0.0.1:${ ext.portNumber }${   ext.printUrl == '/' ? '' : ext.printUrl }"
-        final String externalUrl = "http://$externalIp:${ ext.portNumber }${ ext.printUrl == '/' ? '' : ext.printUrl }"
+        final String externalIp  = ( ext.printUrlExternalIp ? jsonToMap ( httpRequest( 'http://jsonip.com/' ).contentAsString()).ip                : '' )
+        final String externalUrl = ( ext.printUrlExternalIp ? "http://$externalIp:${ ext.portNumber }${ ext.printUrl == '/' ? '' : ext.printUrl }" : '' )
 
-        println( "The application is up and running at $internalUrl / $externalUrl" )
+        println( "The application is up and running at $internalUrl${ ext.printUrlExternalIp ? ' / ' + externalUrl : '' }" )
     }
 
 
