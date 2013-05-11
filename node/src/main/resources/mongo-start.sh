@@ -27,4 +27,4 @@ else
     fi
 fi
 
-mongo --eval "db" --port @{mongoPort}
+mongo --eval "print('\n=========\nHost Info\n=========\n'); printjson(db.hostInfo()); print('\n========\nDB Stats\n========\n'); printjson(db.stats())" --port @{mongoPort}
