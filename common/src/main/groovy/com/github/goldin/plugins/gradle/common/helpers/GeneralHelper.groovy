@@ -33,7 +33,11 @@ final class GeneralHelper extends BaseHelper<Object>
     @Requires({ delayInMilliseconds > -1 })
     void delay( long delayInMilliseconds )
     {
-        if ( delayInMilliseconds > 0 ){ sleep( delayInMilliseconds )}
+        if ( delayInMilliseconds > 0 )
+        {
+            log { "Sleeping for $delayInMilliseconds millisecond${s( delayInMilliseconds )}" }
+            sleep( delayInMilliseconds )
+        }
     }
 
 
