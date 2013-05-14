@@ -35,7 +35,7 @@ final class GeneralHelper extends BaseHelper<Object>
     {
         if ( delayInMilliseconds > 0 )
         {
-            log { "Sleeping for $delayInMilliseconds millisecond${s( delayInMilliseconds )}" }
+            log { "Waiting for $delayInMilliseconds millisecond${s( delayInMilliseconds )}" }
             sleep( delayInMilliseconds )
         }
     }
