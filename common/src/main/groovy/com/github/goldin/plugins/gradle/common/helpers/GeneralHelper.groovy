@@ -194,4 +194,16 @@ final class GeneralHelper extends BaseHelper<Object>
         try { System.getenv( 'COMPUTERNAME' ) ?: System.getenv( 'HOSTNAME' ) ?: exec( 'hostname' ) ?: '' }
         catch( Throwable ignored ){ 'Unknown' }
     }
+
+
+    /**
+     * Verifies the type of object specified and returns the object.
+     */
+    @Requires({ ( o != null ) && ( type != null ) })
+    @Ensures ({ result.is( o ) })
+    <T> T checkType( Object o, Class<T> type )
+    {
+        assert type.isInstance( o ), "Expected [$o] to be of type [${ type.name }] but it's of type [${ o.class.name }]"
+        ( T ) o
+    }
 }

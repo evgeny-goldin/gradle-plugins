@@ -59,7 +59,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         if ( failures )
         {
-            throw new GradleException( "The following checks have failed:\n* [${ failures.join( ']\n* [' )}]" )
+            throw new GradleException( "The following checks have failed:\n* [${ failures.toSet().join( ']\n* [' )}]" )
         }
     }
 
@@ -169,13 +169,17 @@ class MonitorTask extends BaseTask<MonitorExtension>
         // http://kb.statuscake.com/api/The%20Basics/Authentication.md
 
         final  authMap = jsonToMap( read ( 'Auth' ))
-        assert authMap.Success && authMap[ 'Details' ][ 'Username' ]
-        log { "$line - logged in successfully as [${ authMap[ 'Details' ][ 'Username' ] }]" }
+        assert checkType( authMap.Success, Boolean ) && checkType((( Map ) authMap.Details ).Username, String )
+        log { "$line - logged in successfully as '${ (( Map ) authMap.Details ).Username }'" }
 
         // http://kb.statuscake.com/api/Tests/Get%20All%20Tests.md
 
         final tests       = jsonToList( read( 'Tests' ), Map ).findAll { Map m -> ( testName ? m.WebsiteName == testName : true ) }
-        final failedTests = tests.findAll{ Map m -> m.Status != 'Up' }
+        final failedTests = tests.findAll{
+            Map m ->
+            (   checkType( m.Status, String  ) != 'Up' ) &&
+            ( ! checkType( m.Paused, Boolean ))
+        }
 
         log { "$line - found [${ tests.size() }] test${ s( tests )}, [${ failedTests.size() }] failed" }
 
