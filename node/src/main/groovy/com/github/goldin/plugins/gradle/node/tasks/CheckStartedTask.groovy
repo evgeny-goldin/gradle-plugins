@@ -27,18 +27,24 @@ class CheckStartedTask extends NodeBaseTask
         }
         else
         {
-            log( LogLevel.ERROR ) { '''
-                                    |-----------------------------------------------------------
-                                    |  -=-= The application has failed to start properly! =-=-
-                                    |-----------------------------------------------------------
-                                    '''.stripMargin() }
+            final displayLogStep = 'display application log'
+            final description    = "$resultMessage${ ext.checkContent ? ', content [' + content + ']' : '' } " +
+                                   "while we expected status code [$ext.checkStatusCode]" +
+                                   ( ext.checkContent ? ", content contains [$ext.checkContent]" : '' ) +
+                                   ". See '$displayLogStep'."
+            final message        = """
+                                   |-----------------------------------------------------------
+                                   |  -=-= The application has failed to start properly! =-=-
+                                   |-----------------------------------------------------------
+                                   |$description
+                                   """.stripMargin()
 
-            shellExec( tailLogScript(), taskScriptFile( false, false, 'tail-log' ), false, true, false, true, 'display application log', LogLevel.ERROR )
+            log( LogLevel.ERROR ) { message }
+
+            shellExec( tailLogScript(), taskScriptFile( false, false, 'tail-log' ), false, true, false, true, displayLogStep, LogLevel.ERROR )
             if ( ext.stopIfFailsToStart ){ runTask( STOP_TASK )}
-            throw new GradleException( "$resultMessage${ ext.checkContent ? ', content [' + content + ']' : '' } " +
-                                       "while we expected status code [$ext.checkStatusCode]" +
-                                       ( ext.checkContent ? ", content contains [$ext.checkContent]" : '' ) +
-                                       ". See 'Showing logs' above." )
+
+            throw new GradleException( message )
         }
     }
 
