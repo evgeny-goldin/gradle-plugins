@@ -58,6 +58,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @SuppressWarnings([ 'UseCollectMany', 'UnnecessaryObjectReferences' ])
     private void updateExtension()
     {
+        updateChecks()
         ext.checkUrl = ext.checkUrl.startsWith( 'http' ) ?
             ext.checkUrl :
             "http://127.0.0.1:${ ext.portNumber }" + ( ext.checkUrl ? "/${ ext.checkUrl.replaceFirst( '^/', '' ) }"  : '' )
@@ -81,5 +82,24 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         addRedis()
         addMongo()
+    }
+
+
+    private void updateChecks()
+    {
+        if ( ! ext.checks ) { return }
+        final newChecks = [:]
+
+        ext.checks.every {
+            String url, List content ->
+            assert url && content && ( content.size() == 2 )
+
+            final newUrl = url.startsWith( 'http' ) ? url : "http://127.0.0.1:${ ext.portNumber }${ url.startsWith( '/' ) ? '' : '/' }${ url }"
+            assert ( ! newChecks.containsValue( newUrl ))
+            newChecks[ newUrl.toString() ] = content
+        }
+
+        assert newChecks && newChecks
+        ext.checks
     }
 }
