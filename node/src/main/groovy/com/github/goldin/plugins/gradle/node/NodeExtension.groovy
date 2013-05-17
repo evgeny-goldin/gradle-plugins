@@ -38,13 +38,11 @@ class NodeExtension
     Map<String,?> env                     = [:]   // Environment variables to set before application is started
     String       printUrl                 = '/'   // The URL to print after the application has started. Nothing is displayed if set to '' or null
     boolean      printUrlExternalIp       = true  // Whether external IP of application is printed if 'printUrl' is used
-    String       checkUrl                 = '/'   // The URL to check after application has started, "http://127.0.0.1:$portNumber" by default
-    Map<String,List<?>> checks = [:]   // Checks to perform after application has started.
-                                                  // Key  : application url, relative like '/' or '/login' or full like 'http://...'
-                                                  // Value: two elements list: [0] - expected status code, int
-                                                  //                           [1] - expected content, String (same format as in "monitor" plugin - 'text', '/regex/', '[json]', '{json}')
-    String       checkContent             = ''    // Response to expect when making a request
-    int          checkStatusCode          = 200   // Response code to expect when making a request
+    Map<String,List<?>> checks            = [ '/' : [ 200, '' ]] // Checks to perform after application has started.
+                                                                 // Key  : application url, relative like '/' or '/login' or full like 'http://...'
+                                                                 // Value: two elements list: [0] - expected status code, int
+                                                                 //                           [1] - expected content, String
+                                                                 //                                 Same format as in "monitor" plugin - 'text', '/regex/', '[json]', '{json}', token1*token2
     int          checkWait                = 5     // Seconds to wait after starting/stopping the application and checking it
     int          checkTimeout             = 10    // Seconds to wait for check test to succeed or fail (timeout)
 

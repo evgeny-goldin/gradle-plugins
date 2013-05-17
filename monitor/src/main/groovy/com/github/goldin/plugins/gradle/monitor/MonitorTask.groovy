@@ -96,7 +96,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         final response           = httpRequest( checkUrl, 'GET', ext.headers, ext.connectTimeout, ext.readTimeout, false, false,
                                                 user ?: ext.user, password ?: ext.password )
         final responseStatusCode = response.statusCode.toString()
-        final responseContent    = response.content ? response.contentAsString() : ''
+        final responseContent    = response.asString()
         final isMatch            = ( responseStatusCode == checkStatusCode ) &&
                                    contentMatches( responseContent, checkContent, ext.matchersDelimiter )
         final isTimeMatch        = ( response.timeMillis <= ( timeLimit as long ))
@@ -161,7 +161,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         final read     = {
             String url ->
             httpRequest( "https://www.statuscake.com/API/$url", 'GET', [ API : apiKey, Username : username ]).
-            contentAsString()
+            asString()
         }
 
         log { "$line - expecting ${ testName ? testName + ' test' : 'all tests' } to be up" }

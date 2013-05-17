@@ -2,10 +2,11 @@ package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
-import com.github.goldin.plugins.gradle.node.helpers.ConfigHelper
 import com.github.goldin.plugins.gradle.node.NodeExtension
+import com.github.goldin.plugins.gradle.node.helpers.ConfigHelper
 import com.github.goldin.plugins.gradle.node.helpers.NodeHelper
 import com.github.goldin.plugins.gradle.node.helpers.NpmCacheHelper
+import org.gcontracts.annotations.Requires
 
 
 /**
@@ -46,6 +47,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.mongoWait    >= 0,   "'mongoWait' should not be negative in $description"
         assert ext.configsNewKeys,      "'configsNewKeys' should be defined in $description"
         assert ext.xUnitReportFile,     "'xUnitReportFile' should be defined in $description"
+        assert ext.checks,              "'checks' should be defined in $description"
 
         if ( ! ext.updated )
         {
@@ -59,10 +61,6 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     private void updateExtension()
     {
         updateChecks()
-        ext.checkUrl = ext.checkUrl.startsWith( 'http' ) ?
-            ext.checkUrl :
-            "http://127.0.0.1:${ ext.portNumber }" + ( ext.checkUrl ? "/${ ext.checkUrl.replaceFirst( '^/', '' ) }"  : '' )
-        assert ext.checkUrl
 
         ext.scriptPath = ext.scriptPath ?: ( ext.knownScriptPaths ?: [] ).find { new File( projectDir, it ).file }
         assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \
@@ -85,21 +83,21 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     }
 
 
+    @Requires({ ext.checks })
     private void updateChecks()
     {
-        if ( ! ext.checks ) { return }
         final newChecks = [:]
 
         ext.checks.every {
             String url, List content ->
             assert url && content && ( content.size() == 2 )
 
-            final newUrl = url.startsWith( 'http' ) ? url : "http://127.0.0.1:${ ext.portNumber }${ url.startsWith( '/' ) ? '' : '/' }${ url }"
-            assert ( ! newChecks.containsValue( newUrl ))
-            newChecks[ newUrl.toString() ] = content
+            final newUrl = ( url.startsWith( 'http' ) ? url : "http://127.0.0.1:${ ext.portNumber }${ url.startsWith( '/' ) ? '' : '/' }${ url }" ).toString()
+            assert ( ! newChecks.containsValue( newUrl )), "Duplicate check url [$newUrl] - mapped to ${ newChecks[ newUrl ]} and $content"
+            newChecks[ newUrl ] = content
         }
 
-        assert newChecks && newChecks
-        ext.checks
+        assert newChecks && ( newChecks.size() == ext.checks.size())
+        ext.checks = newChecks
     }
 }

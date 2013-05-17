@@ -9,11 +9,14 @@ class CheckStoppedTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        delay( ext.checkWait * 1000 )
+        ext.checks.each {
+            String checkUrl, List<?> list ->
 
-        final response = httpRequest( ext.checkUrl, 'GET', [:], ext.checkTimeout * 500, ext.checkTimeout * 500, false, false )
-        assert ( response.statusCode instanceof ConnectException ) &&
-               ((( ConnectException ) response.statusCode ).message == 'Connection refused' ),
-               "Connecting to [$ext.checkUrl] resulted in status code [${ response.statusCode }], expected ${ ConnectException.name }"
+            final response           = httpRequest( checkUrl, 'GET', [:], ext.checkTimeout * 500, ext.checkTimeout * 500, false, false )
+            final responseStatusCode = response.statusCode
+            assert ( responseStatusCode instanceof ConnectException ) &&
+                   ((( ConnectException ) responseStatusCode ).message == 'Connection refused' ),
+                   "Connecting to [$checkUrl] resulted in status code [$responseStatusCode], expected ${ ConnectException.name }"
+        }
     }
 }

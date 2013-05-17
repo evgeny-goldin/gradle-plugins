@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 import org.gradle.api.logging.LogLevel
 
@@ -11,40 +12,50 @@ import org.gradle.api.logging.LogLevel
 class CheckStartedTask extends NodeBaseTask
 {
     @Override
+    @Requires({ ext.checks })
     void taskAction()
     {
         delay( ext.checkWait * 1000 )
 
-        final response       = httpRequest( ext.checkUrl, 'GET', [:], ext.checkTimeout * 500, ext.checkTimeout * 500, false )
-        final content        = response.content ? response.contentAsString() : ''
-        final isGoodResponse = ( response.statusCode == ext.checkStatusCode ) && contentMatches( content, ext.checkContent, '*' )
-        final resultMessage  = "Connecting to [$ext.checkUrl] resulted in " +
-                               (( response.statusCode instanceof Integer ) ? "status code [$response.statusCode]" :
-                                                                             "'$response.statusCode'" ) //  If not Integer then it's an error
-        if ( isGoodResponse )
-        {
-            log{ "$resultMessage${ ext.checkContent ? ', content contains [' + ext.checkContent + ']' : '' } - good!" }
-        }
-        else
-        {
-            final displayLogStep = 'display application log'
-            final description    = "$resultMessage${ ext.checkContent ? ', content [' + content + ']' : '' } " +
-                                   "while we expected status code [$ext.checkStatusCode]" +
-                                   ( ext.checkContent ? ", content contains [$ext.checkContent]" : '' ) +
-                                   ". See '$displayLogStep'."
-            final message        = """
-                                   |-----------------------------------------------------------
-                                   |  -=-= The application has failed to start properly! =-=-
-                                   |-----------------------------------------------------------
-                                   |$description
-                                   """.stripMargin()
+        ext.checks.each {
+            String checkUrl, List<?> list ->
 
-            log( LogLevel.ERROR ) { message }
+            assert checkUrl && list && ( list.size() == 2 )
 
-            shellExec( tailLogScript(), taskScriptFile( false, false, 'tail-log' ), false, true, false, true, displayLogStep, LogLevel.ERROR )
-            if ( ext.stopIfFailsToStart ){ runTask( STOP_TASK )}
+            final checkStatusCode    = list[ 0 ] as int
+            final checkContent       = list[ 1 ] as String
+            final response           = httpRequest( checkUrl, 'GET', [:], ext.checkTimeout * 500, ext.checkTimeout * 500, false )
+            final responseStatusCode = response.statusCode
+            final responseContent    = response.asString()
+            final isGoodResponse     = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent, '*' )
+            final logMessage         = "Connecting to [$checkUrl] resulted in " +
+                                       (( responseStatusCode instanceof Integer ) ? "status code [$responseStatusCode]" :
+                                                                                    "'$responseStatusCode'" ) //  If not Integer then it's an error
+            if ( isGoodResponse )
+            {
+                log{ "$logMessage${ checkContent ? ', content contains [' + checkContent + ']' : '' } - good!" }
+            }
+            else
+            {
+                final displayLogStep = 'display application log'
+                final errorDetails   = "$logMessage${ responseContent ? ', content [' + responseContent + ']' : '' } " +
+                                       "while we expected status code [$checkStatusCode]" +
+                                       ( checkContent ? ", content contains [$checkContent]" : '' ) +
+                                       ". See '$displayLogStep'."
+                final errorMessage   = """
+                                       |-----------------------------------------------------------
+                                       |  -=-= The application has failed to start properly! =-=-
+                                       |-----------------------------------------------------------
+                                       |$errorDetails
+                                       """.stripMargin()
 
-            throw new GradleException( message )
+                log( LogLevel.ERROR ) { errorMessage }
+
+                shellExec( tailLogScript(), taskScriptFile( false, false, 'tail-log' ), false, true, false, true, displayLogStep, LogLevel.ERROR )
+                if ( ext.stopIfFailsToStart ){ runTask( STOP_TASK )}
+
+                throw new GradleException( errorMessage )
+            }
         }
     }
 

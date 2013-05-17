@@ -54,7 +54,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
      * Retrieves latest Node.js version
      */
     @Ensures({ result })
-    String latestNodeVersion(){ latestNodeVersion( httpRequest( NODE_VERSION_URL ).contentAsString()) }
+    String latestNodeVersion(){ latestNodeVersion( httpRequest( NODE_VERSION_URL ).asString()) }
 
 
     /**

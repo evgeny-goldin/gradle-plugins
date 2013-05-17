@@ -373,7 +373,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
             if ( ! response.content ){ return }
 
-            final pageContent        = response.contentAsString()
+            final pageContent        = response.asString()
             final pageIgnored        = ( ext.ignoredContent ?: [] ).any { it ( pageUrl, pageContent )}
             final verificationPassed = ( ext.verifyContent  ? verificationPassed( pageUrl, pageContent, ext.verifyContent ) : true )
 

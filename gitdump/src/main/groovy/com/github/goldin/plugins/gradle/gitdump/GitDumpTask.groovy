@@ -135,7 +135,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     private List<Map<String,?>> jsonMaps ( String url, String username, String password )
     {
         log { "Reading [$url]" }
-        final content = httpRequest( url, 'GET', [:], 15000, 15000, true, true, username, password ).contentAsString()
+        final content = httpRequest( url, 'GET', [:], 15000, 15000, true, true, username, password ).asString()
         jsonToList( content, Map )
     }
 

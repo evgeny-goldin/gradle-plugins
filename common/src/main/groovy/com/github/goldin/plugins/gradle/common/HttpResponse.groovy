@@ -84,11 +84,11 @@ class HttpResponse
     }
 
 
-    @Requires({ ( content != null ) && encoding })
+    @Requires({ encoding })
     @Ensures ({ result != null })
-    String contentAsString( String encoding = 'UTF-8' )
+    String asString ( String encoding = 'UTF-8' )
     {
-        new String( content, Charset.forName( encoding ))
+        ( content ? new String( content, Charset.forName( encoding )) : '' )
     }
 
 
