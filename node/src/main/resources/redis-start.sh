@@ -14,6 +14,7 @@ else
     echo redis-server --port @{redisPort} @{redisCommandLine} &
     redis-server --port @{redisPort} @{redisCommandLine} &
 
+    echo Waiting for @{sleep} seconds before continuing
     sleep @{sleep}
 
     if [ @{redisRunning} ];

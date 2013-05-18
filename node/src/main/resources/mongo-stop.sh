@@ -12,6 +12,7 @@ then
     echo mongo  --eval "db.getSiblingDB('admin').shutdownServer()" --port @{mongoPort}
     mongo  --eval "db.getSiblingDB('admin').shutdownServer()" --port @{mongoPort}
 
+    echo Waiting for @{sleep} seconds before continuing
     sleep @{sleep}
 
     if [[ @{mongoRunning} ]];

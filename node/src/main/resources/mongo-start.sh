@@ -16,6 +16,7 @@ else
     echo mongod --fork --port @{mongoPort} --dbpath @{mongoDBPath} --logpath @{mongoLogpath} @{mongoCommandLine}
     mongod --fork --port @{mongoPort} --dbpath @{mongoDBPath} --logpath @{mongoLogpath} @{mongoCommandLine}
 
+    echo Waiting for @{sleep} seconds before continuing
     sleep @{sleep}
 
     if [[ @{mongoRunning} ]];

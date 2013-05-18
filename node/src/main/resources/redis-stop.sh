@@ -12,6 +12,7 @@ then
     echo redis-cli -p @{redisPort} shutdown
     redis-cli -p @{redisPort} shutdown
 
+    echo Waiting for @{sleep} seconds before continuing
     sleep @{sleep}
 
     if [ @{redisRunning} ];
