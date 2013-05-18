@@ -48,7 +48,7 @@ class SetupTask extends NodeBaseTask
 
         for ( command in ext.cleanWorkspaceCommands )
         {
-            command.trim().tokenize().with{ List<String> l -> exec( l.head(), l.tail(), projectDir ) }
+            command.trim().tokenize().with{ List<String> l -> exec( l.head(), l.tail(), projectDir, false ) }
         }
     }
 
