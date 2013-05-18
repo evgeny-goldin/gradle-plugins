@@ -12,7 +12,12 @@ class NodeExtension
     String       nodeVersion              = 'latest'
     String       testCommand              = 'mocha'
     String       testInput                = 'test'
-    boolean      removeColor              = false // Whether color codes should be removed from command outputs.
+
+    /**
+     * Whether color codes should be removed from command outputs.
+     */
+    boolean      removeColor              = 'BUILD_NUMBER JENKINS_URL TEAMCITY_VERSION'.split().any{ System.getenv( it ) != null }
+
     String       foreverOptions           = ''    // Additional command-line 'forever' options, such as '-w -v'
     String       removeColorCodes                 // Internal property
     boolean      configMergePreserveOrder = true  // Whether configs merge should preserve keys order (more risky, some nasty regexes are involved)
