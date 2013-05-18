@@ -35,7 +35,9 @@ final class GeneralHelper extends BaseHelper<Object>
     {
         if ( delayInMilliseconds > 0 )
         {
-            log { "Waiting for $delayInMilliseconds millisecond${s( delayInMilliseconds )} before continuing" }
+            final isSeconds = (( delayInMilliseconds % 1000 ) == 0 )
+            final amount    = isSeconds ? delayInMilliseconds / 1000 : delayInMilliseconds
+            log { "Waiting for $amount ${ isSeconds ? 'second' : 'millisecond' }${ s( amount ) } before continuing" }
             sleep( delayInMilliseconds )
         }
     }
