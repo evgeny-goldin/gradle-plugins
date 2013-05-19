@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.common.helpers
 
+import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.common.HttpResponse
 import com.github.goldin.plugins.gradle.common.LoggingOutputStream
 import groovy.text.SimpleTemplateEngine
@@ -7,12 +8,19 @@ import org.apache.tools.ant.DirectoryScanner
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.api.logging.LogLevel
 import org.gradle.process.ExecSpec
 
 
 final class IOHelper extends BaseHelper<Object>
 {
+    @SuppressWarnings([ 'GroovyUntypedAccess' ])
+    @Requires({ project && task && ext })
+    @Ensures ({ this.project && this.task && this.ext })
+    IOHelper ( Project project, BaseTask task, Object ext ){ super( project, task, ext )}
+
+
     /**
      * Executes 'git' command specified.
      *
@@ -24,7 +32,7 @@ final class IOHelper extends BaseHelper<Object>
      */
      @Requires({ command && directory.directory })
      @Ensures({ result != null })
-     String gitExec( String command, File directory, boolean failOnError = true )
+     String gitExec( String command, File directory = project.rootDir, boolean failOnError = true )
      {
          exec( 'git', command.tokenize(), directory, failOnError )
      }
@@ -46,7 +54,7 @@ final class IOHelper extends BaseHelper<Object>
      @Ensures ({ result != null })
      String exec( String       command,
                   List<String> arguments     = [],
-                  File         directory     = null,
+                  File         directory     = project.rootDir,
                   boolean      failOnError   = true,
                   boolean      useGradleExec = true,
                   LogLevel     logLevel      = LogLevel.INFO )
@@ -192,7 +200,7 @@ final class IOHelper extends BaseHelper<Object>
                          }
                          else if ( isLinux || isMac )
                          {
-                             exec( 'rm', [ '-rf', file.canonicalPath ] )
+                             exec( 'rm', [ '-rf', file.canonicalPath ], null, false )
                          }
 
                          if ( file.exists()){ failOrWarn( mustDelete, "Failed to natively delete [$file.canonicalPath]" )}

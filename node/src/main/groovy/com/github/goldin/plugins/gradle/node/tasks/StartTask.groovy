@@ -115,7 +115,7 @@ class StartTask extends NodeBaseTask
         |su - $currentUser -c "${ taskScriptFile().canonicalPath }"
         """.stripMargin().toString().trim())
 
-        if ( isLinux || isMac ) { exec( 'chmod', [ '+x', startupScript.canonicalPath ]) }
+        if ( isLinux || isMac ) { exec( 'chmod', [ '+x', startupScript.canonicalPath ] ) }
 
         log { "file:${startupScript.canonicalPath} is created" }
     }

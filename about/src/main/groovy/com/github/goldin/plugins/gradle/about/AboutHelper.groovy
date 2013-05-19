@@ -1,8 +1,10 @@
 package com.github.goldin.plugins.gradle.about
 
+import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
+import org.gradle.api.Project
 import org.gradle.api.plugins.ProjectReportsPlugin
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
@@ -13,6 +15,12 @@ import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
  */
 class AboutHelper extends BaseHelper<AboutExtension>
 {
+    @SuppressWarnings([ 'GroovyUntypedAccess' ])
+    @Requires({ project && task && ext })
+    @Ensures ({ this.project && this.task && this.ext })
+    AboutHelper ( Project project, BaseTask task, AboutExtension ext ){ super( project, task, ext )}
+
+
     private static final String       SEPARATOR = '|==============================================================================='
     private final Map<String, String> env        = System.getenv().asImmutable()
     private final Map<String, String> properties = ( Map<String , String> ) System.properties.asImmutable()
@@ -239,14 +247,14 @@ class AboutHelper extends BaseHelper<AboutExtension>
              * evgenyg@gmail.com
              * CodeNarc fix
              */
-            final gitLog = gitExec( 'log -1 --format=format:%h%n%H%n%cD%n%cN%n%ce%n%B', project.rootDir ).readLines()*.trim()
+            final gitLog = gitExec( 'log -1 --format=format:%h%n%H%n%cD%n%cN%n%ce%n%B' ).readLines()*.trim()
 
             """
             $SEPARATOR
             | Git Info
             $SEPARATOR
             | Version        : [${ gitVersion.replace( 'git version', '' ).trim() }]
-            | Repositories   : [${ padLines( gitExec( 'remote -v', project.rootDir ), ' Repositories   : [' ) }]
+            | Repositories   : [${ padLines( gitExec( 'remote -v' ), ' Repositories   : [' ) }]
             | Branch         : [${ find( gitStatus.readLines(), '# On branch' ) }]
             | Status         : [${ padLines( gitStatus, ' Status         : [' ) }]
             | Commit         : [${ gitLog[ 0 ] }][${ gitLog[ 1 ] }]

@@ -31,9 +31,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Override
     void verifyUpdateExtension ( String description )
     {
-        nodeHelper   = new NodeHelper( helperInitMap())
-        cacheHelper  = new NpmCacheHelper( helperInitMap())
-        configHelper = new ConfigHelper( helperInitMap())
+        nodeHelper   = new NodeHelper    ( this.project, this, this.ext )
+        cacheHelper  = new NpmCacheHelper( this.project, this, this.ext )
+        configHelper = new ConfigHelper  ( this.project, this, this.ext )
 
         assert ext.NODE_ENV,            "'NODE_ENV' should be defined in $description"
         assert ext.shell,               "'shell' should be defined in $description"

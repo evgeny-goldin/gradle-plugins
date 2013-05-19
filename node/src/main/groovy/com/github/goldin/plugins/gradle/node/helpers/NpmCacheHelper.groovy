@@ -1,8 +1,10 @@
 package com.github.goldin.plugins.gradle.node.helpers
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
-import com.github.goldin.plugins.gradle.node.NodeExtension
+import com.github.goldin.plugins.gradle.common.BaseTask
+import org.gradle.api.Project
 import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
+import com.github.goldin.plugins.gradle.node.NodeExtension
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.file.CopySpec
@@ -13,6 +15,12 @@ import org.gradle.api.file.CopySpec
  */
 class NpmCacheHelper extends BaseHelper<NodeExtension>
 {
+    @SuppressWarnings([ 'GroovyUntypedAccess' ])
+    @Requires({ project && task && ext })
+    @Ensures ({ this.project && this.task && this.ext })
+    NpmCacheHelper ( Project project, BaseTask task, NodeExtension ext ){ super( project, task, ext )}
+
+
     @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
     void restoreNodeModulesFromCache ()
     {
@@ -25,7 +33,7 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
         if ( ! npmCacheArchive?.file ) { return }
 
         logger.info( "Unpacking 'npm install' cache [$npmCacheArchive.canonicalPath] to [$projectDir.canonicalPath]" )
-        exec( 'tar', [ '-xzf', npmCacheArchive.canonicalPath, '-C', projectDir.canonicalPath ], projectDir )
+        exec( 'tar', [ '-xzf', npmCacheArchive.canonicalPath, '-C', projectDir.canonicalPath ] )
     }
 
 
@@ -46,7 +54,7 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
         project.copy { CopySpec cs -> cs.from( PACKAGE_JSON ).into( nodeModules ) }
         updatePackageJson( new File( nodeModules, PACKAGE_JSON ))
 
-        exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.name ], projectDir )
+        exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.name ] )
         assert tempFile.renameTo( npmCacheArchive ) && npmCacheArchive.file, \
                "Failed to rename [$tempFile.canonicalPath] to [$npmCacheArchive.canonicalPath]"
 
@@ -170,8 +178,8 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
         packageJsonMap.host      = "${ hostname() }/${ InetAddress.localHost.hostAddress }".toString()
         packageJsonMap.project   = project.toString()
         packageJsonMap.directory = projectDir.canonicalPath
-        packageJsonMap.origin    = gitExec( 'remote -v', projectDir ).readLines().find { it.startsWith( 'origin' )}.split()[ 1 ]
-        packageJsonMap.sha       = gitExec( 'log -1 --format=format:%H', projectDir )
+        packageJsonMap.origin    = gitExec( 'remote -v' ).readLines().find { it.startsWith( 'origin' )}.split()[ 1 ]
+        packageJsonMap.sha       = gitExec( 'log -1 --format=format:%H' )
 
         objectToJson( packageJsonMap, packageJson )
     }

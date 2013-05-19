@@ -12,6 +12,5 @@ class CleanModulesTask extends NodeBaseTask
     void taskAction()
     {
         delete( NODE_MODULES_DIR )
-        ext.npmCleanInstall = true
     }
 }

@@ -1,11 +1,24 @@
 package com.github.goldin.plugins.gradle.common.helpers
 
+import com.github.goldin.plugins.gradle.common.BaseTask
+import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
+import org.gradle.api.Project
 import java.util.regex.Pattern
 
 
 final class MatcherHelper extends BaseHelper<Object>
 {
+    @SuppressWarnings([ 'GroovyUntypedAccess' ])
+    MatcherHelper(){ super( null, null, null )}
+
+
+    @SuppressWarnings([ 'GroovyUntypedAccess' ])
+    @Requires({ project && task && ext })
+    @Ensures ({ this.project && this.task && this.ext })
+    MatcherHelper ( Project project, BaseTask task, Object ext ) { super( project, task, ext )}
+
+
     private boolean isMap  ( Object ... o ){ o.every{ it instanceof Map  }}
     private boolean isList ( Object ... o ){ o.every{ it instanceof List }}
 

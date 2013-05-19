@@ -22,7 +22,7 @@ class AboutTask extends BaseTask<AboutExtension>
 
     void taskAction()
     {
-        helper = new AboutHelper( helperInitMap())
+        helper = new AboutHelper( this.project, this, this.ext )
 
         try
         {

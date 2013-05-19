@@ -1,10 +1,12 @@
 package com.github.goldin.plugins.gradle.node.helpers
 
+import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
 import com.github.goldin.plugins.gradle.node.NodeExtension
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.api.logging.LogLevel
 
 
@@ -13,6 +15,12 @@ import org.gradle.api.logging.LogLevel
  */
 class ConfigHelper extends BaseHelper<NodeExtension>
 {
+    @SuppressWarnings([ 'GroovyUntypedAccess' ])
+    @Requires({ project && task && ext })
+    @Ensures ({ this.project && this.task && this.ext })
+    ConfigHelper ( Project project, BaseTask task, NodeExtension ext ){ super( project, task, ext )}
+
+
     @Requires({ ( map != null ) && key })
     @Ensures ({ result })
     private String noNewKeysErrorMessage( Map map, String key, Object value )

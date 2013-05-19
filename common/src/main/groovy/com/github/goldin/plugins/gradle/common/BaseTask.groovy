@@ -57,9 +57,6 @@ abstract class BaseTask<T> extends DefaultTask
     abstract void taskAction()
 
 
-    Map<String,?> helperInitMap (){[ task : this, ext : this.ext, project : this.project ]}
-
-
     @TaskAction
     final void doTask()
     {
@@ -74,10 +71,10 @@ abstract class BaseTask<T> extends DefaultTask
 
         assert this.ext && this.extensionName
 
-        generalHelper = new GeneralHelper( helperInitMap())
-        ioHelper      = new IOHelper     ( helperInitMap())
-        jsonHelper    = new JsonHelper   ( helperInitMap())
-        matcherHelper = new MatcherHelper( helperInitMap())
+        generalHelper = new GeneralHelper( this.project, this, this.ext )
+        ioHelper      = new IOHelper     ( this.project, this, this.ext )
+        jsonHelper    = new JsonHelper   ( this.project, this, this.ext )
+        matcherHelper = new MatcherHelper( this.project, this, this.ext )
 
         verifyUpdateExtension( "$project => ${ this.extensionName } { .. }" )
         taskAction()

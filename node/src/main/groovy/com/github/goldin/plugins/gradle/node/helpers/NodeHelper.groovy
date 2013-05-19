@@ -1,6 +1,8 @@
 package com.github.goldin.plugins.gradle.node.helpers
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import com.github.goldin.plugins.gradle.common.BaseTask
+import org.gradle.api.Project
 import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
 import com.github.goldin.plugins.gradle.node.NodeExtension
 import com.github.goldin.plugins.gradle.node.tasks.NodeBaseTask
@@ -14,6 +16,16 @@ import org.gradle.api.logging.LogLevel
  */
 class NodeHelper extends BaseHelper<NodeExtension>
 {
+    @SuppressWarnings([ 'GroovyUntypedAccess' ])
+    NodeHelper() { super( null, null, null )}
+
+
+    @SuppressWarnings([ 'GroovyUntypedAccess' ])
+    @Requires({ project && task && ext })
+    @Ensures ({ this.project && this.task && this.ext })
+    NodeHelper ( Project project, BaseTask task, NodeExtension ext ){ super( project, task, ext )}
+
+
     @Ensures({ result })
     final File buildDir (){ project.buildDir }
 
@@ -242,7 +254,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
         {
             configMap.each {
                 String configPath, Object configValue ->
-                result << ( configValue instanceof File ? new ConfigHelper( helperInitMap()).readConfigFile(( File ) configValue ) :
+                result << ( configValue instanceof File ? new ConfigHelper( this.project, this.task, this.ext ).readConfigFile(( File ) configValue ) :
                             configValue instanceof Map  ? (( Map ) configValue ) :
                                                           [:] )
             }
@@ -303,7 +315,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
 
         log( LogLevel.INFO ){ "Shell script created at [$scriptFile.canonicalPath], size [${ scriptFile.length() }] bytes" }
 
-        if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ]) }
+        if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ] ) }
 
         exec ( ext.shell, [ scriptFile.canonicalPath ], projectDir, failOnError, useGradleExec, logLevel )
     }

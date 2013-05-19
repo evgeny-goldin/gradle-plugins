@@ -14,11 +14,12 @@ class SetupTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        verifyToolsAvailable([ 'git --version', 'tar --version', "$ext.shell --version", 'whoami' ])
+        verifyTools()
 
         cleanWorkspace()
 
-        ext.configsResult = updateConfigs()
+        ext.configsResult   = updateConfigs()
+        ext.npmCleanInstall = ( ! project.file( NODE_MODULES_DIR ).directory )
 
         makeReplacements()
 
@@ -32,12 +33,11 @@ class SetupTask extends NodeBaseTask
     }
 
 
-    @Requires({ tools })
-    private void verifyToolsAvailable( List<String> tools )
+    private void verifyTools()
     {
-        for ( tool in tools )
+        for ( tool in [ 'git --version', 'tar --version', "$ext.shell --version", 'whoami' ])
         {
-            tool.trim().tokenize().with { List<String> l -> exec( l.head(), l.tail(), projectDir ) }
+            tool.tokenize().with { List<String> l -> exec( l.head(), l.tail()) }
         }
     }
 

@@ -10,11 +10,17 @@ import org.gradle.api.Project
 @SuppressWarnings([ 'AbstractClassWithoutAbstractMethod' ])
 abstract class BaseHelper<T>
 {
-    Project  project
+    final Project  project
     @Delegate
-    BaseTask task
-    T        ext
+    final BaseTask task
+    final T        ext
 
 
-    Map<String,?> helperInitMap (){[ task : this.task, ext : this.ext, project : this.project ]}
+    @SuppressWarnings([ 'GrFinalVariableAccess' ])
+    BaseHelper ( Project project, BaseTask task, T ext )
+    {
+        this.@project = project
+        this.@task    = task
+        this.@ext     = ext
+    }
 }
