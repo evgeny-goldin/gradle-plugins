@@ -54,7 +54,7 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
         project.copy { CopySpec cs -> cs.from( PACKAGE_JSON ).into( nodeModules ) }
         updatePackageJson( new File( nodeModules, PACKAGE_JSON ))
 
-        exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.canonicalPath ] )
+        exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.name ], projectDir ) // Use relative path, not absolute!
         assert tempFile.renameTo( npmCacheArchive ) && npmCacheArchive.file, \
                "Failed to rename [$tempFile.canonicalPath] to [$npmCacheArchive.canonicalPath]"
 
