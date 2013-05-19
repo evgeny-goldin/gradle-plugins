@@ -17,7 +17,7 @@ abstract class BaseHelper<T>
 
 
     @SuppressWarnings([ 'GrFinalVariableAccess' ])
-    BaseHelper ( Project project, BaseTask task, T ext )
+    protected BaseHelper ( Project project, BaseTask task, T ext )
     {
         this.@project = project
         this.@task    = task
