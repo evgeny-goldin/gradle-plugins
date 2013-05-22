@@ -1,8 +1,6 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
-import org.gradle.api.GradleException
-import org.gradle.api.logging.LogLevel
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
@@ -32,18 +30,18 @@ class TestTask extends NodeBaseTask
 
     private void runTests ()
     {
-        final testReport = shellExec( testScript( ext.xUnitReport ? '-R teamcity' : '' ), taskScriptFile(), true, true, false )
+        final testReport = shellExec( testScript( ext.xUnitReport ), taskScriptFile(), true, true, false )
 
-        if ( testReport.contains( 'no such file or directory \'test.js\'' ))
+        if ( testReport.with{ contains( '0 tests complete' ) || contains( 'no such file or directory \'test.js\'' )})
         {
-            log( LogLevel.WARN ){ "No 'mocha' tests found" }
+            failOrWarn( ext.failIfNoTests, "No tests found:\n$testReport" )
             return
         }
 
         if ( ! ext.xUnitReport ) { return }
 
-        final teamCityReportLines = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity[' )}
-        if ( ! teamCityReportLines ) { throw new GradleException( "Running tests produced no test report:\n$testReport" )}
+        final  teamCityReportLines = testReport.readLines()*.trim().grep().findAll { it.startsWith( '##teamcity[' )}
+        assert teamCityReportLines, "Running tests produced no report in TeamCity format, use '-R teamcity' when running 'mocha'"
 
         final xUnitReportFile = new File( testResultsDir(), ext.xUnitReportFile )
         final failures        = writeXUnitReport( teamCityReportLines, xUnitReportFile )
@@ -54,12 +52,14 @@ class TestTask extends NodeBaseTask
         }
     }
 
-    @Requires({ testArguments != null })
+
+    @Requires({ ext.testCommand })
     @Ensures ({ result })
-    private String testScript( String testArguments )
+    private String testScript( boolean xUnitReport )
     {
-        assert ext.testCommand.startsWith( 'mocha' ), "Only 'mocha' test runner is currently supported"
-        final testCommand = "$ext.testCommand ${ (( ! ext.testInput ) || ( ext.testInput == 'test' )) ? '' : ext.testInput } $testArguments".trim()
+        final isMocha     = ext.testCommand.startsWith( 'mocha' )
+        final reporter    = ( xUnitReport && isMocha ) ? '-R teamcity' : ''
+        final testCommand = "$ext.testCommand ${ (( ! ext.testInput ) || ( ext.testInput == 'test' )) ? '' : ext.testInput } $reporter".trim()
 
         """
         |echo $testCommand
