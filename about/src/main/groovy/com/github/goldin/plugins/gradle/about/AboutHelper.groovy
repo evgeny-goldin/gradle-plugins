@@ -136,7 +136,7 @@ class AboutHelper extends BaseHelper<AboutExtension>
         $SEPARATOR
         | Build Info
         $SEPARATOR
-        | Host          : [${ hostname() }]/[${ InetAddress.localHost.hostAddress }]
+        | Host          : [${ hostname() }]
         | Time          : [$startTimeFormatted]
         | User          : [${ properties[ 'user.name' ] }]
         | ${ ext.includePaths ? 'Directory     : [' + properties[ 'user.dir' ] + ']': '' }
