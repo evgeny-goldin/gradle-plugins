@@ -175,7 +175,7 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
 
         packageJsonMap.cacheData = '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
         packageJsonMap.timestamp = format( System.currentTimeMillis())
-        packageJsonMap.host      = "${ hostname() }/${ InetAddress.localHost.hostAddress }".toString()
+        packageJsonMap.host      = "${ hostname() }".toString()
         packageJsonMap.project   = project.toString()
         packageJsonMap.directory = projectDir.canonicalPath
         packageJsonMap.origin    = gitExec( 'remote -v' ).readLines().find { it.startsWith( 'origin' )}.split()[ 1 ]
