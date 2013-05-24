@@ -80,7 +80,7 @@ class StartTask extends NodeBaseTask
     @Requires({ ext.printUrl })
     void printApplicationUrls ()
     {
-        final String internalUrl = "http://127.0.0.1:${ ext.portNumber }${   ext.printUrl == '/' ? '' : ext.printUrl }"
+        final String internalUrl = "http://127.0.0.1:${ ext.portNumber }${ ext.printUrl == '/' ? '' : ext.printUrl }"
         final String publicIp    = ( ext.printUrlExternalIp ? publicIp() : '' )
         final String externalUrl = ( publicIp ? "http://$publicIp:${ ext.portNumber }${ ext.printUrl == '/' ? '' : ext.printUrl }" : '' )
 
