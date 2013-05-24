@@ -43,7 +43,7 @@ class NodeExtension
 
     Map<String,?> env                     = [:]   // Environment variables to set before application is started
     String       printUrl                 = '/'   // The URL to print after the application has started. Nothing is displayed if set to '' or null
-    boolean      printUrlExternalIp       = true  // Whether external IP of application is printed if 'printUrl' is used
+    boolean      printPublicIp            = true  // Whether public IP of application is printed if 'printUrl' is used
 
     /**
      * Checks to perform after application has started.
