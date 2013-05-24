@@ -5,9 +5,6 @@ import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
-import org.gradle.api.plugins.ProjectReportsPlugin
-import org.gradle.api.tasks.diagnostics.DependencyReportTask
-import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 
 
 /**
@@ -130,13 +127,14 @@ class AboutHelper extends BaseHelper<AboutExtension>
     @Ensures({ result })
     String buildContent0 ()
     {
+        // noinspection GroovyPointlessBoolean
         final includeDependencies = ( ext.includeDependencies != false ) && ( ext.includeDependencies != 'false' )
 
         """
         $SEPARATOR
         | Build Info
         $SEPARATOR
-        | Host          : [${ hostname() }]
+        | Host          : [${ hostname() }]${ publicIp().with { delegate ? '/[' + delegate + ']' : '' }}
         | Time          : [$startTimeFormatted]
         | User          : [${ properties[ 'user.name' ] }]
         | ${ ext.includePaths ? 'Directory     : [' + properties[ 'user.dir' ] + ']': '' }

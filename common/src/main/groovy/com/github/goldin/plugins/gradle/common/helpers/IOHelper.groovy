@@ -378,6 +378,25 @@ final class IOHelper extends BaseHelper<Object>
         }
     }
 
+    /**
+     * Attempts to resolve node's public IP.
+     * @return node's public IP or an empty {@code String} if fails to retrieve one.
+     */
+    String publicIp()
+    {
+        // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AESDG-chapter-instancedata.html
+        final attempts = [{ httpRequest( 'http://169.254.169.254/latest/meta-data/public-ipv4' ).asString() },
+                          { jsonToMap  ( httpRequest( 'http://jsonip.com/' ).asString()).ip }]
+
+        for ( attempt in attempts )
+        {
+            try   { return attempt() }
+            catch ( Throwable ignored ) {}
+        }
+
+        ''
+    }
+
 
     /**
      * Invokes an HTTP request using the data provided.
