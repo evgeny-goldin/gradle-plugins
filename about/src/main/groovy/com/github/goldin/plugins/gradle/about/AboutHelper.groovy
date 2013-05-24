@@ -5,6 +5,9 @@ import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
+import org.gradle.api.plugins.ProjectReportsPlugin
+import org.gradle.api.tasks.diagnostics.DependencyReportTask
+import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 
 
 /**
