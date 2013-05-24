@@ -385,8 +385,8 @@ final class IOHelper extends BaseHelper<Object>
     String publicIp()
     {
         // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AESDG-chapter-instancedata.html
-        final attempts = [{ httpRequest( 'http://169.254.169.254/latest/meta-data/public-ipv4' ).asString() },
-                          { jsonToMap  ( httpRequest( 'http://jsonip.com/' ).asString()).ip }]
+        final attempts = [{ httpRequest( 'http://169.254.169.254/latest/meta-data/public-ipv4', 'GET', [:], 1000, 1000 ).asString() },
+                          { jsonToMap  ( httpRequest( 'http://jsonip.com/', 'GET', [:], 1000, 1000 ).asString()).ip }]
 
         for ( attempt in attempts )
         {

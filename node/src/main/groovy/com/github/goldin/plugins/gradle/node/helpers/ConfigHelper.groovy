@@ -37,7 +37,7 @@ class ConfigHelper extends BaseHelper<NodeExtension>
      * @return configuration data read from the file
      */
     @Requires({ configFile })
-    @Ensures ({ result })
+    @Ensures ({ result != null })
     Map<String, ?> readConfigFile ( File configFile )
     {
         assert configFile.file, "Config [$configFile.canonicalPath] is not available"
@@ -47,15 +47,12 @@ class ConfigHelper extends BaseHelper<NodeExtension>
 
         if ( configText.with{ startsWith( '{' ) and endsWith( '}' ) })
         {
-            final  jsonMap = jsonToMap( configText, configFile )
-            assert jsonMap, "No configuration data was read from [$configFile.canonicalPath]"
-            jsonMap
+            jsonToMap( configText, configFile )
         }
         else
         {
             final properties = new Properties()
             properties.load( new StringReader( configText ))
-            assert properties, "Failed to read Properties from [$configFile.canonicalPath]"
             ( Map<String, ?> ) properties
         }
     }
@@ -70,7 +67,7 @@ class ConfigHelper extends BaseHelper<NodeExtension>
      *                      values may be real values or another configuration {@code Map} if read from JSON
      * @return              data of config file updated or created
      */
-    @Requires({ configFile && newConfigData })
+    @Requires({ configFile && ( newConfigData != null ) })
     @Ensures ({ result != null })
     Map<String,?> updateConfigFile ( File configFile, Map<String, ?> newConfigData )
     {
