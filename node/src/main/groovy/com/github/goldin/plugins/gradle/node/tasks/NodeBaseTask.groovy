@@ -77,6 +77,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         ext.beforeTest  = echo( ext.beforeTest )
         ext.afterStop   = echo( ext.afterStop )
         ext.afterTest   = echo( ext.afterTest )
+        ext.publicIp    = ext.printPublicIp ? publicIp() : ''
 
         addRedis()
         addMongo()

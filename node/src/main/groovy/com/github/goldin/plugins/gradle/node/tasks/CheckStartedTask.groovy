@@ -22,13 +22,14 @@ class CheckStartedTask extends NodeBaseTask
 
             assert checkUrl && list && ( list.size() == 2 )
 
+            final publicUrl          = ( ext.publicIp ? "http://${ ext.publicIp }:${ ext.portNumber }${ checkUrl.replaceFirst( ~'https?://[^/]+', '' ) }" : '' )
             final checkStatusCode    = list[ 0 ] as int
             final checkContent       = list[ 1 ] as String
             final response           = httpRequest( checkUrl, 'GET', [:], ext.checkTimeout * 500, ext.checkTimeout * 500, false )
             final responseStatusCode = response.statusCode
             final responseContent    = response.asString()
             final isGoodResponse     = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent, '*' )
-            final logMessage         = "Connecting to [$checkUrl] resulted in " +
+            final logMessage         = "Connecting to [$checkUrl]${ publicUrl ? '/[' + publicUrl + ']' : '' } resulted in " +
                                        (( responseStatusCode instanceof Integer ) ? "status code [$responseStatusCode]" :
                                                                                     "'$responseStatusCode'" ) //  If not Integer then it's an error
             if ( isGoodResponse )

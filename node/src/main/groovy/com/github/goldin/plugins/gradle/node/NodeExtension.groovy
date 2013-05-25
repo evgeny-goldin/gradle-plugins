@@ -42,8 +42,9 @@ class NodeExtension
     int          portNumber               = 1337  // Port the application starts on (becomes part of .pid file name)
 
     Map<String,?> env                     = [:]   // Environment variables to set before application is started
-    String       printUrl                 = '/'   // The URL to print after the application has started. Nothing is displayed if set to '' or null
+    String       printUrl                 = '/'   // Application's URL to print after it has started. Nothing is displayed if set to '' or null
     boolean      printPublicIp            = true  // Whether public IP of application is printed if 'printUrl' is used
+    String       publicIp                 = ''    // Internal property, public IP resolved
 
     /**
      * Checks to perform after application has started.
