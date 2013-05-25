@@ -41,7 +41,7 @@ class NodeExtension
     String       pidFileName              = ''    // PID file name
     int          portNumber               = 1337  // Port the application starts on (becomes part of .pid file name)
 
-    Map<String,?> env                     = [:]   // Environment variables to set before application is started
+    Map<String,Object> env                = [:]   // Environment variables to set before application is started
     String       printUrl                 = '/'   // Application's URL to print after it has started. Nothing is displayed if set to '' or null
     boolean      printPublicIp            = true  // Whether public IP of application is printed if 'printUrl' is used
     String       publicIp                 = ''    // Internal property, public IP resolved
@@ -75,7 +75,7 @@ class NodeExtension
     String        redisCommandLine                // Additional Redis command-line arguments
     boolean       redisStartInProduction  = false // Whether Redis should be started when NODE_ENV=production
     boolean       redisStopInProduction   = false // Whether Redis should be stopped when NODE_ENV=production
-    int           redisWait               = 3     // Seconds to wait after Redis has started or stopped and checking it
+    int           redisWait               = 5     // Seconds to wait after Redis has started or stopped and checking it
 
     int           mongoPort               = -1    // Local MongoDB instance port number to start and stop
     String        mongoPortConfigKey      = ''    // Config key holding MongoDB port number to start and stop
@@ -84,7 +84,7 @@ class NodeExtension
     String        mongoDBPath
     boolean       mongoStartInProduction  = false // Whether MongoDB should be started when NODE_ENV=production
     boolean       mongoStopInProduction   = false // Whether MongoDB should be stopped when NODE_ENV=production
-    int           mongoWait               = 3     // Seconds to wait after MongoDB has started or stopped and checking it
+    int           mongoWait               = 5     // Seconds to wait after MongoDB has started or stopped and checking it
 
 
     List <Map<String, ?>> configs            = []     // List of config maps to update project files with. Every map is:

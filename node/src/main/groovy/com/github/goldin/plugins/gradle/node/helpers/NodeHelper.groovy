@@ -91,7 +91,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
             final redisPort    = ( ext.redisPort > 0      ) ? ext.redisPort.toString() :
                                  ( ext.redisPortConfigKey ) ? '${ config.' + ext.redisPortConfigKey + ' }' :
                                                               '6379'
-
+            ext.env.REDIS_PORT = redisPort
             final redisRunning = """ "`redis-cli -p $redisPort ping 2>&1`" = "PONG"  """.trim()
             final isStartRedis = (( ext.redisStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopRedis  = (( ext.redisStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
@@ -119,7 +119,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
             final mongoPort    = ( ext.mongoPort > 0      ) ? ext.mongoPort.toString() :
                                  ( ext.mongoPortConfigKey ) ? '${ config.' + ext.mongoPortConfigKey + ' }' :
                                                               '27017'
-
+            ext.env.MONGO_PORT = mongoPort
             final mongoEval    = """ "`mongo --eval ${Q}db${Q} --port $mongoPort 2>&1 | tail -1`" """.trim()
             final mongoRunning = """ ! $mongoEval =~ (command not found|connect failed|couldn\\'t connect to server) """.trim()
             final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
@@ -328,19 +328,13 @@ class NodeHelper extends BaseHelper<NodeExtension>
     @Ensures ({ result })
     String baseScript ( String operationTitle )
     {
-        final  binFolder   = checkDirectory( MODULES_BIN_DIR )
-        final isJenkins    = System.getenv( 'JENKINS_URL' ) != null
-        final envVariables = [ 'NODE_ENV', 'PORT', 'PATH' ] +
-                             ( isJenkins ? [ 'BUILD_ID' ]   : [] ) +
-                             ( ext.env   ? ext.env.keySet() : [] )
-        final padSize      = envVariables*.length().max()
+        assert ( ext.env && ( ! ext.env.values().any { it == null } ))
+
+        ext.env.PATH     = "${ checkDirectory( MODULES_BIN_DIR ).canonicalPath }:\$PATH"
+        final envPadSize = ext.env.keySet()*.length().max()
 
         """
-        |export NODE_ENV=$ext.NODE_ENV
-        |export PORT=$ext.portNumber
-        |export PATH=$binFolder.canonicalPath:\$PATH
-        |${ isJenkins ? 'export BUILD_ID=JenkinsLetMeSpawn' : '' }
-        |${ ext.env   ? ext.env.collect { String variable, Object value -> "export $variable=$value" }.join( '\n' ) : '' }
+        |${ ext.env.collect { String variable, Object value -> "export $variable=$value" }.join( '\n' )}
         |
         |. "\$HOME/.nvm/nvm.sh"
         |nvm use $ext.nodeVersion
@@ -348,7 +342,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
         |echo $LOG_DELIMITER
         |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
         |echo "Running   $SCRIPT_LOCATION"
-        |${ envVariables.collect { "echo \"\\\$${ it.padRight( padSize )} = \$$it\"" }.join( '\n' ) }
+        |${ ext.env.keySet().collect { "echo \"\\\$${ it.padRight( envPadSize )} = \$$it\"" }.join( '\n' ) }
         |echo $LOG_DELIMITER
         |
         """.stripMargin().toString().trim()

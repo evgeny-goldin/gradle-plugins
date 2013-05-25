@@ -29,7 +29,7 @@ class CheckStartedTask extends NodeBaseTask
             final responseStatusCode = response.statusCode
             final responseContent    = response.asString()
             final isGoodResponse     = ( responseStatusCode == checkStatusCode ) && contentMatches( responseContent, checkContent, '*' )
-            final logMessage         = "Connecting to [$checkUrl]${ publicUrl ? '/[' + publicUrl + ']' : '' } resulted in " +
+            final logMessage         = "Connecting to $checkUrl${ publicUrl ? ' (' + publicUrl + ')' : '' } resulted in " +
                                        (( responseStatusCode instanceof Integer ) ? "status code [$responseStatusCode]" :
                                                                                     "'$responseStatusCode'" ) //  If not Integer then it's an error
             if ( isGoodResponse )

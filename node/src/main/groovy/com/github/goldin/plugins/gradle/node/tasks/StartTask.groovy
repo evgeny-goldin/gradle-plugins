@@ -83,7 +83,7 @@ class StartTask extends NodeBaseTask
         final String localUrl  = "http://127.0.0.1:${ ext.portNumber }${ ext.printUrl }"
         final String publicUrl = ( ext.publicIp ? "http://${ ext.publicIp }:${ ext.portNumber }${ ext.printUrl }" : '' )
 
-        println( "The application is up and running at $localUrl${ publicUrl ? ' / ' + publicUrl : '' }" )
+        println( "The application is up and running at $localUrl${ publicUrl ? ' (' + publicUrl + ')' : '' }" )
     }
 
 

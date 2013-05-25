@@ -36,6 +36,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         configHelper = new ConfigHelper  ( this.project, this, this.ext )
 
         assert ext.NODE_ENV,            "'NODE_ENV' should be defined in $description"
+        assert ext.env != null,         "'env' shouldn't be null in $description"
         assert ext.shell,               "'shell' should be defined in $description"
         assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
         assert ext.testCommand,         "'testCommand' should be defined in $description"
@@ -70,14 +71,17 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         ext.nodeVersion      = ( ext.nodeVersion == 'latest' ) ? latestNodeVersion() : ext.nodeVersion
         ext.removeColorCodes = ( ext.removeColor ? " | $REMOVE_COLOR_CODES" : '' )
 
-        final echo      = { List<String> l -> l?.collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten() }
-        ext.before      = echo( ext.before )
-        ext.after       = echo( ext.after  )
-        ext.beforeStart = echo( ext.beforeStart )
-        ext.beforeTest  = echo( ext.beforeTest )
-        ext.afterStop   = echo( ext.afterStop )
-        ext.afterTest   = echo( ext.afterTest )
-        ext.publicIp    = ext.printPublicIp ? publicIp() : ''
+        final echo       = { List<String> l -> l?.collect {[ "echo $it", "$it${ ext.removeColorCodes }" ]}?.flatten() }
+        ext.before       = echo( ext.before )
+        ext.after        = echo( ext.after  )
+        ext.beforeStart  = echo( ext.beforeStart )
+        ext.beforeTest   = echo( ext.beforeTest )
+        ext.afterStop    = echo( ext.afterStop )
+        ext.afterTest    = echo( ext.afterTest )
+        ext.publicIp     = ext.printPublicIp ? publicIp() : ''
+        ext.env.NODE_ENV = ext.NODE_ENV
+        ext.env.PORT     = ext.portNumber
+        ext.env.BUILD_ID = ( System.getenv( 'JENKINS_URL' ) != null ? 'JenkinsLetMeSpawn' : System.getenv( 'BUILD_ID' ) ?: '' )
 
         addRedis()
         addMongo()
