@@ -128,7 +128,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
             [
                 mongoPort        : mongoPort,
                 mongoRunning     : mongoRunning,
-                mongoDBPath      : fullPath( ext.mongoDBPath,  '/data/db/'  ),
+                mongoDBPath      : fullPath( ext.mongoDBPath,  '/data/db'   ),
                 mongoLogpath     : fullPath( ext.mongoLogpath, 'mongod.log' ),
                 mongoCommandLine : ext.mongoCommandLine ?: '',
                 sleep            : ext.mongoWait as String

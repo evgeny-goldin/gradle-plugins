@@ -18,7 +18,7 @@ class NodeExtension
      */
     boolean      removeColor              = 'BUILD_NUMBER JENKINS_URL TEAMCITY_VERSION'.split().any{ System.getenv( it ) != null }
 
-    String       foreverOptions           = ''    // Additional command-line 'forever' options, such as '-w -v'
+    String       foreverOptions                   // Additional command-line 'forever' options, such as '-w -v'
     String       removeColorCodes                 // Internal property
     boolean      configMergePreserveOrder = true  // Whether configs merge should preserve keys order (more risky, some nasty regexes are involved)
     boolean      xUnitReport              = true  // Whether xUnit report should be created when tests are run
@@ -35,16 +35,16 @@ class NodeExtension
     boolean      npmCleanInstall          = false // Internal property, whether 'npm install' was run on a clean directory
     boolean      npmLocalCache            = true  // Whether results of 'npm install' are cached locally
     boolean      npmInstallDevDependencies = true // Whether 'devDependencies' should be installed when "npm install" is running
-    String       npmRemoteCache           = ''    // Remote repo URL for storing 'npm install' cache archives
+    String       npmRemoteCache                   // Remote repo URL for storing 'npm install' cache archives
     File         startupScriptDirectory           // A directory to store the startup script that will restart the application upon reboot
     boolean      pidOnlyToStop            = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
-    String       pidFileName              = ''    // PID file name
+    String       pidFileName                      // PID file name
     int          portNumber               = 1337  // Port the application starts on (becomes part of .pid file name)
 
     Map<String,Object> env                = [:]   // Environment variables to set before application is started
     String       printUrl                 = '/'   // Application's URL to print after it has started. Nothing is displayed if set to '' or null
     boolean      printPublicIp            = true  // Whether public IP of application is printed if 'printUrl' is used
-    String       publicIp                 = ''    // Internal property, public IP resolved
+    String       publicIp                         // Internal property, public IP resolved
 
     /**
      * Checks to perform after application has started.
@@ -61,7 +61,7 @@ class NodeExtension
     List<Closure> transformers            = []    // Callbacks to invoke after every shell script is generated
     String        scriptPath
     List<String>  knownScriptPaths        = 'server.js server.coffee app.js app.coffee'.tokenize().asImmutable()
-    String        scriptArguments         = ''    // Additional script arguments
+    String        scriptArguments                 // Additional script arguments
     List<String>  run                     = []    // Commands to execute by 'run' task, if defined application is not started or stopped
     List<String>  before                  = []    // Commands to execute before running unit tests or starting the application
     List<String>  after                   = []    // Commands to execute after running unit tests or stopping the application
@@ -78,7 +78,7 @@ class NodeExtension
     int           redisWait               = 5     // Seconds to wait after Redis has started or stopped and checking it
 
     int           mongoPort               = -1    // Local MongoDB instance port number to start and stop
-    String        mongoPortConfigKey      = ''    // Config key holding MongoDB port number to start and stop
+    String        mongoPortConfigKey              // Config key holding MongoDB port number to start and stop
     String        mongoCommandLine                // Additional Mongo command-line arguments
     String        mongoLogpath
     String        mongoDBPath
