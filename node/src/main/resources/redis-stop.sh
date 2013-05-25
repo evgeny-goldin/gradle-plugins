@@ -1,8 +1,5 @@
 #!@{shell}
 
-set -e
-set -o pipefail
-
 echo "Stopping Redis [127.0.0.1:@{redisPort}]"
 redis-server --version
 redis-cli    --version

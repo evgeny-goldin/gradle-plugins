@@ -1,20 +1,25 @@
 #!@{shell}
 
-set -e
-set -o pipefail
-
 echo "Starting MongoDB [127.0.0.1:@{mongoPort}]"
 mongod --version
 mongo  --version
 
-mkdir -p @{mongoDBPath}
+if ! [ -d "@{mongoDBPath}" ]; then
+  echo "mkdir -p @{Q}@{mongoDBPath}@{Q}"
+  mkdir -p "@{mongoDBPath}"
+
+  if ! [ -d "@{mongoDBPath}" ]; then
+    echo "Failed to create @{Q}@{mongoDBPath}@{Q}"
+    exit 1
+  fi
+fi
 
 if [[ @{mongoRunning} ]];
 then
     echo "Mongo [127.0.0.1:@{mongoPort}] is already running"
 else
-    echo mongod --fork --port @{mongoPort} --dbpath @{mongoDBPath} --logpath @{mongoLogpath} @{mongoCommandLine}
-    mongod --fork --port @{mongoPort} --dbpath @{mongoDBPath} --logpath @{mongoLogpath} @{mongoCommandLine}
+    echo "mongod --fork --port @{mongoPort} --dbpath @{Q}@{mongoDBPath}@{Q} --logpath @{Q}@{mongoLogpath}@{Q} @{mongoCommandLine}"
+    mongod --fork --port @{mongoPort} --dbpath "@{mongoDBPath}" --logpath "@{mongoLogpath}" @{mongoCommandLine}
 
     echo Waiting for @{sleep} seconds before continuing
     sleep @{sleep}
@@ -23,7 +28,8 @@ else
     then
         echo "Mongo [127.0.0.1:@{mongoPort}] has started"
     else
-        echo "Mongo [127.0.0.1:@{mongoPort}] has failed to start"
+        echo "Mongo [127.0.0.1:@{mongoPort}] has failed to start:"
+        cat "@{mongoLogpath}"
         exit 1
     fi
 fi

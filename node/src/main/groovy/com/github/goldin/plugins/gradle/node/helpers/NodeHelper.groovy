@@ -352,7 +352,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
     @Requires({ resourcePath && ( replacements != null ) })
     final resourceText( String resourcePath, Map<String, String> replacements = [:] )
     {
-        getResourceText( resourcePath, replacements + [ shell : ext.shell ])
+        getResourceText( resourcePath, replacements + [ shell : ext.shell, Q : Q ])
     }
 
 
