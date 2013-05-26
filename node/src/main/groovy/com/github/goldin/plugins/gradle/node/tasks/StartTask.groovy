@@ -92,7 +92,7 @@ class StartTask extends NodeBaseTask
         final startupScript = taskScriptFile( false, false, "startup-${ projectName }-${ ext.portNumber }" )
         final currentUser   = exec( 'whoami' )
 
-        startupScript.write(
+        write( startupScript,
         """#!${ ext.shell }
         |
         |### BEGIN INIT INFO
