@@ -111,8 +111,8 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
     @Requires({ npmCacheArchive && ( ! npmCacheArchive.file ) && ext.npmLocalCache && ext.npmRemoteCache })
     private void downloadRemoteArchive( File npmCacheArchive )
     {
-        final map        = readRemoteRepoUrl( npmCacheArchive )
-        final archiveUrl = map.archiveUrl
+        final map               = readRemoteRepoUrl( npmCacheArchive )
+        final String archiveUrl = map.archiveUrl
 
         logger.info( "Downloading [$archiveUrl] to [$npmCacheArchive.canonicalPath] .." )
 
@@ -131,8 +131,8 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
     @Requires({ npmCacheArchive && npmCacheArchive.file && ext.npmLocalCache && ext.npmRemoteCache })
     private void uploadLocalArchive ( File npmCacheArchive )
     {
-        final map        = readRemoteRepoUrl( npmCacheArchive )
-        final archiveUrl = map.archiveUrl
+        final map               = readRemoteRepoUrl( npmCacheArchive )
+        final String archiveUrl = map.archiveUrl
 
         if ( httpRequest( archiveUrl, 'HEAD', [:], 0, 0, false, false, map.user, map.password ).
              statusCode != 404 ) { return }

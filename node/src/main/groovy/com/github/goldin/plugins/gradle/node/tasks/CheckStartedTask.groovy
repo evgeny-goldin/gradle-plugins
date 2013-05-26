@@ -52,7 +52,7 @@ class CheckStartedTask extends NodeBaseTask
 
                 log( LogLevel.ERROR ) { errorMessage }
 
-                shellExec( tailLogScript(), taskScriptFile( false, false, 'tail-log' ), false, true, false, true, displayLogStep, LogLevel.ERROR )
+                shellExec( tailLogScript(), scriptFileForTask( 'tail-log' ), false, true, false, true, displayLogStep, LogLevel.ERROR )
                 if ( ext.stopIfFailsToStart ){ runTask( STOP_TASK )}
 
                 throw new GradleException( errorMessage )

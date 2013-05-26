@@ -1,8 +1,10 @@
 #!@{shell}
 
+set -e
 echo "Stopping Mongo [127.0.0.1:@{mongoPort}]"
 mongod --version
 mongo  --version
+set +e
 
 if [[ @{mongoRunning} ]];
 then

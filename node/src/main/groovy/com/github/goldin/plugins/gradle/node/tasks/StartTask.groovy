@@ -29,7 +29,7 @@ class StartTask extends NodeBaseTask
         }
 
         if ( ext.before || ext.beforeStart ) { shellExec( commandsScript( add( ext.before, ext.beforeStart )),
-                                                          taskScriptFile( true ), false, true, true, false, 'before start' ) }
+                                                          scriptFileForTask( this.name, true ), false, true, true, false, 'before start' ) }
 
         shellExec( startScript())
 
@@ -89,8 +89,12 @@ class StartTask extends NodeBaseTask
 
     void addStartupScript()
     {
-        final startupScript = taskScriptFile( false, false, "startup-${ projectName }-${ ext.portNumber }" )
+        final startupScript = scriptFileForTask( "startup-${ projectName }-${ ext.portNumber }" )
         final currentUser   = exec( 'whoami' )
+        File  startupLog    = project.file( 'startup.log' )
+        final scripts       = [ scriptFileForTask( SETUP_TASK ).canonicalPath,
+                                (( ext.before || ext.beforeStart ) ? scriptFileForTask( this.name, true ).canonicalPath : '' ),
+                                scriptFileForTask().canonicalPath ].grep()
 
         write( startupScript,
         """#!${ ext.shell }
@@ -105,11 +109,10 @@ class StartTask extends NodeBaseTask
         |# Description:       Start $projectName at boot time
         |### END INIT INFO
         |
-        |su - $currentUser -c "${ ext.stopallBeforeStart ? taskScriptFile( false, false, STOP_ALL_TASK ).canonicalPath :
-                                  ext.stopBeforeStart    ? taskScriptFile( false, false, STOP_TASK ).canonicalPath :
-                                                           '' }"
-        |su - $currentUser -c "${ ( ext.before || ext.beforeStart ) ? taskScriptFile( true ).canonicalPath : '' }"
-        |su - $currentUser -c "${ taskScriptFile().canonicalPath }"
+        |echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ >  "$startupLog.canonicalPath"
+        |date                               >> "$startupLog.canonicalPath"
+        |echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ >> "$startupLog.canonicalPath"
+        |su - $currentUser -c '"${ scripts.join( '" && "' )}"' >> "$startupLog.canonicalPath" 2>&1
         """.stripMargin().toString().trim())
 
         exec( 'chmod', [ '+x', startupScript.canonicalPath ] )

@@ -13,7 +13,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.process.ExecSpec
 
 
-final class IOHelper extends BaseHelper<Object>
+class IOHelper extends BaseHelper<Object>
 {
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ project && task && ext })

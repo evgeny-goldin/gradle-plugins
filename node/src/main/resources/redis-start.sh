@@ -1,8 +1,10 @@
 #!@{shell}
 
+set -e
 echo "Starting Redis [127.0.0.1:@{redisPort}]"
 redis-server --version
 redis-cli    --version
+set +e
 
 if [ @{redisRunning} ];
 then

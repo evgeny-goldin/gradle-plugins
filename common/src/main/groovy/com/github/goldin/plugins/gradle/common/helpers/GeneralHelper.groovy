@@ -13,7 +13,7 @@ import java.security.MessageDigest
 import java.util.regex.Pattern
 
 
-final class GeneralHelper extends BaseHelper<Object>
+class GeneralHelper extends BaseHelper<Object>
 {
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ project && task && ext })

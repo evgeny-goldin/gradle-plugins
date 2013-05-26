@@ -22,7 +22,7 @@ class StopAllTask extends NodeBaseTask
         finally
         {
             if ( ext.after || ext.afterStop ) { shellExec( commandsScript( add( ext.after, ext.afterStop )),
-                                                           taskScriptFile( false, true ), false, true, true, false, 'after stopall' )}
+                                                           scriptFileForTask( this.name, false, true ), false, true, true, false, 'after stopall' )}
         }
     }
 

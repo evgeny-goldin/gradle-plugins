@@ -8,7 +8,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 
 
-final class JsonHelper extends BaseHelper<Object>
+class JsonHelper extends BaseHelper<Object>
 {
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     JsonHelper(){ super( null, null, null )}

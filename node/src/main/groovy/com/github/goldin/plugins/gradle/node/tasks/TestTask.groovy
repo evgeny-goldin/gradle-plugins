@@ -14,7 +14,7 @@ class TestTask extends NodeBaseTask
     void taskAction()
     {
         if ( ext.before || ext.beforeTest ) { shellExec( commandsScript( add( ext.before, ext.beforeTest )),
-                                                         taskScriptFile( true ), false, true, true, false, 'before test' ) }
+                                                         scriptFileForTask( this.name, true ), false, true, true, false, 'before test' ) }
 
         try
         {
@@ -23,14 +23,14 @@ class TestTask extends NodeBaseTask
         finally
         {
             if ( ext.after || ext.afterTest ) { shellExec( commandsScript( add ( ext.after, ext.afterTest )),
-                                                           taskScriptFile( false, true ), false, true, true, false, 'after test' )}
+                                                           scriptFileForTask( this.name, false, true ), false, true, true, false, 'after test' )}
         }
     }
 
 
     private void runTests ()
     {
-        final testReport = shellExec( testScript( ext.xUnitReport ), taskScriptFile(), true, true, false )
+        final testReport = shellExec( testScript( ext.xUnitReport ), scriptFileForTask(), true, true, false )
 
         if ( testReport.with{ contains( '0 tests complete' ) || contains( 'no such file or directory \'test.js\'' )})
         {

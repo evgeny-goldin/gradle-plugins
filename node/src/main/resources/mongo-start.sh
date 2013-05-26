@@ -1,8 +1,10 @@
 #!@{shell}
 
+set -e
 echo "Starting MongoDB [127.0.0.1:@{mongoPort}]"
 mongod --version
 mongo  --version
+set +e
 
 if ! [ -d "@{mongoDBPath}" ]; then
   echo "mkdir -p @{Q}@{mongoDBPath}@{Q}"
@@ -28,7 +30,8 @@ else
     then
         echo "Mongo [127.0.0.1:@{mongoPort}] has started"
     else
-        echo "Mongo [127.0.0.1:@{mongoPort}] has failed to start:"
+        echo "Mongo [127.0.0.1:@{mongoPort}] has failed to start"
+        echo "cat @{Q}@{mongoLogpath}@{Q}:"
         cat "@{mongoLogpath}"
         exit 1
     fi

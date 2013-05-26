@@ -27,7 +27,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
 
 
     @Ensures({ result })
-    final File buildDir (){ project.buildDir }
+    File buildDir (){ project.buildDir }
 
     /**
      * Retrieves PID file path.
@@ -41,7 +41,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
      */
     @Requires({ port > 0 })
     @Ensures ({ result   })
-    final String pidFileName( int port ){ ext.pidFileName ?: "${ projectName }-${ port }.pid" }
+    String pidFileName( int port ){ ext.pidFileName ?: "${ projectName }-${ port }.pid" }
 
 
     /**
@@ -140,20 +140,20 @@ class NodeHelper extends BaseHelper<NodeExtension>
     }
 
 
-    @Requires({ this.name })
+    @Requires({ scriptName })
     @Ensures ({ result })
-    final File taskScriptFile ( boolean before = false, boolean after = false, String name = null )
+    File scriptFileForTask ( String scriptName = this.name, boolean isBefore = false, boolean isAfter = false )
     {
-        final fileName = ( before ?  'before-' :
-                           after  ?  'after-'  :
-                                     '' ) + ( name ?: this.name ) + '.sh'
+        final fileName = ( isBefore ?  'before-' :
+                           isAfter  ?  'after-'  :
+                                       '' ) + "${ scriptName }.sh"
 
         new File( buildDir(), fileName )
     }
 
 
     @Requires({ taskName })
-    final void runTask( String taskName )
+    void runTask( String taskName )
     {
         log{ "Running task '$taskName'" }
         final t = ( NodeBaseTask ) project.tasks[ taskName ]
@@ -174,7 +174,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
      * Retrieves script commands for listing currently running Node.js processes.
      */
     @Ensures ({ result })
-    final String listProcesses( boolean startWithDelimiterLine = true )
+    String listProcesses( boolean startWithDelimiterLine = true )
     {
         """
         |${ startWithDelimiterLine ? "echo $LOG_DELIMITER" : '' }
@@ -196,7 +196,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
      */
     @Requires({ ext.scriptPath })
     @Ensures ({ result })
-    final String killProcesses ()
+    String killProcesses ()
     {
         final  killProcesses = "forever,${ projectDir.name }|${ ext.scriptPath },${ projectDir.name }"
         killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
@@ -227,7 +227,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
      */
     @Requires({ commands })
     @Ensures ({ result })
-    final String commandsScript ( List<String> commands )
+    String commandsScript ( List<String> commands )
     {
         final script = commands.join( '\n' )
 
@@ -281,14 +281,14 @@ class NodeHelper extends BaseHelper<NodeExtension>
     @Requires({ scriptContent && scriptFile })
     @Ensures ({ result != null })
     @SuppressWarnings([ 'GroovyAssignmentToMethodParameter', 'GroovyMethodParameterCount' ])
-    final String shellExec ( String   scriptContent,
-                             File     scriptFile     = taskScriptFile(),
-                             boolean  watchExitCodes = true,
-                             boolean  addBaseScript  = true,
-                             boolean  failOnError    = true,
-                             boolean  useGradleExec  = true,
-                             String   operationTitle = this.name,
-                             LogLevel logLevel       = LogLevel.INFO )
+    String shellExec ( String   scriptContent,
+                       File     scriptFile     = scriptFileForTask(),
+                       boolean  watchExitCodes = true,
+                       boolean  addBaseScript  = true,
+                       boolean  failOnError    = true,
+                       boolean  useGradleExec  = true,
+                       String   operationTitle = this.name,
+                       LogLevel logLevel       = LogLevel.INFO )
     {
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
         delete( scriptFile )
@@ -349,7 +349,8 @@ class NodeHelper extends BaseHelper<NodeExtension>
 
 
     @Requires({ resourcePath && ( replacements != null ) })
-    final resourceText( String resourcePath, Map<String, String> replacements = [:] )
+    @Ensures ({ result != null })
+    String resourceText( String resourcePath, Map<String, String> replacements = [:] )
     {
         getResourceText( resourcePath, replacements + [ shell : ext.shell, Q : Q ])
     }
@@ -358,7 +359,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
 
     @Requires({ lists  != null })
     @Ensures ({ result != null })
-    final List<String> add( List<String> ... lists )
+    List<String> add( List<String> ... lists )
     {
         lists.inject( [] ){ List<String> sum, List<String> l -> sum + ( l ?: [] ) }
     }

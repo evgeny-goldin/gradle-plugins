@@ -7,7 +7,7 @@ import org.gradle.api.Project
 import java.util.regex.Pattern
 
 
-final class MatcherHelper extends BaseHelper<Object>
+class MatcherHelper extends BaseHelper<Object>
 {
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     MatcherHelper(){ super( null, null, null )}
