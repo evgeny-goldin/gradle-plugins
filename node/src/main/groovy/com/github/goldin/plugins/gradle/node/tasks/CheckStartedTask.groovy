@@ -22,7 +22,9 @@ class CheckStartedTask extends NodeBaseTask
 
             assert checkUrl && list && ( list.size() == 2 )
 
-            final publicUrl          = ( ext.publicIp ? "http://${ ext.publicIp }:${ ext.portNumber }${ checkUrl.replaceFirst( ~'https?://[^/]+', '' ) }" : '' )
+            final checkPort          = ( ext.publicIp ? checkUrl.find( /:(\d+)/ ){ it[1] } ?: ''                                      : '' )
+            final checkPath          = ( ext.publicIp ? checkUrl.replaceFirst( ~'https?://[^/]+', '' )                                : '' )
+            final publicUrl          = ( ext.publicIp ? "http://${ ext.publicIp }${ checkPort ? ':' + checkPort : '' }${ checkPath }" : '' )
             final checkStatusCode    = list[ 0 ] as int
             final checkContent       = list[ 1 ] as String
             final response           = httpRequest( checkUrl, 'GET', [:], ext.checkTimeout * 500, ext.checkTimeout * 500, false )
