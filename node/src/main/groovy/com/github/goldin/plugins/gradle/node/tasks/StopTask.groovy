@@ -20,13 +20,14 @@ class StopTask extends NodeBaseTask
         try
         {
             shellExec( stopScript())
-            if ( ext.checkAfterStop ) { runTask ( CHECK_STOPPED_TASK )}
         }
         finally
         {
             if ( ext.after || ext.afterStop ) { shellExec( commandsScript( add ( ext.after, ext.afterStop )),
                                                            scriptFileForTask( this.name, false, true ), false, true, true, false, 'after stop' )}
         }
+
+        if ( ext.checkAfterStop ) { runTask ( CHECK_STOPPED_TASK )}
     }
 
 

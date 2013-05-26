@@ -33,18 +33,7 @@ class StartTask extends NodeBaseTask
 
         shellExec( startScript())
 
-        pidFile().with {
-            File f ->
-            assert f.file, "[$f.canonicalPath] is not available, application has failed to start or 'forever' isn't working properly"
-            final lastModified = f.lastModified()
-            final millisAgo    = System.currentTimeMillis() - lastModified
-
-            logger.info( "[$f.canonicalPath] is found, pid is [$f.text], updated $millisAgo millisecond${ s( millisAgo )} ago." )
-
-            assert ( lastModified > startTime ), \
-                "[$f.canonicalPath] last modified is $lastModified [${ format( lastModified ) }], " +
-                "expected it to be greater than build start time $startTime [$startTimeFormatted]"
-        }
+        logPidFile()
 
         if ( ext.checkAfterStart ) { runTask ( CHECK_STARTED_TASK )}
         if ( ext.printUrl        ) { printApplicationUrls() }
@@ -77,8 +66,25 @@ class StartTask extends NodeBaseTask
     }
 
 
+    private void logPidFile ()
+    {
+        pidFile().with {
+            File f ->
+            assert f.file, "[$f.canonicalPath] is not available, application has failed to start or 'forever' isn't working properly"
+            final lastModified = f.lastModified()
+            final millisAgo    = System.currentTimeMillis() - lastModified
+
+            logger.info( "[$f.canonicalPath] is found, pid is [$f.text], updated $millisAgo millisecond${ s( millisAgo )} ago." )
+
+            assert ( lastModified > startTime ), \
+                "[$f.canonicalPath] last modified is $lastModified [${ format( lastModified ) }], " +
+                "expected it to be greater than build start time $startTime [$startTimeFormatted]"
+        }
+    }
+
+
     @Requires({ ext.printUrl })
-    void printApplicationUrls ()
+    private void printApplicationUrls ()
     {
         final String localUrl  = "http://127.0.0.1:${ ext.portNumber }${ ext.printUrl }"
         final String publicUrl = ( ext.publicIp ? "http://${ ext.publicIp }:${ ext.portNumber }${ ext.printUrl }" : '' )
@@ -87,7 +93,7 @@ class StartTask extends NodeBaseTask
     }
 
 
-    void addStartupScript()
+    private void addStartupScript()
     {
         final startupScript = scriptFileForTask( "startup-${ projectName }-${ ext.portNumber }" )
         final currentUser   = exec( 'whoami' )
