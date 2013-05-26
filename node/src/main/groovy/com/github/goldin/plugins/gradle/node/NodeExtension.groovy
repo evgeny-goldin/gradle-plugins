@@ -36,7 +36,7 @@ class NodeExtension
     boolean      npmLocalCache            = true  // Whether results of 'npm install' are cached locally
     boolean      npmInstallDevDependencies = true // Whether 'devDependencies' should be installed when "npm install" is running
     String       npmRemoteCache                   // Remote repo URL for storing 'npm install' cache archives
-    File         startupScriptDirectory           // A directory to store the startup script that will restart the application upon reboot
+    boolean      startupScript            = true  // Whether a startup script should be created in 'build' directory
     boolean      pidOnlyToStop            = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
     String       pidFileName                      // PID file name
     int          portNumber               = 1337  // Port the application starts on (becomes part of .pid file name)

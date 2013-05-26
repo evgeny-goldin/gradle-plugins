@@ -46,9 +46,9 @@ class StartTask extends NodeBaseTask
                 "expected it to be greater than build start time $startTime [$startTimeFormatted]"
         }
 
-        if ( ext.checkAfterStart        ) { runTask ( CHECK_STARTED_TASK )}
-        if ( ext.printUrl               ) { printApplicationUrls() }
-        if ( ext.startupScriptDirectory ) { addStartupScript( ext.startupScriptDirectory ) }
+        if ( ext.checkAfterStart ) { runTask ( CHECK_STARTED_TASK )}
+        if ( ext.printUrl        ) { printApplicationUrls() }
+        if ( ext.startupScript   ) { addStartupScript() }
     }
 
 
@@ -87,10 +87,11 @@ class StartTask extends NodeBaseTask
     }
 
 
-    @Requires({ directory })
-    void addStartupScript( File directory )
+    void addStartupScript()
     {
+        final directory = buildDir()
         assert ( directory.directory || directory.mkdirs()), "Failed to create [$directory.canonicalPath]"
+
         final startupScript = new File( directory, "startup-${ projectName }-${ ext.portNumber }.sh" )
         final currentUser   = exec( 'whoami' )
 
@@ -114,8 +115,7 @@ class StartTask extends NodeBaseTask
         |su - $currentUser -c "${ taskScriptFile().canonicalPath }"
         """.stripMargin().toString().trim())
 
-        if ( isLinux || isMac ) { exec( 'chmod', [ '+x', startupScript.canonicalPath ] ) }
-
+        exec( 'chmod', [ '+x', startupScript.canonicalPath ] )
         log { "file:${startupScript.canonicalPath} is created" }
     }
 }

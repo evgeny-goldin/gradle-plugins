@@ -315,8 +315,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
 
         log( LogLevel.INFO ){ "Shell script created at [$scriptFile.canonicalPath], size [${ scriptFile.length() }] bytes" }
 
-        if ( isLinux || isMac ) { exec( 'chmod', [ '+x', scriptFile.canonicalPath ] ) }
-
+        exec( 'chmod', [ '+x', scriptFile.canonicalPath ] )
         exec ( ext.shell, [ scriptFile.canonicalPath ], projectDir, failOnError, useGradleExec, logLevel )
     }
 
