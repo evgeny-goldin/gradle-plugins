@@ -91,7 +91,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
             final redisPort    = ( ext.redisPort > 0      ) ? ext.redisPort.toString() :
                                  ( ext.redisPortConfigKey ) ? '${ config.' + ext.redisPortConfigKey + ' }' :
                                                               '6379'
-            ext.env.REDIS_PORT = redisPort
+            ext.env.REDIS_PORT = redisPort.startsWith( '$' ) ? '' : redisPort
             final redisRunning = """ "`redis-cli -p $redisPort ping 2>&1`" = "PONG"  """.trim()
             final isStartRedis = (( ext.redisStartInProduction ) || ( ext.NODE_ENV != 'production' ))
             final isStopRedis  = (( ext.redisStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
@@ -119,7 +119,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
             final mongoPort    = ( ext.mongoPort > 0      ) ? ext.mongoPort.toString() :
                                  ( ext.mongoPortConfigKey ) ? '${ config.' + ext.mongoPortConfigKey + ' }' :
                                                               '27017'
-            ext.env.MONGO_PORT = mongoPort
+            ext.env.MONGO_PORT = mongoPort.startsWith( '$' ) ? '' : mongoPort
             final mongoEval    = """ "`mongo --eval ${Q}db${Q} --port $mongoPort 2>&1 | tail -1`" """.trim()
             final mongoRunning = """ ! $mongoEval =~ (command not found|connect failed|couldn\\'t connect to server) """.trim()
             final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
