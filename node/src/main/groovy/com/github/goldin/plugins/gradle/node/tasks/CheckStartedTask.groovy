@@ -7,7 +7,7 @@ import org.gradle.api.logging.LogLevel
 
 
 /**
- * Checks that Node.js application is up and running.
+ * Checks that application has started.
  */
 class CheckStartedTask extends NodeBaseTask
 {
