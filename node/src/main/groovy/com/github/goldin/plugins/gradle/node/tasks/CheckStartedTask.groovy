@@ -64,7 +64,8 @@ class CheckStartedTask extends NodeBaseTask
 
 
     @SuppressWarnings([ 'LineLength' ])
-    private String tailLogScript()
+    /* No private! Called from the closure */
+    String tailLogScript()
     {
         // Sorting "forever list" output by processes uptime, taking first element with a minimal uptime and listing its log.
         """
