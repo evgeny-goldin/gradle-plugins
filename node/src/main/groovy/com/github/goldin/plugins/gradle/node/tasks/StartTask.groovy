@@ -18,8 +18,14 @@ class StartTask extends NodeBaseTask
         if ( ext.run ) { log{ 'Doing nothing - "run" commands specified' }; return }
 
         if ( ext.stopallBeforeStart || ext.stopBeforeStart )
-        {
+        {   // "after" interceptor is not run when application is stopped before starting it
+            final after     = ext.after
+            final afterStop = ext.afterStop
+            ext.after       = []
+            ext.afterStop   = []
             runTask ( ext.stopallBeforeStart ? STOP_ALL_TASK : STOP_TASK )
+            ext.after       = after
+            ext.afterStop   = afterStop
         }
 
         if ( ext.before || ext.beforeStart ) { shellExec( commandsScript( add( ext.before, ext.beforeStart )),
