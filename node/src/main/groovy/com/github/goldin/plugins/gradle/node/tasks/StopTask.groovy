@@ -44,7 +44,7 @@ class StopTask extends NodeBaseTask
         |pid=`cat "$pidFilePath"`
         |if [ "\$pid" != "" ];
         |then
-        |    echo [$pidFilePath] is found, pid is [\$pid]
+        |    echo PID file [$pidFilePath] is found, pid is [\$pid]
         |    foreverId=`${ forever() } list | grep \$pid | awk '{print \$2}' | cut -d[ -f2 | cut -d] -f1`
         |    while [ "\$foreverId" != "" ];
         |    do

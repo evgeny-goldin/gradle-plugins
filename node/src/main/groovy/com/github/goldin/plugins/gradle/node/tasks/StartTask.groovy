@@ -74,7 +74,7 @@ class StartTask extends NodeBaseTask
             final lastModified = f.lastModified()
             final millisAgo    = System.currentTimeMillis() - lastModified
 
-            logger.info( "[$f.canonicalPath] is found, pid is [$f.text], updated $millisAgo millisecond${ s( millisAgo )} ago." )
+            logger.info( "PID file [$f.canonicalPath] is found, pid is [$f.text], updated $millisAgo millisecond${ s( millisAgo )} ago." )
 
             assert ( lastModified > startTime ), \
                 "[$f.canonicalPath] last modified is $lastModified [${ format( lastModified ) }], " +
