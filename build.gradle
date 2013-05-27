@@ -228,7 +228,7 @@ project( ':teamcity' ) {
 private Properties validatePropertiesFile( Project p, File gradleProperties )
 {
     assert gradleProperties
-    assert gradleProperties.file, "[$gradleProperties.canonicalPath] is not available"
+    assert gradleProperties.file, "Properties file [$gradleProperties.canonicalPath] is not available"
 
     final properties = new Properties()
 
@@ -240,7 +240,7 @@ private Properties validatePropertiesFile( Project p, File gradleProperties )
     final classFile = new File(( File ) p.compileGroovy.destinationDir,
                                implementationClass.replace( '.', '/' ) + '.class' )
     assert classFile.file, "File [$classFile.canonicalPath] referenced by [$implementationClass] " +
-                           "in [$gradleProperties.canonicalPath] is not available"
+                           "in properties file [$gradleProperties.canonicalPath] is not available"
     properties
 }
 

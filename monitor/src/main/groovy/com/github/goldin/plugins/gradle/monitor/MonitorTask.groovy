@@ -29,7 +29,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
     void verifyUpdateExtension ( String description )
     {
         assert ( ext.resourcesList || ext.resourcesFile ), "'resourcesList' or 'resourcesFile' should be defined in $description"
-        assert ( ! ext.resourcesFile ) || ( ext.resourcesFile.file ), "[${ ext.resourcesFile }] is not available"
+        assert ( ! ext.resourcesFile ) || ( ext.resourcesFile.file ), "File [${ ext.resourcesFile }] is not available"
         assert ext.headers     != null, "'headers' should not be null in $description"
         assert ext.connectTimeout > -1, "'connectTimeout' should not be negative in $description"
         assert ext.readTimeout    > -1, "'readTimeout' should not be negative in $description"

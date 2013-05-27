@@ -70,7 +70,7 @@ class StartTask extends NodeBaseTask
     {
         pidFile().with {
             File f ->
-            assert f.file, "[$f.canonicalPath] is not available, application has failed to start or 'forever' isn't working properly"
+            assert f.file, "PID file [$f.canonicalPath] is not available, application has failed to start or 'forever' isn't working properly"
             final lastModified = f.lastModified()
             final millisAgo    = System.currentTimeMillis() - lastModified
 

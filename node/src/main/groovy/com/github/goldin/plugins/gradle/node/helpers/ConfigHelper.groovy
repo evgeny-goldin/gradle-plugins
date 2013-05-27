@@ -40,7 +40,7 @@ class ConfigHelper extends BaseHelper<NodeExtension>
     @Ensures ({ result != null })
     Map<String, ?> readConfigFile ( File configFile )
     {
-        assert configFile.file, "Config [$configFile.canonicalPath] is not available"
+        assert configFile.file, "Config file [$configFile.canonicalPath] is not available"
 
         final  configText = configFile.getText( 'UTF-8' ).trim()
         assert configText, "[$configFile.canonicalPath] is empty"
@@ -78,7 +78,7 @@ class ConfigHelper extends BaseHelper<NodeExtension>
                 switch ( ext.configsNewKeys )
                 {
                     case 'fail'   : // fall through
-                    case 'ignore' : throw new GradleException( "Config [$configFile.canonicalPath] to update is not available" )
+                    case 'ignore' : throw new GradleException( "Config file [$configFile.canonicalPath] to update is not available" )
                     default       : break // continue, new file will be created
                 }
             }
