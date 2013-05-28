@@ -36,26 +36,31 @@ class MonitorTask extends BaseTask<MonitorExtension>
     }
 
 
+    @SuppressWarnings([ 'GroovyConditionalWithIdenticalBranches', 'GroovyAccessibility' ])
     @Requires({ ext.resourcesList || ext.resourcesFile?.file })
     @Override
     void taskAction()
     {
-        final failures      = ext.runInParallel ? new ConcurrentLinkedQueue<String>() : []
-        final resourceLines = (( ext.resourcesList ?: [] ) + ( ext.resourcesFile?.readLines() ?: [] ))*.
-                              trim().grep().findAll { ! it.startsWith( '#' ) }
-
+        final isPlot        = ( ext.plotLastResults > 0 )
+        final isParallel    = ext.runInParallel
+        final resourceLines = (( ext.resourcesList ?: [] ) + ( ext.resourcesFile?.readLines() ?: [] ))*.trim().grep().findAll { ! it.startsWith( '#' ) }
         assert resourceLines, 'No resources found to monitor'
+        assert ( ! isPlot ) || ( resourceLines.size() <= ArrayList.MAX_ARRAY_SIZE ), 'Wow, too many resources found to monitor'
+
+        final failures      = isParallel ? new ConcurrentLinkedQueue<String>() : []
+        final resultsArray  = isPlot     ? new long[ resourceLines.size() ]    : null
+        final urlsArray     = isPlot     ? new String[ resourceLines.size() ]  : null
+
+        if ( isPlot )
+        {
+            resourceLines.eachWithIndex { String resourceLine, int index -> resultsArray[ index ] = -1L; urlsArray[ index ] = resourceLine }
+        }
 
         log { "Resources to monitor:\n* [${ resourceLines.join( ']\n* [' )}]\n\n" }
 
-        final lineProcessor = {
-            String line ->
-            final failureMessage = processResourceLine( line )
-            if ( failureMessage ) { failures << failureMessage; log( LogLevel.ERROR ){ ">>>> $failureMessage" }}
-        }
-
-        if ( ext.runInParallel ) { GParsPool.withPool { resourceLines.eachParallel { String line -> lineProcessor( line ) }}}
-        else                     {                      resourceLines.each         { String line -> lineProcessor( line ) }}
+        final lineCallback = { String line, int index -> processResourceLine( line, index, isPlot, resultsArray, failures ) }
+        if ( isParallel )    { GParsPool.withPool { resourceLines.eachWithIndexParallel( lineCallback )}}
+        else                 {                      resourceLines.eachWithIndex( lineCallback )}
 
         if ( failures )
         {
@@ -64,8 +69,11 @@ class MonitorTask extends BaseTask<MonitorExtension>
     }
 
 
-    @Requires({ line })
-    String processResourceLine( String line )
+    /**
+     * Processes a single resource line and its result.
+     */
+    @Requires({ line && ( index > -1 ) && (( ! isPlot ) || ( resultsArray != null )) && ( failures != null ) })
+    void processResourceLine ( String line, int index, boolean isPlot, long[] resultsArray, Collection<String> failures )
     {
         def ( String title, String resource ) = line.contains( '=>' ) ? line.split( /\s*=>\s*/ ) : [ '', line ]
 
@@ -73,15 +81,28 @@ class MonitorTask extends BaseTask<MonitorExtension>
         final isNmapResource       = resource.toLowerCase().startsWith( 'nmap://' )
         final isStatusCakeResource = resource.toLowerCase().startsWith( 'statuscake://' )
 
-        isHttpResource       ? processHttpResource      ( title, resource ) :
-        isNmapResource       ? processNmapResource      ( title, resource ) :
-        isStatusCakeResource ? processStatusCakeResource( title, resource ) :
-                               ''
+        /**
+         * Result is of type long (HTTP response time) or String (failure message)
+         */
+
+        final result = isHttpResource       ? processHttpResource      ( title, resource ) :
+                       isNmapResource       ? processNmapResource      ( title, resource ) :
+                       isStatusCakeResource ? processStatusCakeResource( title, resource ) :
+                                              ''
+        if ( result instanceof Long )
+        {
+            if ( isPlot ){ resultsArray[ index ] = result }
+        }
+        else if ((( String ) result ).size() > 0 )
+        {
+            failures << result
+            log( LogLevel.ERROR ){ ">>>> $result" }
+        }
     }
 
 
     @Requires({ resource && resource.toLowerCase().with { startsWith( 'http://' ) || startsWith( 'https://' ) }})
-    private String processHttpResource ( String title, String resource )
+    private Object processHttpResource ( String title, String resource )
     {
         def ( String checkUrl, String checkStatusCode, String checkContent, String timeLimit, String user, String password ) = resource.tokenize( '|' )*.trim()
 
@@ -116,7 +137,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         }
         else
         {
-            ''
+            response.timeMillis
         }
     }
 
