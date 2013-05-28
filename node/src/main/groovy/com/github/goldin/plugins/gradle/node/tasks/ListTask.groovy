@@ -27,7 +27,7 @@ class ListTask extends NodeBaseTask
         |echo
         |${ forever() } list ${ ext.removeColor ? '--plain' : '--colors' }${ ext.removeColorCodes }
         |echo $LOG_DELIMITER
-        |echo \"ps -Af | grep node | grep -v grep\"
+        |echo \"ps -Af | grep ${Q}bin/node${Q} | grep -v grep\"
         |echo
         |ps -Af | grep node | grep -v grep
         |echo $LOG_DELIMITER
