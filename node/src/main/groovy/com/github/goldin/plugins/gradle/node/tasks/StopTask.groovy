@@ -27,7 +27,8 @@ class StopTask extends NodeBaseTask
                                                            scriptFileForTask( this.name, false, true ), false, true, true, false, 'after stop' )}
         }
 
-        if ( ext.checkAfterStop ) { runTask ( CHECK_STOPPED_TASK )}
+        if ( ext.checkAfterStop ) { runTask( CHECK_STOPPED_TASK )}
+        if ( ext.listAfterStop  ) { runTask( LIST_TASK ) }
     }
 
 
@@ -39,7 +40,6 @@ class StopTask extends NodeBaseTask
 
         """
         |set +e
-        |${ listProcesses( false ) }
         |
         |pid=`cat "$pidFilePath"`
         |if [ "\$pid" != "" ];
@@ -59,7 +59,6 @@ class StopTask extends NodeBaseTask
         |fi
         |
         |${ ext.pidOnlyToStop ? '' : killProcesses() }
-        |${ listProcesses() }
         |
         |set -e
         """.stripMargin().toString().trim()

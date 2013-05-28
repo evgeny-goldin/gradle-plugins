@@ -35,7 +35,8 @@ class StartTask extends NodeBaseTask
 
         logPidFile()
 
-        if ( ext.checkAfterStart ) { runTask ( CHECK_STARTED_TASK )}
+        if ( ext.checkAfterStart ) { runTask( CHECK_STARTED_TASK )}
+        if ( ext.listAfterStart  ) { runTask( LIST_TASK ) }
         if ( ext.printUrl        ) { printApplicationUrls() }
         if ( ext.startupScript   ) { addStartupScript() }
     }
@@ -51,8 +52,8 @@ class StartTask extends NodeBaseTask
         final pidFileName = pidFileName( ext.portNumber )
         final command     = "${ forever() } start -p \"${ foreverHome().canonicalPath }\" --pidFile \"$pidFileName\" " +
                             "--minUptime 5000 --spinSleepTime 5000 ${ ext.foreverOptions ?: '' } " +
-                            "${ coffee ? '"' + coffee + '"' : '' } " +
-                            "\"${ ext.scriptPath }\" ${ ext.scriptArguments ?: '' }".
+                            "${ coffee ? '"' + project.file( coffee ).canonicalPath + '"' : '' } " +
+                            "\"${ project.file( ext.scriptPath ).canonicalPath }\" ${ ext.scriptArguments ?: '' }".
                             trim()
 
 
@@ -61,7 +62,6 @@ class StartTask extends NodeBaseTask
         |echo $command
         |echo
         |$command ${ ext.removeColor ? '--plain' : '--colors' }${ ext.removeColorCodes }
-        |${ listProcesses() }
         """.stripMargin().toString().trim()
     }
 
@@ -88,8 +88,9 @@ class StartTask extends NodeBaseTask
     {
         final String localUrl  = "http://127.0.0.1:${ ext.portNumber }${ ext.printUrl }"
         final String publicUrl = ( ext.publicIp ? "http://${ ext.publicIp }:${ ext.portNumber }${ ext.printUrl }" : '' )
+        final message          = "The application is up and running at $localUrl${ publicUrl ? ' (' + publicUrl + ')' : '' }"
 
-        println( "The application is up and running at $localUrl${ publicUrl ? ' (' + publicUrl + ')' : '' }" )
+        println( "${ '=' * ( message.size() + 2 ) }\n ${ message }\n${ '=' * ( message.size() + 2 ) }" )
     }
 
 

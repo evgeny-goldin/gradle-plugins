@@ -32,6 +32,10 @@ class NodeExtension
     boolean      checkAfterRestartall     = true  // Whether 'checkStarted' should run after 'restartall'
     boolean      checkAfterStop           = true  // Whether 'checkStopped' should run after 'stop'
     boolean      checkAfterStopall        = true  // Whether 'checkStopped' should run after 'stopall'
+    boolean      listAfterStart           = true  // Whether 'list' should be run after 'start'
+    boolean      listAfterRestartall      = true  // Whether 'list' should be run after 'restartall'
+    boolean      listAfterStop            = true  // Whether 'list' should be run after 'stop'
+    boolean      listAfterStopall         = true  // Whether 'list' should be run after 'stopall'
     boolean      npmCleanInstall          = false // Internal property, whether 'npm install' was run on a clean directory
     boolean      npmLocalCache            = true  // Whether results of 'npm install' are cached locally
     boolean      npmInstallDevDependencies = true // Whether 'devDependencies' should be installed when "npm install" is running

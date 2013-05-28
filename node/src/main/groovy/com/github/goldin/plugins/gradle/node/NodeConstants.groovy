@@ -31,6 +31,7 @@ class NodeConstants
     final static String TEST_TASK              = 'test'
 
     final static String START_TASK             = 'start'
+    final static String LIST_TASK              = 'list'
     final static String RESTART_ALL_TASK       = 'restartall'
     final static String CHECK_STARTED_TASK     = 'checkStarted'
 

@@ -14,7 +14,8 @@ class RestartAllTask extends NodeBaseTask
     {
         if ( ext.run ) { log{ 'Doing nothing - "run" commands specified' }; return }
         shellExec( restartallScript())
-        if ( ext.checkAfterRestartall ) { runTask ( CHECK_STARTED_TASK )}
+        if ( ext.checkAfterRestartall ) { runTask( CHECK_STARTED_TASK )}
+        if ( ext.listAfterRestartall  ) { runTask( LIST_TASK ) }
     }
 
 
@@ -25,7 +26,6 @@ class RestartAllTask extends NodeBaseTask
         |echo ${ forever() } restartall
         |echo
         |${ forever() } restartall ${ ext.removeColor ? '--plain' : '--colors' }${ ext.removeColorCodes }
-        |${ listProcesses() }
         """.stripMargin().toString().trim()
     }
 }

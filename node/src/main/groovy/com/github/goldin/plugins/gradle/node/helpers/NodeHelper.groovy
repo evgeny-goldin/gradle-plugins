@@ -57,8 +57,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
     @Ensures ({ result })
     String forever()
     {
-        checkFile( FOREVER_EXECUTABLE )
-        FOREVER_EXECUTABLE
+        checkFile( FOREVER_EXECUTABLE ).canonicalPath
     }
 
 
@@ -167,26 +166,6 @@ class NodeHelper extends BaseHelper<NodeExtension>
         t.configHelper  = (( NodeBaseTask ) task ).configHelper
 
         t.taskAction()
-    }
-
-
-    /**
-     * Retrieves script commands for listing currently running Node.js processes.
-     */
-    @Ensures ({ result })
-    String listProcesses( boolean startWithDelimiterLine = true )
-    {
-        """
-        |${ startWithDelimiterLine ? "echo $LOG_DELIMITER" : '' }
-        |echo ${ forever() } list
-        |echo
-        |${ forever() } list ${ ext.removeColor ? '--plain' : '--colors' }${ ext.removeColorCodes }
-        |echo $LOG_DELIMITER
-        |echo \"ps -Af | grep node | grep -v grep\"
-        |echo
-        |ps -Af | grep node | grep -v grep
-        |echo $LOG_DELIMITER
-        """.stripMargin().toString().trim()
     }
 
 
@@ -337,10 +316,11 @@ class NodeHelper extends BaseHelper<NodeExtension>
         |
         |. "\$HOME/.nvm/nvm.sh"
         |nvm use $ext.nodeVersion
+        |echo Now using forever `${ forever() } --version`
         |
         |echo $LOG_DELIMITER${ ext.publicIp ? "\n|echo \"Running on $Q${ ext.publicIp }$Q\"" : '' }
-        |echo "Executing  $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
-        |echo "Running    $SCRIPT_LOCATION"
+        |echo "Executing ${ ext.publicIp ? ' ' : '' }$Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
+        |echo "Running   ${ ext.publicIp ? ' ' : '' }$SCRIPT_LOCATION"
         |${ ext.env.keySet().collect { "echo \"\\\$${ it.padRight( envPadSize )} = \$$it\"" }.join( '\n' ) }
         |echo $LOG_DELIMITER
         |

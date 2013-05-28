@@ -17,7 +17,8 @@ class StopAllTask extends NodeBaseTask
         try
         {
             shellExec( stopallScript())
-            if ( ext.checkAfterStopall ) { runTask ( CHECK_STOPPED_TASK )}
+            if ( ext.checkAfterStopall ) { runTask( CHECK_STOPPED_TASK )}
+            if ( ext.listAfterStopall  ) { runTask( LIST_TASK ) }
         }
         finally
         {
@@ -32,14 +33,12 @@ class StopAllTask extends NodeBaseTask
     {
         """
         |set +e
-        |${ listProcesses( false ) }
         |
         |echo ${ forever() } stopall
         |echo
         |${ forever() } stopall ${ ext.removeColor ? '--plain' : '--colors' }${ ext.removeColorCodes }
         |
         |${ ext.pidOnlyToStop ? '' : killProcesses() }
-        |${ listProcesses() }
         |
         |set -e
         """.stripMargin().toString().trim()
