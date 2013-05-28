@@ -69,7 +69,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         }
         else if ( isPlot )
         {
-            updatePlotData( resultsArray, urlsArray )
+            createPlot( resultsArray, urlsArray )
         }
     }
 
@@ -215,23 +215,26 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
 
     @Requires({ resultsArray && urlsArray && ( resultsArray.size() == urlsArray.size()) })
-    private void updatePlotData( long[] resultsArray, String[] urlsArray )
+    private void createPlot ( long[] resultsArray, String[] urlsArray )
     {
         /**
          * https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables
          * http://confluence.jetbrains.com/display/TCD7/Predefined+Build+Parameters
          */
-        final buildId      = System.getenv( 'BUILD_NUMBER' ) ?: new SimpleDateFormat( 'dd-MM.HH-mm-ss' ).format( new Date( startTime ))
+        final buildId      = System.getenv( 'BUILD_NUMBER' ) ?: new SimpleDateFormat( 'HH-mm-ss' ).format( new Date( startTime ))
+        final plotFile     = ext.plotFile ?: new File( project.buildDir , 'reports/plot.html' )
         final plotDataFile = project.file( 'plot-data.json' )
         final plotDataMap  = plotDataFile.file ? jsonToMap( plotDataFile ) : [:]
         final buildResults = []
 
         assert ( ! plotDataMap.containsKey( buildId ))
 
-        plotDataMap[ buildId ] = buildResults
-
         resultsArray.eachWithIndex { long result , int index -> buildResults << [ index, result ] }
 
-        objectToJson( plotDataMap, plotDataFile )
+        plotDataMap[ buildId ] = [ label: buildId, data: buildResults ]
+
+        final plotDataJson = objectToJson( plotDataMap, plotDataFile )
+
+        write( plotFile, getResourceText( 'plot-template.html', [ 'datasets' : plotDataJson ] ))
     }
 }

@@ -12,5 +12,5 @@ class MonitorExtension
     int                 readTimeout       = 30000
     boolean             runInParallel     = true
     int                 plotLastResults   = -1
-    String              plotFile
+    File                plotFile
 }
