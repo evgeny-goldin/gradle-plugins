@@ -42,7 +42,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Override
     void taskAction()
     {
-        final isPlot        = ( ext.plotLastResults > 0 )
+        final isPlot        = ( ext.plotBuilds > 0 )
         final isParallel    = ext.runInParallel
         final resourceLines = (( ext.resourcesList ?: [] ) + ( ext.resourcesFile?.readLines() ?: [] ))*.trim().grep().findAll { ! it.startsWith( '#' ) }
         assert resourceLines, 'No resources found to monitor'
@@ -214,7 +214,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
     }
 
 
-    @Requires({ resultsArray && urlsArray && ( resultsArray.size() == urlsArray.size()) })
+    @Requires({ ( ext.plotBuilds > 0 ) && resultsArray && urlsArray && ( resultsArray.size() == urlsArray.size()) })
     private void createPlot ( long[] resultsArray, String[] urlsArray )
     {
         /**
@@ -232,6 +232,12 @@ class MonitorTask extends BaseTask<MonitorExtension>
         resultsArray.eachWithIndex { long result , int index -> buildResults << [ index, result ] }
 
         plotDataMap[ buildId ] = [ label: buildId, data: buildResults ]
+
+        if ( plotDataMap.size() > ext.plotBuilds )
+        {
+            final keys = plotDataMap.keySet()
+            ( keys - keys.sort()[ -ext.plotBuilds .. -1 ] ).each { plotDataMap.remove( it ) }
+        }
 
         final plotDataJson = objectToJson( plotDataMap, plotDataFile )
 
