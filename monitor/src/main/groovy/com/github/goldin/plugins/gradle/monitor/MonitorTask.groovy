@@ -46,20 +46,15 @@ class MonitorTask extends BaseTask<MonitorExtension>
         final isParallel    = ext.runInParallel
         final resourceLines = (( ext.resourcesList ?: [] ) + ( ext.resourcesFile?.readLines() ?: [] ))*.trim().grep().findAll { ! it.startsWith( '#' ) }
         assert resourceLines, 'No resources found to monitor'
-        assert ( ! isPlot ) || ( resourceLines.size() <= ArrayList.MAX_ARRAY_SIZE ), 'Wow, too many resources found to monitor'
+        assert (( ! isPlot ) || ( resourceLines.size() <= ArrayList.MAX_ARRAY_SIZE )), 'Wow, too many resources to monitor'
 
         final failures      = isParallel ? new ConcurrentLinkedQueue<String>() : []
         final resultsArray  = isPlot     ? new long[ resourceLines.size() ]    : null
         final urlsArray     = isPlot     ? new String[ resourceLines.size() ]  : null
 
-        if ( isPlot )
-        {
-            resourceLines.eachWithIndex { String resourceLine, int index -> resultsArray[ index ] = -1L; urlsArray[ index ] = resourceLine }
-        }
-
         log { "Resources to monitor:\n* [${ resourceLines.join( ']\n* [' )}]\n\n" }
 
-        final lineCallback = { String line, int index -> processResourceLine( line, index, isPlot, resultsArray, failures ) }
+        final lineCallback = { String line, int index -> processResourceLine( line, index, isPlot, resultsArray, urlsArray, failures ) }
         if ( isParallel )    { GParsPool.withPool { resourceLines.eachWithIndexParallel( lineCallback )}}
         else                 {                      resourceLines.eachWithIndex( lineCallback )}
 
@@ -78,7 +73,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
      * Processes a single resource line and its result.
      */
     @Requires({ line && ( index > -1 ) && (( ! isPlot ) || ( resultsArray != null )) && ( failures != null ) })
-    void processResourceLine ( String line, int index, boolean isPlot, long[] resultsArray, Collection<String> failures )
+    void processResourceLine ( String line, int index, boolean isPlot, long[] resultsArray, String[] urlsArray, Collection<String> failures )
     {
         def ( String title, String resource ) = line.contains( '=>' ) ? line.split( /\s*=>\s*/ ) : [ '', line ]
 
@@ -87,16 +82,16 @@ class MonitorTask extends BaseTask<MonitorExtension>
         final isStatusCakeResource = resource.toLowerCase().startsWith( 'statuscake://' )
 
         /**
-         * Result is of type long (HTTP response time) or String (failure message)
+         * Result is of type List ([ HTTP response time, url ]) or String (failure message)
          */
 
         final result = isHttpResource       ? processHttpResource      ( title, resource ) :
                        isNmapResource       ? processNmapResource      ( title, resource ) :
                        isStatusCakeResource ? processStatusCakeResource( title, resource ) :
                                               ''
-        if ( result instanceof Long )
+        if ( result instanceof List )
         {
-            if ( isPlot ){ resultsArray[ index ] = result }
+            if ( isPlot ){ resultsArray[ index ] = result[ 0 ]; urlsArray[ index ] = result[ 1 ] }
         }
         else if ((( String ) result ).size() > 0 )
         {
@@ -142,7 +137,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         }
         else
         {
-            response.timeMillis
+            [ response.timeMillis, checkUrl ]
         }
     }
 
@@ -221,17 +216,19 @@ class MonitorTask extends BaseTask<MonitorExtension>
          * https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables
          * http://confluence.jetbrains.com/display/TCD7/Predefined+Build+Parameters
          */
-        final buildId      = System.getenv( 'BUILD_NUMBER' ) ?: new SimpleDateFormat( 'HH-mm-ss' ).format( new Date( startTime ))
+        final buildId      = System.getenv( 'BUILD_NUMBER' ) ?: new SimpleDateFormat( 'dd-MM.HH-mm-ss' ).format( new Date( startTime ))
         final plotFile     = ext.plotFile ?: new File( project.buildDir , 'reports/plot.html' )
         final plotDataFile = project.file( 'plot-data.json' )
         final plotDataMap  = plotDataFile.file ? jsonToMap( plotDataFile ) : [:]
-        final buildResults = []
+        final results      = []
+        final urlsLinks    = new StringBuffer()
 
-        assert ( ! plotDataMap.containsKey( buildId ))
+        assert ( ! plotDataMap.containsKey( buildId )), "Build [$buildId] - plot data map $plotDataMap already contains key [$buildId]"
 
-        resultsArray.eachWithIndex { long result , int index -> buildResults << [ index, result ] }
+        resultsArray.eachWithIndex { long result, int index -> if ( urlsArray[ index ] ) { results << [ index, result ] }}
+        urlsArray.eachWithIndex    { String url,  int index -> if ( url ) { urlsLinks.append( "<span class='url-text'>[$index] - <a href='$url'>$url</a></span><br>\n" ) }}
 
-        plotDataMap[ buildId ] = [ label: buildId, data: buildResults ]
+        plotDataMap[ buildId ] = [ label: buildId, data: results ]
 
         if ( plotDataMap.size() > ext.plotBuilds )
         {
@@ -239,8 +236,9 @@ class MonitorTask extends BaseTask<MonitorExtension>
             ( keys - keys.sort()[ -ext.plotBuilds .. -1 ] ).each { plotDataMap.remove( it ) }
         }
 
-        final plotDataJson = objectToJson( plotDataMap, plotDataFile )
-
-        write( plotFile, getResourceText( 'plot-template.html', [ 'datasets' : plotDataJson ] ))
+        write( plotFile, getResourceText( 'plot-template.html', [ 'datasets'  : objectToJson( plotDataMap, plotDataFile ),
+                                                                  'urlsArray' : "[\"${ urlsArray.collect{ ( it?.size() > 40 ) ? it[ 0 .. 39 ] + '..' : it }.join( '", "' ) }\"]",
+                                                                  'urlsLinks' : urlsLinks.toString() ]))
+        println( "file:${ plotFile.canonicalPath } created" )
     }
 }
