@@ -9,6 +9,7 @@ import org.gradle.api.logging.LogLevel
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLSession
+import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentLinkedQueue
 
 
@@ -65,6 +66,10 @@ class MonitorTask extends BaseTask<MonitorExtension>
         if ( failures )
         {
             throw new GradleException( "The following checks have failed:\n* [${ failures.toSet().join( ']\n* [' )}]" )
+        }
+        else if ( isPlot )
+        {
+            updatePlotData( resultsArray, urlsArray )
         }
     }
 
@@ -206,5 +211,27 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         failedTests ? "StatusCake failed tests: ${ failedTests.collect{ Map m -> m.WebsiteName }}" :
                       ''
+    }
+
+
+    @Requires({ resultsArray && urlsArray && ( resultsArray.size() == urlsArray.size()) })
+    private void updatePlotData( long[] resultsArray, String[] urlsArray )
+    {
+        /**
+         * https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables
+         * http://confluence.jetbrains.com/display/TCD7/Predefined+Build+Parameters
+         */
+        final buildId      = System.getenv( 'BUILD_NUMBER' ) ?: new SimpleDateFormat( 'dd-MM.HH-mm-ss' ).format( new Date( startTime ))
+        final plotDataFile = project.file( 'plot-data.json' )
+        final plotDataMap  = plotDataFile.file ? jsonToMap( plotDataFile ) : [:]
+        final buildResults = []
+
+        assert ( ! plotDataMap.containsKey( buildId ))
+
+        plotDataMap[ buildId ] = buildResults
+
+        resultsArray.eachWithIndex { long result , int index -> buildResults << [ index, result ] }
+
+        objectToJson( plotDataMap, plotDataFile )
     }
 }

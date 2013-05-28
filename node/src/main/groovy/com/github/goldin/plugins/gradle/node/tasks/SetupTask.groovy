@@ -91,7 +91,7 @@ class SetupTask extends NodeBaseTask
     {
         for ( configFile in ext.configs*.keySet().flatten()*.toString().toSet().collect{ checkFile( it )})
         {
-            final configContent = ( ext.printConfigsMask ?: [] ).inject( configFile.getText( 'UTF-8' )){
+            final configContent = ( ext.printConfigsMask ?: [] ).inject( read( configFile )){
                 String content, String maskProperty ->
                 content.replaceAll( ~/("\Q$maskProperty\E"\s*:\s*)([^,\r\n\}]+)/ ){ "${ it[ 1 ]}\"...\"" }
             }
@@ -120,7 +120,7 @@ class SetupTask extends NodeBaseTask
 
                 log{ "Updating [$replaceFile.canonicalPath] using replacements Map $replaces" }
 
-                final String content = replaces.inject( replaceFile.getText( 'UTF-8' )) {
+                final String content = replaces.inject( read( replaceFile )) {
                     String content, String replacePattern, Object replaceContent ->
 
                     assert content && replacePattern && ( replaceContent != null ), \

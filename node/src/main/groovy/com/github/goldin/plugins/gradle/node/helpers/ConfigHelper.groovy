@@ -42,7 +42,7 @@ class ConfigHelper extends BaseHelper<NodeExtension>
     {
         assert configFile.file, "Config file [$configFile.canonicalPath] is not available"
 
-        final  configText = configFile.getText( 'UTF-8' ).trim()
+        final  configText = read( configFile ).trim()
         assert configText, "[$configFile.canonicalPath] is empty"
 
         if ( configText.with{ startsWith( '{' ) and endsWith( '}' ) })
@@ -83,7 +83,7 @@ class ConfigHelper extends BaseHelper<NodeExtension>
                 }
             }
 
-            final configContent            = ( configFile.file ? configFile.getText( 'UTF-8' )          : ''  )
+            final configContent            = ( configFile.file ? read( configFile )                     : ''  )
             final Map<String,?> configData = ( configFile.file ? jsonToMap( configContent, configFile ) : [:] )
             assert ( configData || ( ! configFile.file )), "No configuration data was read from [$configFile.canonicalPath]"
 

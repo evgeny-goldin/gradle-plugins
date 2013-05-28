@@ -201,9 +201,9 @@ class AboutHelper extends BaseHelper<AboutExtension>
         reportTask.generate( project )
 
         assert file.file, "File [$file.canonicalPath] was not created by dependency report"
-        final String report = ( ext.includeDependencies instanceof List ) ?
-            file.getText( 'UTF-8' ).split( '\n\n' ).findAll { find( it, ext.configurationNamePattern ) in ext.includeDependencies }.join( '\n\n' ) :
-            file.getText( 'UTF-8' )
+        String report = ( ext.includeDependencies instanceof List ) ?
+               read( file ).split( '\n\n' ).findAll { find( it, ext.configurationNamePattern ) in (( List<String> ) ext.includeDependencies ) }.join( '\n\n' ) :
+               read( file )
 
         report = "$line\n" + report.replaceAll( /(?m)^\s*$/, line ) // Empty lines replaced by $line
         delete( false, file ) // https://github.com/evgeny-goldin/gradle-plugins/issues/6

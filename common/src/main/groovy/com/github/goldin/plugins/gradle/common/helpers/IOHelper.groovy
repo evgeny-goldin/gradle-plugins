@@ -134,6 +134,17 @@ class IOHelper extends BaseHelper<Object>
      }
 
 
+    /**
+     * {@code File.getText()} wrapper.
+     */
+    @Requires({ file.file && encoding })
+    @Ensures ({ result != null })
+    String read( File file, String encoding = 'UTF-8' )
+    {
+        file.getText( encoding )
+    }
+
+
      /**
       * {@code File.write()} wrapper.
       */

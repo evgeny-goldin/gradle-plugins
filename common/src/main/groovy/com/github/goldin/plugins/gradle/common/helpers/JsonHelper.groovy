@@ -27,7 +27,7 @@ class JsonHelper extends BaseHelper<Object>
     @Ensures ({ result != null })
     Map<String,?> jsonToMap ( File file, String encoding = 'UTF-8' )
     {
-        jsonToMap( file.getText( encoding ).trim(), file )
+        jsonToMap( read( file, encoding ).trim(), file )
     }
 
 
