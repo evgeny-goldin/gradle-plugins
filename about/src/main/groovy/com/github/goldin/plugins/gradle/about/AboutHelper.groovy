@@ -132,12 +132,13 @@ class AboutHelper extends BaseHelper<AboutExtension>
     {
         // noinspection GroovyPointlessBoolean
         final includeDependencies = ( ext.includeDependencies != false ) && ( ext.includeDependencies != 'false' )
+        final publicIp            = publicIp()
 
         """
         $SEPARATOR
         | Build Info
         $SEPARATOR
-        | Host          : [${ hostname() }]${ publicIp().with { delegate ? ' / [' + delegate + ']' : '' }}
+        | Host          : [${ hostname() }]${ publicIp ? ' / [' + publicIp + ']' : '' }
         | Time          : [$startTimeFormatted]
         | User          : [${ properties[ 'user.name' ] }]
         | ${ ext.includePaths ? 'Directory     : [' + properties[ 'user.dir' ] + ']': '' }

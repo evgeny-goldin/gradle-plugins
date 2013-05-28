@@ -338,9 +338,9 @@ class NodeHelper extends BaseHelper<NodeExtension>
         |. "\$HOME/.nvm/nvm.sh"
         |nvm use $ext.nodeVersion
         |
-        |echo $LOG_DELIMITER
-        |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
-        |echo "Running   $SCRIPT_LOCATION"
+        |echo $LOG_DELIMITER${ ext.publicIp ? "\n|echo \"Running on $Q${ ext.publicIp }$Q\"" : '' }
+        |echo "Executing  $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
+        |echo "Running    $SCRIPT_LOCATION"
         |${ ext.env.keySet().collect { "echo \"\\\$${ it.padRight( envPadSize )} = \$$it\"" }.join( '\n' ) }
         |echo $LOG_DELIMITER
         |

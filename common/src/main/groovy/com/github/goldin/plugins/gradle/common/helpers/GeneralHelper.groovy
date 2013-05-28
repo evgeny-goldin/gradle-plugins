@@ -202,7 +202,7 @@ class GeneralHelper extends BaseHelper<Object>
     String hostname()
     {
         try { System.getenv( 'COMPUTERNAME' ) ?: System.getenv( 'HOSTNAME' ) ?: exec( 'hostname' ) ?: '' }
-        catch( Throwable ignored ){ 'Unknown' }
+        catch( Throwable ignored ){ 'Unknown Hostname' }
     }
 
 
