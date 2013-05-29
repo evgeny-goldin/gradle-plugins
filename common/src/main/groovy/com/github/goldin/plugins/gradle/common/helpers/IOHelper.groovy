@@ -153,6 +153,7 @@ class IOHelper extends BaseHelper<Object>
      File write ( File file, String content, String encoding = 'UTF-8' )
      {
          assert ( ! file.file ) || project.delete( file ), "Unable to delete [${ file.canonicalPath }]"
+         assert file.parentFile, "File [$file] has no parent directory"
          assert file.parentFile.with { directory || mkdirs() }, "Unable to mkdir [${ file.parentFile.canonicalPath }]"
 
          file.write( content, encoding )

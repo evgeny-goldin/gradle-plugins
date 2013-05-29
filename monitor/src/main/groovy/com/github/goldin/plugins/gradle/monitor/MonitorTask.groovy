@@ -33,6 +33,8 @@ class MonitorTask extends BaseTask<MonitorExtension>
         assert ext.headers     != null, "'headers' should not be null in $description"
         assert ext.connectTimeout > -1, "'connectTimeout' should not be negative in $description"
         assert ext.readTimeout    > -1, "'readTimeout' should not be negative in $description"
+        assert ext.plotJsonFile,        "'plotJsonFile' should be defined in $description"
+        ext.plotJsonFile = project.file( ext.plotJsonFile ) // From parent-less to project
     }
 
 
@@ -208,14 +210,13 @@ class MonitorTask extends BaseTask<MonitorExtension>
     }
 
 
-    @Requires({ ( ext.plotBuilds > 0 ) && resultsArray && urlsArray && ( resultsArray.size() == urlsArray.size()) })
+    @Requires({ ( ext.plotJsonFile ) && ( ext.plotBuilds > 0 ) && resultsArray && urlsArray && ( resultsArray.size() == urlsArray.size()) })
     private void createPlot ( long[] resultsArray, String[] urlsArray )
     {
         final buildLabel   = systemEnv.BUILD_NUMBER ?: new SimpleDateFormat( 'dd-MM.HH-mm-ss' ).format( new Date( startTime ))
         final buildUrl     = systemEnv.BUILD_URL    ?: teamCityBuildUrl ?: ''
-        final plotFile     = ext.plotFile ?: new File( project.buildDir , 'reports/plot.html' )
-        final plotDataFile = project.file( 'plot-data.json' )
-        final plotDataMap  = plotDataFile.file ? jsonToMap( plotDataFile ) : [:]
+        final plotFile     = ext.plotFile           ?: new File( project.buildDir , 'reports/plot.html' )
+        final plotDataMap  = ext.plotJsonFile.file  ?  jsonToMap( ext.plotJsonFile ) : [:]
         final results      = []
         final urlsLinks    = new StringBuffer()
 
@@ -233,7 +234,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         }
 
         write( plotFile, getResourceText( 'plot-template.html',
-                                          [ 'datasets'   : objectToJson( plotDataMap, plotDataFile ),
+                                          [ 'datasets'   : objectToJson( plotDataMap, ext.plotJsonFile ),
                                             'urlsArray'  : "[\"\", \"${ urlsArray.collect{ ( it?.size() > 40 ) ? it[ 0 .. 39 ] + '..' : it }.join( '", "' ) }\"]", // Java list => JavaScript array
                                             'urlsLinks'  : urlsLinks.toString()]))
 

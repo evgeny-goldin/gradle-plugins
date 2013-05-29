@@ -12,5 +12,6 @@ class MonitorExtension
     int                 readTimeout       = 30000
     boolean             runInParallel     = true
     int                 plotBuilds        = 3
+    File                plotJsonFile      = new File( 'plot-data.json' )
     File                plotFile
 }
