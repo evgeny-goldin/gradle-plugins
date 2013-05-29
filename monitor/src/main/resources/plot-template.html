@@ -76,7 +76,7 @@ Licensed under the MIT license.
             $.plot("#placeholder", data, {
                 grid        : { hoverable: true },
                 tooltip     : true,
-                tooltipOpts : { content : function( x, y ){ return "Build [%s], URL [" + x + "] (" + urlsArray[ x ] + ") - [" + y + "] ms" }},
+                tooltipOpts : { content : function( x, y ){ return "URL [" + x + "] (" + urlsArray[ x ] + ") - " + y + " ms (build [%s])" }},
                 points      : { show: true },
                 lines       : { show: true },
                 yaxis       : { min: 0 },
