@@ -31,6 +31,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Override
     void verifyUpdateExtension ( String description )
     {
+        assert ( ! projectDir.canonicalPath.find( /\s/ )), "Project directory path [${ projectDir.canonicalPath }] contains spaces - not supported!"
+
         nodeHelper   = new NodeHelper    ( this.project, this, this.ext )
         cacheHelper  = new NpmCacheHelper( this.project, this, this.ext )
         configHelper = new ConfigHelper  ( this.project, this, this.ext )

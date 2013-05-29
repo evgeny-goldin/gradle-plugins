@@ -275,8 +275,9 @@ class NodeHelper extends BaseHelper<NodeExtension>
         scriptContent = ( ext.transformers ?: [] ).inject(
         """#!${ ext.shell }
         |
-        |${ watchExitCodes    ? 'set -e'          : '' }
-        |${ watchExitCodes    ? 'set -o pipefail' : '' }
+        |${ watchExitCodes ? 'set -e'          : '' }
+        |${ watchExitCodes ? 'set -o pipefail' : '' }
+        |${ ext.verbose    ? 'set -x'          : '' }
         |
         |echo "cd $Q${ projectDir.canonicalPath }$Q"
         |cd "${ projectDir.canonicalPath }"
