@@ -11,6 +11,6 @@ class MonitorExtension
     int                 connectTimeout    = 30000
     int                 readTimeout       = 30000
     boolean             runInParallel     = true
-    int                 plotBuilds        = -1
+    int                 plotBuilds        = 3
     File                plotFile
 }
