@@ -57,7 +57,7 @@ Licensed under the MIT license.
 		var choiceContainer = $("#choices");
 		$.each( datasets, function( key, val )
 		{
-			choiceContainer.append( "<br/><input type='checkbox' name='" + key + "' checked='checked' id='id" + key + "'></input>" + "<a class='url-text' href='" + datasets[ key ][ 'url' ] + "'>" + datasets[ key ][ 'label' ] + "</a>" );
+			choiceContainer.prepend( "<br/><input type='checkbox' name='" + key + "' checked='checked' id='id" + key + "'></input>" + "<a class='url-text' href='" + datasets[ key ][ 'url' ] + "'>" + datasets[ key ][ 'label' ] + "</a>" );
 		});
 
 		choiceContainer.find("input").click(plotAccordingToChoices);
