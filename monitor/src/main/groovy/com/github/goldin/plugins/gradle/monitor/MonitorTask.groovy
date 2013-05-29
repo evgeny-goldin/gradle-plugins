@@ -21,7 +21,6 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Override
     Class extensionType (){ MonitorExtension }
 
-
     // http://stackoverflow.com/questions/10258101/sslhandshakeexception-no-subject-alternative-names-present?answertab=active#tab-top
     static { HttpsURLConnection.defaultHostnameVerifier = { String hostname, SSLSession session -> true } as HostnameVerifier }
 
@@ -212,23 +211,20 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Requires({ ( ext.plotBuilds > 0 ) && resultsArray && urlsArray && ( resultsArray.size() == urlsArray.size()) })
     private void createPlot ( long[] resultsArray, String[] urlsArray )
     {
-        /**
-         * https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables
-         * http://confluence.jetbrains.com/display/TCD7/Predefined+Build+Parameters
-         */
-        final buildId      = System.getenv( 'BUILD_NUMBER' ) ?: new SimpleDateFormat( 'dd-MM.HH-mm-ss' ).format( new Date( startTime ))
+        final buildLabel   = systemEnv.BUILD_NUMBER ?: new SimpleDateFormat( 'dd-MM.HH-mm-ss' ).format( new Date( startTime ))
+        final buildUrl     = systemEnv.BUILD_URL    ?: teamCityBuildUrl ?: ''
         final plotFile     = ext.plotFile ?: new File( project.buildDir , 'reports/plot.html' )
         final plotDataFile = project.file( 'plot-data.json' )
         final plotDataMap  = plotDataFile.file ? jsonToMap( plotDataFile ) : [:]
         final results      = []
         final urlsLinks    = new StringBuffer()
 
-        assert ( ! plotDataMap.containsKey( buildId )), "Build [$buildId] - plot data map $plotDataMap already contains key [$buildId]"
+        assert ( ! plotDataMap.containsKey( buildLabel )), "Build [$buildLabel] - plot data map $plotDataMap already contains key [$buildLabel]"
 
         resultsArray.eachWithIndex { long result, int index -> if ( urlsArray[ index ] ) { results << [ index, result ] }}
         urlsArray.eachWithIndex    { String url,  int index -> if ( url ) { urlsLinks.append( "<span class='url-text'>[$index] - <a href='$url'>$url</a></span><br>\n" ) }}
 
-        plotDataMap[ buildId ] = [ label: buildId, data: results ]
+        plotDataMap[ buildLabel ] = [ label: buildLabel, url: buildUrl, data: results ]
 
         if ( plotDataMap.size() > ext.plotBuilds )
         {
@@ -236,9 +232,11 @@ class MonitorTask extends BaseTask<MonitorExtension>
             ( keys - keys.sort()[ -ext.plotBuilds .. -1 ] ).each { plotDataMap.remove( it ) }
         }
 
-        write( plotFile, getResourceText( 'plot-template.html', [ 'datasets'  : objectToJson( plotDataMap, plotDataFile ),
-                                                                  'urlsArray' : "[\"${ urlsArray.collect{ ( it?.size() > 40 ) ? it[ 0 .. 39 ] + '..' : it }.join( '", "' ) }\"]",
-                                                                  'urlsLinks' : urlsLinks.toString() ]))
+        write( plotFile, getResourceText( 'plot-template.html',
+                                          [ 'datasets'   : objectToJson( plotDataMap, plotDataFile ),
+                                            'urlsArray'  : "[\"${ urlsArray.collect{ ( it?.size() > 40 ) ? it[ 0 .. 39 ] + '..' : it }.join( '", "' ) }\"]", // Java list => JavaScript array
+                                            'urlsLinks'  : urlsLinks.toString()]))
+
         println( "file:${ plotFile.canonicalPath } created" )
     }
 }

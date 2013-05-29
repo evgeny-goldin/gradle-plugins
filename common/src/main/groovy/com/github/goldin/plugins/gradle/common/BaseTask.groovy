@@ -23,10 +23,14 @@ abstract class BaseTask<T> extends DefaultTask
     final String           projectName        = project.name.replaceAll( ~/^.*\//, '' )
     final File             projectDir         = project.projectDir
 
-    @Delegate GeneralHelper generalHelper
-    @Delegate IOHelper      ioHelper
-    @Delegate JsonHelper    jsonHelper
-    @Delegate MatcherHelper matcherHelper
+    final Map<String,String> systemEnv        = System.getenv().asImmutable()
+    final Map<String,String> systemProperties = ( Map<String,String> ) System.properties.asImmutable()
+
+    @Delegate GeneralHelper  generalHelper
+    @Delegate IOHelper       ioHelper
+    @Delegate JsonHelper     jsonHelper
+    @Delegate MatcherHelper  matcherHelper
+    @Delegate TeamCityHelper teamCityHelper
 
     /**
      * Retrieves task's extension type in run-time
@@ -71,10 +75,11 @@ abstract class BaseTask<T> extends DefaultTask
 
         assert this.ext && this.extensionName
 
-        generalHelper = new GeneralHelper( this.project, this, this.ext )
-        ioHelper      = new IOHelper     ( this.project, this, this.ext )
-        jsonHelper    = new JsonHelper   ( this.project, this, this.ext )
-        matcherHelper = new MatcherHelper( this.project, this, this.ext )
+        generalHelper  = new GeneralHelper ( this.project, this, this.ext )
+        ioHelper       = new IOHelper      ( this.project, this, this.ext )
+        jsonHelper     = new JsonHelper    ( this.project, this, this.ext )
+        matcherHelper  = new MatcherHelper ( this.project, this, this.ext )
+        teamCityHelper = new TeamCityHelper( this.project, this, this.ext )
 
         verifyUpdateExtension( "$project => ${ this.extensionName } { .. }" )
         taskAction()

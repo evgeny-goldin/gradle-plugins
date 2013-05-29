@@ -20,10 +20,7 @@ class AboutHelper extends BaseHelper<AboutExtension>
     @Ensures ({ this.project && this.task && this.ext })
     AboutHelper ( Project project, BaseTask task, AboutExtension ext ){ super( project, task, ext )}
 
-
-    private static final String       SEPARATOR = '|==============================================================================='
-    private final Map<String, String> env        = System.getenv().asImmutable()
-    private final Map<String, String> properties = ( Map<String , String> ) System.properties.asImmutable()
+    private static final String SEPARATOR = '|==============================================================================='
 
 
     @Requires({ ( s != null ) && prefix })
@@ -58,9 +55,9 @@ class AboutHelper extends BaseHelper<AboutExtension>
         $SEPARATOR
         | Jenkins Info
         $SEPARATOR
-        | Server         : [${ env[ 'JENKINS_URL' ] }]
-        | Job            : [${ env[ 'JENKINS_URL' ] }job/${ env[ 'JOB_NAME' ] }/${ env[ 'BUILD_NUMBER' ]}/]
-        | Log            : [${ env[ 'JENKINS_URL' ] }job/${ env[ 'JOB_NAME' ] }/${ env[ 'BUILD_NUMBER' ]}/console]"""
+        | Server         : [${ systemEnv.JENKINS_URL }]
+        | Job            : [${ systemEnv.JENKINS_URL }job/${ systemEnv.JOB_NAME }/${ systemEnv.BUILD_NUMBER }/]
+        | Log            : [${ systemEnv.JENKINS_URL }job/${ systemEnv.JOB_NAME }/${ systemEnv.BUILD_NUMBER }/console]"""
     }
 
 
@@ -73,40 +70,32 @@ class AboutHelper extends BaseHelper<AboutExtension>
         $SEPARATOR
         | Hudson Info
         $SEPARATOR
-        | Server         : [${ env[ 'HUDSON_URL' ] }]
-        | Job            : [${ env[ 'HUDSON_URL' ] }job/${ env[ 'JOB_NAME' ] }/${ env[ 'BUILD_NUMBER' ]}/]
-        | Log            : [${ env[ 'HUDSON_URL' ] }job/${ env[ 'JOB_NAME' ] }/${ env[ 'BUILD_NUMBER' ]}/console]"""
+        | Server         : [${ systemEnv.HUDSON_URL }]
+        | Job            : [${ systemEnv.HUDSON_URL }job/${ systemEnv.JOB_NAME }/${ systemEnv.BUILD_NUMBER }/]
+        | Log            : [${ systemEnv.HUDSON_URL }job/${ systemEnv.JOB_NAME }/${ systemEnv.BUILD_NUMBER }/console]"""
     }
 
 
+    @Requires({ teamcityProperties })
     @Ensures({ result })
     String teamcityContent()
     {
+        final missingUrlMessage = 'Define \'TEAMCITY_URL\' environment variable, like TEAMCITY_URL=http://teamcity.jetbrains.com/'
+
         // http://confluence.jetbrains.net/display/TCD7/Predefined+Build+Parameters
-
-        final  teamcityProperties = project.properties[ 'teamcity' ]
-        assert teamcityProperties
-
-        final urlMessage     = 'Define \'TEAMCITY_URL\' environment variable'
-        final buildId        = teamcityProperties[ 'teamcity.build.id' ]
-        final teamCityUrl    = ( env[ 'TEAMCITY_URL' ]?.replaceAll( /(?<!\\|\/)(\\|\/)*$/, '/' )       ?: '' )
-        final buildUrl       = ( teamCityUrl && buildId ? "${teamCityUrl}viewLog.html?buildId=$buildId" : '' )
-        final logUrl         = ( buildUrl               ? "$buildUrl&tab=buildLog"                      : '' )
-
-        if ( teamCityUrl ) { assert teamCityUrl.endsWith( '/' )}
 
         """
         $SEPARATOR
         | TeamCity Info
         $SEPARATOR
-        | Version        : [${ teamcityProperties[ 'teamcity.version' ]       ?: '' }]
-        | Server         : [${ teamCityUrl ?: urlMessage }]
-        | Job            : [${ buildUrl    ?: urlMessage }]
-        | Log            : [${ logUrl      ?: urlMessage }]
-        | Project        : [${ teamcityProperties[ 'teamcity.projectName' ]   ?: '' }]
-        | Configuration  : [${ teamcityProperties[ 'teamcity.buildConfName' ] ?: '' }]
-        | Build Number   : [${ teamcityProperties[ 'build.number' ]           ?: '' }]
-        | Personal Build : [${ teamcityProperties[ 'build.is.personal' ]      ?: 'false' }]"""
+        | Version        : [${ teamcityProperty( 'teamcity.version' )}]
+        | Server         : [${ teamCityUrl      ?: missingUrlMessage }]
+        | Job            : [${ teamCityBuildUrl ?: missingUrlMessage }]
+        | Log            : [${ teamCityBuildUrl ? "$teamCityBuildUrl&tab=buildLog" : missingUrlMessage }]
+        | Project        : [${ teamcityProperty( 'teamcity.projectName' )}]
+        | Configuration  : [${ teamcityProperty( 'teamcity.buildConfName' )}]
+        | Build Number   : [${ teamcityProperty( 'build.number' )}]
+        | Personal Build : [${ teamcityProperty( 'build.is.personal' )}]"""
     }
 
 
@@ -114,8 +103,8 @@ class AboutHelper extends BaseHelper<AboutExtension>
     String serverContent()
     {
         ( project.hasProperty( 'teamcity' ) ? teamcityContent() :
-          env[ 'JENKINS_URL' ]              ? jenkinsContent () :
-          env[ 'HUDSON_URL'  ]              ? hudsonContent  () :
+          systemEnv.JENKINS_URL             ? jenkinsContent () :
+          systemEnv.HUDSON_URL              ? hudsonContent  () :
                                               '' )
     }
 
@@ -140,10 +129,10 @@ class AboutHelper extends BaseHelper<AboutExtension>
         $SEPARATOR
         | Host          : [${ hostname() }]${ publicIp ? ' / [' + publicIp + ']' : '' }
         | Time          : [$startTimeFormatted]
-        | User          : [${ properties[ 'user.name' ] }]
-        | ${ ext.includePaths ? 'Directory     : [' + properties[ 'user.dir' ] + ']': '' }
-        | Java          : [${ properties[ 'java.version' ] }][${ properties[ 'java.vm.vendor' ] }]${ ext.includePaths ? '[' + properties[ 'java.home' ] + ']' : '' }[${ properties[ 'java.vm.name' ] }]
-        | OS            : [${ properties[ 'os.name' ] }][${ properties[ 'os.arch' ] }][${ properties[ 'os.version' ] }]
+        | User          : [${ systemProperties[ 'user.name' ] }]
+        | ${ ext.includePaths ? 'Directory     : [' + systemProperties[ 'user.dir' ] + ']': '' }
+        | Java          : [${ systemProperties[ 'java.version' ] }][${ systemProperties[ 'java.vm.vendor' ] }]${ ext.includePaths ? '[' + systemProperties[ 'java.home' ] + ']' : '' }[${ systemProperties[ 'java.vm.name' ] }]
+        | OS            : [${ systemProperties[ 'os.name' ] }][${ systemProperties[ 'os.arch' ] }][${ systemProperties[ 'os.version' ] }]
         $SEPARATOR
         | Gradle Info
         $SEPARATOR
@@ -151,7 +140,7 @@ class AboutHelper extends BaseHelper<AboutExtension>
         | ${ ext.includePaths ? 'Home          : [' + project.gradle.gradleHomeDir.canonicalPath + ']' : '' }
         | ${ ext.includePaths ? 'Project dir   : [' + projectDir.canonicalPath + ']': '' }
         | ${ ext.includePaths ? 'Build file    : [' + ( project.buildFile ?: project.rootProject.buildFile ).canonicalPath + ']' : '' }
-        | GRADLE_OPTS   : [${ env[ 'GRADLE_OPTS' ] ?: '' }]
+        | GRADLE_OPTS   : [${ systemEnv.GRADLE_OPTS ?: '' }]
         | Project       : [${ ext.includePaths ? project.toString() : project.toString().replaceAll( /\s+@.+/, '' )}]
         | Tasks         : ${ project.gradle.startParameter.taskNames }
         | Coordinates   : [$project.group:$project.name:$project.version]
@@ -171,7 +160,7 @@ class AboutHelper extends BaseHelper<AboutExtension>
         $SEPARATOR
         | System Properties
         $SEPARATOR
-        |${ sort( properties ) }""" : '' ) +
+        |${ sort( systemProperties ) }""" : '' ) +
 
         ( ext.includeEnv ?
 
@@ -179,10 +168,11 @@ class AboutHelper extends BaseHelper<AboutExtension>
         $SEPARATOR
         | Environment Variables
         $SEPARATOR
-        |${ sort( env ) }""" : '' )
+        |${ sort( systemEnv ) }""" : '' )
     }
 
 
+    @SuppressWarnings([ 'GroovyPointlessBoolean' ])
     @Ensures({ result })
     String dependenciesContent ()
     {

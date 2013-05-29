@@ -81,7 +81,9 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         ext.publicIp     = ext.printPublicIp ? publicIp() : ''
         ext.env.NODE_ENV = ext.NODE_ENV
         ext.env.PORT     = ext.portNumber
-        ext.env.BUILD_ID = ( System.getenv( 'JENKINS_URL' ) != null ? 'JenkinsLetMeSpawn' : System.getenv( 'BUILD_ID' ) ?: '' )
+
+        // https://wiki.jenkins-ci.org/display/JENKINS/Spawning+processes+from+build
+        if ( systemEnv.JENKINS_URL != null ){ ext.env.BUILD_ID = 'JenkinsLetMeSpawn' }
 
         addRedis()
         addMongo()

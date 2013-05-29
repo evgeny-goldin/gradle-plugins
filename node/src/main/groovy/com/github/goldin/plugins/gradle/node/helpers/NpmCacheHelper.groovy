@@ -72,7 +72,7 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
         final checksum = packageJsonChecksum()
         if ( ! checksum ) { return null }
 
-        final npmCacheArchive = new File( System.getProperty( 'user.home' ), ".npm/node_modules_${ checksum }.tar.gz" )
+        final npmCacheArchive = new File( systemProperties[ 'user.home' ], ".npm/node_modules_${ checksum }.tar.gz" )
         npmCacheArchive.parentFile.with { File f -> assert ( f.directory || f.mkdirs()), "Failed to mkdir [$f.canonicalPath]" }
 
         if ( ext.npmRemoteCache )
