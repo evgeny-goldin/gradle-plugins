@@ -28,7 +28,9 @@ class TeamCityHelper extends BaseHelper<Object>
         super( project, task, ext )
         assert (( ! teamCityUrl ) || teamCityUrl.endsWith( '/' ))
 
-        log { "TeamCity properties: $teamcityProperties, url: [$teamCityUrl], build url: [$teamCityBuildUrl]" }
+        log { "TeamCity properties: $teamcityProperties" }
+        log { "TeamCity URL       : [$teamCityUrl]"      }
+        log { "TeamCity build URL : [$teamCityBuildUrl]" }
     }
 
 
