@@ -31,7 +31,16 @@ class TeamCityHelper extends BaseHelper<Object>
     {
         super( project, task, ext )
         assert (( ! teamCityUrl ) || teamCityUrl.endsWith( '/' ))
+        final p = new Properties()
+        p.load( new FileInputStream( System.getenv( 'TEAMCITY_BUILD_PROPERTIES_FILE' ) ))
+
         log { "Properties: $teamcityProperties, url: [$teamCityUrl], buildId: [$teamCityBuildId], buildUrl: [$teamCityBuildUrl]" }
-        log { "[${ System.properties }][${ System.getenv() }]" }
+        log { "~~~~~~~~~~~~~~~~~~~~~~" }
+        log { "${ System.properties }" }
+        log { "~~~~~~~~~~~~~~~~~~~~~~" }
+        log { "${ System.getenv() }" }
+        log { "~~~~~~~~~~~~~~~~~~~~~~" }
+        log { "${ p }" }
+        log { "~~~~~~~~~~~~~~~~~~~~~~" }
     }
 }
