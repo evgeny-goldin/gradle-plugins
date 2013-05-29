@@ -21,7 +21,7 @@ class TeamCityHelper extends BaseHelper<Object>
 
     @Requires({ propertyName })
     @Ensures ({ result != null })
-    String teamcityProperty( String propertyName ){ teamcityProperties[ ( propertyName ) ] ?: '' }
+    String teamcityProperty( String propertyName ){ ( teamcityProperties ? ( teamcityProperties[ ( propertyName ) ] ?: '' ) : '' ) }
 
 
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
