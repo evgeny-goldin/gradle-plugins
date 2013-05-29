@@ -13,15 +13,11 @@ import org.gradle.api.Project
 @SuppressWarnings([ 'AbstractClassWithoutAbstractMethod' ])
 class TeamCityHelper extends BaseHelper<Object>
 {
-    final Properties teamcityProperties = ( Properties ) systemProperties[ 'teamcity' ]
-    final String     teamCityUrl        = systemEnv.TEAMCITY_URL?.replaceAll( /(?<!\\|\/)(\\|\/)*$/, '/' ) ?: '' // Eliminates extra tail slashes
-    final String     teamCityBuildId    = ( teamcityProperties ? teamcityProperties[ 'teamcity.build.id' ] : '' )
-    final String     teamCityBuildUrl   = ( teamCityUrl && teamCityBuildId ? "${teamCityUrl}viewLog.html?buildId=$teamCityBuildId" : '' )
-
-
-    @Requires({ propertyName })
-    @Ensures ({ result != null })
-    String teamcityProperty( String propertyName ){ ( teamcityProperties ? ( teamcityProperties[ ( propertyName ) ] ?: '' ) : '' ) }
+    final Map<String,?> teamcityProperties = readTeamcityProperties()?.asImmutable()
+    final String        teamCityUrl        = systemEnv.TEAMCITY_URL?.replaceAll( /(?<!\\|\/)(\\|\/)*$/, '/' ) ?: '' // Leaves a single slash at the end of a URL
+    final String        teamCityBuildUrl   = teamcityProperty( 'teamcity.build.id' ).with {
+        String buildId -> ( teamCityUrl && buildId ) ? "${teamCityUrl}viewLog.html?buildId=$buildId" : ''
+    }
 
 
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
@@ -31,16 +27,31 @@ class TeamCityHelper extends BaseHelper<Object>
     {
         super( project, task, ext )
         assert (( ! teamCityUrl ) || teamCityUrl.endsWith( '/' ))
-        final p = new Properties()
-        p.load( new FileInputStream( System.getenv( 'TEAMCITY_BUILD_PROPERTIES_FILE' ) ))
 
-        log { "Properties: $teamcityProperties, url: [$teamCityUrl], buildId: [$teamCityBuildId], buildUrl: [$teamCityBuildUrl]" }
-        log { "~~~~~~~~~~~~~~~~~~~~~~" }
-        log { "${ System.properties }" }
-        log { "~~~~~~~~~~~~~~~~~~~~~~" }
-        log { "${ System.getenv() }" }
-        log { "~~~~~~~~~~~~~~~~~~~~~~" }
-        log { "${ p }" }
-        log { "~~~~~~~~~~~~~~~~~~~~~~" }
+        log { "TeamCity properties: $teamcityProperties, url: [$teamCityUrl], build url: [$teamCityBuildUrl]" }
+    }
+
+
+    @Requires({ propertyName })
+    @Ensures ({ result != null })
+    String teamcityProperty( String propertyName ){ teamcityProperties?.get( propertyName ) ?: '' }
+
+
+    Map<String,?> readTeamcityProperties()
+    {
+        final propertiesPath = systemEnv.TEAMCITY_BUILD_PROPERTIES_FILE
+
+        if ( propertiesPath )
+        {
+            final propertiesFile = new File( propertiesPath )
+            if ( propertiesFile.file )
+            {
+                final  p = new Properties()
+                propertiesFile.withReader { Reader r -> p.load( r )}
+                return ( Map<String,?> ) p
+            }
+        }
+
+        null
     }
 }
