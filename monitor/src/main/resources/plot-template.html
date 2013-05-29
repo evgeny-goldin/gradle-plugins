@@ -76,10 +76,11 @@ Licensed under the MIT license.
             $.plot("#placeholder", data, {
                 grid        : { hoverable: true },
                 tooltip     : true,
-                tooltipOpts : { content : function( x, y ){ return "Build [%s], URL [%x] (" + urlsArray[ x ] + ") - [" + y + "] ms" }},
+                tooltipOpts : { content : function( x, y ){ return "Build [%s], URL [" + x + "] (" + urlsArray[ x ] + ") - [" + y + "] ms" }},
                 points      : { show: true },
                 lines       : { show: true },
-                yaxis       : { min: 0 }
+                yaxis       : { min: 0 },
+                xaxis       : { min: 1, tickDecimals: 0 }
             });
 		}
 

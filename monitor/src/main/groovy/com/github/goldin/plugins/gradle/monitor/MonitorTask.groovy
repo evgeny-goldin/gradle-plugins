@@ -221,8 +221,8 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         assert ( ! plotDataMap.containsKey( buildLabel )), "Build [$buildLabel] - plot data map $plotDataMap already contains key [$buildLabel]"
 
-        resultsArray.eachWithIndex { long result, int index -> if ( urlsArray[ index ] ) { results << [ index, result ] }}
-        urlsArray.eachWithIndex    { String url,  int index -> if ( url ) { urlsLinks.append( "<span class='url-text'>[$index] - <a href='$url'>$url</a></span><br>\n" ) }}
+        resultsArray.eachWithIndex { long result, int index -> if ( urlsArray[ index ] ) { results << [ index + 1, result ] }}
+        urlsArray.eachWithIndex    { String url,  int index -> if ( url ) { urlsLinks.append( "<span class='url-text'>[${ index + 1 }] - <a href='$url'>$url</a></span><br>\n" ) }}
 
         plotDataMap[ buildLabel ] = [ label: buildLabel, url: buildUrl, data: results ]
 
@@ -234,7 +234,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
         write( plotFile, getResourceText( 'plot-template.html',
                                           [ 'datasets'   : objectToJson( plotDataMap, plotDataFile ),
-                                            'urlsArray'  : "[\"${ urlsArray.collect{ ( it?.size() > 40 ) ? it[ 0 .. 39 ] + '..' : it }.join( '", "' ) }\"]", // Java list => JavaScript array
+                                            'urlsArray'  : "[\"\", \"${ urlsArray.collect{ ( it?.size() > 40 ) ? it[ 0 .. 39 ] + '..' : it }.join( '", "' ) }\"]", // Java list => JavaScript array
                                             'urlsLinks'  : urlsLinks.toString()]))
 
         println( "file:${ plotFile.canonicalPath } created" )
