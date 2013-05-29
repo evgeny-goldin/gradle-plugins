@@ -4,6 +4,7 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
+import org.gradle.api.logging.LogLevel
 
 
 /**
@@ -28,9 +29,9 @@ class TeamCityHelper extends BaseHelper<Object>
         super( project, task, ext )
         assert (( ! teamCityUrl ) || teamCityUrl.endsWith( '/' ))
 
-        log { "TeamCity properties: $teamcityProperties" }
-        log { "TeamCity URL       : [$teamCityUrl]"      }
-        log { "TeamCity build URL : [$teamCityBuildUrl]" }
+        log( LogLevel.DEBUG ) { "TeamCity properties: $teamcityProperties" }
+        log( LogLevel.DEBUG ) { "TeamCity URL       : [$teamCityUrl]"      }
+        log( LogLevel.DEBUG ) { "TeamCity build URL : [$teamCityBuildUrl]" }
     }
 
 
