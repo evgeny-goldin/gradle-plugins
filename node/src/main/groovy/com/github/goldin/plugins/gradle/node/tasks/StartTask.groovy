@@ -122,7 +122,7 @@ class StartTask extends NodeBaseTask
         |date                               >> "$startupLog.canonicalPath"
         |echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ >> "$startupLog.canonicalPath"
         |su - $currentUser -c '"${ scripts.join( '" && "' )}"' >> "$startupLog.canonicalPath" 2>&1
-        """.stripMargin().toString())
+        |""".stripMargin().toString())
 
         exec( 'chmod', [ '+x', startupScript.canonicalPath ] )
         log { "file:${startupScript.canonicalPath} is created" }
