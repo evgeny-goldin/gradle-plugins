@@ -28,8 +28,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Override
     void verifyUpdateExtension ( String description )
     {
-        assert ( ext.resourcesList || ext.resourcesFile ), "'resourcesList' or 'resourcesFile' should be defined in $description"
-        assert ( ! ext.resourcesFile ) || ( ext.resourcesFile.file ), "File [${ ext.resourcesFile }] is not available"
+        assert ext.resources,           "'resources' should be defined in $description"
         assert ext.headers     != null, "'headers' should not be null in $description"
         assert ext.connectTimeout > -1, "'connectTimeout' should not be negative in $description"
         assert ext.readTimeout    > -1, "'readTimeout' should not be negative in $description"
@@ -39,14 +38,16 @@ class MonitorTask extends BaseTask<MonitorExtension>
 
 
     @SuppressWarnings([ 'GroovyConditionalWithIdenticalBranches', 'GroovyAccessibility' ])
-    @Requires({ ext.resourcesList || ext.resourcesFile?.file })
     @Override
     void taskAction()
     {
         final isPlot        = ( ext.plotBuilds > 0 )
         final isParallel    = ext.runInParallel
-        final resourceLines = (( ext.resourcesList ?: [] ) + ( ext.resourcesFile?.readLines() ?: [] ))*.trim().grep().findAll { ! it.startsWith( '#' ) }
-        assert resourceLines, 'No resources found to monitor'
+        final resourceLines =  (( ext.resources instanceof List ) ? ( List<String> ) ext.resources :
+                                ( ext.resources instanceof File ) ? (( File ) ext.resources ).readLines()  :
+                                                                    [] )*.trim().grep().findAll { ! it.startsWith( '#' ) }
+
+        assert resourceLines, 'No \'resources\' found to monitor, please provide a List<String> or a File'
         assert (( ! isPlot ) || ( resourceLines.size() <= ArrayList.MAX_ARRAY_SIZE )), 'Wow, too many resources to monitor'
 
         final failures      = isParallel ? new ConcurrentLinkedQueue<String>() : []

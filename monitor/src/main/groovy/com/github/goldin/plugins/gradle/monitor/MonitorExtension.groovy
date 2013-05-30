@@ -4,8 +4,7 @@ class MonitorExtension
 {
     String              user
     String              password
-    File                resourcesFile
-    List<String>        resourcesList
+    Object              resources
     String              matchersDelimiter = '*'
     Map<String, String> headers           = [:]
     int                 connectTimeout    = 30000

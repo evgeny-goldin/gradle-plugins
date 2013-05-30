@@ -102,8 +102,7 @@ class StartTask extends NodeBaseTask
         final scripts       = [ scriptFileForTask( SETUP_TASK ).canonicalPath,
                                 (( ext.before || ext.beforeStart ) ? scriptFileForTask( this.name, true ).canonicalPath : '' ),
                                 scriptFileForTask().canonicalPath,
-                                ext.checkAfterStart ? scriptFileForTask( CHECK_STARTED_TASK ).canonicalPath : '',
-                                ext.listAfterStart  ? scriptFileForTask( LIST_TASK ).canonicalPath          : '' ].grep()
+                                ext.listAfterStart  ? scriptFileForTask( LIST_TASK ).canonicalPath : '' ].grep()
 
         write( startupScript,
         """#!${ ext.shell }
