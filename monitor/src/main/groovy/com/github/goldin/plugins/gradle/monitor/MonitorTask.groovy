@@ -236,7 +236,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         [   // Map => Json
             datasets  : objectToJson( plotDataMap, ext.plotJsonFile ),
             // Java list => JavaScript array, element at index zero is an empty String
-            urlsArray : "[\"\", \"${ urlsArray.collect{ ( it?.size() > 40 ) ? it[ 0 .. 39 ] + '..' : it }.join( '", "' ) }\"]"
+            urlsArray : "[\"\", \"${ urlsArray.join( '","' ) }\"]"
         ]))
 
         println( "file:${ plotFile.canonicalPath } created" )

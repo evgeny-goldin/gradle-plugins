@@ -57,7 +57,7 @@ Licensed under the MIT license.
                 $.each( urlsArray, function( index, url ) {
                     if ( index > 0 )
                     {
-                        urlLinks.append( '<span id="url-' + index + '" class="url-text">[' + index + '] - <a href="' + url + '">' + url + '</a></span>' )
+                        urlLinks.append( '<span id="url-' + index + '" class="url-text">[' + index + '] - <a href="' + url + '">' + url + '</a></span></br>' )
                     }
                 });
 
@@ -68,6 +68,20 @@ Licensed under the MIT license.
                         "<br/><input type='checkbox' name='" + key + "' checked='checked' id='id" + key + "'></input>" +
                         "<a class='url-text' href='" + datasets[ key ][ 'url' ] + "'>" + datasets[ key ][ 'label' ] + "</a>" );
                 });
+
+                var lastHighlightedUrl = -1
+
+                function deHighlightUrl()
+                {
+                    if ( lastHighlightedUrl > 0 ){ $( 'span#url-' + lastHighlightedUrl ).css({ 'font-weight': 'normal', 'background-color': 'white' }) }
+                }
+
+                function highlightUrl( urlId )
+                {
+                    deHighlightUrl()
+                    $( 'span#url-' + urlId ).css({ 'font-weight': 'bold', 'background-color': '#E6E6E6' })
+                    lastHighlightedUrl = urlId
+                }
 
                 function plot() {
 
@@ -80,15 +94,22 @@ Licensed under the MIT license.
 
           			if ( data.length < 1 ){ return }
 
-                      $.plot("#placeholder", data, {
-                          grid        : { hoverable: true },
-                          tooltip     : true,
-                          tooltipOpts : { content : function( x, y ){ return "URL [" + x + "] (" + urlsArray[ x ] + ") - " + y + " ms (build [%s])" }},
-                          points      : { show: true },
-                          lines       : { show: true },
-                          yaxis       : { min: 0 },
-                          xaxis       : { min: 1, tickDecimals: 0 }
-                      });
+                    var p = $.plot("#placeholder", data, {
+                      grid        : { hoverable: true },
+                      tooltip     : true,
+                      tooltipOpts : { content : function( x, y )
+                                      {
+                                          highlightUrl( x );
+                                          var url = urlsArray[ x ]
+                                          return "URL [" + x + "] (" + ( url.length > 40 ? url.substr( 0, 40 ) + '..' : url ) + ") - " + y + " ms (build [%s])" }
+                                      },
+                      points      : { show: true },
+                      lines       : { show: true },
+                      yaxis       : { min: 0 },
+                      xaxis       : { min: 1, tickDecimals: 0 }
+                    });
+
+                    $( p.getPlaceholder()).bind( "plothover", function (event, pos, item) { if ( ! item ) {  deHighlightUrl() }})
           		}
 
                 choiceContainer.find( "input" ).click( plot );
@@ -97,7 +118,6 @@ Licensed under the MIT license.
 
                 $("#footer").prepend( "<a href='http://www.flotcharts.org/'>Flot v" + $.plot.version + "<a/> &ndash; " );
             });
-
 	</script>
 </head>
 <body>
