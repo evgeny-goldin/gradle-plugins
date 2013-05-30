@@ -81,7 +81,9 @@ class NodeExtension
     boolean       redisStartInProduction  = false // Whether Redis should be started when NODE_ENV=production
     boolean       redisStopInProduction   = false // Whether Redis should be stopped when NODE_ENV=production
     int           redisWait               = 5     // Seconds to wait after Redis has started or stopped and checking it
-    List<String>  redisListeners          = [ 'before' ] // List of listeners for Redis to start. Possible options are: 'before', 'beforeStart', 'beforeTest'
+    List<String>  redisListeners          = [ 'before', 'after' ] // List of listeners for Redis to start or stop.
+                                                                  // Possible options are: 'before', 'beforeStart', 'beforeTest',
+                                                                  //                       'after',  'afterStop',   'afterTest'
 
     int           mongoPort               = -1    // Local MongoDB instance port number to start and stop
     String        mongoPortConfigKey              // Config key holding MongoDB port number to start and stop
@@ -91,7 +93,9 @@ class NodeExtension
     boolean       mongoStartInProduction  = false // Whether MongoDB should be started when NODE_ENV=production
     boolean       mongoStopInProduction   = false // Whether MongoDB should be stopped when NODE_ENV=production
     int           mongoWait               = 5     // Seconds to wait after MongoDB has started or stopped and checking it
-    List<String>  mongoListeners          = [ 'before' ] // List of listeners for Mongo to start. Possible options are: 'before', 'beforeStart', 'beforeTest'
+    List<String>  mongoListeners          = [ 'before', 'after' ] // List of listeners for Mongo to start or stop.
+                                                                  // Possible options are: 'before', 'beforeStart', 'beforeTest',
+                                                                  //                       'after',  'afterStop',   'afterTest'
 
 
     List <Map<String, ?>> configs            = []     // List of config maps to update project files with. Every map is:

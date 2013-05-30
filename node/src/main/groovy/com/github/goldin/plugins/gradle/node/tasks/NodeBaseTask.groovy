@@ -54,6 +54,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.configsNewKeys,      "'configsNewKeys' should be defined in $description"
         assert ext.xUnitReportFile,     "'xUnitReportFile' should be defined in $description"
         assert ext.checks,              "'checks' should be defined in $description"
+        assert ext.redisListeners,      "'redisListeners' should be defined in $description"
+        assert ext.mongoListeners,      "'mongoListeners' should be defined in $description"
 
         if ( ! ext.updated )
         {

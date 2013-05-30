@@ -89,15 +89,14 @@ class DBHelper extends BaseHelper<NodeExtension>
 
 
     @SuppressWarnings([ 'GroovyMapGetCanBeKeyedAccess' ])
-    private void addListeners( List<String> beforeListeners, String beforeScript, String afterScript )
+    @Requires({ listeners && ( beforeScript != null ) && ( afterScript != null ) })
+    private void addListeners( List<String> listeners, String beforeScript, String afterScript )
     {
-        for ( beforeListener in ( beforeListeners ?: [ 'before' ] ))
+        for ( listener in listeners )
         {
-            assert beforeListener in [ 'before', 'beforeStart', 'beforeTest' ]
-
-            final afterListener   = [ before : 'after', beforeStart : 'afterStop', beforeTest : 'afterTest' ].get( beforeListener )
-            ext."$beforeListener" = ( beforeScript ? beforeScript.readLines() : [] ) + ( ext."$beforeListener" ?: [] )
-            ext."$afterListener"  = ( afterScript  ? afterScript.readLines()  : [] ) + ( ext."$afterListener"  ?: [] )
+            assert listener in [ 'before', 'after', 'beforeStart', 'afterStop', 'beforeTest', 'afterTest' ]
+            final scriptLines = ( listener.startsWith( 'before' ) ? beforeScript : afterScript ).readLines()
+            ext."$listener"   = ( scriptLines ?: [] ) + ( ext."$listener" ?: [] )
         }
     }
 }
