@@ -38,7 +38,7 @@ class StartTask extends NodeBaseTask
         if ( ext.checkAfterStart ) { runTask( CHECK_STARTED_TASK )}
         if ( ext.listAfterStart  ) { runTask( LIST_TASK ) }
         if ( ext.printUrl        ) { printApplicationUrls() }
-        if ( ext.startupScript   ) { addStartupScript() }
+        if ( ext.startupScript   ) { createStartupScript() }
     }
 
 
@@ -94,14 +94,16 @@ class StartTask extends NodeBaseTask
     }
 
 
-    private void addStartupScript()
+    private void createStartupScript ()
     {
         final startupScript = scriptFileForTask( "startup-${ projectName }-${ ext.portNumber }" )
         final currentUser   = exec( 'whoami' )
         File  startupLog    = project.file( 'startup.log' )
         final scripts       = [ scriptFileForTask( SETUP_TASK ).canonicalPath,
                                 (( ext.before || ext.beforeStart ) ? scriptFileForTask( this.name, true ).canonicalPath : '' ),
-                                scriptFileForTask().canonicalPath ].grep()
+                                scriptFileForTask().canonicalPath,
+                                ext.checkAfterStart ? scriptFileForTask( CHECK_STARTED_TASK ).canonicalPath : '',
+                                ext.listAfterStart  ? scriptFileForTask( LIST_TASK ).canonicalPath          : '' ].grep()
 
         write( startupScript,
         """#!${ ext.shell }
@@ -120,7 +122,7 @@ class StartTask extends NodeBaseTask
         |date                               >> "$startupLog.canonicalPath"
         |echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ >> "$startupLog.canonicalPath"
         |su - $currentUser -c '"${ scripts.join( '" && "' )}"' >> "$startupLog.canonicalPath" 2>&1
-        """.stripMargin().toString().trim())
+        |""".stripMargin().toString())
 
         exec( 'chmod', [ '+x', startupScript.canonicalPath ] )
         log { "file:${startupScript.canonicalPath} is created" }
