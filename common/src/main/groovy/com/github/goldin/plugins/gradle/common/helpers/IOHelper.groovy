@@ -386,6 +386,7 @@ class IOHelper extends BaseHelper<Object>
     {
         replacements.inject( getResource( resourcePath ).getText( charset )){
             String text, String pattern, String replacement ->
+            assert ( ! pattern.contains( '@{' ))
             text.replace( "@{$pattern}", replacement )
         }
     }

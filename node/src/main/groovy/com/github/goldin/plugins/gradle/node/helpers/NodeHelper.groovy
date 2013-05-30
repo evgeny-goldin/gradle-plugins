@@ -79,66 +79,6 @@ class NodeHelper extends BaseHelper<NodeExtension>
     }
 
 
-    /**
-     * Adds Redis before/after steps, if needed.
-     */
-    void addRedis()
-    {
-        final addRedis  = (( ext.redisPort > 0 ) || ext.redisPortConfigKey || ext.redisCommandLine )
-        if (  addRedis )
-        {
-            final redisPort    = ( ext.redisPort > 0      ) ? ext.redisPort.toString() :
-                                 ( ext.redisPortConfigKey ) ? '${ config.' + ext.redisPortConfigKey + ' }' :
-                                                              '6379'
-            ext.env.REDIS_PORT = redisPort.startsWith( '$' ) ? '' : redisPort
-            final redisRunning = """ "`redis-cli -p $redisPort ping 2>&1`" = "PONG"  """.trim()
-            final isStartRedis = (( ext.redisStartInProduction ) || ( ext.NODE_ENV != 'production' ))
-            final isStopRedis  = (( ext.redisStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
-            final getScript    = { String scriptName -> resourceText( scriptName,
-            [
-                redisPort        : redisPort,
-                redisRunning     : redisRunning,
-                redisCommandLine : ext.redisCommandLine ?: '',
-                sleep            : ext.redisWait as String
-            ])}
-            ext.before = ( isStartRedis ? getScript( 'redis-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
-            ext.after  = ( isStopRedis  ? getScript( 'redis-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
-        }
-    }
-
-
-    /**
-     * Adds MongoDB before/after steps, if needed.
-     */
-    void addMongo()
-    {
-        final addMongo = (( ext.mongoPort > 0 ) || ext.mongoPortConfigKey || ext.mongoCommandLine || ext.mongoLogpath || ext.mongoDBPath )
-        if (  addMongo )
-        {
-            final mongoPort    = ( ext.mongoPort > 0      ) ? ext.mongoPort.toString() :
-                                 ( ext.mongoPortConfigKey ) ? '${ config.' + ext.mongoPortConfigKey + ' }' :
-                                                              '27017'
-            ext.env.MONGO_PORT = mongoPort.startsWith( '$' ) ? '' : mongoPort
-            final mongoEval    = """ "`mongo --eval ${Q}db${Q} --port $mongoPort 2>&1 | tail -1`" """.trim()
-            final mongoRunning = """ ! $mongoEval =~ (command not found|connect failed|couldn\\'t connect to server) """.trim()
-            final isStartMongo = (( ext.mongoStartInProduction ) || ( ext.NODE_ENV != 'production' ))
-            final isStopMongo  = (( ext.mongoStopInProduction  ) || ( ext.NODE_ENV != 'production' ))
-            final getScript    = { String scriptName -> resourceText( scriptName,
-            [
-                mongoPort        : mongoPort,
-                mongoRunning     : mongoRunning,
-                mongoDBPath      : fullPath( ext.mongoDBPath,  '/data/db'   ),
-                mongoLogpath     : fullPath( ext.mongoLogpath, 'mongod.log' ),
-                mongoCommandLine : ext.mongoCommandLine ?: '',
-                sleep            : ext.mongoWait as String
-            ])}
-
-            ext.before = ( isStartMongo ? getScript( 'mongo-start.sh' ).readLines() : [] ) + ( ext.before ?: [] )
-            ext.after  = ( isStopMongo  ? getScript( 'mongo-stop.sh'  ).readLines() : [] ) + ( ext.after  ?: [] )
-        }
-    }
-
-
     @Requires({ scriptName })
     @Ensures ({ result })
     File scriptFileForTask ( String scriptName = this.name, boolean isBefore = false, boolean isAfter = false )
@@ -327,15 +267,6 @@ class NodeHelper extends BaseHelper<NodeExtension>
         |
         """.stripMargin().toString().trim()
     }
-
-
-    @Requires({ resourcePath && ( replacements != null ) })
-    @Ensures ({ result != null })
-    String resourceText( String resourcePath, Map<String, String> replacements = [:] )
-    {
-        getResourceText( resourcePath, replacements + [ shell : ext.shell, Q : Q ])
-    }
-
 
 
     @Requires({ lists  != null })

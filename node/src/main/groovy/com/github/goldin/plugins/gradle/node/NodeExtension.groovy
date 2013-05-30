@@ -1,7 +1,7 @@
 package com.github.goldin.plugins.gradle.node
 
 
-@SuppressWarnings([ 'GroovyInstanceVariableNamingConvention', 'PropertyName' ])
+@SuppressWarnings([ 'GroovyInstanceVariableNamingConvention', 'PropertyName', 'DuplicateListLiteral' ])
 class NodeExtension
 {
     boolean      updated                  = false // Internal property, set to 'true' after extension is updated
@@ -81,6 +81,7 @@ class NodeExtension
     boolean       redisStartInProduction  = false // Whether Redis should be started when NODE_ENV=production
     boolean       redisStopInProduction   = false // Whether Redis should be stopped when NODE_ENV=production
     int           redisWait               = 5     // Seconds to wait after Redis has started or stopped and checking it
+    List<String>  redisListeners          = [ 'before' ] // List of listeners for Redis to start. Possible options are: 'before', 'beforeStart', 'beforeTest'
 
     int           mongoPort               = -1    // Local MongoDB instance port number to start and stop
     String        mongoPortConfigKey              // Config key holding MongoDB port number to start and stop
@@ -90,6 +91,7 @@ class NodeExtension
     boolean       mongoStartInProduction  = false // Whether MongoDB should be started when NODE_ENV=production
     boolean       mongoStopInProduction   = false // Whether MongoDB should be stopped when NODE_ENV=production
     int           mongoWait               = 5     // Seconds to wait after MongoDB has started or stopped and checking it
+    List<String>  mongoListeners          = [ 'before' ] // List of listeners for Mongo to start. Possible options are: 'before', 'beforeStart', 'beforeTest'
 
 
     List <Map<String, ?>> configs            = []     // List of config maps to update project files with. Every map is:

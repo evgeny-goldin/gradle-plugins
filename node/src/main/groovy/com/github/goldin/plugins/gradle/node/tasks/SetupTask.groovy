@@ -160,15 +160,16 @@ class SetupTask extends NodeBaseTask
 
     private void runSetupScript()
     {
-        final setupScript = resourceText( 'setup.sh', [
+        final setupScript = getResourceText( 'setup.sh', [
             nvmRepo            : NVM_GIT_REPO,
             nvmCommit          : NVM_COMMIT,
             LOG_DELIMITER      : LOG_DELIMITER,
             SCRIPT_LOCATION    : SCRIPT_LOCATION,
             REMOVE_COLOR_CODES : REMOVE_COLOR_CODES,
             nodeVersion        : ext.nodeVersion,
-            forever            : FOREVER_EXECUTABLE
-        ])
+            forever            : FOREVER_EXECUTABLE,
+            shell              : ext.shell,
+            Q                  : Q ])
 
         shellExec( setupScript, scriptFileForTask(), false, false )
     }

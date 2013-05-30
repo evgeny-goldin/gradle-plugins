@@ -4,6 +4,7 @@ import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.node.NodeExtension
 import com.github.goldin.plugins.gradle.node.helpers.ConfigHelper
+import com.github.goldin.plugins.gradle.node.helpers.DBHelper
 import com.github.goldin.plugins.gradle.node.helpers.NodeHelper
 import com.github.goldin.plugins.gradle.node.helpers.NpmCacheHelper
 import org.gcontracts.annotations.Requires
@@ -18,6 +19,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     Class extensionType (){ NodeExtension }
 
     @Delegate NodeHelper     nodeHelper
+    @Delegate DBHelper       dbHelper
     @Delegate NpmCacheHelper cacheHelper
     @Delegate ConfigHelper   configHelper
 
@@ -34,6 +36,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ( ! projectDir.canonicalPath.find( /\s/ )), "Project directory path [${ projectDir.canonicalPath }] contains spaces - not supported!"
 
         nodeHelper   = new NodeHelper    ( this.project, this, this.ext )
+        dbHelper     = new DBHelper      ( this.project, this, this.ext )
         cacheHelper  = new NpmCacheHelper( this.project, this, this.ext )
         configHelper = new ConfigHelper  ( this.project, this, this.ext )
 

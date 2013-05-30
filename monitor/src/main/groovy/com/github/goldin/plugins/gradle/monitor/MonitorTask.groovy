@@ -235,9 +235,13 @@ class MonitorTask extends BaseTask<MonitorExtension>
         }
 
         write( plotFile, getResourceText( 'plot-template.html',
-                                          [ 'datasets'   : objectToJson( plotDataMap, ext.plotJsonFile ),
-                                            'urlsArray'  : "[\"\", \"${ urlsArray.collect{ ( it?.size() > 40 ) ? it[ 0 .. 39 ] + '..' : it }.join( '", "' ) }\"]", // Java list => JavaScript array
-                                            'urlsLinks'  : urlsLinks.toString()]))
+        [   // Map => Json
+            datasets  : objectToJson( plotDataMap, ext.plotJsonFile ),
+            // Java list => JavaScript array
+            urlsArray : "[\"\", \"${ urlsArray.collect{ ( it?.size() > 40 ) ? it[ 0 .. 39 ] + '..' : it }.join( '", "' ) }\"]",
+            // Markup text
+            urlsLinks : urlsLinks.toString()
+        ]))
 
         println( "file:${ plotFile.canonicalPath } created" )
     }
