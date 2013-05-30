@@ -10,6 +10,7 @@
 *{vertical-align:top;margin:0;padding:0;}body{font:18px/1.5em proxima-nova, Helvetica, Arial, sans-serif;}a{color:#069;}a:hover{color:#28b;}h2{margin-top:15px;font:normal 32px omnes-pro, Helvetica, Arial, sans-serif;}h3{margin-left:30px;font:normal 26px omnes-pro, Helvetica, Arial, sans-serif;color:#666;}p{margin-top:10px;}button{font-size:18px;padding:1px 7px;}input{font-size:18px;}input[type=checkbox]{margin:7px;}#header{position:relative;width:900px;margin:auto;}#header h2{margin-left:10px;vertical-align:middle;font-size:42px;font-weight:700;text-decoration:none;color:#000;}#content{width:880px;margin:0 auto;padding:10px;}#footer{margin-top:25px;margin-bottom:10px;text-align:center;font-size:12px;color:#999;}.demo-container{box-sizing:border-box;width:850px;height:450px;border:1px solid #ddd;background:0;box-shadow:0 3px 10px rgba(0,0,0,0.15);-o-box-shadow:0 3px 10px rgba(0,0,0,0.1);-ms-box-shadow:0 3px 10px rgba(0,0,0,0.1);-moz-box-shadow:0 3px 10px rgba(0,0,0,0.1);-webkit-box-shadow:0 3px 10px rgba(0,0,0,0.1);margin:15px auto 30px;padding:20px 15px 15px;}.demo-placeholder{width:100%;height:100%;font-size:14px;line-height:1.2em;}.legend table{border-spacing:5px;}
 /* ------------------------------------------------------------------------------------- */
 .url-text, .legendLabel { font-size: 70%; font-family: Candara,Georgia,serif }
+div#content{ margin: 0; padding-left: 15% }
 /* ------------------------------------------------------------------------------------- */
 	</style>
 	<script type="text/javascript">
@@ -46,10 +47,10 @@ Licensed under the MIT license.
 	</script>
 	<script type="text/javascript">
 
-            $( function() {
+        var datasets  = @{datasets};
+        var urlsArray = @{urlsArray};
 
-                var datasets  = @{datasets};
-                var urlsArray = @{urlsArray};
+            $( function() {
 
                 var j = 0;
                 $.each( datasets,  function( key,   val ) { val.color = j; ++j; });
@@ -71,15 +72,15 @@ Licensed under the MIT license.
 
                 var lastHighlightedUrl = -1
 
-                function deHighlightUrl()
+                function unhighlightUrl()
                 {
-                    if ( lastHighlightedUrl > 0 ){ $( 'span#url-' + lastHighlightedUrl ).css({ 'font-weight': 'normal', 'background-color': 'white' }) }
+                    if ( lastHighlightedUrl > 0 ){ $( 'span#url-' + lastHighlightedUrl ).css({ 'background-color': 'white' }) }
                 }
 
                 function highlightUrl( urlId )
                 {
-                    deHighlightUrl()
-                    $( 'span#url-' + urlId ).css({ 'font-weight': 'bold', 'background-color': '#E6E6E6' })
+                    unhighlightUrl()
+                    $( 'span#url-' + urlId ).css({ 'background-color': '#E6E6E6' })
                     lastHighlightedUrl = urlId
                 }
 
@@ -109,7 +110,18 @@ Licensed under the MIT license.
                       xaxis       : { min: 1, tickDecimals: 0 }
                     });
 
-                    $( p.getPlaceholder()).bind( "plothover", function (event, pos, item) { if ( ! item ) {  deHighlightUrl() }})
+                    $( p.getPlaceholder()).bind( 'plothover', function ( event, pos, item ) { if ( ! item ) { unhighlightUrl() }})
+
+                    $( 'span.url-text' ).hover(
+                        function(){
+                            var urlId = this.id.substr( 4 ) // url-N
+                            highlightUrl( urlId )
+                            var j = 0;
+                            $.each( datasets, function(){ p.highlight( j++, urlId - 1 )});
+                        },
+                        function(){ unhighlightUrl(); p.unhighlight() }
+                    )
+
           		}
 
                 choiceContainer.find( "input" ).click( plot );
@@ -124,12 +136,12 @@ Licensed under the MIT license.
 	<div id="header">
 		<h2>Monitoring Plot</h2>
 	</div>
+    <div style="float:right" id="url-links"></div>
 	<div id="content">
 		<div class="demo-container">
 			<div id="placeholder" class="demo-placeholder" style="float:left; width:675px;"></div>
 			<p id="choices" style="float:right; width:135px;"></p>
 		</div>
-		<div id="url-links"></div>
 	</div>
 	<div id="footer">
 		Copyright &copy; 2007 - 2013 IOLA and Ole Laursen
