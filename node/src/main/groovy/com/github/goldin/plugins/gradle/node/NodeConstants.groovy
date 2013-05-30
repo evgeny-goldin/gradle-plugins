@@ -1,8 +1,4 @@
 package com.github.goldin.plugins.gradle.node
-
-import java.util.regex.Pattern
-
-
 /**
  * Various constants
  */
@@ -43,8 +39,4 @@ class NodeConstants
     final static String MODULES_BIN_DIR        = "$NODE_MODULES_DIR/.bin"
     final static String COFFEE_EXECUTABLE      = "$MODULES_BIN_DIR/coffee"
     final static String FOREVER_EXECUTABLE     = "$MODULES_BIN_DIR/forever"
-
-    final static Pattern AttributePattern      = ~/(\w+)='(.*?[^|])'/
-    final static Pattern EmptyAttributePattern = ~/(\w+)='()'/
-    final static Pattern NumberPattern         = ~/^\d+$/
 }
