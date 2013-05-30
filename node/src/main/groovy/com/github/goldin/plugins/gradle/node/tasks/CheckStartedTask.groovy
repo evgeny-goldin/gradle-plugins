@@ -41,8 +41,7 @@ class CheckStartedTask extends NodeBaseTask
             else
             {
                 final displayLogStep = 'display application log'
-                final errorDetails   = "$logMessage${ responseContent ? ', content [' + responseContent + ']' : '' } " +
-                                       "while we expected status code [$checkStatusCode]" +
+                final errorDetails   = "$logMessage, content [$responseContent] while we expected status code [$checkStatusCode]" +
                                        ( checkContent ? ", content contains [$checkContent]" : '' ) +
                                        ". See '$displayLogStep'."
                 final errorMessage   = """
