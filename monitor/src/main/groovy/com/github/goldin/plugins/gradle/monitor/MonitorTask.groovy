@@ -219,12 +219,10 @@ class MonitorTask extends BaseTask<MonitorExtension>
         final plotFile     = ext.plotFile           ?: new File( project.buildDir , 'reports/plot.html' )
         final plotDataMap  = ext.plotJsonFile.file  ?  jsonToMap( ext.plotJsonFile ) : [:]
         final results      = []
-        final urlsLinks    = new StringBuffer()
 
         assert ( ! plotDataMap.containsKey( buildLabel )), "Build [$buildLabel] - plot data map $plotDataMap already contains key [$buildLabel]"
 
         resultsArray.eachWithIndex { long result, int index -> if ( urlsArray[ index ] ) { results << [ index + 1, result ] }}
-        urlsArray.eachWithIndex    { String url,  int index -> if ( url ) { urlsLinks.append( "<span class='url-text'>[${ index + 1 }] - <a href='$url'>$url</a></span><br>\n" ) }}
 
         plotDataMap[ buildLabel ] = [ label: buildLabel, url: buildUrl, data: results ]
 
@@ -237,10 +235,8 @@ class MonitorTask extends BaseTask<MonitorExtension>
         write( plotFile, getResourceText( 'plot-template.html',
         [   // Map => Json
             datasets  : objectToJson( plotDataMap, ext.plotJsonFile ),
-            // Java list => JavaScript array
-            urlsArray : "[\"\", \"${ urlsArray.collect{ ( it?.size() > 40 ) ? it[ 0 .. 39 ] + '..' : it }.join( '", "' ) }\"]",
-            // Markup text
-            urlsLinks : urlsLinks.toString()
+            // Java list => JavaScript array, element at index zero is an empty String
+            urlsArray : "[\"\", \"${ urlsArray.collect{ ( it?.size() > 40 ) ? it[ 0 .. 39 ] + '..' : it }.join( '", "' ) }\"]"
         ]))
 
         println( "file:${ plotFile.canonicalPath } created" )
