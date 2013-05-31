@@ -214,17 +214,28 @@ class MonitorTask extends BaseTask<MonitorExtension>
     @Requires({ ( ext.plotJsonFile ) && ( ext.plotBuilds > 0 ) && resultsArray && urlsArray && ( resultsArray.size() == urlsArray.size()) })
     private void createPlot ( long[] resultsArray, String[] urlsArray )
     {
-        final buildLabel   = systemEnv.BUILD_NUMBER ?: new SimpleDateFormat( 'dd-MM.HH-mm-ss' ).format( new Date( startTime ))
-        final buildUrl     = systemEnv.BUILD_URL    ?: teamCityBuildUrl ?: ''
-        final plotFile     = ext.plotFile           ?: new File( project.buildDir , 'reports/plot.html' )
-        final plotDataMap  = ext.plotJsonFile.file  ?  jsonToMap( ext.plotJsonFile ) : [:]
-        final results      = []
+        final buildLabel  = systemEnv.BUILD_NUMBER ?: new SimpleDateFormat( 'dd-MM.HH-mm-ss' ).format( new Date( startTime ))
+        final buildUrl    = systemEnv.BUILD_URL    ?: teamCityBuildUrl ?: ''
+        final plotFile    = ext.plotFile           ?: new File( project.buildDir , 'reports/plot.html' )
+        final plotDataMap = ext.plotJsonFile.file  ?  jsonToMap( ext.plotJsonFile ) : [:]
+        final results     = []
+        final urls        = []
+        final dataPoints  = []
+
+        urlsArray.eachWithIndex {
+            String url, int index ->
+            // Getting rid of null entries caused by non-HTTP resources (like StatusCake) in resources being monitored.
+            if ( url ) {
+                results << resultsArray[ index ]
+                urls    << url
+            }
+        }
 
         assert ( ! plotDataMap.containsKey( buildLabel )), "Build [$buildLabel] - plot data map $plotDataMap already contains key [$buildLabel]"
 
-        resultsArray.eachWithIndex { long result, int index -> if ( urlsArray[ index ] ) { results << [ index + 1, result ] }}
+        results.eachWithIndex { long result, int index -> dataPoints << [ index + 1, result ] }
 
-        plotDataMap[ buildLabel ] = [ label: buildLabel, url: buildUrl, data: results ]
+        plotDataMap[ buildLabel ] = [ label: buildLabel, url: buildUrl, data: dataPoints ]
 
         if ( plotDataMap.size() > ext.plotBuilds )
         {
@@ -236,7 +247,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         [   // Map => Json
             datasets  : objectToJson( plotDataMap, ext.plotJsonFile ),
             // Java list => JavaScript array, element at index zero is an empty String
-            urlsArray : "[\"\", \"${ urlsArray.join( '","' ) }\"]"
+            urlsArray : "[\"\", \"${ urls.join( '","' ) }\"]"
         ]))
 
         println( "file:${ plotFile.canonicalPath } created" )

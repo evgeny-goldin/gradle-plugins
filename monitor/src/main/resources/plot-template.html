@@ -51,86 +51,88 @@ Licensed under the MIT license.
         var urlsArray = @{urlsArray};
         var p;
 
-            $( function() {
+        $( function() {
 
-                var j = 0;
-                $.each( datasets,  function( key,   val ) { val.color = j; ++j; });
-                var urlLinks = $( 'div#url-links' )
-                $.each( urlsArray, function( index, url ) {
-                    if ( index > 0 )
-                    {
-                        urlLinks.append( '<span id="url-' + index + '" class="url-text">[' + index + '] - <a href="' + url + '">' + url + '</a></span></br>' )
-                    }
-                });
+            var j = 0;
+            $.each( datasets, function( key, val ) { val.color = j++ });
 
-                var choiceContainer = $("#choices");
-                $.each( datasets, function( key, val )
+            var urlLinks = $( 'div#url-links' );
+            $.each( urlsArray, function( index, url ){
+                if ( index > 0 )
                 {
-                    choiceContainer.prepend(
-                        "<br/><input type='checkbox' name='" + key + "' checked='checked' id='id" + key + "'></input>" +
-                        "<a class='url-text' href='" + datasets[ key ][ 'url' ] + "'>" + datasets[ key ][ 'label' ] + "</a>" );
-                });
-
-                var lastHighlightedUrl = -1
-
-                function unhighlightUrl()
-                {
-                    if ( lastHighlightedUrl > 0 ){ $( 'span#url-' + lastHighlightedUrl ).css({ 'background-color': 'white' }) }
+                    urlLinks.append( '<span id="url-' + index + '" class="url-text">[' + index + '] - <a href="' + url + '">' + url + '</a></span></br>' )
                 }
-
-                function highlightUrl( urlId )
-                {
-                    unhighlightUrl()
-                    $( 'span#url-' + urlId ).css({ 'background-color': '#E6E6E6' })
-                    lastHighlightedUrl = urlId
-                }
-
-                function plot() {
-
-          			var data = [];
-
-          			choiceContainer.find("input:checked").each(function () {
-          				var key = $(this).attr("name");
-          				if (key && datasets[key]) { data.push(datasets[key]) }
-          			});
-
-          			if ( data.length < 1 ){ return }
-
-                    p = $.plot("#placeholder", data, {
-                      grid        : { hoverable: true },
-                      tooltip     : true,
-                      tooltipOpts : { content : function( x, y )
-                                      {
-                                          highlightUrl( x );
-                                          var url = urlsArray[ x ]
-                                          return "URL [" + x + "] (" + ( url.length > 40 ? url.substr( 0, 40 ) + '..' : url ) + ") - " + y + " ms (build [%s])" }
-                                      },
-                      points      : { show: true },
-                      lines       : { show: true },
-                      yaxis       : { min: 0 },
-                      xaxis       : { min: 1, tickDecimals: 0 }
-                    });
-
-                    $( p.getPlaceholder()).bind( 'plothover', function ( event, pos, item ) { if ( ! item ) { unhighlightUrl() }})
-
-                    $( 'span.url-text' ).hover(
-                        function(){
-                            var urlId = this.id.substr( 4 ) // url-N
-                            highlightUrl( urlId )
-                            var j = 0;
-                            $.each( datasets, function(){ p.highlight( j++, urlId - 1 )});
-                        },
-                        function(){ unhighlightUrl(); p.unhighlight() }
-                    )
-
-          		}
-
-                choiceContainer.find( "input" ).click( plot );
-
-                plot();
-
-                $("#footer").prepend( "<a href='http://www.flotcharts.org/'>Flot v" + $.plot.version + "<a/> &ndash; " );
             });
+
+            var choiceContainer = $("#choices");
+            $.each( datasets, function( key, val )
+            {
+                choiceContainer.prepend (
+                    "<br/><input type='checkbox' name='" + key + "' checked='checked' id='id" + key + "'></input>" +
+                    "<a class='url-text' href='" + datasets[ key ][ 'url' ] + "'>" + datasets[ key ][ 'label' ] + "</a>" );
+            });
+
+            var lastHighlightedUrl = -1
+
+            function unhighlightUrl()
+            {
+                if ( lastHighlightedUrl > 0 ){ $( 'span#url-' + lastHighlightedUrl ).css({ 'background-color': 'white', 'font-weight' : 'normal' }) }
+            }
+
+            function highlightUrl( urlId )
+            {
+                unhighlightUrl()
+                $( 'span#url-' + urlId ).css({ 'background-color': '#E6E6E6', 'font-weight' : 'bold' })
+                lastHighlightedUrl = urlId
+            }
+
+            function plot() {
+
+                var data = [];
+
+                choiceContainer.find( 'input:checked' ).each( function () {
+                    var key = $( this ).attr( 'name' );
+                    if ( key && datasets[ key ] ) { data.push( datasets[ key ] )}
+                });
+
+                if ( data.length < 1 ){ return }
+
+                p = $.plot( '#placeholder', data, {
+                  grid        : { hoverable: true },
+                  tooltip     : true,
+                  tooltipOpts : { content : function( x, y )
+                                  {
+                                      highlightUrl( x );
+                                      var url = urlsArray[ x ]
+                                      return "URL [" + x + "] (" + ( url.length > 40 ? url.substr( 0, 40 ) + '..' : url ) + ") - " + y + " ms (build [%s])"
+                                  }
+                                },
+                  points      : { show: true },
+                  lines       : { show: true },
+                  yaxis       : { min: 0 },
+                  xaxis       : { min: 1, tickDecimals: 0 }
+                });
+
+                $( p.getPlaceholder()).bind( 'plothover', function ( event, pos, item ) { if ( ! item ) { unhighlightUrl() }})
+
+                $( 'span.url-text' ).hover(
+                    function(){
+                        var urlId = this.id.substr( 4 ) // "url-N" => "N"
+                        highlightUrl( urlId )
+                        var j = 0;
+                        $.each( datasets, function(){ p.highlight( j++, urlId - 1 )});
+                    },
+                    function(){
+                        unhighlightUrl();
+                        p.unhighlight();
+                    }
+                )
+            }
+
+            choiceContainer.find( "input" ).click( plot );
+            plot();
+            $("#footer").prepend( "<a href='http://www.flotcharts.org/'>Flot v" + $.plot.version + "<a/> &ndash; " );
+        });
 	</script>
 </head>
 <body>
