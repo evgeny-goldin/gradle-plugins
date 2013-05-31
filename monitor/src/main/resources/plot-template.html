@@ -49,6 +49,7 @@ Licensed under the MIT license.
 
         var datasets  = @{datasets};
         var urlsArray = @{urlsArray};
+        var p;
 
             $( function() {
 
@@ -95,7 +96,7 @@ Licensed under the MIT license.
 
           			if ( data.length < 1 ){ return }
 
-                    var p = $.plot("#placeholder", data, {
+                    p = $.plot("#placeholder", data, {
                       grid        : { hoverable: true },
                       tooltip     : true,
                       tooltipOpts : { content : function( x, y )
