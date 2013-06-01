@@ -215,6 +215,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
     private void createPlot ( long[] resultsArray, String[] urlsArray )
     {
         final buildLabel  = systemEnv.BUILD_NUMBER ?: new SimpleDateFormat( 'dd-MM.HH-mm-ss' ).format( new Date( startTime ))
+        final buildId     = buildLabel.replace( '.', '-' ).replace( '#', '-' )
         final buildUrl    = systemEnv.BUILD_URL    ?: teamCityBuildUrl ?: ''
         final plotFile    = ext.plotFile           ?: new File( project.buildDir , 'reports/plot.html' )
         final plotDataMap = ext.plotJsonFile.file  ?  jsonToMap( ext.plotJsonFile ) : [:]
@@ -231,11 +232,10 @@ class MonitorTask extends BaseTask<MonitorExtension>
             }
         }
 
-        assert ( ! plotDataMap.containsKey( buildLabel )), "Build [$buildLabel] - plot data map $plotDataMap already contains key [$buildLabel]"
-
         results.eachWithIndex { long result, int index -> dataPoints << [ index + 1, result ] }
 
-        plotDataMap[ buildLabel ] = [ label: buildLabel, url: buildUrl, data: dataPoints ]
+        assert ( ! plotDataMap.containsKey( buildId )), "Build [$buildId] - plot data map $plotDataMap already contains this key"
+        plotDataMap[ buildId ] = [ id: buildId, index: plotDataMap.size(), label: buildLabel, url: buildUrl, data: dataPoints ]
 
         if ( plotDataMap.size() > ext.plotBuilds )
         {
