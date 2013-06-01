@@ -21,8 +21,8 @@ buildscript {
         maven { url 'http://dl.bintray.com/content/evgenyg/BuildTools' }
     }
     dependencies {
-        classpath 'com.github.goldin.plugins.gradle:about:0.2.8',
-                  'com.github.goldin.plugins.gradle:duplicates:0.2.8'
+        classpath 'com.github.goldin.plugins.gradle:about:0.3',
+                  'com.github.goldin.plugins.gradle:duplicates:0.3'
     }
 }
 
@@ -35,9 +35,9 @@ allprojects {
         compile     gradleApi(),
                     'org.gcontracts:gcontracts-core:1.2.12',
                     'org.codehaus.gpars:gpars:1.0.0',
-                    'com.fasterxml.jackson.core:jackson-databind:2.2.0'
+                    'com.fasterxml.jackson.core:jackson-databind:2.2.2'
         testCompile 'junit:junit:4.11'
-        testRuntime 'ch.qos.logback:logback-classic:1.0.12'
+        testRuntime 'ch.qos.logback:logback-classic:1.0.13'
     }
 }
 
