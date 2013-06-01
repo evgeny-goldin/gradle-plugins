@@ -130,7 +130,7 @@ Licensed under the MIT license.
                   tooltipOpts : { content : function( pointX, pointY )
                                   {
                                       var url = urlsArray[ pointX ];
-                                      url     = url.length > 40 ? url.substr( 0, 40 ) + '..' : url
+                                      url     = (( url.length > 40 ) ? url.substr( 0, 40 ) + '..' : url )
                                       return ( '[' + url + '] - ' + pointY + ' ms (url [' + pointX + '], build [%s])' )
                                   }
                                 },
@@ -190,7 +190,6 @@ Licensed under the MIT license.
                 $( 'span.url-text' ).hover(
                     function(){
                         var urlId          = parseInt( this.id.substr( 4 )); // "url-N" => N
-                        var seriesIndex    = 0;
                         var maxSeriesIndex = dataSize - uncheckedIndexes().length - 1;
 
                         highlightUrl( urlId );
