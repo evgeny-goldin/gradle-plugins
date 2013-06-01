@@ -159,7 +159,6 @@ Licensed under the MIT license.
                     function(){
                         var buildId     = this.id.substr( 6 ) // "build-id" => "id"
                         var buildValue  = datasets[ buildId ]
-                        var unchecked   = $( 'input' ).not( ':checked' ).size()
                         var seriesIndex = _.size( datasets ) - buildValue.index - 1 // Series (builds) are listed in reversed order, from last to first
                         var isChecked   = $( 'input#build-check-' + buildId ).is( ':checked' )
 
