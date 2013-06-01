@@ -55,22 +55,31 @@ Licensed under the MIT license.
 
         var datasets  = @{datasets};
         var urlsArray = @{urlsArray};
+        var dataSize  = _.size( datasets )
         var p;
+
+        function uncheckedIndexes()
+        {
+            var    unchecked = $( 'input' ).not( ':checked' ).get()
+            return (( unchecked.length < 1 ) ? [] : _.map( unchecked, function( o ){ return datasets [ o.name ].index } ))
+        }
 
         $( function() {
 
-            var j                = 0;
             var urlLinks         = $( 'div#url-links' );
             var choiceContainer  = $( '#choices' );
+            var buildIndex       = 0;
             var highlightedUrl   = -1;
             var highlightedBuild = '';
 
             $.each( datasets, function( buildId, buildValue )
             {
-                buildValue.color = j++
+                buildValue.index = buildIndex++
+                buildValue.color = buildValue.index
+
                 choiceContainer.prepend (
                     "<br/><input type='checkbox' name='" + buildId + "' checked='checked' id='build-check-" + buildId + "'></input>" +
-                    "<a id='build-" + buildId + "' class='url-text' href='" + datasets[ buildId ][ 'url' ] + "'>" + datasets[ buildId ][ 'label' ] + "</a>" );
+                    "<a id='build-" + buildId + "' class='url-text' href='" + buildValue[ 'url' ] + "'>" + buildValue[ 'label' ] + "</a>" );
             });
 
             $.each( urlsArray, function( index, url ){
@@ -111,10 +120,7 @@ Licensed under the MIT license.
 
                 var data = [];
 
-                choiceContainer.find( 'input:checked' ).each( function () {
-                    var key = $( this ).attr( 'name' );
-                    if ( key && datasets[ key ] ) { data.push( datasets[ key ] )}
-                });
+                choiceContainer.find( 'input:checked' ).each( function () { data.push( datasets[ $( this ).attr( 'name' ) ] )});
 
                 if ( data.length < 1 ){ return }
 
@@ -157,13 +163,20 @@ Licensed under the MIT license.
                  */
                 $( 'a.url-text' ).hover(
                     function(){
-                        var buildId     = this.id.substr( 6 ) // "build-id" => "id"
-                        var buildValue  = datasets[ buildId ]
-                        var seriesIndex = _.size( datasets ) - buildValue.index - 1 // Series (builds) are listed in reversed order, from last to first
-                        var isChecked   = $( 'input#build-check-' + buildId ).is( ':checked' )
+                        var buildId   = this.id.substr( 6 ) // "build-id" => "id"
+                        var isChecked = $( 'input#build-check-' + buildId ).is( ':checked' )
 
                         highlightBuild( buildId );
-                        if ( isChecked ){ $.each( buildValue.data, function( pointIndex, point ){ p.highlight( seriesIndex, pointIndex )})}
+
+                        if ( isChecked )
+                        {
+                            var buildValue  = datasets[ buildId ]
+                            var buildIndex  = buildValue.index
+                            var unchecked   = _.filter( uncheckedIndexes(), function( index ){ return ( index > buildIndex ) }).length
+                            var seriesIndex = dataSize - buildIndex - unchecked - 1
+
+                            $.each( buildValue.data, function( pointIndex, point ){ p.highlight( seriesIndex, pointIndex )})
+                        }
                     },
                     function(){
                         unhighlightBuild();
@@ -176,10 +189,12 @@ Licensed under the MIT license.
                  */
                 $( 'span.url-text' ).hover(
                     function(){
-                        var urlId = parseInt( this.id.substr( 4 )) // "url-N" => N
-                        var j     = 0;
-                        highlightUrl( urlId )
-                        $.each( datasets, function(){ p.highlight( j++, urlId - 1 )});
+                        var urlId          = parseInt( this.id.substr( 4 )); // "url-N" => N
+                        var seriesIndex    = 0;
+                        var maxSeriesIndex = dataSize - uncheckedIndexes().length - 1;
+
+                        highlightUrl( urlId );
+                        for ( var seriesIndex = 0; seriesIndex <= maxSeriesIndex; seriesIndex++ ){ p.highlight( seriesIndex, urlId - 1 )}
                     },
                     function(){
                         unhighlightUrl();

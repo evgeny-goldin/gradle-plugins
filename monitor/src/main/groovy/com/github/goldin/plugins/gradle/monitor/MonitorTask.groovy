@@ -235,7 +235,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         results.eachWithIndex { long result, int index -> dataPoints << [ index + 1, result ] }
 
         assert ( ! plotDataMap.containsKey( buildId )), "Build [$buildId] - plot data map $plotDataMap already contains this key"
-        plotDataMap[ buildId ] = [ id: buildId, index: plotDataMap.size(), label: buildLabel, url: buildUrl, data: dataPoints ]
+        plotDataMap[ buildId ] = [ id: buildId, label: buildLabel, url: buildUrl, data: dataPoints ]
 
         if ( plotDataMap.size() > ext.plotBuilds )
         {
