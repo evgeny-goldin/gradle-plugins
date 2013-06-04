@@ -27,7 +27,7 @@ You can run me as follows:
 - gradle $STOP_TASK         : stops an application runs automatically before '$START_TASK' and when '$CHECK_STARTED_TASK' fails
 - gradle $STOP_ALL_TASK      : stops all currently running applications
 - gradle $CHECK_STOPPED_TASK : checks that application stopped is not accepting connections any more runs automatically after '$STOP_TASK' and '$STOP_ALL_TASK'
-- gradle $LIST_TASK         : displays a list of currently running Node.js applications, runs automatically after '$START_TASK', '$RESTART_ALL_TASK', '$STOP_TASK', and '$STOP_ALL_TASK'
+- gradle $LIST_TASK         : lists all currently running Node.js applications, runs automatically after '$START_TASK', '$RESTART_ALL_TASK', '$STOP_TASK', and '$STOP_ALL_TASK'
 """ )
     }
 }
