@@ -2,9 +2,9 @@ package com.github.goldin.plugins.gradle.monitor
 
 class MonitorExtension
 {
+    Object              resources
     String              user
     String              password
-    Object              resources
     String              matchersDelimiter = '*'
     Map<String, String> headers           = [:]
     int                 connectTimeout    = 30000
