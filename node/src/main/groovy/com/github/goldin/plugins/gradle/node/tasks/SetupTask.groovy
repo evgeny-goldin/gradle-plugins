@@ -89,7 +89,7 @@ class SetupTask extends NodeBaseTask
     @Requires({ ext.configs })
     private void printConfigs ()
     {
-        for ( configFile in ext.configs*.keySet().flatten()*.toString().toSet().collect{ checkFile( it )})
+        for ( File configFile in ext.configs*.keySet().flatten()*.toString().toSet().collect{ checkFile( it )})
         {
             final configContent = ( ext.printConfigsMask ?: [] ).inject( read( configFile )){
                 String content, String maskProperty ->
