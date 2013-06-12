@@ -64,7 +64,7 @@ class TestTask extends NodeBaseTask
         """
         |echo $testCommand
         |echo
-        |$testCommand
+        |$testCommand${ ext.removeColorCodes }
         """.stripMargin().toString().trim()
     }
 
