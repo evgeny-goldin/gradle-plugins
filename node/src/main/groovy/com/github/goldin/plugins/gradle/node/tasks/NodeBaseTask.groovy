@@ -46,7 +46,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         assert ext.nodeVersion,         "'nodeVersion' should be defined in $description"
         assert ext.testCommand,         "'testCommand' should be defined in $description"
         assert ext.configsKeyDelimiter, "'configsKeyDelimiter' should be defined in $description"
-        assert ext.portNumber   >  0,   "'portNumber' should be positive in $description"
+        assert ext.port         >  0,   "'port' should be positive in $description"
         assert ext.checkWait    >= 0,   "'checkWait' should not be negative in $description"
         assert ext.checkTimeout >= 0,   "'checkTimeout' should not be negative in $description"
         assert ext.redisWait    >= 0,   "'redisWait' should not be negative in $description"
@@ -87,7 +87,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
         ext.afterTest    = echo( ext.afterTest )
         ext.publicIp     = ext.printPublicIp ? publicIp() : ''
         ext.env.NODE_ENV = ext.NODE_ENV
-        ext.env.PORT     = ext.portNumber
+        ext.env.PORT     = ext.port
 
         // https://wiki.jenkins-ci.org/display/JENKINS/Spawning+processes+from+build
         if ( systemEnv.JENKINS_URL != null ){ ext.env.BUILD_ID = 'JenkinsLetMeSpawn' }
@@ -106,7 +106,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
             String url, List content ->
             assert url && content && ( content.size() == 2 )
 
-            final newUrl = ( url.startsWith( 'http' ) ? url : "http://127.0.0.1:${ ext.portNumber }${ url.startsWith( '/' ) ? '' : '/' }${ url }" ).toString()
+            final newUrl = ( url.startsWith( 'http' ) ? url : "http://127.0.0.1:${ ext.port }${ url.startsWith( '/' ) ? '' : '/' }${ url }" ).toString()
             assert ( ! newChecks.containsValue( newUrl )), "Duplicate check url [$newUrl] - mapped to ${ newChecks[ newUrl ]} and $content"
             newChecks[ newUrl ] = content
         }

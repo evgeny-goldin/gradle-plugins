@@ -49,7 +49,7 @@ class StartTask extends NodeBaseTask
         final coffee  = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
         if ( coffee ){ checkFile( coffee )}
 
-        final pidFileName = pidFileName( ext.portNumber )
+        final pidFileName = pidFileName( ext.port )
         final command     = "${ forever() } start -p \"${ foreverHome().canonicalPath }\" --pidFile \"$pidFileName\" " +
                             "--minUptime 5000 --spinSleepTime 5000 ${ ext.foreverOptions ?: '' } " +
                             "${ coffee ? '"' + project.file( coffee ).canonicalPath + '"' : '' } " +
@@ -58,7 +58,7 @@ class StartTask extends NodeBaseTask
 
 
         """
-        |echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.portNumber }$Q and PID file $Q${ pidFileName }$Q"
+        |echo \"Executing $Q${ ext.scriptPath }$Q using port $Q${ ext.port }$Q and PID file $Q${ pidFileName }$Q"
         |echo $command
         |echo
         |$command ${ ext.removeColor ? '--plain' : '--colors' }${ ext.removeColorCodes }
@@ -93,8 +93,8 @@ class StartTask extends NodeBaseTask
     @Requires({ ext.printUrl })
     private void printApplicationUrls ()
     {
-        final String localUrl  = "http://127.0.0.1:${ ext.portNumber }${ ext.printUrl }"
-        final String publicUrl = ( ext.publicIp ? "http://${ ext.publicIp }:${ ext.portNumber }${ ext.printUrl }" : '' )
+        final String localUrl  = "http://127.0.0.1:${ ext.port }${ ext.printUrl }"
+        final String publicUrl = ( ext.publicIp ? "http://${ ext.publicIp }:${ ext.port }${ ext.printUrl }" : '' )
         final message          = "The application is up and running at $localUrl${ publicUrl ? ' (' + publicUrl + ')' : '' }"
 
         println( "${ '=' * ( message.size() + 2 ) }\n ${ message }\n${ '=' * ( message.size() + 2 ) }" )
@@ -103,7 +103,7 @@ class StartTask extends NodeBaseTask
 
     private void createStartupScript ()
     {
-        final startupScript = scriptFileForTask( "startup-${ projectName }-${ ext.portNumber }" )
+        final startupScript = scriptFileForTask( "startup-${ projectName }-${ ext.port }" )
         final currentUser   = exec( 'whoami' )
         File  startupLog    = project.file( 'startup.log' )
         final scripts       = [ scriptFileForTask( SETUP_TASK ).canonicalPath,

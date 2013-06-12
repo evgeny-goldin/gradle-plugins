@@ -9,7 +9,7 @@ class CheckStoppedTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        ext.checks.findAll { String checkUrl, list -> checkUrl.startsWith( "http://127.0.0.1:${ ext.portNumber }" ) }.each {
+        ext.checks.findAll { String checkUrl, list -> checkUrl.startsWith( "http://127.0.0.1:${ ext.port }" ) }.each {
             String checkUrl, List<?> list ->
 
             final response           = httpRequest( checkUrl, 'GET', [:], ext.checkTimeout * 500, ext.checkTimeout * 500, false, false )

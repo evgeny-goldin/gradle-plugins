@@ -45,7 +45,7 @@ class NodeExtension
     boolean      startupScript            = false // Whether a startup script should be created in 'build' directory
     boolean      pidOnlyToStop            = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
     String       pidFileName                      // PID file name
-    int          portNumber               = 1337  // Port the application starts on (becomes part of .pid file name)
+    int          port                     = 1337  // Port the application starts on (becomes part of PID file name)
 
     Map<String,Object> env                = [:]   // Environment variables to set before application is started
     String       printUrl                 = '/'   // Application's URL to print after it has started. Nothing is displayed if set to '' or null

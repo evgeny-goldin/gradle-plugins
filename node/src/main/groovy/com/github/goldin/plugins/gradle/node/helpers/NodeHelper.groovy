@@ -29,11 +29,12 @@ class NodeHelper extends BaseHelper<NodeExtension>
     @Ensures({ result })
     File buildDir (){ project.buildDir }
 
+
     /**
      * Retrieves PID file path.
      */
     @Ensures ({ result })
-    File pidFile(){ new File( foreverHome(), "pids/${ pidFileName( ext.portNumber ) }" )}
+    File pidFile(){ new File( foreverHome(), "pids/${ pidFileName( ext.port ) }" )}
 
 
     /**
