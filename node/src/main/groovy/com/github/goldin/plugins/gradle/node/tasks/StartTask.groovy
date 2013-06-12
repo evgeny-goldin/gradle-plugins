@@ -70,15 +70,22 @@ class StartTask extends NodeBaseTask
     {
         pidFile().with {
             File f ->
-            assert f.file, "PID file [$f.canonicalPath] is not available, application has failed to start or 'forever' isn't working properly"
-            final lastModified = f.lastModified()
-            final millisAgo    = System.currentTimeMillis() - lastModified
 
-            logger.info( "PID file [$f.canonicalPath] is found, pid is [$f.text], updated $millisAgo millisecond${ s( millisAgo )} ago." )
+            if ( f.file )
+            {
+                final lastModified = f.lastModified()
+                final millisAgo    = System.currentTimeMillis() - lastModified
 
-            assert ( lastModified > startTime ), \
-                "[$f.canonicalPath] last modified is $lastModified [${ format( lastModified ) }], " +
-                "expected it to be greater than build start time $startTime [$startTimeFormatted]"
+                logger.info( "PID file [$f.canonicalPath] is found, pid is [$f.text], updated $millisAgo millisecond${ s( millisAgo )} ago." )
+
+                assert ( lastModified > startTime ), \
+                       "[$f.canonicalPath] last modified is $lastModified [${ format( lastModified ) }], " +
+                       "expected it to be greater than build start time $startTime [$startTimeFormatted]"
+            }
+            else
+            {
+                failOrWarn( ext.failIfNoPid, "PID file [$f.canonicalPath] is not available, application has failed to start or 'forever' isn't working properly" )
+            }
         }
     }
 
