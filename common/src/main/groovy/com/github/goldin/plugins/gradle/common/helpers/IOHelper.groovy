@@ -86,7 +86,7 @@ class IOHelper extends BaseHelper<Object>
              else
              {
                  ant.exec([ executable  : command,
-                                 failonerror : failOnError ] + ( directory ? [ dir : directory ] : [:] )){
+                            failonerror : failOnError ] + ( directory ? [ dir : directory ] : [:] )){
                      arg (  line        : arguments.join ( ' ' ))
                  }
              }

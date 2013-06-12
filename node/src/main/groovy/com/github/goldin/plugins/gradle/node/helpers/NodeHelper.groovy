@@ -94,7 +94,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
     @Requires({ taskName })
     void runTask( String taskName )
     {
-        log{ "Running task '$taskName'" }
+        log{ "> Running task '$taskName'" }
         final t = ( NodeBaseTask ) project.tasks[ taskName ]
 
         t.generalHelper = generalHelper
