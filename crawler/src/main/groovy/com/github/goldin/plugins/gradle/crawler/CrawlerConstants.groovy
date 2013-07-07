@@ -9,13 +9,13 @@ import java.util.regex.Pattern
 class CrawlerConstants
 {
     // href="http://groovy.codehaus.org/style/custom.css"
-    final static Pattern externalLinkPattern         = ~/(?:src|href|SRC|HREF)\s*=\s*('|")(https?:\/\/[^'"]+?)(?:\1)/
+    final static Pattern externalLinkPattern         = ~/(?:src|href|SRC|HREF)\s*=\s*('|")\s*(https?:\/\/[^'"]+?)\s*(?:\1)/
 
     // href="/style/custom.css"
-    final static Pattern absoluteLinkPattern         = ~/(?:src|href|SRC|HREF)\s*=\s*('|")(\/[^'"]*?)(?:\1)/
+    final static Pattern absoluteLinkPattern         = ~/(?:src|href|SRC|HREF)\s*=\s*('|")\s*(\/[^'"]*?)\s*(?:\1)/
 
     // href="style/custom.css"
-    final static Pattern relativeLinkPattern         = ~/(?:src|href|SRC|HREF)\s*=\s*('|")([^\/#'"][^:'"]*?)(?:\1)/
+    final static Pattern relativeLinkPattern         = ~/(?:src|href|SRC|HREF)\s*=\s*('|")\s*([^\/#'"\s][^:'"]*?)\s*(?:\1)/
 
     // "http://path/reminder" => matches "/reminder"
     final static Pattern relativeLinkReminderPattern = ~'(?<!(:|:/))/+[^/]*$'

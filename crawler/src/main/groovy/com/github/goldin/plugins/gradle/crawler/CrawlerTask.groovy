@@ -516,7 +516,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     @Ensures({ result != null })
     List<String> filterTransformLinks ( Collection<String> links )
     {
-        ( List<String> ) links.collect { normalizeUrl( removeAllAfter( '#', it, it )) }.
+        ( List<String> ) links.collect { String link -> normalizeUrl( removeAllAfter( '#', link, link )) }.
                                toSet().
                                findAll { String link -> ( ! ( ext.ignoredLinks ?: [] ).any { it( link ) }) }.
                                collect { String link -> ( ext.linkTransformers ?: [] ).inject( link ){ String l, Closure c -> c( l ) }}
