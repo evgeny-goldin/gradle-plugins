@@ -232,7 +232,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             crawlerLog( logLevel ){ processedLinksLines }
         }
 
-        crawlerLog( logLevel ){ "\n[$brokenLinks] broken link${ s( brokenLinks ) } found${ brokenLinks ? ':\n' : isSuccess ? ' - thumbs up!' : '' }" }
+        crawlerLog( logLevel ){ "\n[$brokenLinks] broken link${ s( brokenLinks ) } found${ brokenLinks ? '\n' : isSuccess ? ' - thumbs up!' : '' }" }
 
         if ( brokenLinks )
         {
