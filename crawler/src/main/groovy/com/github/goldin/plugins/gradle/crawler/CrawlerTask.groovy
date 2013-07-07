@@ -239,13 +239,13 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
             final joinLines         = { Collection c, String delim = '' -> '\n\n[' + c.join( "]\n$delim[" ) + ']\n\n' }
             final brokenLinksSorted = linksStorage.brokenLinks().sort()
 
-            crawlerLog( logLevel ){ "List of broken links (simple report):\n\n" }
+            crawlerLog( logLevel ){ "List of broken links (simple report):\n" }
             for ( brokenLink in brokenLinksSorted )
             {
                 crawlerLog( logLevel ){ "- [$brokenLink]" }
             }
 
-            crawlerLog( logLevel ){ "\n\nList of broken links (detailed report):\n\n" }
+            crawlerLog( logLevel ){ "\n\nList of broken links (detailed report):\n" }
             for ( brokenLink in brokenLinksSorted )
             {
                 final referrers   = linksStorage.brokenLinkReferrers( brokenLink )
