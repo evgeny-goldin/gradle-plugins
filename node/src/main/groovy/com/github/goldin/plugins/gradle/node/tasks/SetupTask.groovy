@@ -167,6 +167,7 @@ class SetupTask extends NodeBaseTask
             SCRIPT_LOCATION    : SCRIPT_LOCATION,
             REMOVE_COLOR_CODES : REMOVE_COLOR_CODES,
             nodeVersion        : ext.nodeVersion,
+            ensureForever      : ext.ensureForever as String,
             forever            : FOREVER_EXECUTABLE,
             shell              : ext.shell,
             Q                  : Q ])

@@ -24,6 +24,7 @@ class NodeExtension
     boolean      xUnitReport              = true  // Whether xUnit report should be created when tests are run
     String       xUnitReportFile          = 'TEST-node.xml'  // xUnit report file name written to the test-results directory
     boolean      verbose                  = false // Whether scripts generated should have 'set -x' added (will print out every command executed)
+    boolean      ensureForever            = true  // Whether 'forever' should be installed even if it doesn't appear in 'package.json'
     boolean      failIfNoPid              = true  // Whether to fail execution if no PID file was found after application has started
     boolean      failIfNoTests            = true  // Whether to fail execution if no tests were found
     boolean      failIfTestsFail          = true  // Whether to fail execution if tests fail

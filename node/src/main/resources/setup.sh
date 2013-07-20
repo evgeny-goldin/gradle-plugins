@@ -63,7 +63,7 @@ set -e
 echo npm install
 npm install
 
-if [ ! -f "@{forever}" ];
+if [ "@{ensureForever}" == "true" ] && [ ! -f "@{forever}" ];
 then
     echo "npm install forever"
     npm install forever
