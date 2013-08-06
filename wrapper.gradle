@@ -2,4 +2,4 @@
 println "> Running Gradle [${ project.gradle.gradleVersion }], Groovy [${ GroovySystem.version }], Java [${ System.getProperty( 'java.version' ) }]"
 println "> Building [${ project.group }:${ project.name }:${ project.version }]"
 
-task wrapper( type: Wrapper ) { gradleVersion = '1.6' }
+task wrapper( type: Wrapper ) { gradleVersion = '1.7' }
