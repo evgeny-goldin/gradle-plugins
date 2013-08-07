@@ -109,7 +109,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
                        ( ext.githubUser && ext.githubPassword ) ? '/user/repos' :
                                                                   "/users/${ ext.githubUser }/repos"
 
-        final json = jsonMaps( "https://api.github.com${ repos }?per_page=100000", ext.githubUser, ext.githubPassword )
+        final json = jsonMaps( "https://api.github.com${ repos }?per_page=100000".toString(), ext.githubUser, ext.githubPassword )
         json.collect { Map m -> ext.githubUseSshUrl ? m.ssh_url : m.git_url }
     }
 
