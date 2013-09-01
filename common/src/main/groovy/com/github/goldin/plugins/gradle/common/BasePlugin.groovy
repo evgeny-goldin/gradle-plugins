@@ -48,14 +48,24 @@ abstract class BasePlugin implements Plugin<Project>
         final  extensionClass = extensions[ extensionName ]
         assert extensionName && extensionClass
 
-        final extension    = project.extensions.findByName( extensionName ) ?:
-                             project.extensions.create    ( extensionName, extensionClass )
         final isCreate     = project.tasks.class.methods.any { Method m -> ( m.name == 'create' ) && ( m.parameterTypes == [ String, Class ] )}
         final task         = ( T ) project.tasks."${ isCreate ? 'create' : 'add' }"( taskName, taskType )
-        task.ext           = extension
+        task.ext           = extension( project, extensionName, extensionClass )
         task.extensionName = extensionName
 
-        assert extension && task && task.ext && task.extensionName && project.tasks[ taskName ]
+        assert task && task.ext && task.extensionName && project.tasks[ taskName ]
         task
     }
+
+
+    @Requires({ project && extensionName && extensionClass })
+    <T> T extension ( Project project, String extensionName, Class<T> extensionClass )
+    {
+        final extension = project.extensions.findByName( extensionName ) ?:
+                          project.extensions.create    ( extensionName, extensionClass )
+
+        assert extensionClass.isInstance( extension )
+        ( T ) extension
+    }
+
 }

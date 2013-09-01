@@ -23,6 +23,7 @@ class NodeExtension
     boolean      configMergePreserveOrder = true  // Whether configs merge should preserve keys order (more risky, some nasty regexes are involved)
     boolean      xUnitReport              = true  // Whether xUnit report should be created when tests are run
     String       xUnitReportFile          = 'TEST-node.xml'  // xUnit report file name written to the test-results directory
+    List<String> addTasks                 = null  // Which tasks should be added to the project, all tasks are added if null, no tasks are added if empty
     boolean      verbose                  = false // Whether scripts generated should have 'set -x' added (will print out every command executed)
     boolean      ensureForever            = true  // Whether 'forever' should be installed even if it doesn't appear in 'package.json'
     boolean      failIfNoPid              = true  // Whether to fail execution if no PID file was found after application has started

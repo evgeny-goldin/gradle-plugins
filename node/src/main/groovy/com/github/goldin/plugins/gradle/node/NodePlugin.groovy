@@ -18,6 +18,8 @@ class NodePlugin extends BasePlugin
     @Override
     Map<String, Class<? extends BaseTask>> tasks ( Project project )
     {
+        final addTasks = extension( project, NODE_EXTENSION, NodeExtension ).addTasks
+
         [
           ( HELP_TASK          ) : HelpTask,
           ( CLEAN_TASK         ) : CleanTask,
@@ -38,6 +40,10 @@ class NodePlugin extends BasePlugin
         ].
         collectEntries {
             String taskName, Class<? extends BaseTask> taskClass ->
+            (( addTasks == null ) || ( addTasks.contains( taskName ))) ? [ taskName, taskClass ] : [:]
+        }.
+        collectEntries {
+            String taskName, Class<? extends BaseTask> taskClass ->
             final otherTask = project.tasks.findByName( taskName )
 
             if ( otherTask )
@@ -49,6 +55,7 @@ class NodePlugin extends BasePlugin
             [ taskName, taskClass ]
         } as Map<String , Class<? extends BaseTask>>
     }
+
 
     @Override
     Map<String , Class> extensions( Project project ) {[ ( NODE_EXTENSION ) : NodeExtension ]}
