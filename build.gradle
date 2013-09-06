@@ -16,10 +16,7 @@ apply from: 'file:wrapper.gradle'
 
 
 buildscript {
-    repositories {
-        maven { url 'http://jcenter.bintray.com' }
-        maven { url 'http://dl.bintray.com/content/evgenyg/BuildTools' }
-    }
+    repositories { jcenter() }
     dependencies {
         classpath 'com.github.goldin.plugins.gradle:about:0.3',
                   'com.github.goldin.plugins.gradle:duplicates:0.3'
@@ -30,7 +27,7 @@ buildscript {
 allprojects {
     apply plugin: 'groovy'
 
-    repositories { maven { url 'http://jcenter.bintray.com' }}
+    repositories { jcenter() }
     dependencies {
         compile     gradleApi(),
                     'org.gcontracts:gcontracts-core:1.2.12',
