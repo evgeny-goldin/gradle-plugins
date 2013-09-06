@@ -24,7 +24,7 @@ repositories   { maven { url 'http://jcenter.bintray.com/' }; mavenCentral(); }
 configurations { codenarc }
 dependencies   {
     codenarc 'org.apache.ant:ant:1.9.2',
-             'org.codehaus.groovy:groovy-all:2.1.6',
+             'org.codehaus.groovy:groovy-all:2.1.7',
              'org.gmetrics:GMetrics:0.6',
              'junit:junit:4.11',
              'log4j:log4j:1.2.17',

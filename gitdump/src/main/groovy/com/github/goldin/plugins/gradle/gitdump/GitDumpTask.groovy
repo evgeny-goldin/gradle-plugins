@@ -68,7 +68,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
             final  projectName = find( repoUrl, ext.gitProjectNamePattern )
             assert projectName, "Failed to match a project name in [$repoUrl]"
 
-            final repoDirectory = cloneRepository( repoUrl, projectName )
+            final repoDirectory = cloneRepository( repoUrl.toString(), projectName.toString())
 
             if ( ! ext.singleArchive )
             {
