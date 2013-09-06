@@ -15,8 +15,8 @@ apply plugin: 'teamcity'
 
 
 final Project      _p_               = project.rootProject
-final List<String> _knownVersions_   = '8.0 7.1.5 7.1.4 7.1.3 7.1.2 7.1.1 7.1 7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'.tokenize()
-final String       _teamCityVersion_ = _p_.hasProperty( 'teamCityVersion' ) ? _p_.properties[ 'teamCityVersion' ] : '7.1.5'
+final List<String> _knownVersions_   = '8.0.3 8.0.2 8.0.1 8.0 7.1.5 7.1.4 7.1.3 7.1.2 7.1.1 7.1 7.0.4 7.0.3 7.0.2 7.0.1 7.0 6.5.6 6.5.5 6.5.4 6.5.3 6.5.2 6.5.1 6.5 6.0.3 6.0.2 6.0.1 6.0'.tokenize()
+final String       _teamCityVersion_ = _p_.hasProperty( 'teamCityVersion' ) ? _p_.properties[ 'teamCityVersion' ] : _knownVersions_.head()
 
 assert _teamCityVersion_ in _knownVersions_, "'teamCityVersion' value should be one of $_knownVersions_"
 
