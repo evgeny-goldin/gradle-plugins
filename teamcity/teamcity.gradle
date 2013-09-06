@@ -24,8 +24,8 @@ _p_.logger.info( "TeamCity version is [$_teamCityVersion_]" )
 
 
 buildscript {
-    repositories { maven { url 'http://jcenter.bintray.com' }}
-    dependencies { classpath   'com.github.goldin.plugins.gradle:teamcity:0.2.8' }
+    repositories { jcenter() }
+    dependencies { classpath 'com.github.goldin.plugins.gradle:teamcity:0.3' }
 }
 
 
