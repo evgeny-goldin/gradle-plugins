@@ -104,13 +104,14 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     {
         /**
          * http://developer.github.com/v3/repos/
+         * https://api.github.com/users/evgeny-goldin/repos
          */
         final repos  = ( ext.githubOrganization ) ?               "/orgs/${ ext.githubOrganization }/repos" :
                        ( ext.githubUser && ext.githubPassword ) ? '/user/repos' :
                                                                   "/users/${ ext.githubUser }/repos"
 
         final json = jsonMaps( "https://api.github.com${ repos }?per_page=100000".toString(), ext.githubUser, ext.githubPassword )
-        json.collect { Map m -> ext.githubUseSshUrl ? m.ssh_url : m.git_url }
+        json.collect { Map m -> ext.githubUseSshUrl ? m.ssh_url : m.clone_url }
     }
 
 
