@@ -15,8 +15,10 @@ abstract class BasePlugin implements Plugin<Project>
     @Ensures({ result })
     abstract Map<String, Class<? extends BaseTask>> tasks( Project project )
 
+
     @Ensures({ result.size() == 1 })
     abstract Map<String, Class> extensions( Project project )
+
 
     @Requires({ project })
     @Override

@@ -6,6 +6,7 @@ include 'duplicates'
 include 'gitdump'
 include 'monitor'
 include 'node'
+include 'play'
 include 'teamcity'
 
 rootProject.name = 'gradle-plugins'
