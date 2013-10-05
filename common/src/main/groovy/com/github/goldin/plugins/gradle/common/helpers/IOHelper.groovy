@@ -22,6 +22,11 @@ class IOHelper extends BaseHelper<BaseExtension>
     IOHelper ( Project project, BaseTask task, BaseExtension ext ){ super( project, task, ext )}
 
 
+    @Requires({ path })
+    @Ensures ({ result })
+    File home( String path ){ new File( systemProperties[ 'user.home' ], path ).canonicalFile }
+
+
     /**
      * Executes 'git' command specified.
      *

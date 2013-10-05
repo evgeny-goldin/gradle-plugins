@@ -2,7 +2,6 @@ package com.github.goldin.plugins.gradle.node
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.common.BasePlugin
-import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.node.tasks.*
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
@@ -40,11 +39,11 @@ class NodePlugin extends BasePlugin
           ( CHECK_STOPPED_TASK ) : CheckStoppedTask
         ].
         collectEntries {
-            String taskName, Class<? extends BaseTask> taskClass ->
+            String taskName, Class<? extends NodeBaseTask> taskClass ->
             (( addTasks == null ) || ( addTasks.contains( taskName ))) ? [ taskName, taskClass ] : [:]
         }.
         collectEntries {
-            String taskName, Class<? extends BaseTask> taskClass ->
+            String taskName, Class<? extends NodeBaseTask> taskClass ->
             final otherTask = project.tasks.findByName( taskName )
 
             if ( otherTask )

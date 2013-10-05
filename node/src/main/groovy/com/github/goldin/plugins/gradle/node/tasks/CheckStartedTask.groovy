@@ -15,7 +15,7 @@ class CheckStartedTask extends NodeBaseTask
     @Requires({ ext.checks })
     void taskAction()
     {
-        delay( ext.checkWait * 1000 )
+        sleepMs( ext.checkWait * 1000 )
 
         ext.checks.each {
             String checkUrl, List<?> list ->

@@ -60,7 +60,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     {
         log { "Dumping Git repositories to [$ext.outputDirectory.canonicalPath]" }
 
-        verifyGitAvailable()
+        runTools([ 'git --version' ])
         initAboutFile()
 
         for ( repoUrl in gitUrls())

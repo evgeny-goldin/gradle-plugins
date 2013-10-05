@@ -14,7 +14,7 @@ class SetupTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        verifyTools()
+        runTools([ 'git --version', 'tar --version', "$ext.shell --version", 'whoami' ])
 
         cleanWorkspace()
 
@@ -30,15 +30,6 @@ class SetupTask extends NodeBaseTask
         runSetupScript()
 
         createNodeModulesCache()
-    }
-
-
-    private void verifyTools()
-    {
-        for ( tool in [ 'git --version', 'tar --version', "$ext.shell --version", 'whoami' ])
-        {
-            tool.tokenize().with { List<String> l -> exec( l.head(), l.tail()) }
-        }
     }
 
 

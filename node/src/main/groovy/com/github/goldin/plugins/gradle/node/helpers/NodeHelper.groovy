@@ -44,7 +44,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
      * Retrieves 'forever' home path for storing logs and PID files.
      */
     @Ensures ({ result })
-    File foreverHome() { new File( "${ systemProperties[ 'user.home' ]}/.forever" )}
+    File foreverHome() { home( '.forever' ) }
 
 
     /**

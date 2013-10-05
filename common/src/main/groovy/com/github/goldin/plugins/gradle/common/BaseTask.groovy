@@ -33,6 +33,7 @@ abstract class BaseTask<T extends BaseExtension> extends DefaultTask
     @Delegate MatcherHelper  matcherHelper
     @Delegate TeamCityHelper teamCityHelper
 
+
     /**
      * Retrieves task's extension type in run-time
      */

@@ -10,4 +10,5 @@ class PlayConstants
     final static String RUN_TASK       = 'run'
     final static String START_TASK     = 'start'
     final static String GRUNT_TASK     = 'grunt'
+    final static String SETUP_TASK     = 'setup'
 }

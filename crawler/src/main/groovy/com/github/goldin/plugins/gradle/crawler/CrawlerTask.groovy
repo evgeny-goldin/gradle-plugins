@@ -358,7 +358,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
         if ( crawlingAborted ) { return }
 
         assert (( ext.maxDepth < 0 ) || ( pageDepth <= ext.maxDepth ))
-        delay  ( ext.requestDelay )
+        sleepMs ( ext.requestDelay )
 
         try
         {
@@ -655,7 +655,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
                 assert ( isHeadRequest || isAttempt )
                 crawlerLog { "$errorMessage, ${ isHeadRequest ? 'will be retried as GET request' : 'attempt ' + attempt }" }
 
-                delay( ext.retryDelay )
+                sleepMs( ext.retryDelay )
                 readResponse( actualUrl, referrerUrl, true, isHeadRequest ? 1 : attempt + 1 )
             }
             else

@@ -22,6 +22,16 @@ class GeneralHelper extends BaseHelper<BaseExtension>
     GeneralHelper ( Project project, BaseTask task, BaseExtension ext ){ super( project, task, ext )}
 
 
+    /**
+     * Verifies command-line tools specified are available by executing them.
+     */
+    @Requires({ tools })
+    void runTools ( List<String> tools )
+    {
+        tools.each { it.tokenize().with { List<String> list -> exec( list.head(), list.tail()) }}
+    }
+
+
     @Requires({ c != null })
     @Ensures({ result != null })
     String s( Collection c, String single = '', String multiple = 's' ){ s( c.size(), single, multiple ) }
@@ -37,29 +47,19 @@ class GeneralHelper extends BaseHelper<BaseExtension>
 
     /**
      * Sleeps for amount of milliseconds specified if positive.
-     * @param delayInMilliseconds amount of milliseconds to sleep
+     * @param millis amount of milliseconds to sleep
      */
-    @Requires({ delayInMilliseconds > -1 })
-    void delay( long delayInMilliseconds )
+    @Requires({ millis > -1 })
+    void sleepMs( long millis )
     {
-        if ( delayInMilliseconds > 0 )
+        if ( millis > 0 )
         {
-            final isSeconds = (( delayInMilliseconds % 1000 ) == 0 )
-            final amount    = isSeconds ? delayInMilliseconds / 1000 : delayInMilliseconds
+            final isSeconds = (( millis % 1000 ) == 0 )
+            final amount    = isSeconds ? millis / 1000 : millis
             log { "Waiting for $amount ${ isSeconds ? 'second' : 'millisecond' }${ s( amount ) } before continuing" }
-            sleep( delayInMilliseconds )
+
+            sleep( millis )
         }
-    }
-
-
-    /**
-     * Verifies 'git' client is available.
-     */
-    void verifyGitAvailable ()
-    {
-        final  gitVersion = gitExec( '--version', project.rootDir, false )
-        assert gitVersion.contains( 'git version' ), \
-               "'git' client is not available - 'git --version' returned [$gitVersion]"
     }
 
 
