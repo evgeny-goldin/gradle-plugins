@@ -32,6 +32,23 @@ class GeneralHelper extends BaseHelper<BaseExtension>
     }
 
 
+    @Requires({ taskName })
+    void runTask( String taskName )
+    {
+        log{ "> Running task '$taskName'" }
+        final t = ( BaseTask ) project.tasks[ taskName ]
+
+        t.generalHelper  = generalHelper
+        t.ioHelper       = ioHelper
+        t.jsonHelper     = jsonHelper
+        t.matcherHelper  = matcherHelper
+        t.teamCityHelper = teamCityHelper
+
+        t.verifyUpdateExtension( "Explicit run of task '${taskName}'" )
+        t.taskAction()
+    }
+
+
     @Requires({ c != null })
     @Ensures({ result != null })
     String s( Collection c, String single = '', String multiple = 's' ){ s( c.size(), single, multiple ) }

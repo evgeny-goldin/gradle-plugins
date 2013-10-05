@@ -1,7 +1,6 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
 import org.gcontracts.annotations.Ensures
-import org.gcontracts.annotations.Requires
 
 
 class SetupTask extends PlayBaseTask
@@ -10,24 +9,25 @@ class SetupTask extends PlayBaseTask
     void taskAction ()
     {
         runTools([ 'wget --version', "$ext.shell --version", 'unzip -v' ])
-        shellExec( startScript(), baseScript( this.name ))
+        shellExec( setupScript(), baseScript())
     }
 
 
     @Ensures ({ result })
-    private String startScript()
+    private String setupScript ()
     {
-        final playHome      = home( '.play' )
-        final playDirectory = home( ".play/play-${ext.playVersion}" )
-        final play          = "'${ playDirectory }/play'"
+        final playHome    = home( ext.playHome )
+        final playZipPath = "$playHome/$ext.playZip"
 
         """
-        |if ! [ -d '${ playDirectory }' ]; then
-        |  mkdir -p '${ playHome }'
-        |  wget     '${ ext.playUrl }' -O '${ playHome }'
-        |  unzip    '${ playHome }/${ ext.playZip }' -d '${ playHome }'
+        |if ! [ -d '$ext.playDirectory' ]; then
+        |  mkdir -p '$playHome'
+        |  wget  '$ext.playUrl' -O '$playZipPath'
+        |  unzip '$playZipPath' -d '$playHome'
         |fi
-        |echo "Running Play: [\$(cd / && $play license | grep 'built with Scala' 2>/dev/null)]"
+        |
+        |echo "Running Sbt:  [\$($ext.play --version)]"
+        |echo "Running Play: [\$(cd / && $ext.play license | grep 'built with Scala' 2>/dev/null)]"
         """.stripMargin().toString().trim()
     }
 }

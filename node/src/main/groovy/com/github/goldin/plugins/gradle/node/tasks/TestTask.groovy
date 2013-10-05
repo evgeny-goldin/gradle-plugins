@@ -31,7 +31,7 @@ class TestTask extends NodeBaseTask
 
     private void runTests ()
     {
-        final testReport = shellExec( testScript( ext.xUnitReport ), baseScript( this.name ), scriptFileForTask(), true, false )
+        final testReport = shellExec( testScript( ext.xUnitReport ), baseScript(), scriptFileForTask(), true, false )
 
         if ( testReport.with{ contains( '0 tests complete' ) || contains( 'no such file or directory \'test.js\'' )})
         {

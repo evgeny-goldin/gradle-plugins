@@ -1,9 +1,9 @@
 package com.github.goldin.plugins.gradle.play.helpers
 
 import static com.github.goldin.plugins.gradle.common.CommonConstants.*
-import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
 import com.github.goldin.plugins.gradle.play.PlayExtension
+import com.github.goldin.plugins.gradle.play.tasks.PlayBaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
@@ -17,7 +17,7 @@ class PlayHelper extends BaseHelper<PlayExtension>
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ project && task && ext })
     @Ensures ({ this.project && this.task && this.ext })
-    PlayHelper ( Project project, BaseTask task, PlayExtension ext ){ super( project, task, ext )}
+    PlayHelper ( Project project, PlayBaseTask task, PlayExtension ext ){ super( project, task, ext )}
 
 
     /**
@@ -25,9 +25,8 @@ class PlayHelper extends BaseHelper<PlayExtension>
      */
     @Requires({ operationTitle })
     @Ensures ({ result })
-    String baseScript ( String operationTitle )
+    String baseScript ( String operationTitle = this.task.name )
     {
-
         """
         |echo $LOG_DELIMITER
         |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"

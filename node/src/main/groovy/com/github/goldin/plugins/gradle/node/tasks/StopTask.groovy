@@ -19,7 +19,7 @@ class StopTask extends NodeBaseTask
 
         try
         {
-            shellExec( stopScript(), baseScript( this.name ))
+            shellExec( stopScript(), baseScript())
         }
         finally
         {

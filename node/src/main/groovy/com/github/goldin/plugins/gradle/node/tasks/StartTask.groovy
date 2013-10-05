@@ -32,7 +32,7 @@ class StartTask extends NodeBaseTask
                                                           baseScript( 'before start' ),
                                                           scriptFileForTask( this.name, true ), false, true, false ) }
 
-        shellExec( startScript(), baseScript( this.name ))
+        shellExec( startScript(), baseScript())
 
         logPidFile()
 

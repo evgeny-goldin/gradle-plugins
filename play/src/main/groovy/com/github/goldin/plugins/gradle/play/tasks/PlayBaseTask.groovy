@@ -24,14 +24,29 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
         shellHelper = new ShellHelper( this.project, this, this.ext )
         playHelper  = new PlayHelper ( this.project, this, this.ext )
 
+        assert ext.appName,       "'appName' should be defined in $description"
         assert ext.playVersion,   "'playVersion' should be defined in $description"
-        assert ext.playZip,       "'playZip' should be defined in $description"
-        assert ext.playUrl,       "'playUrl' should be defined in $description"
+        assert ext.playHome,      "'playHome' should be defined in $description"
         assert ext.address,       "'address' should be defined in $description"
-        assert ext.conf,          "'conf' should be defined in $description"
+        assert ext.config,        "'config' should be defined in $description"
         assert ext.port      > 0, "'port' should be positive in $description"
         assert ext.debugPort > 0, "'debugPort' should be positive in $description"
 
-        assert ext.playVersion.startsWith( '2.2.' ), "Only 'playVersion' 2.2.x supported in $description"
+        assert ext.playVersion.startsWith( '2.2.' ), "Only 'playVersion' 2.2.x and higher supported in $description"
+
+        if ( ! ext.updated )
+        {
+            updateExtension()
+            ext.updated = true
+        }
+    }
+
+
+    private void updateExtension()
+    {
+        ext.playZip       = "play-${ ext.playVersion }.zip"
+        ext.playUrl       = "http://downloads.typesafe.com/play/${ ext.playVersion }/${ ext.playZip }"
+        ext.playDirectory = home( "${ ext.playHome }/play-${ ext.playVersion }" ).canonicalPath
+        ext.play          = "'${ ext.playDirectory }/play'"
     }
 }

@@ -22,7 +22,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ project && task && ext })
     @Ensures ({ this.project && this.task && this.ext })
-    NodeHelper ( Project project, BaseTask task, NodeExtension ext ){ super( project, task, ext )}
+    NodeHelper ( Project project, NodeBaseTask task, NodeExtension ext ){ super( project, task, ext )}
 
 
     /**
@@ -72,23 +72,6 @@ class NodeHelper extends BaseHelper<NodeExtension>
     String latestNodeVersion( String content )
     {
         content.find( ~/<p>Current Version: (.+?)<\/p>/ ){ it[ 1 ] }
-    }
-
-
-    @Requires({ taskName })
-    void runTask( String taskName )
-    {
-        log{ "> Running task '$taskName'" }
-        final t = ( NodeBaseTask ) project.tasks[ taskName ]
-
-        t.generalHelper  = generalHelper
-        t.ioHelper       = ioHelper
-        t.jsonHelper     = jsonHelper
-        t.matcherHelper  = matcherHelper
-        t.teamCityHelper = teamCityHelper
-
-        t.verifyUpdateExtension( "Explicit run of task '${taskName}'" )
-        t.taskAction()
     }
 
 
@@ -171,7 +154,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
      */
     @Requires({ operationTitle })
     @Ensures ({ result })
-    String baseScript ( String operationTitle )
+    String baseScript ( String operationTitle = this.task.name )
     {
         assert ( ext.env && ( ! ext.env.values().any { it == null } ))
 

@@ -16,7 +16,7 @@ class StopAllTask extends NodeBaseTask
 
         try
         {
-            shellExec( stopallScript(), baseScript( this.name ))
+            shellExec( stopallScript(), baseScript())
             if ( ext.checkAfterStopall ) { runTask( CHECK_STOPPED_TASK )}
             if ( ext.listAfterStopall  ) { runTask( LIST_TASK ) }
         }

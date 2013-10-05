@@ -17,10 +17,11 @@ class PlayPlugin extends BasePlugin
     Map<String, Class<? extends PlayBaseTask>> tasks ( Project project )
     {
         [
+            ( SETUP_TASK ) : SetupTask,
             ( RUN_TASK   ) : RunTask,
             ( START_TASK ) : StartTask,
-            ( GRUNT_TASK ) : GruntTask,
-            ( SETUP_TASK ) : SetupTask,
+            ( STOP_TASK  ) : StopTask,
+            ( GRUNT_TASK ) : GruntTask
         ]
     }
 
@@ -37,7 +38,7 @@ class PlayPlugin extends BasePlugin
 
         final setupTask = project.tasks[ SETUP_TASK ]
 
-        [ RUN_TASK, START_TASK ].each {
+        [ RUN_TASK, START_TASK, STOP_TASK, GRUNT_TASK ].each {
             String taskName -> project.tasks[ taskName ].dependsOn( setupTask )
         }
     }
