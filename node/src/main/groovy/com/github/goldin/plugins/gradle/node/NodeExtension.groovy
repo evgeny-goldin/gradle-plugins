@@ -1,13 +1,15 @@
 package com.github.goldin.plugins.gradle.node
 
+import com.github.goldin.plugins.gradle.common.extensions.BaseShellExtension
+
 
 @SuppressWarnings([ 'GroovyInstanceVariableNamingConvention', 'PropertyName', 'DuplicateListLiteral' ])
-class NodeExtension
+class NodeExtension extends BaseShellExtension
 {
     boolean      updated                  = false // Internal property, set to 'true' after extension is updated
     List<String> cleanWorkspaceCommands   = [ 'git checkout -f', 'git clean -dff' ]
     boolean      cleanWorkspace           = false // Whether to run cleanWorkspaceCommands before running tasks
-    String       shell                    = '/bin/bash'
+
     String       NODE_ENV                 = 'development'
     String       nodeVersion              = 'latest'
     String       testCommand              = 'mocha'
@@ -24,7 +26,6 @@ class NodeExtension
     boolean      xUnitReport              = true  // Whether xUnit report should be created when tests are run
     String       xUnitReportFile          = 'TEST-node.xml'  // xUnit report file name written to the test-results directory
     List<String> addTasks                 = null  // Which tasks should be added to the project, all tasks are added if null, no tasks are added if empty
-    boolean      verbose                  = false // Whether scripts generated should have 'set -x' added (will print out every command executed)
     boolean      ensureForever            = true  // Whether 'forever' should be installed even if it doesn't appear in 'package.json'
     boolean      failIfNoPid              = true  // Whether to fail execution if no PID file was found after application has started
     boolean      failIfNoTests            = true  // Whether to fail execution if no tests were found
@@ -66,7 +67,6 @@ class NodeExtension
     int          checkWait                = 5     // Seconds to wait after starting/stopping the application and checking it
     int          checkTimeout             = 10    // Seconds to wait for check test to succeed or fail (timeout)
 
-    List<Closure> transformers            = []    // Callbacks to invoke after every shell script is generated
     String        scriptPath
     List<String>  knownScriptPaths        = 'server.js server.coffee app.js app.coffee'.tokenize().asImmutable()
     String        scriptArguments                 // Additional script arguments

@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.common
 
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
 import com.github.goldin.plugins.gradle.common.helpers.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -11,7 +12,7 @@ import java.text.SimpleDateFormat
 /**
  * Base helper task class to be extended by other tasks
  */
-abstract class BaseTask<T> extends DefaultTask
+abstract class BaseTask<T extends BaseExtension> extends DefaultTask
 {
     final SimpleDateFormat dateFormatter      = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
     final long             startTime          = System.currentTimeMillis()
@@ -36,7 +37,7 @@ abstract class BaseTask<T> extends DefaultTask
      * Retrieves task's extension type in run-time
      */
     @Ensures ({ result })
-    abstract Class extensionType()
+    abstract Class<T> extensionType()
 
     /**
      * Extension instance and its name are set by {@link BasePlugin#addTask}

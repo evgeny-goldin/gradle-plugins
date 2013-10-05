@@ -182,7 +182,7 @@ class AboutHelper extends BaseHelper<AboutExtension>
 
         final reportTask = ( DependencyReportTask ) project.tasks[ ProjectReportsPlugin.DEPENDENCY_REPORT ]
         final renderer   = asciiReportRenderer()
-        final file       = new File( project.buildDir, "${ this.class.name }-dependencies.txt" )
+        final file       = new File( buildDir(), "${ this.class.name }-dependencies.txt" )
         final line       = '-' * 80
         delete( file )
 

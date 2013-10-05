@@ -1,7 +1,6 @@
 package com.github.goldin.plugins.gradle.teamcity
 
 import com.github.goldin.plugins.gradle.common.BasePlugin
-import com.github.goldin.plugins.gradle.common.BaseTask
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
 
@@ -12,10 +11,10 @@ import org.gradle.api.Project
 class TeamCityPlugin extends BasePlugin
 {
     @Override
-    Map<String , Class<? extends BaseTask>> tasks ( Project project ) {[ 'assembleTeamcityPlugin' : TeamCityTask ]}
+    Map<String , Class<TeamCityTask>> tasks ( Project project ) {[ 'assembleTeamcityPlugin' : TeamCityTask ]}
 
     @Override
-    Map<String , Class> extensions( Project project ) {[ 'assembleTeamcityPluginConfig' : TeamCityExtension ]}
+    Map<String, Class<TeamCityExtension>> extensions( Project project ) {[ 'assembleTeamcityPluginConfig' : TeamCityExtension ]}
 
 
     @Requires({ project })

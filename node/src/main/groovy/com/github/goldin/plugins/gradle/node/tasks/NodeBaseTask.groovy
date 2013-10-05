@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import com.github.goldin.plugins.gradle.common.helpers.ShellHelper
 import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.node.NodeExtension
 import com.github.goldin.plugins.gradle.node.helpers.ConfigHelper
@@ -16,8 +17,9 @@ import org.gcontracts.annotations.Requires
 abstract class NodeBaseTask extends BaseTask<NodeExtension>
 {
     @Override
-    Class extensionType (){ NodeExtension }
+    Class<NodeExtension> extensionType (){ NodeExtension }
 
+    @Delegate ShellHelper    shellHelper
     @Delegate NodeHelper     nodeHelper
     @Delegate DBHelper       dbHelper
     @Delegate NpmCacheHelper cacheHelper
@@ -31,10 +33,12 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     @Override
+    @Requires({ description })
     void verifyUpdateExtension ( String description )
     {
         assert ( ! projectDir.canonicalPath.find( /\s/ )), "Project directory path [${ projectDir.canonicalPath }] contains spaces - not supported!"
 
+        shellHelper  = new ShellHelper   ( this.project, this, this.ext )
         nodeHelper   = new NodeHelper    ( this.project, this, this.ext )
         dbHelper     = new DBHelper      ( this.project, this, this.ext )
         cacheHelper  = new NpmCacheHelper( this.project, this, this.ext )
@@ -66,6 +70,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
 
     @SuppressWarnings([ 'UseCollectMany', 'UnnecessaryObjectReferences' ])
+    @Requires({ ! ext.updated })
     private void updateExtension()
     {
         updateChecks()

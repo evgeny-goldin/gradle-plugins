@@ -172,6 +172,6 @@ class SetupTask extends NodeBaseTask
             shell              : ext.shell,
             Q                  : Q ])
 
-        shellExec( setupScript, scriptFileForTask(), false, false )
+        shellExec( setupScript, '', scriptFileForTask(), false )
     }
 }

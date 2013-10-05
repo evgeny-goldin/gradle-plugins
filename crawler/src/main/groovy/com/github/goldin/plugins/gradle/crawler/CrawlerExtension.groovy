@@ -1,9 +1,10 @@
 package com.github.goldin.plugins.gradle.crawler
 
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
 import java.util.regex.Pattern
 
 
-class CrawlerExtension
+class CrawlerExtension  extends BaseExtension
 {
      // Internal properties
 

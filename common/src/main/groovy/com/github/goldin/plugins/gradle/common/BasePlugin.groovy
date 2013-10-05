@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.common
 
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Plugin
@@ -17,7 +18,7 @@ abstract class BasePlugin implements Plugin<Project>
 
 
     @Ensures({ result.size() == 1 })
-    abstract Map<String, Class> extensions( Project project )
+    abstract Map<String, Class<? extends BaseExtension>> extensions( Project project )
 
 
     @Requires({ project })
@@ -31,12 +32,9 @@ abstract class BasePlugin implements Plugin<Project>
             addTask( project, taskName, tasks[ taskName ] )
         }
 
-        if ( project.logger.infoEnabled )
-        {
-            project.logger.info(
-                "Groovy [$GroovySystem.version], $project, plugin [${ this.class.name }] is applied, " +
-                "added task${ tasks.size() == 1 ? '' : 's' } '${ tasks.keySet().sort().join( '\', \'' )}'." )
-        }
+        project.logger.info(
+            "Groovy [$GroovySystem.version], $project, plugin [${ this.class.name }] is applied, " +
+            "added task${ tasks.size() == 1 ? '' : 's' } '${ tasks.keySet().sort().join( '\', \'' )}'." )
     }
 
 
@@ -48,7 +46,7 @@ abstract class BasePlugin implements Plugin<Project>
 
         final  extensionName  = extensions.keySet().toList().first()
         final  extensionClass = extensions[ extensionName ]
-        assert extensionName && extensionClass
+        assert extensionName && extensionClass && BaseExtension.isAssignableFrom( extensionClass )
 
         final isCreate     = project.tasks.class.methods.any { Method m -> ( m.name == 'create' ) && ( m.parameterTypes == [ String, Class ] )}
         final task         = ( T ) project.tasks."${ isCreate ? 'create' : 'add' }"( taskName, taskType )
@@ -61,7 +59,7 @@ abstract class BasePlugin implements Plugin<Project>
 
 
     @Requires({ project && extensionName && extensionClass })
-    <T> T extension ( Project project, String extensionName, Class<T> extensionClass )
+    <T extends BaseExtension> T extension ( Project project, String extensionName, Class<T> extensionClass )
     {
         final extension = project.extensions.findByName( extensionName ) ?:
                           project.extensions.create    ( extensionName, extensionClass )

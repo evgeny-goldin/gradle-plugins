@@ -29,9 +29,10 @@ class StartTask extends NodeBaseTask
         }
 
         if ( ext.before || ext.beforeStart ) { shellExec( commandsScript( add( ext.before, ext.beforeStart )),
-                                                          scriptFileForTask( this.name, true ), false, true, true, false, 'before start' ) }
+                                                          baseScript( 'before start' ),
+                                                          scriptFileForTask( this.name, true ), false, true, false ) }
 
-        shellExec( startScript())
+        shellExec( startScript(), baseScript( this.name ))
 
         logPidFile()
 
@@ -76,7 +77,7 @@ class StartTask extends NodeBaseTask
                 final lastModified = f.lastModified()
                 final millisAgo    = System.currentTimeMillis() - lastModified
 
-                logger.info( "PID file [$f.canonicalPath] is found, pid is [$f.text], updated $millisAgo millisecond${ s( millisAgo )} ago." )
+                log{ "PID file [$f.canonicalPath] is found, pid is [$f.text], updated $millisAgo millisecond${ s( millisAgo )} ago." }
 
                 assert ( lastModified > startTime ), \
                        "[$f.canonicalPath] last modified is $lastModified [${ format( lastModified ) }], " +

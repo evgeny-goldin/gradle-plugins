@@ -1,13 +1,14 @@
 package com.github.goldin.plugins.gradle.common.helpers
 
 import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
 import java.util.regex.Pattern
 
 
-class MatcherHelper extends BaseHelper<Object>
+class MatcherHelper extends BaseHelper<BaseExtension>
 {
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     MatcherHelper(){ super( null, null, null )}
@@ -16,11 +17,7 @@ class MatcherHelper extends BaseHelper<Object>
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ project && task && ext })
     @Ensures ({ this.project && this.task && this.ext })
-    MatcherHelper ( Project project, BaseTask task, Object ext ) { super( project, task, ext )}
-
-
-    private boolean isMap  ( Object ... o ){ o.every{ it instanceof Map  }}
-    private boolean isList ( Object ... o ){ o.every{ it instanceof List }}
+    MatcherHelper ( Project project, BaseTask task, BaseExtension ext ) { super( project, task, ext )}
 
 
     /**
@@ -50,8 +47,12 @@ class MatcherHelper extends BaseHelper<Object>
     }
 
 
+    private static boolean isMap  ( Object ... o ){ o.every{ it instanceof Map  }}
+    private static boolean isList ( Object ... o ){ o.every{ it instanceof List }}
+
+
     @Requires({ ( content != null ) && ( matcher != null ) })
-    private boolean jsonContains ( String content, String matcher )
+    private static boolean jsonContains ( String content, String matcher )
     {
         assert matcher.with { startsWith( '{' ) && endsWith( '}' ) } ||
                matcher.with { startsWith( '[' ) && endsWith( ']' ) }
@@ -65,7 +66,7 @@ class MatcherHelper extends BaseHelper<Object>
 
 
     @Requires({ ( contentObject != null ) && ( matcherObject != null ) })
-    private boolean jsonContainsGeneral ( Object contentObject, Object matcherObject )
+    private static boolean jsonContainsGeneral ( Object contentObject, Object matcherObject )
     {
         isList( contentObject, matcherObject ) ? jsonContainsList(( List ) contentObject, ( List ) matcherObject ) :
         isMap ( contentObject, matcherObject ) ? jsonContainsMap(( Map ) contentObject, ( Map ) matcherObject ) :
@@ -74,7 +75,7 @@ class MatcherHelper extends BaseHelper<Object>
 
 
     @Requires({ ( contentMap != null ) && ( matcherMap != null ) })
-    private boolean jsonContainsMap ( Map<String,?> contentMap, Map<String,?> matcherMap )
+    private static boolean jsonContainsMap ( Map<String,?> contentMap, Map<String,?> matcherMap )
     {
         matcherMap.every {
             String matcherKey, Object matcherValue ->
@@ -85,7 +86,7 @@ class MatcherHelper extends BaseHelper<Object>
 
 
     @Requires({ ( contentList != null ) && ( matcherList != null ) })
-    private boolean jsonContainsList ( List<?> contentList, List<?> matcherList )
+    private static boolean jsonContainsList ( List<?> contentList, List<?> matcherList )
     {
         matcherList.every {
             Object matcherObject ->

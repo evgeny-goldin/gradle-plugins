@@ -12,7 +12,7 @@ import org.gradle.api.tasks.bundling.Zip
 class AboutTask extends BaseTask<AboutExtension>
 {
     @Override
-    Class extensionType (){ AboutExtension }
+    Class<AboutExtension> extensionType (){ AboutExtension }
 
     @Delegate AboutHelper helper
 
@@ -20,6 +20,7 @@ class AboutTask extends BaseTask<AboutExtension>
     void verifyUpdateExtension ( String description ) {}
 
 
+    @Override
     void taskAction()
     {
         helper = new AboutHelper( this.project, this, this.ext )
@@ -66,7 +67,7 @@ class AboutTask extends BaseTask<AboutExtension>
     {
         if ( ! ext.patterns ) { return [] }
 
-        final baseDir = ext.directory ?: project.buildDir
+        final baseDir = ext.directory ?: buildDir()
         baseDir.directory ? files( baseDir, ext.include, ext.exclude, true, false, false ) : []
     }
 

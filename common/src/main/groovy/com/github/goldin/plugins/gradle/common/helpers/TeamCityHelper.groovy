@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.common.helpers
 
 import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
@@ -13,7 +14,7 @@ import java.util.regex.Pattern
  * http://confluence.jetbrains.net/display/TCD7/Predefined+Build+Parameters
  */
 @SuppressWarnings([ 'AbstractClassWithoutAbstractMethod' ])
-class TeamCityHelper extends BaseHelper<Object>
+class TeamCityHelper extends BaseHelper<BaseExtension>
 {
     private final static Pattern AttributePattern      = ~/(\w+)='(.*?[^|])'/
     private final static Pattern EmptyAttributePattern = ~/(\w+)='()'/
@@ -30,7 +31,7 @@ class TeamCityHelper extends BaseHelper<Object>
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ project && task && ext })
     @Ensures ({ this.project && this.task && this.ext })
-    TeamCityHelper ( Project project, BaseTask task, Object ext )
+    TeamCityHelper ( Project project, BaseTask task, BaseExtension ext )
     {
         super( project, task, ext )
         assert (( ! teamCityUrl ) || teamCityUrl.endsWith( '/' ))

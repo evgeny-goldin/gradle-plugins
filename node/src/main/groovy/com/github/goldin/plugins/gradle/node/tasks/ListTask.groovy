@@ -12,7 +12,7 @@ class ListTask extends NodeBaseTask
     @Override
     void taskAction()
     {
-        shellExec( listProcesses(), scriptFileForTask(), false, true, false )
+        shellExec( listProcesses(), baseScript( this.name ), scriptFileForTask(), false, false )
     }
 
 

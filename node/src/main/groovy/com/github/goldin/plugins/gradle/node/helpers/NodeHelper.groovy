@@ -8,7 +8,6 @@ import com.github.goldin.plugins.gradle.node.NodeExtension
 import com.github.goldin.plugins.gradle.node.tasks.NodeBaseTask
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
-import org.gradle.api.logging.LogLevel
 
 
 /**
@@ -24,10 +23,6 @@ class NodeHelper extends BaseHelper<NodeExtension>
     @Requires({ project && task && ext })
     @Ensures ({ this.project && this.task && this.ext })
     NodeHelper ( Project project, BaseTask task, NodeExtension ext ){ super( project, task, ext )}
-
-
-    @Ensures({ result })
-    File buildDir (){ project.buildDir }
 
 
     /**
@@ -80,32 +75,19 @@ class NodeHelper extends BaseHelper<NodeExtension>
     }
 
 
-    @Requires({ scriptName })
-    @Ensures ({ result })
-    File scriptFileForTask ( String scriptName = this.name, boolean isBefore = false, boolean isAfter = false )
-    {
-        final fileName = ( isBefore ?  'before-' :
-                           isAfter  ?  'after-'  :
-                                       '' ) + "${ scriptName }.sh"
-
-        new File( buildDir(), fileName )
-    }
-
-
     @Requires({ taskName })
     void runTask( String taskName )
     {
         log{ "> Running task '$taskName'" }
         final t = ( NodeBaseTask ) project.tasks[ taskName ]
 
-        t.generalHelper = generalHelper
-        t.ioHelper      = ioHelper
-        t.jsonHelper    = jsonHelper
-        t.matcherHelper = matcherHelper
-        t.nodeHelper    = this
-        t.cacheHelper   = (( NodeBaseTask ) task ).cacheHelper
-        t.configHelper  = (( NodeBaseTask ) task ).configHelper
+        t.generalHelper  = generalHelper
+        t.ioHelper       = ioHelper
+        t.jsonHelper     = jsonHelper
+        t.matcherHelper  = matcherHelper
+        t.teamCityHelper = teamCityHelper
 
+        t.verifyUpdateExtension( "Explicit run of task '${taskName}'" )
         t.taskAction()
     }
 
@@ -185,63 +167,6 @@ class NodeHelper extends BaseHelper<NodeExtension>
 
 
     /**
-     * Executes the script specified as shell command.
-     *
-     * @param scriptContent  content to run as shell script
-     * @param scriptFile     script file to create
-     * @param watchExitCodes whether script exit codes need to be monitored (by adding set -e/set -o pipefail)
-     * @param addBaseScript  whether a base script should be added (sets up environment variables)
-     * @param failOnError    whether execution should fail if shell execution results in non-zero value
-     * @param useGradleExec  whether Gradle (true) or Ant (false) exec is used
-     * @param operationTitle title to display before the operation starts (if addBaseScript is true)
-     * @param logLevel       log level to use for shell output
-     *
-     * @return shell output
-     */
-    @Requires({ scriptContent && scriptFile })
-    @Ensures ({ result != null })
-    @SuppressWarnings([ 'GroovyAssignmentToMethodParameter', 'GroovyMethodParameterCount' ])
-    String shellExec ( String   scriptContent,
-                       File     scriptFile     = scriptFileForTask(),
-                       boolean  watchExitCodes = true,
-                       boolean  addBaseScript  = true,
-                       boolean  failOnError    = true,
-                       boolean  useGradleExec  = true,
-                       String   operationTitle = this.name,
-                       LogLevel logLevel       = LogLevel.INFO )
-    {
-        assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
-        delete( scriptFile )
-
-        scriptContent = ( ext.transformers ?: [] ).inject(
-        """#!${ ext.shell }
-        |
-        |${ watchExitCodes ? 'set -e'          : '' }
-        |${ watchExitCodes ? 'set -o pipefail' : '' }
-        |${ ext.verbose    ? 'set -x'          : '' }
-        |
-        |echo "cd $Q${ projectDir.canonicalPath }$Q"
-        |cd "${ projectDir.canonicalPath }"
-        |
-        |${ addBaseScript ? baseScript( operationTitle ) : '' }
-        |
-        |${ scriptContent }
-        """.stripMargin().toString().trim().
-            replace( SCRIPT_LOCATION, "${Q}file:${ scriptFile.canonicalPath }${Q}" )) {
-            String script, Closure transformer ->
-            transformer( script, scriptFile, this ) ?: script
-        }
-
-        write( scriptFile, scriptContent.trim())
-
-        log( LogLevel.INFO ){ "Shell script created at [$scriptFile.canonicalPath], size [${ scriptFile.length() }] bytes" }
-
-        exec( 'chmod', [ '+x', scriptFile.canonicalPath ] )
-        exec ( ext.shell, [ scriptFile.canonicalPath ], projectDir, failOnError, useGradleExec, logLevel )
-    }
-
-
-    /**
      * Retrieves base part of the shell script to be used by various tasks.
      */
     @Requires({ operationTitle })
@@ -274,6 +199,6 @@ class NodeHelper extends BaseHelper<NodeExtension>
     @Ensures ({ result != null })
     List<String> add( List<String> ... lists )
     {
-        lists.inject( [] ){ List<String> sum, List<String> l -> sum + ( l ?: [] ) }
+        ( List<String> ) lists.inject( [] ){ List<String> sum, List<String> l -> sum + ( l ?: [] ) }
     }
 }

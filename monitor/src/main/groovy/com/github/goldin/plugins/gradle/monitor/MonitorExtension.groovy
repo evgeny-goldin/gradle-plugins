@@ -1,6 +1,8 @@
 package com.github.goldin.plugins.gradle.monitor
 
-class MonitorExtension
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
+
+class MonitorExtension extends BaseExtension
 {
     Object              resources
     String              user

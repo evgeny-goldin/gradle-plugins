@@ -11,7 +11,7 @@ import org.gcontracts.annotations.Requires
 class GitDumpTask extends BaseTask<GitDumpExtension>
 {
     @Override
-    Class extensionType (){ GitDumpExtension }
+    Class<GitDumpExtension> extensionType (){ GitDumpExtension }
 
 
     @Requires({ dir })
@@ -50,13 +50,13 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
         ext.urls = ext.urls?.grep()?.toSet()?.sort()
         ext.urls.each { assert ( it =~ ext.gitProjectNamePattern ), "[$it] is not a Git repository URL, doesn't match [$ext.gitProjectNamePattern]" }
 
-        ext.outputDirectory = makeEmptyDirectory( ext.outputDirectory?: new File( project.buildDir, 'gitdump' ))
+        ext.outputDirectory = makeEmptyDirectory( ext.outputDirectory?: new File( buildDir(), 'gitdump' ))
         ext.aboutFile       = ( ext.addAbout ? new File( ext.outputDirectory, 'about.txt' ) : null )
     }
 
 
     @Override
-    void taskAction ()
+    void taskAction()
     {
         log { "Dumping Git repositories to [$ext.outputDirectory.canonicalPath]" }
 

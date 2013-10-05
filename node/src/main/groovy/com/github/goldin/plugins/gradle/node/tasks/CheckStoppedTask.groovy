@@ -1,5 +1,7 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
+import org.gcontracts.annotations.Requires
+
 
 /**
  * Checks that application has stopped.
@@ -7,6 +9,7 @@ package com.github.goldin.plugins.gradle.node.tasks
 class CheckStoppedTask extends NodeBaseTask
 {
     @Override
+    @Requires({ ext.checks })
     void taskAction()
     {
         ext.checks.findAll { String checkUrl, list -> checkUrl.startsWith( "http://127.0.0.1:${ ext.port }" ) }.each {

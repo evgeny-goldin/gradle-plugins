@@ -16,10 +16,11 @@ class NodePlugin extends BasePlugin
     @SuppressWarnings([' GroovyAssignmentToMethodParameter' ])
     @Requires({ project })
     @Override
-    Map<String, Class<? extends BaseTask>> tasks ( Project project )
+    Map<String, Class<? extends NodeBaseTask>> tasks ( Project project )
     {
         final addTasks = extension( project, NODE_EXTENSION, NodeExtension ).addTasks
 
+        ( Map<String , Class<? extends NodeBaseTask>> )(
         [
           ( HELP_TASK          ) : HelpTask,
           ( CLEAN_TASK         ) : CleanTask,
@@ -53,12 +54,12 @@ class NodePlugin extends BasePlugin
             }
 
             [ taskName, taskClass ]
-        } as Map<String , Class<? extends BaseTask>>
+        })
     }
 
 
     @Override
-    Map<String , Class> extensions( Project project ) {[ ( NODE_EXTENSION ) : NodeExtension ]}
+    Map<String, Class<NodeExtension>> extensions( Project project ) {[ ( NODE_EXTENSION ) : NodeExtension ]}
 
 
     @Override

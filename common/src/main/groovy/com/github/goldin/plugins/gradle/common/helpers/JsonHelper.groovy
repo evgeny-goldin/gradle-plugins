@@ -2,13 +2,14 @@ package com.github.goldin.plugins.gradle.common.helpers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 
 
-class JsonHelper extends BaseHelper<Object>
+class JsonHelper extends BaseHelper<BaseExtension>
 {
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     JsonHelper(){ super( null, null, null )}
@@ -17,7 +18,7 @@ class JsonHelper extends BaseHelper<Object>
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ project && task && ext })
     @Ensures ({ this.project && this.task && this.ext })
-    JsonHelper ( Project project, BaseTask task, Object ext ){ super( project, task, ext )}
+    JsonHelper ( Project project, BaseTask task, BaseExtension ext ){ super( project, task, ext )}
 
 
     /**

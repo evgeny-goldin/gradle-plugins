@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.teamcity
 
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
@@ -7,7 +8,7 @@ import org.gradle.api.tasks.bundling.Jar
 
 
 @SuppressWarnings([ 'ConfusingMethodName' ])
-class TeamCityExtension
+class TeamCityExtension extends BaseExtension
 {
     /**
      * Template properties.

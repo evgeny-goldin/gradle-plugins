@@ -5,7 +5,6 @@ import groovyx.gpars.GParsPool
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 import org.gradle.api.logging.LogLevel
-
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLSession
@@ -19,7 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class MonitorTask extends BaseTask<MonitorExtension>
 {
     @Override
-    Class extensionType (){ MonitorExtension }
+    Class<MonitorExtension> extensionType (){ MonitorExtension }
 
     // http://stackoverflow.com/questions/10258101/sslhandshakeexception-no-subject-alternative-names-present?answertab=active#tab-top
     static { HttpsURLConnection.defaultHostnameVerifier = { String hostname, SSLSession session -> true } as HostnameVerifier }
@@ -37,8 +36,8 @@ class MonitorTask extends BaseTask<MonitorExtension>
     }
 
 
-    @SuppressWarnings([ 'GroovyConditionalWithIdenticalBranches', 'GroovyAccessibility' ])
     @Override
+    @SuppressWarnings([ 'GroovyConditionalWithIdenticalBranches', 'GroovyAccessibility' ])
     void taskAction()
     {
         final isPlot        = ( ext.plotBuilds > 0 )
@@ -217,7 +216,7 @@ class MonitorTask extends BaseTask<MonitorExtension>
         final buildLabel  = systemEnv.BUILD_NUMBER ?: new SimpleDateFormat( 'dd-MM.HH-mm-ss' ).format( new Date( startTime ))
         final buildId     = buildLabel.replace( '.', '-' ).replace( '#', '-' )
         final buildUrl    = systemEnv.BUILD_URL    ?: teamCityBuildUrl ?: ''
-        final plotFile    = ext.plotFile           ?: new File( project.buildDir , 'reports/plot.html' )
+        final plotFile    = ext.plotFile           ?: new File( buildDir(), 'reports/plot.html' )
         final plotDataMap = ext.plotJsonFile.file  ?  jsonToMap( ext.plotJsonFile ) : [:]
         final results     = []
         final urls        = []

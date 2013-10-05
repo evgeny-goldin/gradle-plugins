@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong
 class CrawlerTask extends BaseTask<CrawlerExtension>
 {
     @Override
-    Class extensionType (){ CrawlerExtension }
+    Class<CrawlerExtension> extensionType (){ CrawlerExtension }
 
 
     private final Queue<Future> futures         = new ConcurrentLinkedQueue<Future>()
@@ -71,7 +71,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
 
 
     @Override
-    void taskAction ()
+    void taskAction()
     {
         this.threadPool   = Executors.newFixedThreadPool( ext.threadPoolSize ) as ThreadPoolExecutor
         this.linksStorage = new LinksStorage( ext )

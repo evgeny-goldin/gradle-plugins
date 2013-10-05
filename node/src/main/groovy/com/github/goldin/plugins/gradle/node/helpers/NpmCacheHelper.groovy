@@ -32,7 +32,7 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
         final npmCacheArchive = localArchive( true )
         if ( ! npmCacheArchive?.file ) { return }
 
-        logger.info( "Unpacking 'npm install' cache [$npmCacheArchive.canonicalPath] to [$projectDir.canonicalPath]" )
+        log { "Unpacking 'npm install' cache [$npmCacheArchive.canonicalPath] to [$projectDir.canonicalPath]" }
         exec( 'tar', [ '-xzf', npmCacheArchive.canonicalPath, '-C', projectDir.canonicalPath ] )
     }
 
@@ -48,11 +48,11 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
         final npmCacheArchive = localArchive( false )
         if (( npmCacheArchive == null ) || npmCacheArchive.file ) { return }
 
-        logger.info( "Packing 'npm install' result [$nodeModules.canonicalPath] to [$npmCacheArchive.canonicalPath]" )
-        final tempFile = project.file( npmCacheArchive.name )
+        log{ "Packing 'npm install' result [$nodeModules.canonicalPath] to [$npmCacheArchive.canonicalPath]" }
 
-        project.copy { CopySpec cs -> cs.from( PACKAGE_JSON ).into( nodeModules ) }
+        project.copy { CopySpec cs -> cs.from( PACKAGE_JSON ); cs.into( nodeModules ) }
         updatePackageJson( new File( nodeModules, PACKAGE_JSON ))
+        final tempFile = project.file( npmCacheArchive.name )
 
         exec( 'tar', [ '-czf', tempFile.canonicalPath, nodeModules.name ], projectDir ) // Use relative path, not absolute!
         assert tempFile.renameTo( npmCacheArchive ) && npmCacheArchive.file, \
@@ -114,7 +114,7 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
         final map               = readRemoteRepoUrl( npmCacheArchive )
         final String archiveUrl = map.archiveUrl
 
-        logger.info( "Downloading [$archiveUrl] to [$npmCacheArchive.canonicalPath] .." )
+        log{ "Downloading [$archiveUrl] to [$npmCacheArchive.canonicalPath] .." }
 
         final response = httpRequest( archiveUrl, 'GET', [:], 0, 0, false, true, map.user, map.password )
         if ( ! (( response.statusCode == 200 ) && response.data )){ return }
@@ -124,7 +124,7 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
         assert tempFile.renameTo( npmCacheArchive ) && npmCacheArchive.file, \
                "Failed to rename [$tempFile.canonicalPath] to [$npmCacheArchive.canonicalPath]"
 
-        logger.info( "Downloaded [$archiveUrl] to [$npmCacheArchive.canonicalPath]" )
+        log{ "Downloaded [$archiveUrl] to [$npmCacheArchive.canonicalPath]" }
     }
 
 
@@ -137,14 +137,14 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
         if ( httpRequest( archiveUrl, 'HEAD', [:], 0, 0, false, false, map.user, map.password ).
              statusCode != 404 ) { return }
 
-        logger.info( "Uploading [$npmCacheArchive.canonicalPath] to [$archiveUrl] .." )
+        log{ "Uploading [$npmCacheArchive.canonicalPath] to [$archiveUrl] .." }
 
         httpRequest( archiveUrl, 'PUT', [:], 0, 0, true, true, map.user, map.password, null, npmCacheArchive.bytes )
 
         assert ( httpRequest( archiveUrl, 'HEAD', [:], 0, 0, false, true, map.user, map.password ).
                  statusCode == 200 ), "Failed to upload [$npmCacheArchive.canonicalPath] to [$archiveUrl]"
 
-        logger.info( "Uploaded [$npmCacheArchive.canonicalPath] to [$archiveUrl]" )
+        log{ "Uploaded [$npmCacheArchive.canonicalPath] to [$archiveUrl]" }
     }
 
 

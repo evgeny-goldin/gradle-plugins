@@ -17,7 +17,7 @@ import java.util.zip.ZipFile
 class DuplicatesTask extends BaseTask<DuplicatesExtension>
 {
     @Override
-    Class extensionType (){ DuplicatesExtension }
+    Class<DuplicatesExtension> extensionType (){ DuplicatesExtension }
 
 
     /**
@@ -29,7 +29,7 @@ class DuplicatesTask extends BaseTask<DuplicatesExtension>
     void verifyUpdateExtension ( String description ) {}
 
     @Override
-    void taskAction ()
+    void taskAction()
     {
         Map<String, Map<String, List<String>>> violations =
         ( Map ) project.configurations.inject( [:] ) {

@@ -1,6 +1,5 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
-import static com.github.goldin.plugins.gradle.node.NodeConstants.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
@@ -14,7 +13,8 @@ class TestTask extends NodeBaseTask
     void taskAction()
     {
         if ( ext.before || ext.beforeTest ) { shellExec( commandsScript( add( ext.before, ext.beforeTest )),
-                                                         scriptFileForTask( this.name, true ), false, true, true, false, 'before test' ) }
+                                                         baseScript( 'before test' ),
+                                                         scriptFileForTask( this.name, true ), false, true, false ) }
 
         try
         {
@@ -23,14 +23,15 @@ class TestTask extends NodeBaseTask
         finally
         {
             if ( ext.after || ext.afterTest ) { shellExec( commandsScript( add ( ext.after, ext.afterTest )),
-                                                           scriptFileForTask( this.name, false, true ), false, true, true, false, 'after test' )}
+                                                           baseScript( 'after test' ),
+                                                           scriptFileForTask( this.name, false, true ), false, true, false )}
         }
     }
 
 
     private void runTests ()
     {
-        final testReport = shellExec( testScript( ext.xUnitReport ), scriptFileForTask(), true, true, false )
+        final testReport = shellExec( testScript( ext.xUnitReport ), baseScript( this.name ), scriptFileForTask(), true, false )
 
         if ( testReport.with{ contains( '0 tests complete' ) || contains( 'no such file or directory \'test.js\'' )})
         {

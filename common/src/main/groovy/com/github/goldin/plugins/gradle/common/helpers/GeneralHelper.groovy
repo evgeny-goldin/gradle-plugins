@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.common.helpers
 
 import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
@@ -13,12 +14,12 @@ import java.security.MessageDigest
 import java.util.regex.Pattern
 
 
-class GeneralHelper extends BaseHelper<Object>
+class GeneralHelper extends BaseHelper<BaseExtension>
 {
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ project && task && ext })
     @Ensures ({ this.project && this.task && this.ext })
-    GeneralHelper ( Project project, BaseTask task, Object ext ){ super( project, task, ext )}
+    GeneralHelper ( Project project, BaseTask task, BaseExtension ext ){ super( project, task, ext )}
 
 
     @Requires({ c != null })

@@ -18,7 +18,7 @@ import org.gradle.api.tasks.bundling.Jar
 class TeamCityTask extends BaseTask<TeamCityExtension>
 {
     @Override
-    Class extensionType (){ TeamCityExtension }
+    Class<TeamCityExtension> extensionType (){ TeamCityExtension }
 
     private static final String BSR = 'buildServerResources'
 
@@ -41,13 +41,13 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
     File archive
 
 
-    private buildFile( String name, String extension = 'zip' ) { new File( project.buildDir, "teamcity/$name.$extension" )}
+    private buildFile( String name, String extension = 'zip' ) { new File( buildDir(), "teamcity/$name.$extension" )}
 
 
     TeamCityTask (){}
 
 
-    @TaskAction
+    @Override
     void taskAction()
     {
         /**

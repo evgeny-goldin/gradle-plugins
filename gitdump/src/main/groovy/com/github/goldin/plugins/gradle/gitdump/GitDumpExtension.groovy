@@ -1,9 +1,10 @@
 package com.github.goldin.plugins.gradle.gitdump
 
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
 import java.util.regex.Pattern
 
 
-class GitDumpExtension
+class GitDumpExtension  extends BaseExtension
 {
     List<String>  urls
     String        githubUser

@@ -1,13 +1,16 @@
 package com.github.goldin.plugins.gradle.node
+
+import com.github.goldin.plugins.gradle.common.CommonConstants
+
+
 /**
  * Various constants
  */
 @SuppressWarnings([ 'PropertyName' ])
-class NodeConstants
+class NodeConstants extends CommonConstants
 {
     final static String REMOVE_COLOR_CODES     = "cat -v | sed 's/\\^\\[\\[[0-9;]*[m|K]//g'" // sed-only solution didn't work on Mac :(
     final static String LOG_DELIMITER          = '-----------------------------------------------'
-    final static String Q                      = '"\\""' // Shell double quote (")
     final static String PACKAGE_JSON           = 'package.json'
 
     final static String NODE_VERSION_URL       = 'http://nodejs.org/'
@@ -15,8 +18,6 @@ class NodeConstants
     // https://github.com/creationix/nvm/commits/master
     final static String NVM_COMMIT             = 'db3035c29b2d1aa12be2411a2cdaeb2ca0bd530d'
 
-
-    final static String SCRIPT_LOCATION        = '[script-location]'
     final static String NODE_EXTENSION         = 'node'
     final static String HELP_TASK              = 'help'
     final static String CLEAN_TASK             = 'clean'

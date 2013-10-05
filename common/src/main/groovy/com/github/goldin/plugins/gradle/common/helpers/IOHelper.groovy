@@ -3,6 +3,7 @@ package com.github.goldin.plugins.gradle.common.helpers
 import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.common.HttpResponse
 import com.github.goldin.plugins.gradle.common.LoggingOutputStream
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
 import groovy.text.SimpleTemplateEngine
 import org.apache.tools.ant.DirectoryScanner
 import org.gcontracts.annotations.Ensures
@@ -13,12 +14,12 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.process.ExecSpec
 
 
-class IOHelper extends BaseHelper<Object>
+class IOHelper extends BaseHelper<BaseExtension>
 {
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ project && task && ext })
     @Ensures ({ this.project && this.task && this.ext })
-    IOHelper ( Project project, BaseTask task, Object ext ){ super( project, task, ext )}
+    IOHelper ( Project project, BaseTask task, BaseExtension ext ){ super( project, task, ext )}
 
 
     /**

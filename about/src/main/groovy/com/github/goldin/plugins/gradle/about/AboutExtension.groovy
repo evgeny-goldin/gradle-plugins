@@ -1,10 +1,11 @@
 package com.github.goldin.plugins.gradle.about
 
+import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
 import org.gradle.api.tasks.bundling.Zip
-
 import java.util.regex.Pattern
 
-class AboutExtension
+
+class AboutExtension extends BaseExtension
 {
     String    prefix              = 'META-INF'
     String    endOfLine           = 'linux'
