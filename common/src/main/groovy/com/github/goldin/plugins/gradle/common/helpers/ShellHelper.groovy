@@ -38,6 +38,7 @@ class ShellHelper extends BaseHelper<BaseShellExtension>
      * @param watchExitCodes whether script exit codes need to be monitored (by adding set -e/set -o pipefail)
      * @param failOnError    whether execution should fail if shell execution results in non-zero value
      * @param useGradleExec  whether Gradle (true) or Ant (false) exec is used
+     * @param disconnect     whether command should be run in the background (only when useGradleExec is false)
      * @param logLevel       log level to use for shell output
      *
      * @return shell output
@@ -51,9 +52,13 @@ class ShellHelper extends BaseHelper<BaseShellExtension>
                        boolean       watchExitCodes = true,
                        boolean       failOnError    = true,
                        boolean       useGradleExec  = true,
+                       boolean       disconnect     = false,
                        LogLevel      logLevel       = LogLevel.INFO )
     {
         assert scriptFile.parentFile.with { directory  || project.mkdir ( delegate ) }, "Failed to create [$scriptFile.parentFile.canonicalPath]"
+        assert ( ! disconnect ) || ( ! useGradleExec ), "Both 'disconnect' and 'useGradleExec' can't be true"
+        assert ( ! disconnect ) || ( ! failOnError ),   "Both 'disconnect' and 'failOnError' can't be true"
+
         delete( scriptFile )
 
         scriptContent = ( ext.transformers ?: [] ).inject(
@@ -80,6 +85,6 @@ class ShellHelper extends BaseHelper<BaseShellExtension>
         log( LogLevel.INFO ){ "Shell script created at [$scriptFile.canonicalPath], size [${ scriptFile.length() }] bytes" }
 
         exec( 'chmod', [ '+x', scriptFile.canonicalPath ] )
-        exec ( ext.shell, [ scriptFile.canonicalPath ], projectDir, failOnError, useGradleExec, logLevel )
+        exec( ext.shell, [ scriptFile.canonicalPath ], projectDir, failOnError, useGradleExec, disconnect, logLevel )
     }
 }

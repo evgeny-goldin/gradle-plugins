@@ -52,6 +52,7 @@ class IOHelper extends BaseHelper<BaseExtension>
       * @param directory     process working directory
       * @param failOnError   whether execution should fail in case of an error
       * @param useGradleExec whether Gradle (true) or Ant (false) exec is used
+      * @param disconnect    whether command should be run in the background (only when useGradleExec is false)
       * @param logLevel      log level to use for logging command output
       *
       * @return process standard and error output
@@ -63,6 +64,7 @@ class IOHelper extends BaseHelper<BaseExtension>
                   File         directory     = project.rootDir,
                   boolean      failOnError   = true,
                   boolean      useGradleExec = true,
+                  boolean      disconnect    = false,
                   LogLevel     logLevel      = LogLevel.INFO )
      {
          final commandDescription = "[$command]${ arguments ? ' with arguments ' + arguments : '' }" +
@@ -92,6 +94,7 @@ class IOHelper extends BaseHelper<BaseExtension>
              else
              {
                  ant.exec([ executable  : command,
+                            spawn       : disconnect,
                             failonerror : failOnError ] + ( directory ? [ dir : directory ] : [:] )){
                      arg (  line        : arguments.join ( ' ' ))
                  }

@@ -14,7 +14,8 @@ class StartTask extends PlayBaseTask
             runTask ( STOP_TASK )
         }
 
-        shellExec( startScript(), baseScript())
+        runPlay( 'stage' )
+        shellExec( startScript(), baseScript(), scriptFileForTask(), true, false, false, true )
     }
 
 
@@ -22,7 +23,6 @@ class StartTask extends PlayBaseTask
     private String startScript()
     {
         """
-        |$ext.play stage
         |./target/universal/stage/bin/${ ext.appName } ${ arguments() } &
         """.stripMargin().toString().trim()
     }

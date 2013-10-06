@@ -4,6 +4,7 @@ import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.common.helpers.ShellHelper
 import com.github.goldin.plugins.gradle.play.PlayExtension
 import com.github.goldin.plugins.gradle.play.helpers.PlayHelper
+import org.gcontracts.annotations.Requires
 
 
 /**
@@ -48,5 +49,12 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
         ext.playUrl       = "http://downloads.typesafe.com/play/${ ext.playVersion }/${ ext.playZip }"
         ext.playDirectory = home( "${ ext.playHome }/play-${ ext.playVersion }" ).canonicalPath
         ext.play          = "'${ ext.playDirectory }/play'"
+    }
+
+
+    @Requires({ command })
+    final void runPlay( String command, String arguments = '' )
+    {
+        shellExec( "$ext.play $command $arguments".trim(), baseScript(), scriptFileForTask( "play-$command" ))
     }
 }
