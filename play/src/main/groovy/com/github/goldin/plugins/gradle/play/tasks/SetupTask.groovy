@@ -28,8 +28,8 @@ class SetupTask extends PlayBaseTask
         |  unzip '$playZipPath' -d '$playHome'
         |fi
         |
-        |echo "Running Sbt:  [\$($ext.play --version)]"
-        |echo "Running Play: [\$(cd / && $ext.play license | grep 'built with Scala' 2>/dev/null)]"
+        |echo "Running Sbt:  [\$($ext.play --version${ ext.removeColorCodes })]"
+        |echo "Running Play: [\$(cd / && $ext.play license | grep 'built with Scala' 2>/dev/null${ ext.removeColorCodes })]"
         """.stripMargin().toString().trim()
     }
 }
