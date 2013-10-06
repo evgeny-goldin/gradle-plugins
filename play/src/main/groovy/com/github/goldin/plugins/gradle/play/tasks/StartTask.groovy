@@ -26,25 +26,4 @@ class StartTask extends PlayBaseTask
         |./target/universal/stage/bin/${ ext.appName } ${ arguments() } &
         """.stripMargin().toString().trim()
     }
-
-
-    /**
-     * Builds application's startup arguments.
-     *
-     * http://www.playframework.com/documentation/2.2.x/Production
-     * http://www.playframework.com/documentation/2.2.x/ProductionConfiguration
-     */
-    @Ensures ({ result != null })
-    private String arguments()
-    {
-        final arguments = new StringBuilder()
-
-        arguments << " -Dhttp.port='${ ext.port }'"
-        arguments << " -Dhttp.address='${ ext.address }'"
-        arguments << " -Dconfig.file='${ ext.config }'"
-        arguments << " -Dpidfile.path='${RUNNING_PID}'"
-        arguments << " ${ ext.arguments }"
-
-        arguments.toString().trim()
-    }
 }

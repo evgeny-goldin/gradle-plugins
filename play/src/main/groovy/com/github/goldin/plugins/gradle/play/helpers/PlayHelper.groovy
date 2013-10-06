@@ -1,6 +1,6 @@
 package com.github.goldin.plugins.gradle.play.helpers
 
-import static com.github.goldin.plugins.gradle.common.CommonConstants.*
+import static com.github.goldin.plugins.gradle.play.PlayConstants.*
 import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
 import com.github.goldin.plugins.gradle.play.PlayExtension
 import com.github.goldin.plugins.gradle.play.tasks.PlayBaseTask
@@ -36,4 +36,24 @@ class PlayHelper extends BaseHelper<PlayExtension>
         """.stripMargin().toString().trim()
     }
 
+
+    /**
+     * Builds application's startup arguments.
+     *
+     * http://www.playframework.com/documentation/2.2.x/Production
+     * http://www.playframework.com/documentation/2.2.x/ProductionConfiguration
+     */
+    @Ensures ({ result })
+    String arguments()
+    {
+        final arguments = new StringBuilder()
+
+        arguments << " -Dhttp.port='${ ext.port }'"
+        arguments << " -Dhttp.address='${ ext.address }'"
+        arguments << " -Dconfig.file='${ ext.config }'"
+        arguments << " -Dpidfile.path='${RUNNING_PID}'"
+        arguments << " ${ ext.arguments }"
+
+        arguments.toString().trim()
+    }
 }
