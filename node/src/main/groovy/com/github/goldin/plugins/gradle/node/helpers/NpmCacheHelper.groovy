@@ -22,7 +22,7 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
 
 
     @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
-    void restoreNodeModulesFromCache ()
+    void restoreNodeModulesFromCache()
     {
         if ( ! ext.npmLocalCache ){ return }
 
@@ -38,7 +38,7 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
 
 
     @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])
-    void createNodeModulesCache ()
+    void createNodeModulesCache()
     {
         if ( ! ext.npmLocalCache ){ return }
 
@@ -91,7 +91,7 @@ class NpmCacheHelper extends BaseHelper<NodeExtension>
      * @return checksum of "package.json" dependencies or empty {@code String}
      */
     @Ensures({ result != null })
-    private String packageJsonChecksum ()
+    private String packageJsonChecksum()
     {
         final packageJson = project.file( PACKAGE_JSON )
         if ( ! packageJson.file ) { return '' }

@@ -11,7 +11,7 @@ class MatcherHelperSpec extends BaseSpecification
 {
     @Delegate final MatcherHelper helper = new MatcherHelper()
 
-    def 'Content matches single matcher' ()
+    def 'Content matches single matcher'()
     {
         expect:
         contentMatches( content, pattern, '' )
@@ -39,7 +39,7 @@ class MatcherHelperSpec extends BaseSpecification
     }
 
 
-    def 'Content matches multiple matchers' ()
+    def 'Content matches multiple matchers'()
     {
         expect:
         contentMatches( content, pattern, '*' )
@@ -56,7 +56,7 @@ class MatcherHelperSpec extends BaseSpecification
 
 
     @SuppressWarnings([ 'LineLength' ])
-    def 'Content matches JSON matchers' ()
+    def 'Content matches JSON matchers'()
     {
         expect:
         contentMatches( content, pattern, '*' )

@@ -76,7 +76,7 @@ class LoggingOutputStream extends OutputStream
     }
 
 
-    private void printContent ()
+    private void printContent()
     {
         logger.log( logLevel, logPrefix + content.toString().readLines().join( "\n$logPrefix" ))
         content.reset()
@@ -84,9 +84,9 @@ class LoggingOutputStream extends OutputStream
 
 
     @Override
-    void close () { if ( ! content.empty ){ printContent() }}
+    void close() { if ( ! content.empty ){ printContent() }}
 
 
     @Override
-    String toString () { wholeContent.toString() }
+    String toString() { wholeContent.toString() }
 }

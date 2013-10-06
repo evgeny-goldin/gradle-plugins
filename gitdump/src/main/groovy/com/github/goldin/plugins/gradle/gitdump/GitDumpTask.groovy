@@ -11,7 +11,7 @@ import org.gcontracts.annotations.Requires
 class GitDumpTask extends BaseTask<GitDumpExtension>
 {
     @Override
-    Class<GitDumpExtension> extensionType (){ GitDumpExtension }
+    Class<GitDumpExtension> extensionType(){ GitDumpExtension }
 
 
     @Requires({ dir })
@@ -197,7 +197,7 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     }
 
 
-    private void initAboutFile ()
+    private void initAboutFile()
     {
         if ( ext.aboutFile )
         {

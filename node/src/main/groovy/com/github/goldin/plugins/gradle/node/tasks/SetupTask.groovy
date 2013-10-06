@@ -78,7 +78,7 @@ class SetupTask extends NodeBaseTask
 
 
     @Requires({ ext.configs })
-    private void printConfigs ()
+    private void printConfigs()
     {
         for ( File configFile in ext.configs*.keySet().flatten()*.toString().toSet().collect{ checkFile( it )})
         {

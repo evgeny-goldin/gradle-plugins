@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong
 class CrawlerTask extends BaseTask<CrawlerExtension>
 {
     @Override
-    Class<CrawlerExtension> extensionType (){ CrawlerExtension }
+    Class<CrawlerExtension> extensionType(){ CrawlerExtension }
 
 
     private final Queue<Future> futures         = new ConcurrentLinkedQueue<Future>()
@@ -130,7 +130,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     /**
      * Prints startup banner.
      */
-    void printStartBanner ()
+    void printStartBanner()
     {
         crawlerLog {
             final ipAddress     = (( ext.rootUrl ==~ /^\d+\.\d+\.\d+\.\d+$/ ) ? '' : " (${ InetAddress.getByName( ext.rootUrl.replaceFirst( /:\d+$/, '' )).hostAddress })" )
@@ -155,7 +155,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
      *
      * @param ext
      */
-    void submitRootLinks ()
+    void submitRootLinks()
     {
         for ( link in linksStorage.addLinksToProcess( '', ext.rootLinks ).sort())
         {
@@ -168,7 +168,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     /**
      * Blocks until there is no more activity in a thread pool, meaning all links are checked.
      */
-    void waitForIdle ()
+    void waitForIdle()
     {
         while (( ! crawlingAborted ) && futures.any{ ! it.done } )
         {
@@ -209,7 +209,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     /**
      * Prints finish report after all links are checked.
      */
-    void printFinishReport ()
+    void printFinishReport()
     {
         if ( ext.teamcityMessages ) { logTeamCityProgressMessage( 'Writing report' )}
 
@@ -271,7 +271,7 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     /**
      * Writes "links map" files.
      */
-    void writeLinksMapFiles ()
+    void writeLinksMapFiles()
     {
         final print = {
             File file, Map<String, List<String>> linksMap, String title ->

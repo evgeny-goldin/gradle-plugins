@@ -81,7 +81,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
      */
     @Requires({ ext.scriptPath })
     @Ensures ({ result })
-    String killProcesses ()
+    String killProcesses()
     {
         final  killProcesses = "forever,${ projectDir.name }|${ ext.scriptPath },${ projectDir.name }"
         killProcesses.trim().tokenize( '|' )*.trim().grep().collect {
@@ -131,7 +131,7 @@ class NodeHelper extends BaseHelper<NodeExtension>
 
 
     @Ensures ({ result != null })
-    private List<Map<String, ?>> readConfigs ()
+    private List<Map<String, ?>> readConfigs()
     {
         final result = []
 

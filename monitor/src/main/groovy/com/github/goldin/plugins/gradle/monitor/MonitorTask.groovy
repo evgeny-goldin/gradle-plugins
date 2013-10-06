@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class MonitorTask extends BaseTask<MonitorExtension>
 {
     @Override
-    Class<MonitorExtension> extensionType (){ MonitorExtension }
+    Class<MonitorExtension> extensionType(){ MonitorExtension }
 
     // http://stackoverflow.com/questions/10258101/sslhandshakeexception-no-subject-alternative-names-present?answertab=active#tab-top
     static { HttpsURLConnection.defaultHostnameVerifier = { String hostname, SSLSession session -> true } as HostnameVerifier }

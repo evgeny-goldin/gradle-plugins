@@ -28,7 +28,7 @@ class HttpResponse
     byte[]            content        // Content decompressed from the binary data
     long              timeMillis     // Time in milliseconds it took to receive and process the response
 
-    boolean getIsRedirect (){ originalUrl != actualUrl }
+    boolean getIsRedirect(){ originalUrl != actualUrl }
 
 
     @Requires({ url && method })
@@ -64,7 +64,7 @@ class HttpResponse
 
     @Requires({ connection && ( data != null ) })
     @Ensures ({ result != null })
-    private byte[] decodeContent ()
+    private byte[] decodeContent()
     {
         final contentEncoding = connection.getHeaderField( 'Content-Encoding' )
 

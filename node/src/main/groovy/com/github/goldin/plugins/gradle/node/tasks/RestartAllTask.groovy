@@ -20,7 +20,7 @@ class RestartAllTask extends NodeBaseTask
 
 
     @Ensures({ result })
-    private String restartallScript ()
+    private String restartallScript()
     {
         """
         |echo ${ forever() } restartall

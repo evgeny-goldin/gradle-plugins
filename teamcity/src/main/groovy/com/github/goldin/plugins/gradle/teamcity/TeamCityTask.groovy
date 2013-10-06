@@ -18,7 +18,7 @@ import org.gradle.api.tasks.bundling.Jar
 class TeamCityTask extends BaseTask<TeamCityExtension>
 {
     @Override
-    Class<TeamCityExtension> extensionType (){ TeamCityExtension }
+    Class<TeamCityExtension> extensionType(){ TeamCityExtension }
 
     private static final String BSR = 'buildServerResources'
 
@@ -44,7 +44,7 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
     private buildFile( String name, String extension = 'zip' ) { new File( buildDir(), "teamcity/$name.$extension" )}
 
 
-    TeamCityTask (){}
+    TeamCityTask(){}
 
 
     @Override
@@ -182,7 +182,7 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
      *
      * @return resources file archive
      */
-    private File archiveServerResources ()
+    private File archiveServerResources()
     {
         final serverResourcesDir = ext.serverResources
         final path               = serverResourcesDir.canonicalPath
@@ -209,7 +209,7 @@ class TeamCityTask extends BaseTask<TeamCityExtension>
      * @return temporary file with 'teamcity-plugin.xml' content, needs to be deleted later!
      */
     @Ensures({ result.file })
-    File pluginXmlFile ()
+    File pluginXmlFile()
     {
         final writer  = new StringWriter()
         final builder = new MarkupBuilder( writer )

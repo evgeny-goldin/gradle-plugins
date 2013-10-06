@@ -10,7 +10,7 @@ class CheckStoppedTask extends PlayBaseTask
 {
     @Override
     @Requires({ ext.checks })
-    void taskAction ()
+    void taskAction()
     {
         ext.checks.findAll { String checkUrl, list -> checkUrl.startsWith( "http://127.0.0.1:${ ext.port }" ) }.each {
             String checkUrl, List<?> list ->

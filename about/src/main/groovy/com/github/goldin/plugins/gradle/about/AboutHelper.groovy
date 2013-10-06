@@ -103,21 +103,21 @@ class AboutHelper extends BaseHelper<AboutExtension>
     String serverContent()
     {
         ( project.hasProperty( 'teamcity' ) ? teamcityContent() :
-          systemEnv.JENKINS_URL             ? jenkinsContent () :
-          systemEnv.HUDSON_URL              ? hudsonContent  () :
+          systemEnv.JENKINS_URL             ? jenkinsContent() :
+          systemEnv.HUDSON_URL              ? hudsonContent() :
                                               '' )
     }
 
 
     @Ensures({ result })
-    String buildContent ()
+    String buildContent()
     {
         buildContent0() + "\n$SEPARATOR"
     }
 
 
     @Ensures({ result })
-    String buildContent0 ()
+    String buildContent0()
     {
         // noinspection GroovyPointlessBoolean
         final includeDependencies = ( ext.includeDependencies != false ) && ( ext.includeDependencies != 'false' )
@@ -174,7 +174,7 @@ class AboutHelper extends BaseHelper<AboutExtension>
 
     @SuppressWarnings([ 'GroovyPointlessBoolean' ])
     @Ensures({ result })
-    String dependenciesContent ()
+    String dependenciesContent()
     {
         assert ( ext.includeDependencies != false ) && ( ext.includeDependencies != 'false' )
 
@@ -202,7 +202,7 @@ class AboutHelper extends BaseHelper<AboutExtension>
 
 
     @Ensures({ result })
-    private DependencyReportRenderer asciiReportRenderer ()
+    private DependencyReportRenderer asciiReportRenderer()
     {
         try
         {   // Gradle 1.2

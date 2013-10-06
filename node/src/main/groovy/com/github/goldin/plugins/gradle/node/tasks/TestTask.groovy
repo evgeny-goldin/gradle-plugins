@@ -29,7 +29,7 @@ class TestTask extends NodeBaseTask
     }
 
 
-    private void runTests ()
+    private void runTests()
     {
         final testReport = shellExec( testScript( ext.xUnitReport ), baseScript(), scriptFileForTask(), true, false )
 

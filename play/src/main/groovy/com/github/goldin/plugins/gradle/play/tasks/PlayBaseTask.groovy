@@ -17,7 +17,7 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
     @Delegate PlayHelper   playHelper
 
     @Override
-    Class<PlayExtension> extensionType (){ PlayExtension }
+    Class<PlayExtension> extensionType(){ PlayExtension }
 
 
     @Override

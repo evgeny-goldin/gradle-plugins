@@ -17,7 +17,7 @@ import org.gcontracts.annotations.Requires
 abstract class NodeBaseTask extends BaseTask<NodeExtension>
 {
     @Override
-    Class<NodeExtension> extensionType (){ NodeExtension }
+    Class<NodeExtension> extensionType(){ NodeExtension }
 
     @Delegate ShellHelper    shellHelper
     @Delegate NodeHelper     nodeHelper

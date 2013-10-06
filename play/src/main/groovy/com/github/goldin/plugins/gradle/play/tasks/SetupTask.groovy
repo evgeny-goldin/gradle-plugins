@@ -6,7 +6,7 @@ import org.gcontracts.annotations.Ensures
 class SetupTask extends PlayBaseTask
 {
     @Override
-    void taskAction ()
+    void taskAction()
     {
         runTools([ "$ext.shell --version" ])
         shellExec( setupScript(), baseScript())
@@ -14,7 +14,7 @@ class SetupTask extends PlayBaseTask
 
 
     @Ensures ({ result })
-    private String setupScript ()
+    private String setupScript()
     {
         final playHome    = home( ext.playHome )
         final playZipPath = "$playHome/$ext.playZip"

@@ -12,7 +12,7 @@ import org.gradle.api.tasks.bundling.Zip
 class AboutTask extends BaseTask<AboutExtension>
 {
     @Override
-    Class<AboutExtension> extensionType (){ AboutExtension }
+    Class<AboutExtension> extensionType(){ AboutExtension }
 
     @Delegate AboutHelper helper
 
@@ -63,7 +63,7 @@ class AboutTask extends BaseTask<AboutExtension>
      * @return   archives to be updated by the plugin
      */
     @Ensures({ result != null })
-    private List<File> archivesToUpdate ()
+    private List<File> archivesToUpdate()
     {
         if ( ! ext.patterns ) { return [] }
 
@@ -77,7 +77,7 @@ class AboutTask extends BaseTask<AboutExtension>
      * @return about file generated, should be deleted when task has finished!
      */
     @Ensures({ result.file })
-    private File createAboutFile ()
+    private File createAboutFile()
     {
         final aboutFile = new File( temporaryDir, ext.fileName ?: 'about.txt' )
 
@@ -93,7 +93,7 @@ class AboutTask extends BaseTask<AboutExtension>
 
 
     @Ensures({ result })
-    private String pluginVersion ()
+    private String pluginVersion()
     {
         final properties = new Properties()
         properties.load( getResource( 'META-INF/gradle-plugins/about.properties' ))

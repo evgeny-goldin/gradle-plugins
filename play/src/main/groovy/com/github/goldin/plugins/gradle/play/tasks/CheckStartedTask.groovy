@@ -14,7 +14,7 @@ class CheckStartedTask extends PlayBaseTask
 {
     @Override
     @Requires({ ext.checks })
-    void taskAction ()
+    void taskAction()
     {
         sleepMs( ext.checkWait * 1000 )
 

@@ -30,7 +30,7 @@ class StopAllTask extends NodeBaseTask
 
 
     @Ensures({ result })
-    private String stopallScript ()
+    private String stopallScript()
     {
         """
         |set +e

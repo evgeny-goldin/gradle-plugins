@@ -67,7 +67,7 @@ class StartTask extends NodeBaseTask
     }
 
 
-    private void logPidFile ()
+    private void logPidFile()
     {
         pidFile().with {
             File f ->
@@ -92,7 +92,7 @@ class StartTask extends NodeBaseTask
 
 
     @Requires({ ext.printUrl })
-    private void printApplicationUrls ()
+    private void printApplicationUrls()
     {
         final String localUrl  = "http://127.0.0.1:${ ext.port }${ ext.printUrl }"
         final String publicUrl = ( ext.publicIp ? "http://${ ext.publicIp }:${ ext.port }${ ext.printUrl }" : '' )
@@ -102,7 +102,7 @@ class StartTask extends NodeBaseTask
     }
 
 
-    private void createStartupScript ()
+    private void createStartupScript()
     {
         final startupScript = scriptFileForTask( "startup-${ projectName }-${ ext.port }" )
         final currentUser   = exec( 'whoami' )

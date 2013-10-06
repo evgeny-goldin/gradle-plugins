@@ -17,7 +17,7 @@ import java.util.zip.ZipFile
 class DuplicatesTask extends BaseTask<DuplicatesExtension>
 {
     @Override
-    Class<DuplicatesExtension> extensionType (){ DuplicatesExtension }
+    Class<DuplicatesExtension> extensionType(){ DuplicatesExtension }
 
 
     /**

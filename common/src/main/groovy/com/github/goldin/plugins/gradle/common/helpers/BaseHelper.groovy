@@ -19,7 +19,7 @@ abstract class BaseHelper<T extends BaseExtension>
 
 
     @Ensures({ result })
-    File buildDir (){ project.buildDir }
+    File buildDir(){ project.buildDir }
 
 
     @SuppressWarnings([ 'GrFinalVariableAccess' ])
