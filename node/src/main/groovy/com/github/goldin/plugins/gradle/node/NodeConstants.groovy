@@ -9,7 +9,6 @@ import com.github.goldin.plugins.gradle.common.CommonConstants
 @SuppressWarnings([ 'PropertyName' ])
 class NodeConstants extends CommonConstants
 {
-    final static String REMOVE_COLOR_CODES     = "cat -v | sed 's/\\^\\[\\[[0-9;]*[m|K]//g'" // sed-only solution didn't work on Mac :(
     final static String PACKAGE_JSON           = 'package.json'
 
     final static String NODE_VERSION_URL       = 'http://nodejs.org/'

@@ -1,11 +1,10 @@
 package com.github.goldin.plugins.gradle.common
 
+@SuppressWarnings([ 'GroovyConstantNamingConvention' ])
 class CommonConstants
 {
-    @SuppressWarnings([ 'GroovyConstantNamingConvention' ])
-    static final String Q               = '"\\""' // Shell double quote (")
-
-    static final String SCRIPT_LOCATION = '[script-location]'
-    final static String LOG_DELIMITER   = '-----------------------------------------------'
-
+    static final String Q                  = '"\\""' // Shell double quote (")
+    static final String SCRIPT_LOCATION    = '[script-location]'
+    final static String LOG_DELIMITER      = '-----------------------------------------------'
+    final static String REMOVE_COLOR_CODES = "cat -v | sed 's/\\^\\[\\[[0-9;]*[m|K]//g'" // sed-only solution didn't work on Mac :(
 }

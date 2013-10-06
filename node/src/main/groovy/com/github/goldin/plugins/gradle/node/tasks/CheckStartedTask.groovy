@@ -54,7 +54,7 @@ class CheckStartedTask extends NodeBaseTask
                 log( LogLevel.ERROR ) { errorMessage }
 
                 runTask( LIST_TASK )
-                shellExec( tailLogScript(), baseScript( displayLogStep ), scriptFileForTask( 'tail-log' ), false, false, true, LogLevel.ERROR )
+                shellExec( tailLogScript(), baseScript( displayLogStep ), scriptFileForTask( 'tail-log' ), false, false, true, false, LogLevel.ERROR )
 
                 if ( ext.stopIfFailsToStart ){ runTask( STOP_TASK )}
 

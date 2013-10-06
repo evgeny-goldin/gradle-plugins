@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
+import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.common.helpers.ShellHelper
 import com.github.goldin.plugins.gradle.play.PlayExtension
@@ -45,16 +46,17 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
 
     private void updateExtension()
     {
-        ext.playZip       = "play-${ ext.playVersion }.zip"
-        ext.playUrl       = "http://downloads.typesafe.com/play/${ ext.playVersion }/${ ext.playZip }"
-        ext.playDirectory = home( "${ ext.playHome }/play-${ ext.playVersion }" ).canonicalPath
-        ext.play          = "'${ ext.playDirectory }/play'"
+        ext.playZip          = "play-${ ext.playVersion }.zip"
+        ext.playUrl          = "http://downloads.typesafe.com/play/${ ext.playVersion }/${ ext.playZip }"
+        ext.playDirectory    = home( "${ ext.playHome }/play-${ ext.playVersion }" ).canonicalPath
+        ext.play             = "'${ ext.playDirectory }/play'"
+        ext.removeColorCodes = ( ext.removeColor ? " | $REMOVE_COLOR_CODES" : '' )
     }
 
 
     @Requires({ command })
     final void runPlay( String command, String arguments = '' )
     {
-        shellExec( "$ext.play $command $arguments".trim(), baseScript(), scriptFileForTask( "play-$command" ))
+        shellExec( "$ext.play $command $arguments${ ext.removeColorCodes }".trim(), baseScript(), scriptFileForTask( "play-$command" ))
     }
 }

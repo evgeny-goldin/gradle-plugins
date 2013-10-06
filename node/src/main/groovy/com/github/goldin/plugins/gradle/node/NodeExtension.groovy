@@ -15,13 +15,7 @@ class NodeExtension extends BaseShellExtension
     String       testCommand              = 'mocha'
     String       testInput                = 'test'
 
-    /**
-     * Whether color codes should be removed from command outputs.
-     */
-    boolean      removeColor              = 'BUILD_NUMBER JENKINS_URL TEAMCITY_VERSION'.split().any{ System.getenv( it ) != null }
-
     String       foreverOptions                   // Additional command-line 'forever' options, such as '-w -v'
-    String       removeColorCodes                 // Internal property
     boolean      configMergePreserveOrder = true  // Whether configs merge should preserve keys order (more risky, some nasty regexes are involved)
     boolean      xUnitReport              = true  // Whether xUnit report should be created when tests are run
     String       xUnitReportFile          = 'TEST-node.xml'  // xUnit report file name written to the test-results directory
