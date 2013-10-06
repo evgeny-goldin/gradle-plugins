@@ -10,6 +10,7 @@ class ShellExtension extends BaseExtension
     List<Closure> transformers   = []    // Callbacks to invoke after every shell script is generated
     boolean       verbose        = false // Whether scripts generated should have 'set -x' added (will print out every command executed)
     boolean       startupScript  = false // Whether a startup script should be created in 'build' directory
+    Map<String,Object> env       = [:]   // Environment variables to set before application is started
 
     /**
      * Whether color codes should be removed from command outputs.

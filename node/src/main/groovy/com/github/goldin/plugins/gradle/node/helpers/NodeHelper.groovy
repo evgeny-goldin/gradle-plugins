@@ -169,8 +169,8 @@ class NodeHelper extends BaseHelper<NodeExtension>
         |echo Now using forever `${ forever() } --version`
         |
         |echo $LOG_DELIMITER${ ext.publicIp ? "\n|echo \"Running on $Q${ ext.publicIp }$Q\"" : '' }
-        |echo "Executing ${ ext.publicIp ? ' ' : '' }$Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
-        |echo "Running   ${ ext.publicIp ? ' ' : '' }$SCRIPT_LOCATION"
+        |echo "Running   ${ ext.publicIp ? ' ' : '' }$Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
+        |echo "Executing ${ ext.publicIp ? ' ' : '' }$SCRIPT_LOCATION"
         |${ ext.env.keySet().collect { "echo \"\\\$${ it.padRight( envPadSize )} = \$$it\"" }.join( '\n' ) }
         |echo $LOG_DELIMITER
         |

@@ -52,6 +52,10 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
         ext.playDirectory    = home( "${ ext.playHome }/play-${ ext.playVersion }" ).canonicalPath
         ext.play             = "'${ ext.playDirectory }/play'"
         ext.removeColorCodes = ( ext.removeColor ? " | $REMOVE_COLOR_CODES" : '' )
+        ext.env.PORT         = ext.port
+
+        // https://wiki.jenkins-ci.org/display/JENKINS/Spawning+processes+from+build
+        if ( systemEnv.JENKINS_URL != null ){ ext.env.BUILD_ID = 'JenkinsLetMeSpawn' }
     }
 
 

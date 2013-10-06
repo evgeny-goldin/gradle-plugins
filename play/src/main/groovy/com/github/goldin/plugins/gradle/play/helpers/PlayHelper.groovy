@@ -27,10 +27,16 @@ class PlayHelper extends BaseHelper<PlayExtension>
     @Ensures ({ result })
     String baseScript ( String operationTitle = this.task.name )
     {
+        assert ( ext.env && ( ! ext.env.values().any { it == null } ))
+        final envPadSize = ext.env.keySet()*.length().max()
+
         """
+        |${ ext.env.collect { String variable, Object value -> "export $variable=$value" }.join( '\n' )}
+        |
         |echo $LOG_DELIMITER
-        |echo "Executing $Q$operationTitle$Q${ operationTitle == this.name ? ' task' : '' } in $Q`pwd`$Q"
-        |echo "Running   $SCRIPT_LOCATION"
+        |echo "Running   $Q$operationTitle$Q${ operationTitle == this.name ? ' task' : '' } in $Q`pwd`$Q"
+        |echo "Executing $SCRIPT_LOCATION"
+        |${ ext.env.keySet().collect { "echo \"\\\$${ it.padRight( envPadSize )} = \$$it\"" }.join( '\n' ) }
         |echo $LOG_DELIMITER
         |
         """.stripMargin().toString().trim()
