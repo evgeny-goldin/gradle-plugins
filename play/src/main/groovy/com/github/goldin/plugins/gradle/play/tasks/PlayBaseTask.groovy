@@ -82,9 +82,11 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
     }
 
 
-    @Requires({ command })
+    @Requires({ command && ( arguments != null ) })
     final void runPlay( String command, String arguments = '' )
     {
-        shellExec( "$ext.play $command $arguments${ ext.removeColorCodes }".trim(), baseScript( "play $command" ), scriptFileForTask( "play-$command" ))
+        shellExec( "$ext.play $arguments $command${ ext.removeColorCodes }".trim(),
+                   baseScript( "play $command" ),
+                   scriptFileForTask( "play-${ command.replaceAll( /\W/, '' ) }" ))
     }
 }

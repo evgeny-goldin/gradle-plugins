@@ -35,7 +35,6 @@ class PlayHelper extends BaseHelper<PlayExtension>
         |
         |echo $LOG_DELIMITER
         |echo "Running   $Q$operationTitle$Q${ operationTitle == this.name ? ' task' : '' } in $Q`pwd`$Q"
-        |echo "Arguments $Q${ ext.playArguments }$Q"
         |echo "Executing $SCRIPT_LOCATION"
         |${ ext.env.keySet().collect { "echo \"\\\$${ it.padRight( envPadSize )} = \$$it\"" }.join( '\n' ) }
         |echo $LOG_DELIMITER
