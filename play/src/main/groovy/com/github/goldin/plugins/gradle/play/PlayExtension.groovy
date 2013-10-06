@@ -25,7 +25,8 @@ class PlayExtension extends ShellExtension
      * Internal properties
      */
 
-    boolean updated = false
+    boolean updated       = false
+    String  playArguments = ''
     String  playZip
     String  playUrl
     String  playDirectory

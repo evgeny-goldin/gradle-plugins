@@ -13,6 +13,6 @@ class RunTask extends PlayBaseTask
             runTask ( STOP_TASK )
         }
 
-        runPlay( '~run', arguments())
+        runPlay( '~run', ext.playArguments )
     }
 }

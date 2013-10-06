@@ -35,31 +35,11 @@ class PlayHelper extends BaseHelper<PlayExtension>
         |
         |echo $LOG_DELIMITER
         |echo "Running   $Q$operationTitle$Q${ operationTitle == this.name ? ' task' : '' } in $Q`pwd`$Q"
+        |echo "Arguments $Q${ ext.playArguments }$Q"
         |echo "Executing $SCRIPT_LOCATION"
         |${ ext.env.keySet().collect { "echo \"\\\$${ it.padRight( envPadSize )} = \$$it\"" }.join( '\n' ) }
         |echo $LOG_DELIMITER
         |
         """.stripMargin().toString().trim()
-    }
-
-
-    /**
-     * Builds application's startup arguments.
-     *
-     * http://www.playframework.com/documentation/2.2.x/Production
-     * http://www.playframework.com/documentation/2.2.x/ProductionConfiguration
-     */
-    @Ensures ({ result })
-    String arguments()
-    {
-        final arguments = new StringBuilder()
-
-        arguments << " -Dhttp.port='${ ext.port }'"
-        arguments << " -Dhttp.address='${ ext.address }'"
-        arguments << " -Dconfig.file='${ ext.config }'"
-        arguments << " -Dpidfile.path='${RUNNING_PID}'"
-        arguments << " ${ ext.arguments }"
-
-        arguments.toString().trim()
     }
 }

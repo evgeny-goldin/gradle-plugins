@@ -1,11 +1,12 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
-import static com.github.goldin.plugins.gradle.common.CommonConstants.*
+import static com.github.goldin.plugins.gradle.play.PlayConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.common.helpers.ShellHelper
 import com.github.goldin.plugins.gradle.play.PlayExtension
 import com.github.goldin.plugins.gradle.play.helpers.PlayHelper
 import org.gcontracts.annotations.Requires
+import org.gcontracts.annotations.Ensures
 
 
 /**
@@ -47,6 +48,7 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
     private void updateExtension()
     {
         ext.checks           = updateChecks( ext.checks, ext.port )
+        ext.playArguments    = playArguments()
         ext.playZip          = "play-${ ext.playVersion }.zip"
         ext.playUrl          = "http://downloads.typesafe.com/play/${ ext.playVersion }/${ ext.playZip }"
         ext.playDirectory    = home( "${ ext.playHome }/play-${ ext.playVersion }" ).canonicalPath
@@ -56,6 +58,27 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
 
         // https://wiki.jenkins-ci.org/display/JENKINS/Spawning+processes+from+build
         if ( systemEnv.JENKINS_URL != null ){ ext.env.BUILD_ID = 'JenkinsLetMeSpawn' }
+    }
+
+
+    /**
+     * Builds application's startup arguments.
+     *
+     * http://www.playframework.com/documentation/2.2.x/Production
+     * http://www.playframework.com/documentation/2.2.x/ProductionConfiguration
+     */
+    @Ensures ({ result })
+    private String playArguments()
+    {
+        final arguments = new StringBuilder()
+
+        arguments << " -Dhttp.port='$ext.port'"
+        arguments << " -Dhttp.address='$ext.address'"
+        arguments << " -Dconfig.file='$ext.config'"
+        arguments << " -Dpidfile.path='$RUNNING_PID'"
+        arguments << " $ext.arguments"
+
+        arguments.toString().trim()
     }
 
 

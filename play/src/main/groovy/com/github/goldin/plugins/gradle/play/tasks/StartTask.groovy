@@ -24,7 +24,7 @@ class StartTask extends PlayBaseTask
     private String startScript()
     {
         """
-        |./target/universal/stage/bin/${ ext.appName } ${ arguments() }${ ext.removeColorCodes } &
+        |./target/universal/stage/bin/${ ext.appName } ${ ext.playArguments }${ ext.removeColorCodes } &
         """.stripMargin().toString().trim()
     }
 }
