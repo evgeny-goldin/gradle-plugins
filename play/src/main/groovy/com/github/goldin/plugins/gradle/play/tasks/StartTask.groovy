@@ -16,6 +16,7 @@ class StartTask extends PlayBaseTask
 
         runPlay( 'stage' )
         shellExec( startScript(), baseScript(), scriptFileForTask(), true, false, false, true )
+        if ( ext.checkAfterStart ) { runTask( CHECK_STARTED_TASK )}
     }
 
 

@@ -72,8 +72,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Requires({ ! ext.updated })
     private void updateExtension()
     {
-        updateChecks()
-
+        ext.checks     = updateChecks( ext.checks, ext.port )
         ext.scriptPath = ext.scriptPath ?: ( ext.knownScriptPaths ?: [] ).find { new File( projectDir, it ).file }
         assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \
                "Couldn't find an application script to run! Specify 'scriptPath' in $description or use " +
@@ -98,24 +97,5 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
 
         addRedis()
         addMongo()
-    }
-
-
-    @Requires({ ext.checks })
-    private void updateChecks()
-    {
-        final newChecks = [:]
-
-        ext.checks.every {
-            String url, List content ->
-            assert url && content && ( content.size() == 2 )
-
-            final newUrl = ( url.startsWith( 'http' ) ? url : "http://127.0.0.1:${ ext.port }${ url.startsWith( '/' ) ? '' : '/' }${ url }" ).toString()
-            assert ( ! newChecks.containsValue( newUrl )), "Duplicate check url [$newUrl] - mapped to ${ newChecks[ newUrl ]} and $content"
-            newChecks[ newUrl ] = content
-        }
-
-        assert newChecks && ( newChecks.size() == ext.checks.size())
-        ext.checks = newChecks
     }
 }

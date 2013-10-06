@@ -1,21 +1,19 @@
 package com.github.goldin.plugins.gradle.play
 
-import com.github.goldin.plugins.gradle.common.extensions.BaseShellExtension
+import com.github.goldin.plugins.gradle.common.extensions.ShellExtension
 
 
 @SuppressWarnings([ 'UnusedVariable' ])
-class PlayExtension extends BaseShellExtension
+class PlayExtension extends ShellExtension
 {
     String  appName
     String  playVersion     = '2.2.0'
     String  playHome        = '.play'
 
-    int     port            = 9000
+    int     port            = 9000 // Port the application starts on
     String  address         = '0.0.0.0'
     String  config          = 'conf/application.conf'
     String  arguments       = ''
-
-    boolean stopBeforeStart = true  // Whether 'stop' should run before 'start'
 
     int     debugPort       = 8000
     boolean debug           = false

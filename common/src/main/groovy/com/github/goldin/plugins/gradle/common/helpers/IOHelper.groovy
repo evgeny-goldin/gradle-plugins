@@ -423,35 +423,35 @@ class IOHelper extends BaseHelper<BaseExtension>
     /**
      * Invokes an HTTP request using the data provided.
      *
-     * @param url            url to send the request to
-     * @param method         HTTP method to use: 'GET' or 'HEAD'
-     * @param headers        HTTP headers to send
-     * @param connectTimeout connection timeout to set (in milliseconds)
-     * @param readTimeout    connection read timeout to set (in milliseconds)
-     * @param failOnError    whether execution should fail if sending request fails
-     * @param logError       whether an error thrown should be logged
-     * @param username       username to authenticate with using Basic authentication
-     * @param password       userame to authenticate with using Basic authentication
-     * @param isReadContent  closure returning boolean value of whether or not content should be read,
-     *                       passed {@link com.github.goldin.plugins.gradle.common.HttpResponse} when called
-     * @param data           data to send if method is POST or PUT
+     * @param url              url to send the request to
+     * @param method           HTTP method to use: 'GET' or 'HEAD'
+     * @param headers          HTTP headers to send
+     * @param connectTimeoutMs connection timeout to set (in milliseconds)
+     * @param readTimeoutMs    connection read timeout to set (in milliseconds)
+     * @param failOnError      whether execution should fail if sending request fails
+     * @param logError         whether an error thrown should be logged
+     * @param username         username to authenticate with using Basic authentication
+     * @param password         userame to authenticate with using Basic authentication
+     * @param isReadContent    closure returning boolean value of whether or not content should be read,
+     *                         passed {@link com.github.goldin.plugins.gradle.common.HttpResponse} when called
+     * @param data             data to send if method is POST or PUT
      *
      * @return http response object
      */
-    @Requires({ url && method && ( headers != null ) && ( connectTimeout > -1 ) && ( readTimeout > -1 ) })
+    @Requires({ url && method && ( headers != null ) && ( connectTimeoutMs > -1 ) && ( readTimeoutMs > -1 ) })
     @Ensures ({ result })
     @SuppressWarnings([ 'GroovyGetterCallCanBePropertyAccess', 'JavaStylePropertiesInvocation', 'GroovyMethodParameterCount', 'GroovyAssignmentToMethodParameter' ])
     HttpResponse httpRequest( String              url,
-                              String              method         = 'GET',
-                              Map<String, String> headers        = [:],
-                              int                 connectTimeout = 0,
-                              int                 readTimeout    = 0,
-                              boolean             failOnError    = true,
-                              boolean             logError       = true,
-                              String              username       = null,
-                              String              password       = null,
-                              Closure             isReadContent  = null,
-                              byte[]              data           = null )
+                              String              method           = 'GET',
+                              Map<String, String> headers          = [:],
+                              int                 connectTimeoutMs = 0,
+                              int                 readTimeoutMs    = 0,
+                              boolean             failOnError      = true,
+                              boolean             logError         = true,
+                              String              username         = null,
+                              String              password         = null,
+                              Closure             isReadContent    = null,
+                              byte[]              data             = null )
     {
         assert url.with { startsWith( 'http://' ) || startsWith( 'https://' )}, "[$url] - only 'http[s]://' URLs are supported"
         assert ( ! data ) || ( method == 'POST' ) || ( method == 'PUT' ), "HTTP [$method] request - data can only be sent for POST and PUT requests"
@@ -468,8 +468,8 @@ class IOHelper extends BaseHelper<BaseExtension>
             final connection          = url.replace( ' ' as char, '+' as char ).toURL().openConnection() as HttpURLConnection
             response.connection       = connection
             connection.requestMethod  = method
-            connection.connectTimeout = connectTimeout
-            connection.readTimeout    = readTimeout
+            connection.connectTimeout = connectTimeoutMs
+            connection.readTimeout    = readTimeoutMs
 
             headers.each { String name, String value -> connection.setRequestProperty( name, value )}
 

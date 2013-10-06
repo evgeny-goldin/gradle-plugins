@@ -17,11 +17,13 @@ class PlayPlugin extends BasePlugin
     Map<String, Class<? extends PlayBaseTask>> tasks ( Project project )
     {
         [
-            ( SETUP_TASK ) : SetupTask,
-            ( RUN_TASK   ) : RunTask,
-            ( START_TASK ) : StartTask,
-            ( STOP_TASK  ) : StopTask,
-            ( GRUNT_TASK ) : GruntTask
+            ( SETUP_TASK )          : SetupTask,
+            ( RUN_TASK   )          : RunTask,
+            ( START_TASK )          : StartTask,
+            ( CHECK_STARTED_TASK )  : CheckStartedTask,
+            ( STOP_TASK  )          : StopTask,
+            ( CHECK_STOPPED_TASK  ) : CheckStoppedTask,
+            ( GRUNT_TASK )          : GruntTask
         ]
     }
 

@@ -1,10 +1,10 @@
 package com.github.goldin.plugins.gradle.node
 
-import com.github.goldin.plugins.gradle.common.extensions.BaseShellExtension
+import com.github.goldin.plugins.gradle.common.extensions.ShellExtension
 
 
 @SuppressWarnings([ 'GroovyInstanceVariableNamingConvention', 'PropertyName', 'DuplicateListLiteral' ])
-class NodeExtension extends BaseShellExtension
+class NodeExtension extends ShellExtension
 {
     boolean      updated                  = false // Internal property, set to 'true' after extension is updated
     List<String> cleanWorkspaceCommands   = [ 'git checkout -f', 'git clean -dff' ]
@@ -24,12 +24,9 @@ class NodeExtension extends BaseShellExtension
     boolean      failIfNoPid              = true  // Whether to fail execution if no PID file was found after application has started
     boolean      failIfNoTests            = true  // Whether to fail execution if no tests were found
     boolean      failIfTestsFail          = true  // Whether to fail execution if tests fail
-    boolean      stopIfFailsToStart       = true  // Whether the app should be stopped if it fails to start
-    boolean      stopBeforeStart          = true  // Whether 'stop' should run before 'start'
     boolean      stopallBeforeStart       = false // Whether 'stopall' should run before 'start'
-    boolean      checkAfterStart          = true  // Whether 'checkStarted' should run after 'start'
+
     boolean      checkAfterRestartall     = true  // Whether 'checkStarted' should run after 'restartall'
-    boolean      checkAfterStop           = true  // Whether 'checkStopped' should run after 'stop'
     boolean      checkAfterStopall        = true  // Whether 'checkStopped' should run after 'stopall'
     boolean      listAfterStart           = true  // Whether 'list' should run after 'start'
     boolean      listAfterRestartall      = true  // Whether 'list' should run after 'restartall'
@@ -39,7 +36,6 @@ class NodeExtension extends BaseShellExtension
     boolean      npmLocalCache            = true  // Whether results of 'npm install' are cached locally
     boolean      npmInstallDevDependencies = true // Whether 'devDependencies' should be installed when "npm install" is running
     String       npmRemoteCache                   // Remote repo URL for storing 'npm install' cache archives
-    boolean      startupScript            = false // Whether a startup script should be created in 'build' directory
     boolean      pidOnlyToStop            = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
     String       pidFileName                      // PID file name
     int          port                     = 1337  // Port the application starts on (becomes part of PID file name)
@@ -48,18 +44,6 @@ class NodeExtension extends BaseShellExtension
     String       printUrl                 = '/'   // Application's URL to print after it has started. Nothing is displayed if set to '' or null
     boolean      printPublicIp            = true  // Whether public IP of application is printed if 'printUrl' is used
     String       publicIp                         // Internal property, public IP resolved
-
-    /**
-     * Checks to perform after application has started.
-     * Key  : application url, relative like '/' or '/login' or full like 'http://...'
-     * Value: two elements list: [0] - expected status code, int
-     *                           [1] - expected content, String
-     *                                 Same format as in "monitor" plugin - 'text', '/regex/', '[json]', '{json}', token1*token2
-     */
-    Map<String,List<?>> checks            = [ '/' : [ 200, '' ]]
-
-    int          checkWait                = 5     // Seconds to wait after starting/stopping the application and checking it
-    int          checkTimeout             = 10    // Seconds to wait for check test to succeed or fail (timeout)
 
     String        scriptPath
     List<String>  knownScriptPaths        = 'server.js server.coffee app.js app.coffee'.tokenize().asImmutable()

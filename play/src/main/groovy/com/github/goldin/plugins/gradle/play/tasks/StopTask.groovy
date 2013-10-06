@@ -14,6 +14,7 @@ class StopTask extends PlayBaseTask
         if ( pidFile.file )
         {
             runPlay( 'stop' )
+            if ( ext.checkAfterStop ) { runTask( CHECK_STOPPED_TASK )}
         }
         else
         {

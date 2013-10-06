@@ -2,19 +2,19 @@ package com.github.goldin.plugins.gradle.common.helpers
 
 import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
-import com.github.goldin.plugins.gradle.common.extensions.BaseShellExtension
+import com.github.goldin.plugins.gradle.common.extensions.ShellExtension
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
 import org.gradle.api.logging.LogLevel
 
 
-class ShellHelper extends BaseHelper<BaseShellExtension>
+class ShellHelper extends BaseHelper<ShellExtension>
 {
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ project && task && ext })
     @Ensures ({ this.project && this.task && this.ext })
-    ShellHelper ( Project project, BaseTask task, BaseShellExtension ext ) { super( project, task, ext )}
+    ShellHelper ( Project project, BaseTask task, ShellExtension ext ) { super( project, task, ext )}
 
 
     @Requires({ scriptName })
@@ -86,5 +86,26 @@ class ShellHelper extends BaseHelper<BaseShellExtension>
 
         exec( 'chmod', [ '+x', scriptFile.canonicalPath ] )
         exec( ext.shell, [ scriptFile.canonicalPath ], projectDir, failOnError, useGradleExec, disconnect, logLevel )
+    }
+
+
+    /**
+     * Update checks URLs: '/login' => 'http://127.0.0.1:9000/login'
+     */
+    @Requires({ checks && ( port > 0 ) })
+    @Ensures ({ result && ( result.size() == checks.size()) })
+    Map<String,List<?>> updateChecks( Map<String,List<?>> checks, int port )
+    {
+        ( Map<String , List<?>> ) checks.inject( [:] ){
+            Map<String,List<?>> map, String url, List content ->
+            assert url && content && ( content.size() == 2 )
+
+            final newUrl = ( url.startsWith( 'http' ) ?
+                                url :
+                                "http://127.0.0.1:${ port }${ url.startsWith( '/' ) ? '' : '/' }${ url }" ).toString()
+            assert ( ! map.containsValue( newUrl )), "Duplicate check url [$newUrl] - mapped both to ${ map[ newUrl ]} and $content"
+            map[ newUrl ] = content
+            map
+        }
     }
 }

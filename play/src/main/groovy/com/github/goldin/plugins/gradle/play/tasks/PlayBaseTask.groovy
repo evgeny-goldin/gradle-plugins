@@ -46,6 +46,7 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
 
     private void updateExtension()
     {
+        ext.checks           = updateChecks( ext.checks, ext.port )
         ext.playZip          = "play-${ ext.playVersion }.zip"
         ext.playUrl          = "http://downloads.typesafe.com/play/${ ext.playVersion }/${ ext.playZip }"
         ext.playDirectory    = home( "${ ext.playHome }/play-${ ext.playVersion }" ).canonicalPath
