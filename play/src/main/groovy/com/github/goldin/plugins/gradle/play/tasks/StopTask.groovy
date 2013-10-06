@@ -14,11 +14,12 @@ class StopTask extends PlayBaseTask
         if ( pidFile.file )
         {
             runPlay( 'stop' )
-            if ( ext.checkAfterStop ) { runTask( CHECK_STOPPED_TASK )}
         }
         else
         {
             log( LogLevel.WARN ){ "'${ pidFile.canonicalPath }' is missing, '$STOP_TASK' task won't be run" }
         }
+
+        if ( ext.checkAfterStop ) { runTask( CHECK_STOPPED_TASK )}
     }
 }
