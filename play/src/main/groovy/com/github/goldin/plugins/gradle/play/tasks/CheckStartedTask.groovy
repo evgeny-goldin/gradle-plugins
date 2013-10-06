@@ -1,10 +1,9 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
+import static com.github.goldin.plugins.gradle.play.PlayConstants.*
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException
 import org.gradle.api.logging.LogLevel
-
-import static com.github.goldin.plugins.gradle.common.CommonConstants.getSTOP_TASK
 
 
 /**
@@ -53,7 +52,9 @@ class CheckStartedTask extends PlayBaseTask
 
                 throw new GradleException( errorMessage )
             }
-
         }
+
+        final  runningPidFile = project.file( RUNNING_PID )
+        assert runningPidFile.file, "'${runningPidFile.canonicalPath}' is missing"
     }
 }

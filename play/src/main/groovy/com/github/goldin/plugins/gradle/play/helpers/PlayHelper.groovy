@@ -29,7 +29,7 @@ class PlayHelper extends BaseHelper<PlayExtension>
     {
         """
         |echo $LOG_DELIMITER
-        |echo "Executing $Q$operationTitle$Q ${ operationTitle == this.name ? 'task' : 'step' } in $Q`pwd`$Q"
+        |echo "Executing $Q$operationTitle$Q${ operationTitle == this.name ? ' task' : '' } in $Q`pwd`$Q"
         |echo "Running   $SCRIPT_LOCATION"
         |echo $LOG_DELIMITER
         |
