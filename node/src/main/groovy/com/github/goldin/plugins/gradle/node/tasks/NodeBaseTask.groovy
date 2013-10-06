@@ -68,7 +68,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     }
 
 
-    @SuppressWarnings([ 'UseCollectMany', 'UnnecessaryObjectReferences' ])
+    @SuppressWarnings([ 'UseCollectMany', 'UnnecessaryObjectReferences', 'AbcMetric' ])
     @Requires({ ! ext.updated })
     private void updateExtension()
     {
