@@ -8,7 +8,7 @@ class SetupTask extends PlayBaseTask
     @Override
     void taskAction ()
     {
-        runTools([ 'wget --version', "$ext.shell --version", 'unzip -v' ])
+        runTools([ "$ext.shell --version" ])
         shellExec( setupScript(), baseScript())
     }
 
@@ -21,6 +21,8 @@ class SetupTask extends PlayBaseTask
 
         """
         |if ! [ -d '$ext.playDirectory' ]; then
+        |  wget  --version
+        |  unzip -v
         |  mkdir -p '$playHome'
         |  wget  '$ext.playUrl' -O '$playZipPath'
         |  unzip '$playZipPath' -d '$playHome'
