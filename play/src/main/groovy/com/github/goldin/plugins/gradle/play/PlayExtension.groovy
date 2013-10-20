@@ -7,24 +7,32 @@ import com.github.goldin.plugins.gradle.common.extensions.ShellExtension
 class PlayExtension extends ShellExtension
 {
     String  appName
-    String  playVersion     = '2.2.0'
-    String  playHome        = '.play'
+    String  playHome             = '.play'
 
-    int     port            = 9000 // Port the application starts on
-    String  address         = '0.0.0.0'
-    String  config          = 'conf/application.conf'
-    String  arguments       = ''
+    int     port                 = 9000 // Port the application starts on
+    String  address              = '0.0.0.0'
+    String  config               = 'conf/application.conf'
+    String  arguments            = ''
 
-    int     debugPort       = 8000
-    boolean debug           = false
+    List<Map<String,?>> grunt    = []
 
-    List<Map<String,?>> js  = []
-    List<Map<String,?>> css = []
+    Map<String,String>  versions        = [:]
+    Map<String,String>  defaultVersions = [ 'play'                 : '2.2.0',
+                                            'node'                 : '0.10.20',
+                                            'grunt'                : '0.4.1',
+                                            'grunt-cli'            : '0.1.9',
+                                            'coffee-script'        : '1.6.3',
+                                            'uglify-js'            : '2.4.0',
+                                            'grunt-contrib-clean'  : '0.5.0',
+                                            'grunt-contrib-coffee' : '0.7.0',
+                                            'grunt-contrib-uglify' : '0.2.4',
+                                            'grunt-contrib-less'   : '0.7.0' ]
 
     /**
      * Internal properties
      */
 
+    String  playVersion
     boolean updated       = false
     String  playArguments = ''
     String  playZip

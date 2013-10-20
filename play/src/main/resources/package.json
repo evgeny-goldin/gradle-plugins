@@ -1,0 +1,15 @@
+{
+    "name"        : "${ name }",
+    "version"     : "${ version }",
+    "preferGlobal": "false",
+    "devDependencies": {
+        "grunt-cli"             : "${ grunt_cli }",
+        "grunt"                 : "${ grunt }",
+        "coffee-script"         : "${ coffee_script }",
+        "uglify-js"             : "${ uglify_js }",
+        "grunt-contrib-clean"   : "${ grunt_contrib_clean  }",
+        "grunt-contrib-coffee"  : "${ grunt_contrib_coffee }",
+        "grunt-contrib-uglify"  : "${ grunt_contrib_uglify }",
+        "grunt-contrib-less"    : "${ grunt_contrib_less }"
+    }
+}

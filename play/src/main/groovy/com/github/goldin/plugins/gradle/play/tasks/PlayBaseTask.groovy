@@ -27,15 +27,14 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
         shellHelper = new ShellHelper( this.project, this, this.ext )
         playHelper  = new PlayHelper ( this.project, this, this.ext )
 
-        assert ext.appName,       "'appName' should be defined in $description"
-        assert ext.playVersion,   "'playVersion' should be defined in $description"
-        assert ext.playHome,      "'playHome' should be defined in $description"
-        assert ext.address,       "'address' should be defined in $description"
-        assert ext.config,        "'config' should be defined in $description"
-        assert ext.port      > 0, "'port' should be positive in $description"
-        assert ext.debugPort > 0, "'debugPort' should be positive in $description"
-
-        assert ext.playVersion.startsWith( '2.2.' ), "Only 'playVersion' 2.2.x and higher supported in $description"
+        assert ext.appName,          "'appName' should be defined in $description"
+        assert ext.playHome,         "'playHome' should be defined in $description"
+        assert ext.address,          "'address' should be defined in $description"
+        assert ext.config,           "'config' should be defined in $description"
+        assert ext.port > 0,         "'port' should be positive in $description"
+        assert ext.versions != null, "'versions' should be defined in $description"
+        assert ext.defaultVersions,  "'defaultVersions' should be defined in $description"
+        assert ext.grunt != null,    "'grunt' should be defined in $description"
 
         if ( ! ext.updated )
         {
@@ -47,6 +46,12 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
 
     private void updateExtension()
     {
+        ext.versions         = ext.defaultVersions + ext.versions
+        ext.playVersion      = ext.versions['play']
+
+        assert ext.playVersion,                      "versions['play'] is missing in $description"
+        assert ext.playVersion.startsWith( '2.2.' ), "Only 'playVersion' 2.2.x and higher supported in $description"
+
         ext.checks           = updateChecks( ext.checks, ext.port )
         ext.playArguments    = playArguments()
         ext.playZip          = "play-${ ext.playVersion }.zip"
