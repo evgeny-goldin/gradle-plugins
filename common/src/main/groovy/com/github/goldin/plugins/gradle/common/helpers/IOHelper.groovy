@@ -158,7 +158,7 @@ class IOHelper extends BaseHelper<BaseExtension>
       * {@code File.write()} wrapper.
       */
      @Requires({ file && ( content != null ) && encoding })
-     @Ensures ({ result == file })
+     @Ensures ({ ( result == file ) && result.file })
      File write ( File file, String content, String encoding = 'UTF-8' )
      {
          assert ( ! file.file ) || project.delete( file ), "Unable to delete [${ file.canonicalPath }]"
@@ -166,9 +166,21 @@ class IOHelper extends BaseHelper<BaseExtension>
          assert file.parentFile.with { directory || mkdirs() }, "Unable to mkdir [${ file.parentFile.canonicalPath }]"
 
          file.write( content, encoding )
-         assert ( file.file && ( file.size() >= content.size()))
+         assert file.size() >= content.size()
          file
      }
+
+
+    /**
+     * Renders template into file specified.
+     */
+    @Requires({ templateName && fileName && ( binding != null ) })
+    @Ensures ({ result.file })
+    File writeTemplate( String templateName, String fileName, Map<String,?> binding )
+    {
+        write( project.file( fileName ),
+               renderTemplate( getResourceText( templateName ), binding ))
+    }
 
 
      /**
