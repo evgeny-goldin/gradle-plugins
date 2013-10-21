@@ -70,7 +70,7 @@ class GruntTask extends PlayBaseTask
     {
         """
         |js:
-        |   ccc
+        |  ccc
         """.stripMargin().trim()
     }
 
@@ -81,7 +81,7 @@ class GruntTask extends PlayBaseTask
     {
         """
         |css:
-        |   ccc
+        |  ccc
         """.stripMargin().trim()
     }
 }

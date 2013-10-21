@@ -6,7 +6,7 @@ module.exports = ( grunt ) ->
     clean:
       build: [ '${ cleanDestinations.join( "', '" ) }' ]
 
-    ${ tasks.join( '\n\n    ' ) }
+${ tasks.join( '\n' ).readLines().collect{ "    $it" }.join( '\n' ) }
 
   grunt.loadNpmTasks 'grunt-contrib-clean'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
