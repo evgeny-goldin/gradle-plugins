@@ -47,7 +47,7 @@ class StartTask extends NodeBaseTask
     @Ensures ({ result })
     private String startScript()
     {
-        final coffee  = ext.scriptPath.toLowerCase().endsWith( '.coffee' ) ? COFFEE_EXECUTABLE : ''
+        final coffee  = ext.scriptPath.toLowerCase().endsWith( DOT_COFFEE ) ? COFFEE_EXECUTABLE : ''
         if ( coffee ){ checkFile( coffee )}
 
         final pidFileName = pidFileName( ext.port )

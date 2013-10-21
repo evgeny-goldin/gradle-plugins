@@ -1,12 +1,11 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
 import static com.github.goldin.plugins.gradle.play.PlayConstants.*
-import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
 
 /**
- *
+ * Runs various Grunt operations
  */
 class GruntTask extends PlayBaseTask
 {
@@ -31,57 +30,79 @@ class GruntTask extends PlayBaseTask
 
     private void generateGruntFile()
     {
-        final cleanDestinations = []
-        final tasks             = []
-        final taskNames         = [ 'clean' ]
-        int counter             = 1
+        final List<String>              destinations = []
+        final Map<String, List<String>> coffeeFiles  = [:]
+        final Map<String, List<String>> uglifyFiles  = [:]
 
         for ( Map<String,?> map in ext.grunt )
         {
-            final String source      = map[ 'src' ]
-            final String destination = map[ 'dest' ]
+            final String  source      = map[ 'src' ]
+            final String  destination = map[ 'dest' ]
+            final boolean minify      = map[ 'minify' ]
 
             assert source && destination, \
                    "Both 'src' and 'dest' should be defined for each 'grunt' element"
-            cleanDestinations << destination
 
-            final isJs        = destination.endsWith( '.js' )
-            final isMinifyJs  = destination.endsWith( '.min.js' )
-            final isCss       = destination.endsWith( '.css' )
-            final isMinifyCss = destination.endsWith( '.min.css' )
+            assert ( source instanceof String ) || ( source instanceof List ), \
+                   "Illegal source '${source}' of type '${ source.getClass().name }' - " +
+                   "should be of type '${ String.name }' or '${ List.name }'"
 
-            assert isJs || isCss, "Illegal grunt destination '${destination}' - should end with '.js' or '.css'"
+            final isJs  = destination.endsWith( '.js' )
+            final isCss = destination.endsWith( '.css' )
 
-            tasks << this."${ isJs ? 'jsTask' : 'cssTask' }"( source, destination, isJs ? isMinifyJs : isMinifyCss, counter++ )
+            assert isJs || isCss, "Illegal grunt destination '${destination}' - should end with either '.js' or '.css'"
+
+            destinations << destination
+
+            isJs? updateJsFiles ( source, destination, minify, coffeeFiles, uglifyFiles ) :
+                  updateCssFiles( source, destination )
         }
 
-        final variables = [ packageJson       : PACKAGE_JSON,
-                            cleanDestinations : cleanDestinations,
-                            tasks             : tasks,
-                            taskNames         : taskNames ]
+        final variables = [ packageJson  : PACKAGE_JSON,
+                            destinations : destinations,
+                            coffeeFiles  : coffeeFiles,
+                            uglifyFiles  : uglifyFiles ]
 
         writeTemplate( GRUNT_FILE, GRUNT_FILE, variables )
     }
 
 
-    @Requires({ source && destination && ( taskCounter > 0 ) })
-    @Ensures ({ result })
-    private String jsTask( Object source, String destination, boolean isMinify, int taskCounter )
+    @Requires({ source && destination.endsWith( '.js' ) && ( coffeeFiles != null ) && ( uglifyFiles != null ) })
+    private void updateJsFiles ( Object source, String destination, boolean isMinify,
+                                 Map<String, List<String>> coffeeFiles,
+                                 Map<String, List<String>> uglifyFiles )
     {
-        """
-        |js:
-        |  ccc
-        """.stripMargin().trim()
+        final isCoffeePath = {
+            String path ->
+            final f = project.file( path )
+            f.file ? path.endsWith( DOT_COFFEE ) : f.list().any{ it.endsWith( DOT_COFFEE ) }
+        }
+
+        final coffeePath = {
+            String path ->
+            final f = project.file( path )
+            f.file ? ( path.endsWith( DOT_COFFEE ) ? path : null ) : "${ path }${ path.endsWith( '/' ) ? '' : '/' }*${ DOT_COFFEE }"
+        }
+
+        final isSourceList = source instanceof List
+        final isCoffee     = isSourceList ? source.any{ String s -> isCoffeePath( s )} :
+                                            isCoffeePath(( String ) source )
+        if ( isCoffee )
+        {
+            coffeeFiles[ ( destination ) ] = ( isSourceList ? source.collect { String s -> coffeePath( s ) } :
+                                                              [ coffeePath(( String ) source ) ] ).grep()
+        }
+
+        if ( isMinify )
+        {
+            final destinationMinified              = destination[ 0 .. -( '.js'.size() + 1 ) ] + '.min.js'
+            uglifyFiles[ ( destinationMinified ) ] = [ destination ]
+        }
     }
 
 
-    @Requires({ source && destination && ( taskCounter > 0 ) })
-    @Ensures ({ result })
-    private String cssTask( Object source, String destination, boolean isMinify, int taskCounter )
+    @Requires({ source && destination.endsWith( '.css' ) })
+    private void updateCssFiles ( Object source, String destination )
     {
-        """
-        |css:
-        |  ccc
-        """.stripMargin().trim()
     }
 }
