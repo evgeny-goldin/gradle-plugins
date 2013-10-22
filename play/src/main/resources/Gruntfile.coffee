@@ -17,10 +17,9 @@ module.exports = ( grunt ) ->
       compileJoined:
         options:
           join     : true
-          sourceMap: true
-        <% if ( coffeeFiles ) { %>
+          sourceMap: true<% if ( coffeeFiles ) { %>
         files:
-          <%= coffeeFiles.collect{ key, value -> "'$key' : [ '${ value.join( "', '" ) }' ]" }.join( '\n          ' ) %>
+          <%= renderMap( coffeeFiles ) %>
         <% } %>
 
     # -----------------------------------------------
@@ -29,15 +28,36 @@ module.exports = ( grunt ) ->
 
     uglify:
       options:
-        mangle: false
-  <% if ( uglifyFiles ) { %>
+        mangle: false<% if ( coffeeFilesMinified ) { %>
       build:
         files:
-          <%= uglifyFiles.collect{ key, value -> "'$key' : [ '${ value.join( "', '" ) }' ]" }.join( '\n          ' ) %>
-  <% } %>
+          <%= renderMap( coffeeFilesMinified ) %>
+      <% } %>
+
+    # -----------------------------------------------
+    # https://github.com/gruntjs/grunt-contrib-less
+    # -----------------------------------------------
+
+    less:
+      build:
+        options:
+          yuicompress: false<% if ( lessFiles ) { %>
+        files:
+          <%= renderMap( lessFiles ) %>
+        <% } %>
+      buildMinified:
+        options:
+          yuicompress: true<% if ( lessFilesMinified ) { %>
+        files:
+          <%= renderMap( lessFilesMinified ) %>
+        <% } %>
 
   grunt.loadNpmTasks 'grunt-contrib-clean'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-uglify'
   grunt.loadNpmTasks 'grunt-contrib-less'
-  grunt.registerTask 'default', [ 'clean', 'coffee', 'uglify' ]
+  grunt.registerTask 'default', [ 'clean', 'coffee', 'uglify', 'less' ]
+
+<%
+String renderMap( Map m ){ m.collect{ key, value -> "'$key' : [ '${ value.join( "', '" ) }' ]" }.join( '\n          ' )}
+%>

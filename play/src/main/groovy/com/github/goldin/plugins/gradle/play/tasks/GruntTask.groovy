@@ -30,13 +30,14 @@ class GruntTask extends PlayBaseTask
 
     private void generateGruntFile()
     {
-        final List<String>              destinations = []
-        final Map<String, List<String>> coffeeFiles  = [:]
-        final Map<String, List<String>> uglifyFiles  = [:]
+        final Map<String, List<String>> coffeeFiles         = [:]
+        final Map<String, List<String>> coffeeFilesMinified = [:]
+        final Map<String, List<String>> lessFiles           = [:]
+        final Map<String, List<String>> lessFilesMinified   = [:]
 
         for ( Map<String,?> map in ext.grunt )
         {
-            final String  source      = map[ 'src' ]
+            final Object  source      = map[ 'src' ]
             final String  destination = map[ 'dest' ]
             final boolean minify      = map[ 'minify' ]
 
@@ -52,57 +53,56 @@ class GruntTask extends PlayBaseTask
 
             assert isJs || isCss, "Illegal grunt destination '${destination}' - should end with either '.js' or '.css'"
 
-            destinations << destination
-
-            isJs? updateJsFiles ( source, destination, minify, coffeeFiles, uglifyFiles ) :
-                  updateCssFiles( source, destination )
+            isJs? updateFiles( DOT_JS,  DOT_COFFEE, source, destination, minify, coffeeFiles, coffeeFilesMinified ) :
+                  updateFiles( DOT_CSS, DOT_LESS,   source, destination, minify, lessFiles,   lessFilesMinified   )
         }
 
-        final variables = [ packageJson  : PACKAGE_JSON,
-                            destinations : destinations,
-                            coffeeFiles  : coffeeFiles,
-                            uglifyFiles  : uglifyFiles ]
+        final destinations = [ coffeeFiles, coffeeFilesMinified, lessFiles, lessFilesMinified ].collect { it.keySet() }.flatten()
+        final variables    = [ packageJson         : PACKAGE_JSON,
+                               destinations        : destinations,
+                               coffeeFiles         : coffeeFiles,
+                               coffeeFilesMinified : coffeeFilesMinified,
+                               lessFiles           : lessFiles,
+                               lessFilesMinified   : lessFilesMinified ]
 
         writeTemplate( GRUNT_FILE, GRUNT_FILE, variables )
     }
 
 
-    @Requires({ source && destination.endsWith( '.js' ) && ( coffeeFiles != null ) && ( uglifyFiles != null ) })
-    private void updateJsFiles ( Object source, String destination, boolean isMinify,
-                                 Map<String, List<String>> coffeeFiles,
-                                 Map<String, List<String>> uglifyFiles )
+    @Requires({ extension && compiledExtension && source && destination.endsWith( extension ) &&
+                ( files != null ) && ( minifiedFiles != null ) })
+    private void updateFiles ( String                    extension,
+                               String                    compiledExtension,
+                               Object                    source,
+                               String                    destination,
+                               boolean                   isMinifyFiles,
+                               Map<String, List<String>> files,
+                               Map<String, List<String>> minifiedFiles )
     {
-        final isCoffeePath = {
+        final isPath = {
             String path ->
             final f = project.file( path )
-            f.file ? path.endsWith( DOT_COFFEE ) : f.list().any{ it.endsWith( DOT_COFFEE ) }
+            f.file ? path.endsWith( compiledExtension ) : f.list().any{ it.endsWith( compiledExtension ) }
         }
 
-        final coffeePath = {
+        final getPath = {
             String path ->
             final f = project.file( path )
-            f.file ? ( path.endsWith( DOT_COFFEE ) ? path : null ) : "${ path }${ path.endsWith( '/' ) ? '' : '/' }*${ DOT_COFFEE }"
+            f.file ? ( path.endsWith( compiledExtension ) ? path : null ) : "${ path }${ path.endsWith( '/' ) ? '' : '/' }*${ compiledExtension }"
         }
 
         final isSourceList = source instanceof List
-        final isCoffee     = isSourceList ? source.any{ String s -> isCoffeePath( s )} :
-                                            isCoffeePath(( String ) source )
-        if ( isCoffee )
+        final isFiles      = isSourceList ? source.any{ String s -> isPath( s )} :
+                                            isPath(( String ) source )
+        if ( isFiles )
         {
-            coffeeFiles[ ( destination ) ] = ( isSourceList ? source.collect { String s -> coffeePath( s ) } :
-                                                              [ coffeePath(( String ) source ) ] ).grep()
+            files[ ( destination ) ] = ( isSourceList ? source.collect { String s -> getPath( s ) } :
+                                                        [ getPath(( String ) source ) ] ).grep()
+            if ( isMinifyFiles )
+            {
+                final destinationMinified                = destination[ 0 .. -( "$extension".size() + 1 ) ] + ".min$extension"
+                minifiedFiles[ ( destinationMinified ) ] = [ destination ]
+            }
         }
-
-        if ( isMinify )
-        {
-            final destinationMinified              = destination[ 0 .. -( '.js'.size() + 1 ) ] + '.min.js'
-            uglifyFiles[ ( destinationMinified ) ] = [ destination ]
-        }
-    }
-
-
-    @Requires({ source && destination.endsWith( '.css' ) })
-    private void updateCssFiles ( Object source, String destination )
-    {
     }
 }
