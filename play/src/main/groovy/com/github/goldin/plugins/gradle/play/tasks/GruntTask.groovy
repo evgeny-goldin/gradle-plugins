@@ -57,13 +57,16 @@ class GruntTask extends PlayBaseTask
                   updateFiles( DOT_CSS, DOT_LESS,   source, destination, minify, lessFiles,   lessFilesMinified   )
         }
 
-        final destinations = [ coffeeFiles, coffeeFilesMinified, lessFiles, lessFilesMinified ].collect { it.keySet() }.flatten()
-        final variables    = [ packageJson         : PACKAGE_JSON,
-                               destinations        : destinations,
-                               coffeeFiles         : coffeeFiles,
-                               coffeeFilesMinified : coffeeFilesMinified,
-                               lessFiles           : lessFiles,
-                               lessFilesMinified   : lessFilesMinified ]
+        final allMaps   = [ coffeeFiles, coffeeFilesMinified, lessFiles, lessFilesMinified ]
+
+        for ( map in allMaps ) { map.values().each { assert it instanceof List }}
+
+        final variables = [ packageJson         : PACKAGE_JSON,
+                            destinations        : allMaps.collect { it.keySet() }.flatten(),
+                            coffeeFiles         : coffeeFiles,
+                            coffeeFilesMinified : coffeeFilesMinified,
+                            lessFiles           : lessFiles,
+                            lessFilesMinified   : lessFilesMinified ]
 
         writeTemplate( GRUNT_FILE, GRUNT_FILE, variables )
     }
@@ -79,30 +82,35 @@ class GruntTask extends PlayBaseTask
                                Map<String, List<String>> files,
                                Map<String, List<String>> minifiedFiles )
     {
-        final isPath = {
+        final isCompilePath = {
             String path ->
-            final f = project.file( path )
-            f.file ? path.endsWith( compiledExtension ) : f.list().any{ it.endsWith( compiledExtension ) }
+            final  f = project.file( path )
+            f.file ? path.endsWith( compiledExtension ) :
+                     f.list().any{ it.endsWith( compiledExtension ) }
         }
 
         final getPath = {
             String path ->
-            final f = project.file( path )
-            f.file ? ( path.endsWith( compiledExtension ) ? path : null ) : "${ path }${ path.endsWith( '/' ) ? '' : '/' }*${ compiledExtension }"
+            final  f = project.file( path )
+            f.file ? path :
+                     "${ path }${ path.endsWith( '/' ) ? '' : '/' }*" +
+                     ( f.list().any{ it.endsWith( compiledExtension ) } ? compiledExtension : extension )
         }
 
-        final isSourceList = source instanceof List
-        final isFiles      = isSourceList ? source.any{ String s -> isPath( s )} :
-                                            isPath(( String ) source )
-        if ( isFiles )
+        final isSourceList   = source instanceof List
+        final isCompileFiles = isSourceList ? source.any{ String s -> isCompilePath( s )} :
+                                              isCompilePath(( String ) source )
+        final sourcePaths    = isSourceList ? source.collect { String s -> getPath( s ) } :
+                                              [ getPath(( String ) source ) ]
+        if ( isCompileFiles )
         {
-            files[ ( destination ) ] = ( isSourceList ? source.collect { String s -> getPath( s ) } :
-                                                        [ getPath(( String ) source ) ] ).grep()
-            if ( isMinifyFiles )
-            {
-                final destinationMinified                = destination[ 0 .. -( "$extension".size() + 1 ) ] + ".min$extension"
-                minifiedFiles[ ( destinationMinified ) ] = [ destination ]
-            }
+            files[ ( destination ) ] = sourcePaths
+        }
+
+        if ( isMinifyFiles )
+        {
+            final destinationMinified                = destination[ 0 .. -( "$extension".size() + 1 ) ] + ".min$extension"
+            minifiedFiles[ ( destinationMinified ) ] = isCompileFiles? [ destination ] : sourcePaths
         }
     }
 }

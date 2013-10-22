@@ -12,6 +12,8 @@ class CheckStoppedTask extends PlayBaseTask
     @Requires({ ext.checks })
     void taskAction()
     {
+        sleepMs( ext.checkWait * 1000 )
+
         ext.checks.findAll { String checkUrl, list -> checkUrl.startsWith( "http://127.0.0.1:${ ext.port }" ) }.each {
             String checkUrl, List<?> list ->
 
