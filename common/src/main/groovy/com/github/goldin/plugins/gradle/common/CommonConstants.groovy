@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.common
 
+
 @SuppressWarnings([ 'GroovyConstantNamingConvention' ])
 class CommonConstants
 {

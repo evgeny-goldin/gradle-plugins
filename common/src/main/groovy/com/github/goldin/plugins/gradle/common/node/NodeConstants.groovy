@@ -1,13 +1,11 @@
 package com.github.goldin.plugins.gradle.common.node
 
-import com.github.goldin.plugins.gradle.common.CommonConstants
-
 
 /**
- * Various constants
+ * Various Node.js constants
  */
 @SuppressWarnings([ 'PropertyName' ])
-class NodeConstants extends CommonConstants
+class NodeConstants
 {
     final static String PACKAGE_JSON           = 'package.json'
 

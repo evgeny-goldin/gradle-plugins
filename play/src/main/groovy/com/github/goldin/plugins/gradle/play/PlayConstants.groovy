@@ -1,12 +1,10 @@
 package com.github.goldin.plugins.gradle.play
 
-import com.github.goldin.plugins.gradle.common.CommonConstants
-
 
 /**
- * Various constants
+ * Various Play constants
  */
-class PlayConstants extends CommonConstants
+class PlayConstants
 {
     final static String PLAY_EXTENSION = 'play'
     final static String GRUNT_TASK     = 'grunt'

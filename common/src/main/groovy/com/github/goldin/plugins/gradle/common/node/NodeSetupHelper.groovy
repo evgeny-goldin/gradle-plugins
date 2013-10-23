@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.common.node
 
+import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 import static com.github.goldin.plugins.gradle.common.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.common.helpers.BaseHelper

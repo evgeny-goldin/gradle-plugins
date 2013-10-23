@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
+import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 import static com.github.goldin.plugins.gradle.play.PlayConstants.*
 import org.gradle.api.logging.LogLevel
 

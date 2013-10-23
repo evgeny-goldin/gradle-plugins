@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.play
 
+import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 import static com.github.goldin.plugins.gradle.play.PlayConstants.*
 import com.github.goldin.plugins.gradle.common.BasePlugin
 import com.github.goldin.plugins.gradle.play.tasks.*

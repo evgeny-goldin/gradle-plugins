@@ -1,6 +1,6 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
-import static com.github.goldin.plugins.gradle.play.PlayConstants.*
+import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 import org.gcontracts.annotations.Ensures
 
 

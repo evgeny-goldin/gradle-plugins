@@ -1,6 +1,6 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
-import static com.github.goldin.plugins.gradle.play.PlayConstants.*
+import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 
 
 class RunTask extends PlayBaseTask

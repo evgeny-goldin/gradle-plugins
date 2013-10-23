@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
+import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 import static com.github.goldin.plugins.gradle.play.PlayConstants.*
 import org.gcontracts.annotations.Requires
 import org.gradle.api.GradleException

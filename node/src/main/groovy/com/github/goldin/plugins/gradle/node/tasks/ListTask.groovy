@@ -1,6 +1,6 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
-import static com.github.goldin.plugins.gradle.common.node.NodeConstants.*
+import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 import org.gcontracts.annotations.Ensures
 
 
