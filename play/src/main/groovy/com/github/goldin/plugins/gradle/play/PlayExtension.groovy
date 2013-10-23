@@ -32,7 +32,6 @@ class PlayExtension extends NodeBaseExtension
      */
 
     String  playVersion
-    boolean updated       = false
     String  playArguments = ''
     String  playZip
     String  playUrl

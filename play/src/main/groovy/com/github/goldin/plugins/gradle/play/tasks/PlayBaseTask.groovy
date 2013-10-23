@@ -45,6 +45,7 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
     }
 
 
+    @Requires({ ! ext.updated })
     private void updateExtension()
     {
         ext.versions         = ext.defaultVersions + ext.versions

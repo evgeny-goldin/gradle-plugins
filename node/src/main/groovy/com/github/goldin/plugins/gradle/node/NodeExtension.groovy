@@ -6,7 +6,6 @@ import com.github.goldin.plugins.gradle.common.node.NodeBaseExtension
 @SuppressWarnings([ 'GroovyInstanceVariableNamingConvention', 'PropertyName', 'DuplicateListLiteral' ])
 class NodeExtension extends NodeBaseExtension
 {
-    boolean      updated                  = false // Internal property, set to 'true' after extension is updated
     List<String> cleanWorkspaceCommands   = [ 'git checkout -f', 'git clean -dff' ]
     boolean      cleanWorkspace           = false // Whether to run cleanWorkspaceCommands before running tasks
 

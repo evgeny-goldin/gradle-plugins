@@ -1,6 +1,7 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
 import static com.github.goldin.plugins.gradle.common.CommonConstants.*
+import static com.github.goldin.plugins.gradle.common.node.NodeConstants.*
 import static com.github.goldin.plugins.gradle.play.PlayConstants.*
 import org.gcontracts.annotations.Requires
 
@@ -15,7 +16,12 @@ class GruntTask extends PlayBaseTask
     {
         generatePackageJson()
         generateGruntFile()
-        exec( 'grunt' )
+
+        shellExec( """
+        |. "\$HOME/.nvm/nvm.sh"
+        |nvm use $ext.nodeVersion
+        |./$GRUNT_EXECUTABLE
+        """.stripMargin().trim(), baseScript())
     }
 
 
