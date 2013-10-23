@@ -1,5 +1,6 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
+import static com.github.goldin.plugins.gradle.common.node.NodeConstants.*
 import org.gcontracts.annotations.Ensures
 
 
@@ -10,7 +11,8 @@ class SetupTask extends PlayBaseTask
     {
         if ( ext.grunt )
         {
-            setupNode()
+            ext.npmCleanInstall = ( ! project.file( NODE_MODULES_DIR ).directory )
+            setupNode( false )
         }
 
         runTools([ "$ext.shell --version" ])

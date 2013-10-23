@@ -23,6 +23,7 @@ class NodeExtension extends NodeBaseExtension
     boolean      failIfNoTests            = true  // Whether to fail execution if no tests were found
     boolean      failIfTestsFail          = true  // Whether to fail execution if tests fail
     boolean      stopallBeforeStart       = false // Whether 'stopall' should run before 'start'
+    boolean      ensureForever            = true  // Whether 'forever' should be installed even if it doesn't appear in 'package.json'
 
     boolean      checkAfterRestartall     = true  // Whether 'checkStarted' should run after 'restartall'
     boolean      checkAfterStopall        = true  // Whether 'checkStopped' should run after 'stopall'

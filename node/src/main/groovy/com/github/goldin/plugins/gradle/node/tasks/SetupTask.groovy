@@ -24,7 +24,7 @@ class SetupTask extends NodeBaseTask
 
         removeDevDependencies( project.file( PACKAGE_JSON ))
 
-        setupNode()
+        setupNode( ext.ensureForever )
     }
 
 

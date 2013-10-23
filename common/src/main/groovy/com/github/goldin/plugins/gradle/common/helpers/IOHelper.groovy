@@ -178,8 +178,10 @@ class IOHelper extends BaseHelper<BaseExtension>
     @Ensures ({ result.file })
     File writeTemplate( String templateName, String fileName, Map<String,?> binding )
     {
-        write( project.file( fileName ),
-               renderTemplate( getResourceText( templateName ), binding ))
+        final file = project.file( fileName )
+        write( file, renderTemplate( getResourceText( templateName ), binding ))
+        log { "Generated [$file.canonicalPath] based on template [$templateName]" }
+        file
     }
 
 

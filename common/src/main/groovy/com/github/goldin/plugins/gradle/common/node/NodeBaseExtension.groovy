@@ -11,6 +11,5 @@ class NodeBaseExtension extends ShellExtension
     boolean npmLocalCache   = true  // Whether results of 'npm install' are cached locally
     String  npmRemoteCache          // Remote repo URL for storing 'npm install' cache archives
     String  nodeVersion     = 'latest'
-    boolean ensureForever   = true  // Whether 'forever' should be installed even if it doesn't appear in 'package.json'
     boolean npmCleanInstall = false // Internal property, whether 'npm install' was run on a clean directory
 }

@@ -15,15 +15,16 @@ class GruntTask extends PlayBaseTask
     {
         generatePackageJson()
         generateGruntFile()
+        exec( 'grunt' )
     }
 
 
     private void generatePackageJson()
     {
-        final variables = ( Map<String,?> ) ext.versions.collectEntries { String key, String value ->
-            [ key.replace( '-', '_' ), value ]
-        } + [ name    : project.name,
-              version : '0.0.1' ]
+        final variables = ( Map<String,?> ) ext.versions.collectEntries {
+            String key, String value -> [ key.replace( '-', '_' ), value ]
+        } +
+        [ name : project.name, version : '0.0.1' ]
 
         writeTemplate( PACKAGE_JSON, PACKAGE_JSON, variables )
     }

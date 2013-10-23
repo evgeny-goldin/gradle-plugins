@@ -27,16 +27,16 @@ class NodeSetupHelper extends BaseHelper<NodeBaseExtension>
     }
 
 
-    void setupNode()
+    void setupNode( boolean ensureForever )
     {
         runTools([ 'git --version', 'tar --version', "$ext.shell --version", 'whoami' ])
         restoreNodeModulesFromCache()
-        runNodeSetupScript()
+        runNodeSetupScript( ensureForever )
         createNodeModulesCache()
     }
 
 
-    void runNodeSetupScript ()
+    void runNodeSetupScript ( boolean ensureForever )
     {
         final setupScript = getResourceText( 'node-setup.sh', [
             nvmRepo            : NVM_GIT_REPO,
@@ -45,7 +45,7 @@ class NodeSetupHelper extends BaseHelper<NodeBaseExtension>
             SCRIPT_LOCATION    : SCRIPT_LOCATION,
             REMOVE_COLOR_CODES : REMOVE_COLOR_CODES,
             nodeVersion        : ext.nodeVersion,
-            ensureForever      : ext.ensureForever as String,
+            ensureForever      : ensureForever as String,
             forever            : FOREVER_EXECUTABLE,
             shell              : ext.shell,
             Q                  : Q ])
