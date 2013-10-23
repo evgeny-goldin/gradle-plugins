@@ -1,7 +1,6 @@
 package com.github.goldin.plugins.gradle.node.helpers
 
-import static com.github.goldin.plugins.gradle.node.NodeConstants.*
-import com.github.goldin.plugins.gradle.common.BaseTask
+import static com.github.goldin.plugins.gradle.common.node.NodeConstants.*
 import org.gradle.api.Project
 import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
 import com.github.goldin.plugins.gradle.node.NodeExtension

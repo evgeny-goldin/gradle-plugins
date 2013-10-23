@@ -1,4 +1,4 @@
-package com.github.goldin.plugins.gradle.node
+package com.github.goldin.plugins.gradle.common.node
 
 import com.github.goldin.plugins.gradle.common.CommonConstants
 

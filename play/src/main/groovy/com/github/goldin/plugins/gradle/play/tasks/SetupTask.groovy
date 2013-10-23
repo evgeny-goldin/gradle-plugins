@@ -8,6 +8,11 @@ class SetupTask extends PlayBaseTask
     @Override
     void taskAction()
     {
+        if ( ext.grunt )
+        {
+            setupNode()
+        }
+
         runTools([ "$ext.shell --version" ])
         shellExec( setupScript(), baseScript())
     }

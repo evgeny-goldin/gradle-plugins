@@ -1,17 +1,16 @@
 package com.github.goldin.plugins.gradle.node
 
-import com.github.goldin.plugins.gradle.common.extensions.ShellExtension
+import com.github.goldin.plugins.gradle.common.node.NodeBaseExtension
 
 
 @SuppressWarnings([ 'GroovyInstanceVariableNamingConvention', 'PropertyName', 'DuplicateListLiteral' ])
-class NodeExtension extends ShellExtension
+class NodeExtension extends NodeBaseExtension
 {
     boolean      updated                  = false // Internal property, set to 'true' after extension is updated
     List<String> cleanWorkspaceCommands   = [ 'git checkout -f', 'git clean -dff' ]
     boolean      cleanWorkspace           = false // Whether to run cleanWorkspaceCommands before running tasks
 
     String       NODE_ENV                 = 'development'
-    String       nodeVersion              = 'latest'
     String       testCommand              = 'mocha'
     String       testInput                = 'test'
 
@@ -20,7 +19,6 @@ class NodeExtension extends ShellExtension
     boolean      xUnitReport              = true  // Whether xUnit report should be created when tests are run
     String       xUnitReportFile          = 'TEST-node.xml'  // xUnit report file name written to the test-results directory
     List<String> addTasks                 = null  // Which tasks should be added to the project, all tasks are added if null, no tasks are added if empty
-    boolean      ensureForever            = true  // Whether 'forever' should be installed even if it doesn't appear in 'package.json'
     boolean      failIfNoPid              = true  // Whether to fail execution if no PID file was found after application has started
     boolean      failIfNoTests            = true  // Whether to fail execution if no tests were found
     boolean      failIfTestsFail          = true  // Whether to fail execution if tests fail
@@ -32,10 +30,7 @@ class NodeExtension extends ShellExtension
     boolean      listAfterRestartall      = true  // Whether 'list' should run after 'restartall'
     boolean      listAfterStop            = true  // Whether 'list' should run after 'stop'
     boolean      listAfterStopall         = true  // Whether 'list' should run after 'stopall'
-    boolean      npmCleanInstall          = false // Internal property, whether 'npm install' was run on a clean directory
-    boolean      npmLocalCache            = true  // Whether results of 'npm install' are cached locally
     boolean      npmInstallDevDependencies = true // Whether 'devDependencies' should be installed when "npm install" is running
-    String       npmRemoteCache                   // Remote repo URL for storing 'npm install' cache archives
     boolean      pidOnlyToStop            = true  // Whether 'stop' task can only use a valid .pid file (created by 'start') and no 'kill' operations
     String       pidFileName                      // PID file name
     int          port                     = 1337  // Port the application starts on (becomes part of PID file name)

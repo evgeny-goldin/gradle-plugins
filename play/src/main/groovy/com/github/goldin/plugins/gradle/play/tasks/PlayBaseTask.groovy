@@ -1,8 +1,8 @@
 package com.github.goldin.plugins.gradle.play.tasks
 
 import static com.github.goldin.plugins.gradle.play.PlayConstants.*
+import com.github.goldin.plugins.gradle.common.node.NodeSetupHelper
 import com.github.goldin.plugins.gradle.common.BaseTask
-import com.github.goldin.plugins.gradle.common.helpers.ShellHelper
 import com.github.goldin.plugins.gradle.play.PlayExtension
 import com.github.goldin.plugins.gradle.play.helpers.PlayHelper
 import org.gcontracts.annotations.Requires
@@ -14,8 +14,8 @@ import org.gcontracts.annotations.Ensures
  */
 abstract class PlayBaseTask extends BaseTask<PlayExtension>
 {
-    @Delegate ShellHelper  shellHelper
-    @Delegate PlayHelper   playHelper
+    @Delegate NodeSetupHelper nodeSetupHelper
+    @Delegate PlayHelper      playHelper
 
     @Override
     Class<PlayExtension> extensionType(){ PlayExtension }
@@ -24,8 +24,8 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
     @Override
     void verifyUpdateExtension ( String description )
     {
-        shellHelper = new ShellHelper( this.project, this, this.ext )
-        playHelper  = new PlayHelper ( this.project, this, this.ext )
+        nodeSetupHelper = new NodeSetupHelper( this.project, this, this.ext )
+        playHelper      = new PlayHelper     ( this.project, this, this.ext )
 
         assert ext.appName,          "'appName' should be defined in $description"
         assert ext.playHome,         "'playHome' should be defined in $description"
@@ -47,8 +47,10 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
     private void updateExtension()
     {
         ext.versions         = ext.defaultVersions + ext.versions
+        ext.nodeVersion      = ext.versions['node']
         ext.playVersion      = ext.versions['play']
 
+        assert ext.nodeVersion,                      "versions['node'] is missing in $description"
         assert ext.playVersion,                      "versions['play'] is missing in $description"
         assert ext.playVersion.startsWith( '2.2.' ), "Only 'playVersion' 2.2.x and higher supported in $description"
 

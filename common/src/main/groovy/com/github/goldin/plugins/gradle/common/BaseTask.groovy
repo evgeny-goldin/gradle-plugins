@@ -1,6 +1,6 @@
 package com.github.goldin.plugins.gradle.common
 
-import com.github.goldin.plugins.gradle.common.extensions.BaseExtension
+import com.github.goldin.plugins.gradle.common.extensions.ShellExtension
 import com.github.goldin.plugins.gradle.common.helpers.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 /**
  * Base helper task class to be extended by other tasks
  */
-abstract class BaseTask<T extends BaseExtension> extends DefaultTask
+abstract class BaseTask<T extends ShellExtension> extends DefaultTask
 {
     final SimpleDateFormat dateFormatter      = new SimpleDateFormat( 'dd MMM, EEEE, yyyy, HH:mm:ss (zzzzzz:\'GMT\'ZZZZZZ)', Locale.ENGLISH )
     final long             startTime          = System.currentTimeMillis()
@@ -32,6 +32,7 @@ abstract class BaseTask<T extends BaseExtension> extends DefaultTask
     @Delegate JsonHelper     jsonHelper
     @Delegate MatcherHelper  matcherHelper
     @Delegate TeamCityHelper teamCityHelper
+    @Delegate ShellHelper    shellHelper
 
 
     /**
@@ -82,6 +83,7 @@ abstract class BaseTask<T extends BaseExtension> extends DefaultTask
         jsonHelper     = new JsonHelper    ( this.project, this, this.ext )
         matcherHelper  = new MatcherHelper ( this.project, this, this.ext )
         teamCityHelper = new TeamCityHelper( this.project, this, this.ext )
+        shellHelper    = new ShellHelper   ( this.project, this, this.ext )
 
         verifyUpdateExtension( "$project => ${ this.extensionName } { .. }" )
         taskAction()

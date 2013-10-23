@@ -1,24 +1,23 @@
-package com.github.goldin.plugins.gradle.node.helpers
+package com.github.goldin.plugins.gradle.common.node
 
-import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import static com.github.goldin.plugins.gradle.common.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
-import org.gradle.api.Project
 import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
-import com.github.goldin.plugins.gradle.node.NodeExtension
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
+import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 
 
 /**
- * {@link com.github.goldin.plugins.gradle.node.tasks.SetupTask} helper.
+ * Helper for the local "npm" cache.
  */
-class NpmCacheHelper extends BaseHelper<NodeExtension>
+class NpmCacheHelper extends BaseHelper<NodeBaseExtension>
 {
     @SuppressWarnings([ 'GroovyUntypedAccess' ])
     @Requires({ project && task && ext })
     @Ensures ({ this.project && this.task && this.ext })
-    NpmCacheHelper ( Project project, BaseTask task, NodeExtension ext ){ super( project, task, ext )}
+    NpmCacheHelper ( Project project, BaseTask task, NodeBaseExtension ext ){ super( project, task, ext )}
 
 
     @SuppressWarnings([ 'GroovyMultipleReturnPointsPerMethod' ])

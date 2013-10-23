@@ -1,13 +1,12 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
-import static com.github.goldin.plugins.gradle.node.NodeConstants.*
-import com.github.goldin.plugins.gradle.common.helpers.ShellHelper
+import static com.github.goldin.plugins.gradle.common.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.common.node.NodeSetupHelper
 import com.github.goldin.plugins.gradle.node.NodeExtension
 import com.github.goldin.plugins.gradle.node.helpers.ConfigHelper
 import com.github.goldin.plugins.gradle.node.helpers.DBHelper
 import com.github.goldin.plugins.gradle.node.helpers.NodeHelper
-import com.github.goldin.plugins.gradle.node.helpers.NpmCacheHelper
 import org.gcontracts.annotations.Requires
 
 
@@ -19,11 +18,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Override
     Class<NodeExtension> extensionType(){ NodeExtension }
 
-    @Delegate ShellHelper    shellHelper
-    @Delegate NodeHelper     nodeHelper
-    @Delegate DBHelper       dbHelper
-    @Delegate NpmCacheHelper cacheHelper
-    @Delegate ConfigHelper   configHelper
+    @Delegate NodeSetupHelper nodeSetupHelper
+    @Delegate NodeHelper      nodeHelper
+    @Delegate DBHelper        dbHelper
+    @Delegate ConfigHelper    configHelper
 
 
     /**
@@ -37,11 +35,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     {
         assert ( ! projectDir.canonicalPath.find( /\s/ )), "Project directory path [${ projectDir.canonicalPath }] contains spaces - currently not supported"
 
-        shellHelper  = new ShellHelper   ( this.project, this, this.ext )
-        nodeHelper   = new NodeHelper    ( this.project, this, this.ext )
-        dbHelper     = new DBHelper      ( this.project, this, this.ext )
-        cacheHelper  = new NpmCacheHelper( this.project, this, this.ext )
-        configHelper = new ConfigHelper  ( this.project, this, this.ext )
+        nodeSetupHelper = new NodeSetupHelper( this.project, this, this.ext )
+        nodeHelper      = new NodeHelper     ( this.project, this, this.ext )
+        dbHelper        = new DBHelper       ( this.project, this, this.ext )
+        configHelper    = new ConfigHelper   ( this.project, this, this.ext )
 
         assert ext.NODE_ENV,            "'NODE_ENV' should be defined in $description"
         assert ext.env != null,         "'env' shouldn't be null in $description"

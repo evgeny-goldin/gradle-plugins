@@ -1,10 +1,10 @@
 package com.github.goldin.plugins.gradle.play
 
-import com.github.goldin.plugins.gradle.common.extensions.ShellExtension
+import com.github.goldin.plugins.gradle.common.node.NodeBaseExtension
 
 
 @SuppressWarnings([ 'UnusedVariable' ])
-class PlayExtension extends ShellExtension
+class PlayExtension extends NodeBaseExtension
 {
     String  appName
     String  playHome             = '.play'
@@ -27,7 +27,6 @@ class PlayExtension extends ShellExtension
                                             'grunt-contrib-coffee' : '0.7.0',
                                             'grunt-contrib-uglify' : '0.2.4',
                                             'grunt-contrib-less'   : '0.7.0' ]
-
     /**
      * Internal properties
      */

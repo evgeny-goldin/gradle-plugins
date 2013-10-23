@@ -1,21 +1,19 @@
 package com.github.goldin.plugins.gradle.node.tasks
 
-import static com.github.goldin.plugins.gradle.node.NodeConstants.*
+import static com.github.goldin.plugins.gradle.common.node.NodeConstants.*
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import java.util.regex.Pattern
 
 
 /**
- * Setup Node.js environment.
+ * Setups Node.js environment.
  */
 class SetupTask extends NodeBaseTask
 {
     @Override
     void taskAction()
     {
-        runTools([ 'git --version', 'tar --version', "$ext.shell --version", 'whoami' ])
-
         cleanWorkspace()
 
         ext.configsResult   = updateConfigs()
@@ -25,11 +23,7 @@ class SetupTask extends NodeBaseTask
 
         removeDevDependencies( project.file( PACKAGE_JSON ))
 
-        restoreNodeModulesFromCache()
-
-        runSetupScript()
-
-        createNodeModulesCache()
+        setupNode()
     }
 
 
@@ -146,23 +140,5 @@ class SetupTask extends NodeBaseTask
 
         packageJsonMap.remove( 'devDependencies' )
         objectToJson( packageJsonMap, packageJson )
-    }
-
-
-    private void runSetupScript()
-    {
-        final setupScript = getResourceText( 'setup.sh', [
-            nvmRepo            : NVM_GIT_REPO,
-            nvmCommit          : NVM_COMMIT,
-            LOG_DELIMITER      : LOG_DELIMITER,
-            SCRIPT_LOCATION    : SCRIPT_LOCATION,
-            REMOVE_COLOR_CODES : REMOVE_COLOR_CODES,
-            nodeVersion        : ext.nodeVersion,
-            ensureForever      : ext.ensureForever as String,
-            forever            : FOREVER_EXECUTABLE,
-            shell              : ext.shell,
-            Q                  : Q ])
-
-        shellExec( setupScript, '', scriptFileForTask(), false )
     }
 }
