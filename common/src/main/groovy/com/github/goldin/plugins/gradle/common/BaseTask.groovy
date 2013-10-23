@@ -27,6 +27,9 @@ abstract class BaseTask<T extends ShellExtension> extends DefaultTask
     final Map<String,String> systemEnv        = System.getenv().asImmutable()
     final Map<String,String> systemProperties = ( Map<String,String> ) System.properties.asImmutable()
 
+    /**
+     * Remember to update {@link GeneralHelper#runTask(java.lang.String)}!
+     */
     @Delegate GeneralHelper  generalHelper
     @Delegate IOHelper       ioHelper
     @Delegate JsonHelper     jsonHelper
