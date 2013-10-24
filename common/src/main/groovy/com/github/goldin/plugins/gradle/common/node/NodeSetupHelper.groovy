@@ -29,7 +29,7 @@ class NodeSetupHelper extends BaseHelper<NodeBaseExtension>
 
     void setupNode( boolean ensureForever )
     {
-        runTools([ 'git --version', 'tar --version', "$ext.shell --version", 'whoami' ])
+        runTools( 'git --version', 'tar --version', "$ext.shell --version", 'whoami' )
         restoreNodeModulesFromCache()
         runNodeSetupScript( ensureForever )
         createNodeModulesCache()

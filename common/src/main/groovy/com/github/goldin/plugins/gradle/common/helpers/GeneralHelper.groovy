@@ -26,7 +26,7 @@ class GeneralHelper extends BaseHelper<BaseExtension>
      * Verifies command-line tools specified are available by executing them.
      */
     @Requires({ tools })
-    void runTools ( List<String> tools )
+    void runTools ( String ... tools )
     {
         tools.each { it.tokenize().with { List<String> list -> exec( list.head(), list.tail()) }}
     }

@@ -1,12 +1,10 @@
 #!@{shell}
 
 currentDir=`pwd`
-user=`whoami`
-group=`id -g -n $user`
 sudoCommand=""
 
 echo @{LOG_DELIMITER}
-echo "Executing "\""setup"\"" task in "\""$currentDir"\""" as "\""$user:$group"\""
+echo "Executing "\""setup"\"" task in "\""$currentDir"\"""
 echo "Running   @{SCRIPT_LOCATION}"
 echo @{LOG_DELIMITER}
 

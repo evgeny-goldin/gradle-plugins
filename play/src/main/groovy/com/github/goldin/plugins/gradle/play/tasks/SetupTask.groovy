@@ -15,7 +15,7 @@ class SetupTask extends PlayBaseTask
             setupNode( false )
         }
 
-        runTools([ "$ext.shell --version" ])
+        runTools( "$ext.shell --version" )
         shellExec( setupScript(), baseScript())
     }
 
