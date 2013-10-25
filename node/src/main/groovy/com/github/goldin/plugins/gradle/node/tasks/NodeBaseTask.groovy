@@ -2,6 +2,7 @@ package com.github.goldin.plugins.gradle.node.tasks
 
 import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.common.helpers.ShellHelper
 import com.github.goldin.plugins.gradle.common.node.NodeSetupHelper
 import com.github.goldin.plugins.gradle.node.NodeExtension
 import com.github.goldin.plugins.gradle.node.helpers.ConfigHelper
@@ -18,6 +19,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Override
     Class<NodeExtension> extensionType(){ NodeExtension }
 
+    @Delegate ShellHelper     shellHelper
     @Delegate NodeSetupHelper nodeSetupHelper
     @Delegate NodeHelper      nodeHelper
     @Delegate DBHelper        dbHelper
@@ -35,6 +37,7 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     {
         assert ( ! projectDir.canonicalPath.find( /\s/ )), "Project directory path [${ projectDir.canonicalPath }] contains spaces - currently not supported"
 
+        shellHelper     = new ShellHelper    ( this.project, this, this.ext )
         nodeSetupHelper = new NodeSetupHelper( this.project, this, this.ext )
         nodeHelper      = new NodeHelper     ( this.project, this, this.ext )
         dbHelper        = new DBHelper       ( this.project, this, this.ext )

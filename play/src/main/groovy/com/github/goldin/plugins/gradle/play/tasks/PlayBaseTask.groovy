@@ -2,12 +2,13 @@ package com.github.goldin.plugins.gradle.play.tasks
 
 import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 import static com.github.goldin.plugins.gradle.play.PlayConstants.*
-import com.github.goldin.plugins.gradle.common.node.NodeSetupHelper
 import com.github.goldin.plugins.gradle.common.BaseTask
+import com.github.goldin.plugins.gradle.common.helpers.ShellHelper
+import com.github.goldin.plugins.gradle.common.node.NodeSetupHelper
 import com.github.goldin.plugins.gradle.play.PlayExtension
 import com.github.goldin.plugins.gradle.play.helpers.PlayHelper
-import org.gcontracts.annotations.Requires
 import org.gcontracts.annotations.Ensures
+import org.gcontracts.annotations.Requires
 
 
 /**
@@ -15,8 +16,10 @@ import org.gcontracts.annotations.Ensures
  */
 abstract class PlayBaseTask extends BaseTask<PlayExtension>
 {
+    @Delegate ShellHelper     shellHelper
     @Delegate NodeSetupHelper nodeSetupHelper
     @Delegate PlayHelper      playHelper
+
 
     @Override
     Class<PlayExtension> extensionType(){ PlayExtension }
@@ -25,6 +28,7 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
     @Override
     void verifyUpdateExtension ( String description )
     {
+        shellHelper     = new ShellHelper    ( this.project, this, this.ext )
         nodeSetupHelper = new NodeSetupHelper( this.project, this, this.ext )
         playHelper      = new PlayHelper     ( this.project, this, this.ext )
 

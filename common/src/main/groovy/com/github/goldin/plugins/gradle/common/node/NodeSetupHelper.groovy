@@ -4,6 +4,7 @@ import static com.github.goldin.plugins.gradle.common.CommonConstants.*
 import static com.github.goldin.plugins.gradle.common.node.NodeConstants.*
 import com.github.goldin.plugins.gradle.common.BaseTask
 import com.github.goldin.plugins.gradle.common.helpers.BaseHelper
+import com.github.goldin.plugins.gradle.common.helpers.ShellHelper
 import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 import org.gradle.api.Project
@@ -14,6 +15,7 @@ import org.gradle.api.Project
  */
 class NodeSetupHelper extends BaseHelper<NodeBaseExtension>
 {
+    @Delegate ShellHelper    shellHelper
     @Delegate NpmCacheHelper npmHelper
 
 
@@ -23,7 +25,8 @@ class NodeSetupHelper extends BaseHelper<NodeBaseExtension>
     NodeSetupHelper ( Project project, BaseTask task, NodeBaseExtension ext )
     {
         super( project, task, ext )
-        npmHelper = new NpmCacheHelper( project, task, ext )
+        shellHelper = new ShellHelper   ( project, task, ext )
+        npmHelper   = new NpmCacheHelper( project, task, ext )
     }
 
 

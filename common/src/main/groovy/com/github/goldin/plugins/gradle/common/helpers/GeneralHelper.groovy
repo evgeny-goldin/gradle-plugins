@@ -43,7 +43,6 @@ class GeneralHelper extends BaseHelper<BaseExtension>
         t.jsonHelper     = jsonHelper
         t.matcherHelper  = matcherHelper
         t.teamCityHelper = teamCityHelper
-        t.shellHelper    = shellHelper
 
         t.verifyUpdateExtension( "Explicit run of task '${taskName}'" )
         t.taskAction()
