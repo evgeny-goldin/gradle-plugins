@@ -42,6 +42,10 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
             updateExtension()
             ext.updated = true
         }
+
+        assert ext.nodeVersion,                      "versions['node'] is missing in $description"
+        assert ext.playVersion,                      "versions['play'] is missing in $description"
+        assert ext.playVersion.startsWith( '2.2.' ), "Only 'playVersion' 2.2.x and higher supported in $description"
     }
 
 
@@ -51,11 +55,6 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
         ext.versions         = ext.defaultVersions + ext.versions
         ext.nodeVersion      = ext.versions['node']
         ext.playVersion      = ext.versions['play']
-
-        assert ext.nodeVersion,                      "versions['node'] is missing in $description"
-        assert ext.playVersion,                      "versions['play'] is missing in $description"
-        assert ext.playVersion.startsWith( '2.2.' ), "Only 'playVersion' 2.2.x and higher supported in $description"
-
         ext.checks           = updateChecks( ext.checks, ext.port )
         ext.playArguments    = playArguments()
         ext.playZip          = "play-${ ext.playVersion }.zip"

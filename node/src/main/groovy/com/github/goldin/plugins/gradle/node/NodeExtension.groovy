@@ -40,7 +40,7 @@ class NodeExtension extends NodeBaseExtension
     String       publicIp                         // Internal property, public IP resolved
 
     String        scriptPath
-    List<String>  knownScriptPaths        = 'server.js server.coffee app.js app.coffee'.tokenize().asImmutable()
+    List<String>  knownScriptPaths        = 'index.js server.js server.coffee app.js app.coffee'.tokenize().asImmutable()
     String        scriptArguments                 // Additional script arguments
     List<String>  run                     = []    // Commands to execute by 'run' task, if defined application is not started or stopped
     List<String>  before                  = []    // Commands to execute before running unit tests or starting the application

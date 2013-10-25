@@ -62,6 +62,10 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
             updateExtension()
             ext.updated = true
         }
+
+        assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \
+               "Couldn't find an application script to run! Specify 'scriptPath' in $description or use " +
+               "'${ ( ext.knownScriptPaths ?: [] ).join( "', '" ) }'"
     }
 
 
@@ -69,12 +73,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
     @Requires({ ! ext.updated })
     private void updateExtension()
     {
-        ext.checks     = updateChecks( ext.checks, ext.port )
-        ext.scriptPath = ext.scriptPath ?: ( ext.knownScriptPaths ?: [] ).find { new File( projectDir, it ).file }
-        assert ( ext.scriptPath || ( ! requiresScriptPath()) || ( ext.run )), \
-               "Couldn't find an application script to run! Specify 'scriptPath' in $description or use " +
-               "'${ ( ext.knownScriptPaths ?: [] ).join( "', '" ) }'"
-
+        ext.checks           = updateChecks( ext.checks, ext.port )
+        ext.scriptPath       = ext.scriptPath ?: ( ext.knownScriptPaths ?: [] ).find { new File( projectDir, it ).file }
         ext.nodeVersion      = ( ext.nodeVersion == 'latest' ) ? latestNodeVersion() : ext.nodeVersion
         ext.removeColorCodes = ( ext.removeColor ? " | $REMOVE_COLOR_CODES" : '' )
 
