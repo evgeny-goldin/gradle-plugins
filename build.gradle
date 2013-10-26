@@ -18,8 +18,8 @@ apply from: 'file:wrapper.gradle'
 buildscript {
     repositories { jcenter() }
     dependencies {
-        classpath 'com.github.goldin.plugins.gradle:about:0.3',
-                  'com.github.goldin.plugins.gradle:duplicates:0.3'
+        classpath 'com.github.goldin.plugins.gradle:about:0.3.1',
+                  'com.github.goldin.plugins.gradle:duplicates:0.3.1'
     }
 }
 
