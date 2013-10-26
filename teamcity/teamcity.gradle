@@ -25,7 +25,7 @@ _p_.logger.info( "TeamCity version is [$_teamCityVersion_]" )
 
 buildscript {
     repositories { jcenter() }
-    dependencies { classpath 'com.github.goldin.plugins.gradle:teamcity:0.3' }
+    dependencies { classpath 'com.github.goldin.plugins.gradle:teamcity:0.3.1' }
 }
 
 
