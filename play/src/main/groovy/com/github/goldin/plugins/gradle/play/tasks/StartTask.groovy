@@ -17,6 +17,7 @@ class StartTask extends PlayBaseTask
         runPlay( 'stage' )
         shellExec( startScript(), baseScript(), scriptFileForTask(), true, false, false, true )
         if ( ext.checkAfterStart ) { runTask( CHECK_STARTED_TASK )}
+        printApplicationUrl()
     }
 
 
@@ -26,5 +27,12 @@ class StartTask extends PlayBaseTask
         """
         |./target/universal/stage/bin/${ ext.appName } ${ ext.playArguments }${ ext.removeColorCodes } &
         """.stripMargin().toString().trim()
+    }
+
+
+    private void printApplicationUrl()
+    {
+        final message = "The application is up and running at http://127.0.0.1:${ ext.port }"
+        println( "${ '=' * ( message.size() + 2 ) }\n ${ message }\n${ '=' * ( message.size() + 2 ) }" )
     }
 }
