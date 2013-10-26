@@ -36,7 +36,7 @@ class NodeExtension extends NodeBaseExtension
     int          port                     = 1337  // Port the application starts on (becomes part of PID file name)
 
     String       printUrl                 = '/'   // Application's URL to print after it has started. Nothing is displayed if set to '' or null
-    boolean      printPublicIp            = true  // Whether public IP of application is printed if 'printUrl' is used
+    boolean      printPublicIp            = false // Whether public IP of application is printed if 'printUrl' is used
     String       publicIp                         // Internal property, public IP resolved
 
     String        scriptPath
