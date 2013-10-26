@@ -18,7 +18,7 @@ class PlayExtension extends NodeBaseExtension
 
     Map<String,String>  versions        = [:]
     Map<String,String>  defaultVersions = [ 'play'                 : '2.2.0',
-                                            'node'                 : '0.10.20',
+                                            'node'                 : '0.10.21',
                                             'grunt'                : '0.4.1',
                                             'grunt-cli'            : '0.1.9',
                                             'coffee-script'        : '1.6.3',
