@@ -67,10 +67,12 @@ class NodePlugin extends BasePlugin
     {
         super.apply( project )
 
-        final setupTask = project.tasks[ SETUP_TASK ]
+        project.afterEvaluate {
+            final setupTask = project.tasks[ SETUP_TASK ]
 
-        [ RUN_TASK, TEST_TASK, START_TASK, LIST_TASK, RESTART_ALL_TASK, STOP_TASK, STOP_ALL_TASK ].each {
-            String taskName -> project.tasks[ taskName ].dependsOn( setupTask )
+            [ RUN_TASK, TEST_TASK, START_TASK, LIST_TASK, RESTART_ALL_TASK, STOP_TASK, STOP_ALL_TASK ].each {
+                String taskName -> project.tasks.findByName(taskName)?.dependsOn( setupTask )
+            }
         }
     }
 }

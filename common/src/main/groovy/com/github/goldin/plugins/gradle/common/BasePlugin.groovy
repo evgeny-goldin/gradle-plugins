@@ -25,16 +25,27 @@ abstract class BasePlugin implements Plugin<Project>
     @Override
     void apply ( Project project )
     {
-        final tasks = tasks( project )
+        final  extensions = extensions( project )
+        assert extensions.size() == 1
 
-        for ( String taskName in tasks.keySet())
-        {
-            addTask( project, taskName, tasks[ taskName ] )
+        final  extensionName  = extensions.keySet().toList().first()
+        final  extensionClass = extensions[ extensionName ]
+        assert extensionName && extensionClass && BaseExtension.isAssignableFrom( extensionClass )
+
+        extension(project, extensionName, extensionClass)
+
+        project.afterEvaluate {
+            final tasks = tasks( project )
+
+            for ( String taskName in tasks.keySet())
+            {
+                addTask( project, taskName, tasks[ taskName ] )
+            }
+
+            project.logger.info(
+                "Groovy [$GroovySystem.version], $project, plugin [${ this.class.name }] is applied, " +
+                "added task${ tasks.size() == 1 ? '' : 's' } '${ tasks.keySet().sort().join( '\', \'' )}'." )
         }
-
-        project.logger.info(
-            "Groovy [$GroovySystem.version], $project, plugin [${ this.class.name }] is applied, " +
-            "added task${ tasks.size() == 1 ? '' : 's' } '${ tasks.keySet().sort().join( '\', \'' )}'." )
     }
 
 
