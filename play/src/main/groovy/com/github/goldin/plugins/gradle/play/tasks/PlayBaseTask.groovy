@@ -24,6 +24,8 @@ abstract class PlayBaseTask extends BaseTask<PlayExtension>
     @Override
     Class<PlayExtension> extensionType(){ PlayExtension }
 
+    @Requires({ c })
+    void play( Closure c ){ config(c) }
 
     @Override
     void verifyUpdateExtension ( String description )

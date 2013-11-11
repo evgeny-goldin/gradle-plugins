@@ -25,6 +25,9 @@ class DuplicatesTask extends BaseTask<DuplicatesExtension>
      */
     private final Map<File, List<String>> classesCache = [:]
 
+    @Requires({ c })
+    void duplicates( Closure c ){ config(c) }
+
     @Override
     void verifyUpdateExtension ( String description ) {}
 

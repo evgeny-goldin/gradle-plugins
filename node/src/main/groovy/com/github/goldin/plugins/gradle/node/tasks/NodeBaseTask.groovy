@@ -31,6 +31,8 @@ abstract class NodeBaseTask extends BaseTask<NodeExtension>
      */
     protected boolean requiresScriptPath(){ false }
 
+    @Requires({ c })
+    void node( Closure c ){ config(c) }
 
     @Override
     void verifyUpdateExtension ( String description )
