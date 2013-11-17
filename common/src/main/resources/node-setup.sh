@@ -45,10 +45,7 @@ set -o pipefail
 
 . "$NVM_SH"
 
-nvm ls @{nodeVersion}
-if [ $? -ne 0 ]; then
-    nvm install @{nodeVersion}
-fi
+nvm install @{nodeVersion}
 nvm use     @{nodeVersion}
 
 echo "npm  : [`which npm`][`npm --version`]"
