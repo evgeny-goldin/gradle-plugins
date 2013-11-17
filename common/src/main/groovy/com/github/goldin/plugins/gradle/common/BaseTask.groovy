@@ -75,6 +75,7 @@ abstract class BaseTask<T extends BaseExtension> extends DefaultTask
         {
             this.extensionName = this.name
             this.ext           = project.extensions.create( this.extensionName, extensionType())
+            this.config.delegate = this.ext
             this.config( this.ext )
         }
 

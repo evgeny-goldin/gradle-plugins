@@ -28,6 +28,8 @@ class CrawlerTask extends BaseTask<CrawlerExtension>
     private          ThreadPoolExecutor threadPool
     private          LinksStorage       linksStorage
 
+    @Requires({ c })
+    void crawler( Closure c ){ config(c) }
 
     /**
      * Verifies {@link CrawlerExtension} contains proper settings and updates it with additional properties.

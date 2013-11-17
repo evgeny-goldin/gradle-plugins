@@ -19,6 +19,8 @@ class AboutTask extends BaseTask<AboutExtension>
     @Override
     void verifyUpdateExtension ( String description ) {}
 
+    @Requires({ c })
+    void about( Closure c ){ config(c) }
 
     @Override
     void taskAction()

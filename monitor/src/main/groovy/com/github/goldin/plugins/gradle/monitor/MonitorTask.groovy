@@ -23,6 +23,8 @@ class MonitorTask extends BaseTask<MonitorExtension>
     // http://stackoverflow.com/questions/10258101/sslhandshakeexception-no-subject-alternative-names-present?answertab=active#tab-top
     static { HttpsURLConnection.defaultHostnameVerifier = { String hostname, SSLSession session -> true } as HostnameVerifier }
 
+    @Requires({ c })
+    void monitor( Closure c ){ config(c) }
 
     @Override
     void verifyUpdateExtension ( String description )

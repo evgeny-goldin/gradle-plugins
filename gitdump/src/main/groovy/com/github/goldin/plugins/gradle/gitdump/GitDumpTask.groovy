@@ -29,6 +29,8 @@ class GitDumpTask extends BaseTask<GitDumpExtension>
     @Ensures({ result })
     private String lastCommitCurrentBranch ( File projectDirectory ){ gitExec( 'log -1 --format=format:%H', projectDirectory ) }
 
+    @Requires({ c })
+    void gitdump( Closure c ){ config(c) }
 
     @Override
     void verifyUpdateExtension ( String description )
