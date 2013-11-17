@@ -13,11 +13,13 @@ import java.lang.reflect.Method
  */
 abstract class BasePlugin implements Plugin<Project>
 {
-    @Ensures({ result })
+    @Requires({ project })
+    @Ensures ({ result })
     abstract Map<String, Class<? extends BaseTask>> tasks( Project project )
 
 
-    @Ensures({ result.size() == 1 })
+    @Requires({ project })
+    @Ensures ({ result.size() == 1 })
     abstract Map<String, Class<? extends BaseExtension>> extensions( Project project )
 
 
@@ -32,9 +34,10 @@ abstract class BasePlugin implements Plugin<Project>
         final  extensionClass = extensions[ extensionName ]
         assert extensionName && extensionClass && BaseExtension.isAssignableFrom( extensionClass )
 
-        extension(project, extensionName, extensionClass)
+        extension( project, extensionName, extensionClass )
 
         project.afterEvaluate {
+
             final tasks = tasks( project )
 
             for ( String taskName in tasks.keySet())
@@ -43,7 +46,8 @@ abstract class BasePlugin implements Plugin<Project>
             }
 
             project.logger.info(
-                "Groovy [$GroovySystem.version], $project, plugin [${ this.class.name }] is applied, " +
+                "Java version '${ System.getProperty( 'java.version' )}', Groovy version '$GroovySystem.version', " +
+                "$project evaluated, plugin '${ this.class.name }' is applied, " +
                 "added task${ tasks.size() == 1 ? '' : 's' } '${ tasks.keySet().sort().join( '\', \'' )}'." )
         }
     }
@@ -64,7 +68,7 @@ abstract class BasePlugin implements Plugin<Project>
         task.ext           = extension( project, extensionName, extensionClass )
         task.extensionName = extensionName
 
-        assert task && task.ext && task.extensionName && project.tasks[ taskName ]
+        assert task && BaseTask.isInstance( task ) && task.ext && task.extensionName && project.tasks[ taskName ]
         task
     }
 
@@ -75,8 +79,7 @@ abstract class BasePlugin implements Plugin<Project>
         final extension = project.extensions.findByName( extensionName ) ?:
                           project.extensions.create    ( extensionName, extensionClass )
 
-        assert extensionClass.isInstance( extension )
+        assert BaseExtension.isInstance( extension ) && extensionClass.isInstance( extension )
         ( T ) extension
     }
-
 }

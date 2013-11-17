@@ -8,6 +8,7 @@ import com.github.goldin.plugins.gradle.node.NodeExtension
 import com.github.goldin.plugins.gradle.node.helpers.ConfigHelper
 import com.github.goldin.plugins.gradle.node.helpers.DBHelper
 import com.github.goldin.plugins.gradle.node.helpers.NodeHelper
+import org.gcontracts.annotations.Ensures
 import org.gcontracts.annotations.Requires
 
 
@@ -16,10 +17,14 @@ import org.gcontracts.annotations.Requires
  */
 abstract class NodeBaseTask extends BaseTask<NodeExtension>
 {
-    String group = 'Node'
+    @Override
+    @Ensures ({ result })
+    String getGroup () { 'Node' }
+
 
     @Override
     Class<NodeExtension> extensionType(){ NodeExtension }
+
 
     @Delegate ShellHelper     shellHelper
     @Delegate NodeSetupHelper nodeSetupHelper
