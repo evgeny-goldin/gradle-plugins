@@ -32,41 +32,31 @@ abstract class BasePlugin implements Plugin<Project>
 
         final  extensionName  = extensions.keySet().toList().first()
         final  extensionClass = extensions[ extensionName ]
+        final  extension      = extension( project, extensionName, extensionClass )
+
         assert extensionName && extensionClass && BaseExtension.isAssignableFrom( extensionClass )
 
-        extension( project, extensionName, extensionClass )
+        final tasks = tasks( project )
 
-        project.afterEvaluate {
-
-            final tasks = tasks( project )
-
-            for ( String taskName in tasks.keySet())
-            {
-                addTask( project, taskName, tasks[ taskName ] )
-            }
-
-            project.logger.info(
-                "Java version '${ System.getProperty( 'java.version' )}', Groovy version '$GroovySystem.version', " +
-                "$project evaluated, plugin '${ this.class.name }' is applied, " +
-                "added task${ tasks.size() == 1 ? '' : 's' } '${ tasks.keySet().sort().join( '\', \'' )}'." )
+        for ( String taskName in tasks.keySet())
+        {
+            addTask( project, taskName, tasks[ taskName ], extensionName, extension )
         }
+
+        project.logger.info(
+            "Java version '${ System.getProperty( 'java.version' )}', Groovy version '$GroovySystem.version', " +
+            "$project evaluated, plugin '${ this.class.name }' is applied, " +
+            "added task${ tasks.size() == 1 ? '' : 's' } '${ tasks.keySet().sort().join( '\', \'' )}'." )
     }
 
 
-    @Requires({ project && taskName && taskType })
-    <T extends BaseTask> T addTask( Project project, String taskName, Class<T> taskType )
+    @Requires({ project && taskName && taskType && extensionName && extension })
+    <T extends BaseTask> T addTask( Project project, String taskName, Class<T> taskType, String extensionName, BaseExtension extension )
     {
-        final  extensions = extensions( project )
-        assert extensions.size() == 1
-
-        final  extensionName  = extensions.keySet().toList().first()
-        final  extensionClass = extensions[ extensionName ]
-        assert extensionName && extensionClass && BaseExtension.isAssignableFrom( extensionClass )
-
         final isCreate     = project.tasks.class.methods.any { Method m -> ( m.name == 'create' ) && ( m.parameterTypes == [ String, Class ] )}
         final task         = ( T ) project.tasks."${ isCreate ? 'create' : 'add' }"( taskName, taskType )
-        task.ext           = extension( project, extensionName, extensionClass )
         task.extensionName = extensionName
+        task.ext           = extension
 
         assert task && BaseTask.isInstance( task ) && task.ext && task.extensionName && project.tasks[ taskName ]
         task
