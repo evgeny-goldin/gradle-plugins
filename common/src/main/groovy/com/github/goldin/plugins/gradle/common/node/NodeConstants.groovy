@@ -12,7 +12,7 @@ class NodeConstants
     final static String NODE_VERSION_URL       = 'http://nodejs.org/'
     final static String NVM_GIT_REPO           = 'https://github.com/creationix/nvm.git'
     // https://github.com/creationix/nvm/commits/master
-    final static String NVM_COMMIT             = 'd3f04c793e19a87cfde4cd0b8a3a299facbbcc24'
+    final static String NVM_COMMIT             = '49e9a309c37b627b2746b85397cecb954585cc9f'
 
     final static String NODE_EXTENSION         = 'node'
     final static String CLEAN_MODULES          = 'cleanModules'

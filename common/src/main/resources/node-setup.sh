@@ -56,11 +56,6 @@ echo "node : [`which node`][`node --version`]"
 
 mkdir -p "$HOME/.npm"
 
-set +e
-echo $sudoCommand chown -R $user:$group "$HOME/.npm"
-$sudoCommand chown -R $user:$group "$HOME/.npm"
-set -e
-
 echo npm install
 npm install
 

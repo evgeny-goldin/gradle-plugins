@@ -73,8 +73,8 @@ abstract class BaseTask<T extends BaseExtension> extends DefaultTask
 
         if ( this.config )
         {
-            this.extensionName = this.name
-            this.ext           = project.extensions.create( this.extensionName, extensionType())
+            this.extensionName   = this.name
+            this.ext             = project.extensions.create( this.extensionName, extensionType())
             this.config.delegate = this.ext
             this.config( this.ext )
         }
