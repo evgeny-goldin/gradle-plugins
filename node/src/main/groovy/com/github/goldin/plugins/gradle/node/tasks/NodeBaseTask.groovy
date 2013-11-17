@@ -16,6 +16,8 @@ import org.gcontracts.annotations.Requires
  */
 abstract class NodeBaseTask extends BaseTask<NodeExtension>
 {
+    String group = 'Node'
+
     @Override
     Class<NodeExtension> extensionType(){ NodeExtension }
 
